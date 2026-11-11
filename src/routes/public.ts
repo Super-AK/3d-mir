@@ -284,7 +284,6 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
 
   // Noch nicht umgesetzte Bereiche bleiben als Platzhalter erreichbar.
   const placeholders: Record<string, { title: string; description: string }> = {
-    '/3d-druck-rechner/': { title: '3D-Druck-Rechner', description: 'Modell hochladen, konfigurieren und Preis schätzen.' },
     '/shop/': { title: 'Shop', description: 'Fertige 3D-Druck-Produkte aus eigener Fertigung.' },
   };
   for (const [path, meta] of Object.entries(placeholders)) {

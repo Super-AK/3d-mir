@@ -11,6 +11,13 @@
     "vatIncluded": true,
     "estimateDisclaimer": "Unverbindliche Schätzung auf Basis Ihrer Angaben. Der verbindliche Preis wird nach Prüfung des Modells im Angebot genannt."
   },
+  "calculation": {
+    "status": "PLATZHALTER",
+    "hinweis": "TODO-KALKULATION: Wandstärke, Materialdurchsatz und Verschnitt sind technische Schätzwerte und vor dem Livegang zu prüfen.",
+    "wallThicknessMm": 1.2,
+    "materialCm3PerHour": 10,
+    "wastePercent": 5
+  },
   "materials": [
     {
       "id": "pla",

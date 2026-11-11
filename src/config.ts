@@ -134,6 +134,13 @@ export type PricingConfig = {
     vatIncluded: boolean;
     estimateDisclaimer: string;
   };
+  calculation: {
+    status: string;
+    hinweis: string;
+    wallThicknessMm: number;
+    materialCm3PerHour: number;
+    wastePercent: number;
+  };
   materials: Material[];
   printers: Printer[];
   infillOptions: number[];

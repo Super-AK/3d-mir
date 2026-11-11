@@ -2,6 +2,7 @@ import Fastify, { type FastifyError } from 'fastify';
 import cookie from '@fastify/cookie';
 import formbody from '@fastify/formbody';
 import rateLimit from '@fastify/rate-limit';
+import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -9,6 +10,7 @@ import { config } from './config.js';
 import { getLogger } from './lib/logger.js';
 import { render } from './lib/render.js';
 import { publicRoutes } from './routes/public.js';
+import { calculatorRoutes } from './routes/calculator.js';
 import { migrate } from './db/migrate.js';
 
 const CSP = [
@@ -36,6 +38,14 @@ export async function buildApp() {
   await app.register(formbody);
   // Standardmäßig kein globales Limit; nur sensible Routen (z. B. Kontaktformular) begrenzen sich selbst.
   await app.register(rateLimit, { global: false });
+  await app.register(multipart, {
+    limits: {
+      fileSize: config.maxUploadBytes,
+      files: 1,
+      fields: 25,
+      parts: 30,
+    },
+  });
 
   const assetsDir = path.join(config.root, 'public', 'assets');
   if (fs.existsSync(assetsDir)) {
@@ -58,6 +68,7 @@ export async function buildApp() {
   });
 
   await app.register(publicRoutes);
+  await app.register(calculatorRoutes);
 
   app.setNotFoundHandler((request, reply) => {
     if (request.url.startsWith('/api/')) {

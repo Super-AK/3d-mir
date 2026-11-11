@@ -98,6 +98,7 @@ Ohne SMTP-Zugang werden E-Mails derzeit **nicht versendet**, sondern als `.eml`-
 | F45 | Welche Farben sind je Material tatsächlich vorrätig? | Standardfarben aus Altprodukt |
 | F46 | Gibt es Mindestwandstärken/Designregeln, die wir Kunden nennen sollen? | noch keine |
 | F47 | „Coating“ auf der Altseite: Was genau wird angeboten (Glätten, Lackieren, Versiegeln)? | Schleifen/Lackieren als Platzhalter |
+| F66 | Sind die Kalkulationswerte realistisch: Wandstärke 1,2 mm, Materialdurchsatz 10 cm³/h, Verschnitt 5 %, Rüstkosten 3,50 € + 0,75 € je weiterem Teil, Mindestauftrag 15 €, Rundung 0,10 €? Bitte in `config/pricing.json` bestätigen oder korrigieren (siehe `docs/KALKULATION.md`). | Platzhalter |
 
 ## 9. Shop und Produkte 🟡
 

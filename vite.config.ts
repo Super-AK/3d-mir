@@ -13,10 +13,10 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: true,
     target: 'es2022',
-    cssCodeSplit: false,
     rollupOptions: {
       input: {
         main: path.join(root, 'web', 'ts', 'main.ts'),
+        calculator: path.join(root, 'web', 'ts', 'calculator.ts'),
       },
       output: {
         entryFileNames: 'js/[name]-[hash].js',

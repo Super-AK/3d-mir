@@ -1,0 +1,18 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Anfrage gesendet – 3D-MIR{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container measure">
+    <p class="eyebrow">Vielen Dank</p>
+    <h1>Ihre Anfrage ist angekommen</h1>
+    {% if reference %}
+      <p>Ihre Referenz lautet <strong>{{ reference }}</strong>. Bitte geben Sie diese Nummer bei Rückfragen an.</p>
+    {% endif %}
+    <p>Wir prüfen Ihr Modell und melden uns {{ site.contact.responseTime }} mit einem verbindlichen Angebot. Die Preisschätzung im Rechner ist unverbindlich.</p>
+    <p class="mt-2"><a class="btn" href="/">Zur Startseite</a> <a class="btn btn-secondary" href="/leistungen/">Materialien ansehen</a></p>
+  </div>
+</section>
+{% endblock %}
