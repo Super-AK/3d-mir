@@ -1,0 +1,180 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Leistungen &amp; Materialien – 3D-Druck nach Maß | 3D-MIR{% endblock %}
+{% block description %}Prototyping, Modellbau, Kleinserien und Ersatzteile aus PLA, PLA Tough, PETG, ABS, ASA und ABS-PC. Materialvergleich, Drucker und Beratung von 3D-MIR in Schömberg.{% endblock %}
+{% block ogtitle %}Leistungen &amp; Materialien – 3D-MIR{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li aria-current="page">Leistungen</li></ol>
+    </nav>
+    <h1>Leistungen &amp; Materialien</h1>
+    <p>FDM-3D-Druck für Prototypen, Modelle, Kleinserien und Ersatzteile – mit persönlicher Beratung und ehrlicher Einschätzung, was technisch sinnvoll ist.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="grid grid-3">
+      <article class="card">
+        <span class="card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg></span>
+        <h3>Prototyping</h3>
+        <p>Schnelle Iterationen für Design und Technik: Wir drucken Ihren Entwurf, Sie prüfen Passform und Funktion – und wir verfeinern gemeinsam.</p>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20h16M6 20V9l6-5 6 5v11"/><path d="M9 20v-6h6v6"/></svg></span>
+        <h3>Modellbau</h3>
+        <p>Bauteile, Gehäuse und Deko-Objekte mit feinen Details. Mehrteilige Modelle planen wir so, dass sie sauber zusammenpassen.</p>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <h3>Kleinserien</h3>
+        <p>Stückzahlen ohne Werkzeugkosten: ideal für Markttests, Vereine, Messebedarf oder wiederkehrende Bauteile.</p>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></span>
+        <h3>Ersatzteile</h3>
+        <p>Halter, Abdeckungen, Verbindungsteile: Wenn das Original nicht mehr lieferbar ist, konstruieren oder drucken wir passenden Ersatz.</p>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"/><path d="M8 9h8M8 13h5"/></svg></span>
+        <h3>Beratung</h3>
+        <p>Welches Material, welche Wandstärke, welche Orientierung? Wir sagen Ihnen vor dem Druck, worauf es ankommt.</p>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+        <h3>Faire Preise</h3>
+        <p>Transparente Kalkulation nach Material, Druckzeit und Nachbearbeitung. Sie erhalten vor der Fertigung ein verbindliches Angebot.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section section-soft" id="materialien">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Materialauswahl</p>
+      <h2>Werkstoffe im Vergleich</h2>
+      <p>Alle Materialien werden im FDM-Verfahren verarbeitet. Die angegebenen Temperaturen sind Richtwerte für die dauerhafte Einsatztemperatur.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption class="visually-hidden">Vergleich der 3D-Druck-Materialien</caption>
+        <thead>
+          <tr>
+            <th scope="col">Material</th>
+            <th scope="col">Eigenschaften</th>
+            <th scope="col">Typische Anwendung</th>
+            <th scope="col">Dauerhaft bis</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for material in pricing.materials %}
+            <tr>
+              <th scope="row">{{ material.label }}</th>
+              <td>{{ material.properties }}</td>
+              <td>{{ material.useCases }}</td>
+              <td>{{ material.maxTempC }} °C</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="alert alert-warning mt-2">
+      <p><strong>Hinweis:</strong> {{ pricing.meta.estimateDisclaimer }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container split">
+    <div>
+      <p class="eyebrow">Auswahlhilfe</p>
+      <h2>Welches Material passt zu Ihrem Teil?</h2>
+      <div class="faq">
+        <details>
+          <summary>Feine Details und ein sauberes Erscheinungsbild</summary>
+          <div><strong>PLA</strong> ist die erste Wahl: formstabil, detailtreu und in vielen Farben verfügbar. Für Teile, die etwas zäher sein müssen, <strong>PLA Tough</strong>.</div>
+        </details>
+        <details>
+          <summary>Teil im Außenbereich oder in warmer Umgebung</summary>
+          <div><strong>ASA</strong> ist UV- und witterungsbeständig und hält höheren Temperaturen stand. Für mechanisch belastete Teile im Alltag ist <strong>PETG</strong> eine gute, zähe Alternative.</div>
+        </details>
+        <details>
+          <summary>Technisches Bauteil mit Wärme und Belastung</summary>
+          <div><strong>ABS</strong> oder <strong>ABS-PC</strong> bieten hohe Temperaturfestigkeit und Schlagzähigkeit. Diese Werkstoffe drucken wir im geschlossenen Bauraum.</div>
+        </details>
+        <details>
+          <summary>Lebensmittelkontakt oder Medizin</summary>
+          <div>Standard-FDM-Drucke sind dafür <strong>nicht</strong> geeignet: Schichtfugen bieten Keimen Halt, und lebensmittelechte Zertifizierungen fehlen. Wir beraten Sie gern zu Alternativen.</div>
+        </details>
+      </div>
+    </div>
+    <div>
+      {{ image('colors', { sizes: '(max-width: 860px) 100vw, 45vw', alt: 'Übersicht der verfügbaren Filamentfarben' }) | safe }}
+    </div>
+  </div>
+</section>
+
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Werkstatt</p>
+      <h2>Unsere Drucker</h2>
+      <p>Zwei FDM-Drucker für unterschiedliche Anforderungen – vom detailreichen Modell bis zum technischen Bauteil.</p>
+    </div>
+    <div class="grid grid-2">
+      {% for printer in printers %}
+        <article class="card">
+          <h3>{{ printer.label }}</h3>
+          <p>{{ printer.note }}</p>
+          <dl class="spec-list">
+            <div><dt>Bauraum</dt><dd>{{ printer.buildVolume.x }} × {{ printer.buildVolume.y }} × {{ printer.buildVolume.z }} mm</dd></div>
+            <div><dt>Materialien</dt><dd>{{ printer.materialLabels | join(', ') }}</dd></div>
+          </dl>
+          <p class="text-muted mt-1"><small>Bauraum-Angaben sind Richtwerte und werden vom Betreiber bestätigt (TODO-BESTÄTIGEN).</small></p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="split">
+      <div>
+        <p class="eyebrow">Vorbereitung</p>
+        <h2>Was wir für ein gutes Ergebnis brauchen</h2>
+        <ul class="check-list">
+          <li>Eine <strong>geschlossene Mesh-Datei</strong> (STL, 3MF oder OBJ) ohne Löcher oder doppelte Flächen.</li>
+          <li>Die <strong>gewünschte Größe</strong> – oder eine Referenz, damit wir die Skalierung prüfen können.</li>
+          <li>Angaben zur <strong>Belastung</strong> und zum <strong>Einsatzort</strong> (innen, außen, Wärme, Feuchtigkeit).</li>
+          <li>Bei Ersatzteilen: Fotos und die entscheidenden Maße.</li>
+          <li>Die Bestätigung, dass Sie die <strong>Nutzungsrechte</strong> am Modell besitzen.</li>
+        </ul>
+        <p class="mt-2"><a class="btn" href="/3d-druck-rechner/">Modell hochladen &amp; Preis schätzen</a></p>
+      </div>
+      <div>
+        {{ image('service', { sizes: '(max-width: 860px) 100vw, 45vw', alt: '3D-Druck-Service: Bauteile aus der Fertigung' }) | safe }}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-soft">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <h2>Unsicher, welches Material das richtige ist?</h2>
+        <p>Schicken Sie uns Ihr Modell oder ein Foto – wir melden uns mit einer ehrlichen Einschätzung.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-light" href="/kontakt/">Beratung anfragen</a>
+        <a class="btn btn-ghost-light" href="/3d-druck-rechner/">Preis berechnen</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

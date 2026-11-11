@@ -1,0 +1,69 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Versandarten und Versandkosten – 3D-MIR{% endblock %}
+{% block description %}Versandkosten, Lieferzeiten und Abholmöglichkeiten bei 3D-MIR.{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen"><ol><li><a href="/">Start</a></li><li aria-current="page">Versandarten</li></ol></nav>
+    <h1>Versandarten und Kosten</h1>
+    <p>Beim Online-Shopping ist es entscheidend zu wissen, welche Versandarten und -kosten verfügbar sind. Hier finden Sie eine Übersicht zu den möglichen Lieferoptionen, die in unserem Shop angeboten werden.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="container prose">
+    {% include "partials/legal-notice.njk" %}
+    <div class="alert alert-warning">
+      <p><strong>Hinweis:</strong> Die folgenden Angaben stammen aus der bisherigen Website und werden derzeit an das neue Shopsystem angepasst (TODO-VERSAND). Verbindlich ist die Angabe im Checkout.</p>
+    </div>
+
+    <div class="shipping-grid">
+      <article class="card">
+        <h2>Standardversand</h2>
+        <dl class="spec-list">
+          <div><dt>Lieferzeit</dt><dd>3–5 Werktage</dd></div>
+          <div><dt>Kosten</dt><dd>4,99 €</dd></div>
+        </dl>
+        <p>Zuverlässige Zustellung innerhalb der angegebenen Zeit. Kostenloser Versand für Bestellungen über 50 €.</p>
+      </article>
+      <article class="card">
+        <h2>Expressversand</h2>
+        <dl class="spec-list">
+          <div><dt>Lieferzeit</dt><dd>1–2 Werktage</dd></div>
+          <div><dt>Kosten</dt><dd>9,99 €</dd></div>
+        </dl>
+        <p>Für Kunden, die ihre Bestellung schnellstmöglich erhalten möchten. Bestellungen, die vor 12 Uhr aufgegeben werden, kommen in der Regel am nächsten Tag an.</p>
+      </article>
+      <article class="card">
+        <h2>Kostenloser Versand</h2>
+        <dl class="spec-list">
+          <div><dt>Lieferzeit</dt><dd>5–7 Werktage</dd></div>
+          <div><dt>Kosten</dt><dd>kostenlos</dd></div>
+        </dl>
+        <p>Verfügbar für Bestellungen über 100 €. Ideal für Kunden, die keinen Zeitdruck haben und Kosten sparen möchten.</p>
+      </article>
+      <article class="card">
+        <h2>Abholung</h2>
+        <dl class="spec-list">
+          <div><dt>Lieferzeit</dt><dd>1–2 Werktage</dd></div>
+          <div><dt>Kosten</dt><dd>kostenlos</dd></div>
+        </dl>
+        <p>Bestellen Sie online und holen Sie Ihre Ware nach Absprache in Schömberg ab. Sie werden benachrichtigt, sobald Ihre Bestellung bereitsteht.</p>
+      </article>
+      <article class="card">
+        <h2>Internationale Lieferung</h2>
+        <dl class="spec-list">
+          <div><dt>Lieferzeit</dt><dd>7–14 Werktage</dd></div>
+          <div><dt>Kosten</dt><dd>19,99 €</dd></div>
+        </dl>
+        <p>Versand in die meisten Länder weltweit. Zoll- und Einfuhrgebühren sind nicht in den Versandkosten enthalten und müssen vom Empfänger getragen werden.</p>
+      </article>
+    </div>
+
+    <p>Egal für welche Versandart Sie sich entscheiden, wir sorgen dafür, dass Ihre Bestellung sicher und schnell bei Ihnen ankommt.</p>
+
+    {# TODO-VERSAND (F14–F20): Anbieter, Staffeln, Auslandsversand und kostenfreie Grenze bestätigen. #}
+  </div>
+</section>
+{% endblock %}

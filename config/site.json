@@ -45,6 +45,7 @@
   },
   "legal": {
     "lastUpdated": "2026-11-11",
-    "reviewNotice": "Dieser Text ist ein technischer Entwurf und muss vor Veröffentlichung rechtlich geprüft werden."
+    "reviewNotice": "Dieser Text wurde aus der bisherigen Website übernommen bzw. als technischer Entwurf erstellt. Er ist vor der Veröffentlichung rechtlich zu prüfen (Betreiber/Anwalt) und an die tatsächlich eingesetzten Dienste anzupassen.",
+    "showDraftNotice": true
   }
 }

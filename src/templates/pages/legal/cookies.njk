@@ -1,0 +1,37 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Cookie-Hinweis – 3D-MIR{% endblock %}
+{% block description %}Diese Website verwendet nur technisch notwendige Cookies. Kein Tracking, keine Werbung, keine Drittanbieter.{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen"><ol><li><a href="/">Start</a></li><li aria-current="page">Cookie-Hinweis</li></ol></nav>
+    <h1>Cookie-Hinweis</h1>
+    <p>Kurz gesagt: Wir setzen nur, was für Warenkorb und Anmeldung technisch nötig ist.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="container prose">
+    <h2>Kein Cookie-Banner nötig</h2>
+    <p>Diese Website verwendet <strong>keine</strong> Analyse-, Werbe- oder Tracking-Cookies und bindet keine externen Dienste ein. Schriften, Skripte und Bilder werden von unserem eigenen Server geladen. Deshalb ist kein Einwilligungsbanner erforderlich.</p>
+
+    <h2>Technisch notwendige Cookies</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Name</th><th scope="col">Zweck</th><th scope="col">Dauer</th></tr></thead>
+        <tbody>
+          <tr><td><code>mir3d_sid</code></td><td>Sitzung (Warenkorb, Anmeldung)</td><td>bis zu 30 Tage</td></tr>
+          <tr><td><code>mir3d_cart</code></td><td>Inhalt des Warenkorbs</td><td>bis zu 30 Tage</td></tr>
+          <tr><td><code>mir3d_admin</code></td><td>Admin-Anmeldung</td><td>Sitzung</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Cookies löschen</h2>
+    <p>Sie können Cookies jederzeit in den Einstellungen Ihres Browsers löschen oder blockieren. Ohne Cookies funktioniert der Warenkorb nicht.</p>
+
+    <p>Mehr zur Verarbeitung personenbezogener Daten finden Sie in der <a href="/datenschutz/">Datenschutzerklärung</a>.</p>
+  </div>
+</section>
+{% endblock %}

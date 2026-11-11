@@ -1,0 +1,59 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Zahlungsarten – 3D-MIR{% endblock %}
+{% block description %}Verfügbare Zahlungsmethoden bei 3D-MIR.{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen"><ol><li><a href="/">Start</a></li><li aria-current="page">Zahlungsarten</li></ol></nav>
+    <h1>Zahlungsarten</h1>
+    <p>Transparent bezahlen – ohne Umwege.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="container prose">
+    {% include "partials/legal-notice.njk" %}
+    <div class="alert alert-warning">
+      <p><strong>Hinweis:</strong> Welche Zahlungsarten tatsächlich angeboten werden, wird derzeit final festgelegt (TODO-ZAHLUNG). Die im Checkout angezeigten Optionen sind verbindlich.</p>
+    </div>
+
+    <div class="payment-list">
+      <article class="card">
+        <h2>Banküberweisung (Vorkasse)</h2>
+        <p>Überweisen Sie direkt auf unsere Bankverbindung. Bitte nutzen Sie die Bestellnummer als Verwendungszweck. Die Bestellung wird nach Zahlungseingang gedruckt und versandt. Die Bankverbindung erhalten Sie mit der Bestellbestätigung.</p>
+        <p><span class="badge badge-success">verfügbar</span></p>
+      </article>
+      <article class="card">
+        <h2>PayPal</h2>
+        <p>Zahlung über Ihr PayPal-Konto. Nach der Bestellung werden Sie zu PayPal weitergeleitet und bestätigen dort die Zahlung.</p>
+        <p><span class="badge badge-neutral">in Prüfung</span></p>
+      </article>
+      <article class="card">
+        <h2>Kredit-/Debitkarte</h2>
+        <p>Zahlung per Kredit- oder Debitkarte über einen Zahlungsdienstleister.</p>
+        <p><span class="badge badge-neutral">in Prüfung</span></p>
+      </article>
+      <article class="card">
+        <h2>Nachnahme</h2>
+        <p>Zahlung bei Lieferung. Zusätzlich fällt eine Zahlungsgebühr an, die direkt an den Zusteller geht.</p>
+        <p><span class="badge badge-neutral">in Prüfung</span></p>
+      </article>
+      <article class="card">
+        <h2>iDEAL / Klarna</h2>
+        <p>Weitere Zahlungsarten waren auf der bisherigen Website genannt. Ob sie im neuen Shop angeboten werden, wird derzeit geprüft.</p>
+        <p><span class="badge badge-neutral">in Prüfung</span></p>
+      </article>
+    </div>
+
+    <h2>Wichtige Hinweise</h2>
+    <ul>
+      <li>Alle Preise verstehen sich als Endpreise. {{ site.business.vatNote }}</li>
+      <li>Zuzüglich fallen Versandkosten an, sofern im Checkout nicht anders angegeben. Details unter <a href="/versand/">Versandarten</a>.</li>
+      <li>Bei individuell gefertigten Drucken gelten die Hinweise zum Widerrufsrecht (<a href="/widerruf/">Widerrufsbelehrung</a>).</li>
+    </ul>
+
+    {# TODO-ZAHLUNG (F9–F13): endgültige Zahlungsarten und Anbieter bestätigen. #}
+  </div>
+</section>
+{% endblock %}

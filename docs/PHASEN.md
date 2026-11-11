@@ -3,7 +3,7 @@
 | Phase | Inhalt | Status |
 | --- | --- | --- |
 | 1 | Analyse, Systemprüfung, Projektgerüst, NGINX, systemd, Git | ✅ abgeschlossen |
-| 2 | Design-System, statische Seiten, Rechtsseiten, Kontakt | ⬜ offen |
+| 2 | Design-System, statische Seiten, Rechtsseiten, Kontakt | ✅ abgeschlossen |
 | 3 | Rechner: Upload, 3D-Vorschau, Preis, Angebotsanfrage | ⬜ offen |
 | 4 | Shop: Produkte, Warenkorb, Checkout, E-Mails | ⬜ offen |
 | 5 | Admin: Login, Produkte, Bestellungen, Anfragen, Preise | ⬜ offen |
@@ -30,3 +30,26 @@
 **Offen**
 - Beantwortung der Fragen in `docs/OFFENE-FRAGEN.md` (Preise, Zahlung, Versand, SMTP, GitHub, DNS).
 - Inhalte/Design der Phase 2.
+
+## Phase 2 – Bericht
+
+**Fertig**
+- Design-System in eigenem CSS (rund 1.000 Zeilen): Typografie, Farben, Buttons, Karten, Formulare, Tabellen, Galerie, CTA, Druckansicht; keine externen Frameworks, Fonts oder CDNs.
+- Startseite ausgebaut: Hero, Vertrauensleiste, Leistungen, Ablauf, Materialauswahl, Galerie, FAQ, Kontakt-CTA; `LocalBusiness`-JSON-LD.
+- Neue Seiten: `/leistungen/` (Materialvergleich, Drucker, Vorbereitung), `/kontakt/` mit Formular, `/kontakt/danke/`.
+- Rechtsseiten aus den gesicherten Altinhalten: Impressum, AGB, Widerruf, Versand, Zahlung, Datenschutz, Cookie-Hinweis – jeweils mit Prüfhinweis (`site.legal.showDraftNotice`).
+- Kontaktformular: Zod-Validierung, Honeypot, Origin-Prüfung, Rate-Limit (5 Anfragen/Stunde/IP), Speicherung in `contact_messages` (neue Spalte `phone` via Migration `002`), E-Mail an den Betreiber mit Reply-To.
+- Ohne SMTP-Konfiguration werden Mails als `.eml` unter `/var/log/3d-mir/mail/` abgelegt.
+- 301-Weiterleitungen der alten Slugs (u. a. `/versandarten/`, `/bezahlmoeglichkeiten/`, `/widerrufsbelehrung/`, `/wp-login.php`, `/produkt/*`) zusätzlich in der App – unabhängig von der NGINX-Konfiguration.
+- Build-Skript korrigiert: Migrationen werden als Verzeichnisinhalt kopiert (vorher entstand `dist/db/migrations/migrations/`).
+
+**Getestet**
+- `npm run typecheck` und `npm run build` fehlerfrei.
+- Alle neuen Seiten liefern 200; alte Slugs liefern 301 mit korrektem Ziel.
+- Kontaktformular: gültige Anfrage → 303 auf `/kontakt/danke/` und Datensatz in der DB; ungültige Eingabe → 400 mit Fehlermeldung; Honeypot → 303 ohne Speicherung; 6. Anfrage → 429.
+- E-Mail-Fallback erzeugt eine `.eml`-Datei; Sicherheits-Header sind auf HTML-Antworten gesetzt.
+
+**Offen**
+- Rechtliche Prüfung der übernommenen Texte (TODO-Recht).
+- Preise, Zahlungsarten und Versandangaben sind weiterhin Platzhalter (F1–F20).
+- SMTP-Zugangsdaten, DNS/TLS und Repository-Zugang fehlen (F21–F33).

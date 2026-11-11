@@ -97,7 +97,7 @@ export type SiteConfig = {
   contact: { responseTime: string; appointmentNote: string };
   seo: { siteName: string; defaultTitle: string; defaultDescription: string };
   features: { shop: boolean; customerAccounts: boolean; calculator: boolean; paypal: boolean; totp: boolean };
-  legal: { lastUpdated: string; reviewNotice: string };
+  legal: { lastUpdated: string; reviewNotice: string; showDraftNotice: boolean };
 };
 
 export type Material = {

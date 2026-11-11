@@ -1,0 +1,15 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Nachricht gesendet – 3D-MIR{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container measure">
+    <p class="eyebrow">Vielen Dank</p>
+    <h1>Ihre Nachricht ist angekommen</h1>
+    <p>Wir haben Ihre Anfrage erhalten und melden uns {{ site.contact.responseTime }}. Falls Sie zusätzlich eine Datei senden möchten, können Sie diese direkt an <a href="mailto:{{ site.business.email }}">{{ site.business.email }}</a> schicken.</p>
+    <p class="mt-2"><a class="btn" href="/">Zur Startseite</a> <a class="btn btn-secondary" href="/3d-druck-rechner/">Preis berechnen</a></p>
+  </div>
+</section>
+{% endblock %}

@@ -1,6 +1,7 @@
 import Fastify, { type FastifyError } from 'fastify';
 import cookie from '@fastify/cookie';
 import formbody from '@fastify/formbody';
+import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -33,6 +34,8 @@ export async function buildApp() {
 
   await app.register(cookie, { secret: config.sessionSecret });
   await app.register(formbody);
+  // Standardmäßig kein globales Limit; nur sensible Routen (z. B. Kontaktformular) begrenzen sich selbst.
+  await app.register(rateLimit, { global: false });
 
   const assetsDir = path.join(config.root, 'public', 'assets');
   if (fs.existsSync(assetsDir)) {

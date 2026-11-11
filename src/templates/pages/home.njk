@@ -3,6 +3,12 @@
 {% block title %}{{ site.seo.defaultTitle }}{% endblock %}
 {% block description %}{{ site.seo.defaultDescription }}{% endblock %}
 
+{% block head %}
+<script type="application/ld+json">
+{{ localBusinessJsonLd | jsonld | safe }}
+</script>
+{% endblock %}
+
 {% block content %}
 <section class="hero">
   <div class="container hero-grid">
@@ -33,6 +39,15 @@
   </div>
 </section>
 
+<div class="trust-strip">
+  <div class="container trust-grid">
+    <p><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg> Fertigung in Deutschland</p>
+    <p><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Rückmeldung in der Regel binnen 24 h</p>
+    <p><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 7 9 18l-5-5"/></svg> Persönliche Materialberatung</p>
+    <p><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg> Versand mit Sendungsverfolgung</p>
+  </div>
+</div>
+
 <section class="section">
   <div class="container">
     <div class="section-head">
@@ -49,6 +64,7 @@
         </article>
       {% endfor %}
     </div>
+    <p class="mt-2"><a href="/leistungen/">Alle Leistungen und Materialien ansehen →</a></p>
   </div>
 </section>
 
@@ -73,20 +89,99 @@
       <p class="eyebrow">Materialien</p>
       <h2>Das richtige Material für Ihren Einsatz</h2>
       <p class="text-muted">Ob feine Details, hohe Temperaturen oder UV-Beständigkeit: Wir beraten Sie zur passenden Kunststoffwahl – und drucken nur, was zu Ihrem Bauteil passt.</p>
-      <p><a class="btn btn-secondary" href="/leistungen/">Materialien vergleichen</a></p>
+      <div class="material-grid material-grid-2">
+        {% for material in pricing.materials | slice(0, 4) %}
+          <article class="material-card">
+            <h3>{{ material.label }} <span class="badge badge-neutral">bis {{ material.maxTempC }} °C</span></h3>
+            <p class="text-muted">{{ material.useCases }}</p>
+          </article>
+        {% endfor %}
+      </div>
+      <p class="mt-2"><a class="btn btn-secondary" href="/leistungen/#materialien">Materialien vergleichen</a></p>
     </div>
-    <div class="material-grid">
-      {% for material in pricing.materials | slice(0, 4) %}
-        <article class="material-card">
-          <h3>{{ material.label }} <span class="badge badge-neutral">bis {{ material.maxTempC }} °C</span></h3>
-          <p class="text-muted">{{ material.useCases }}</p>
-        </article>
+    <div class="gallery-teaser">
+      {% for name in ['gallery-1', 'gallery-5', 'gallery-9', 'gallery-3'] %}
+        {{ image(name, { sizes: '(max-width: 860px) 50vw, 22vw', alt: '3D-gedrucktes Bauteil aus der Werkstatt' }) | safe }}
       {% endfor %}
     </div>
   </div>
 </section>
 
 <section class="section section-soft">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Referenzen</p>
+      <h2>Einblick in die Werkstatt</h2>
+      <p>Echte Drucke aus laufenden Projekten – von filigranen Modellen bis zu funktionalen Bauteilen.</p>
+    </div>
+    <div class="gallery">
+      {% for name in ['gallery-1', 'gallery-2', 'gallery-3', 'gallery-4', 'gallery-5', 'gallery-6', 'gallery-7', 'gallery-8'] %}
+        <figure class="gallery-item">
+          {{ image(name, { sizes: '(max-width: 620px) 50vw, (max-width: 1024px) 33vw, 24vw', alt: '3D-gedrucktes Bauteil aus eigener Fertigung' }) | safe }}
+        </figure>
+      {% endfor %}
+    </div>
+    <p class="text-muted mt-2"><small>Weitere Referenzen und aktuelle Arbeiten finden Sie in unserem <a href="{{ site.channels.etsy.url }}" target="_blank" rel="noopener">Etsy-Shop</a>. Fotos eigener Drucke werden laufend ergänzt.</small></p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="split">
+      <div>
+        <p class="eyebrow">Warum 3D-MIR</p>
+        <h2>Handwerk, das man sieht</h2>
+        <p class="text-muted">Kein anonymes Druckzentrum: Sie sprechen direkt mit der Person, die Ihr Bauteil vorbereitet und druckt. Das bedeutet kurze Wege, ehrliche Einschätzungen und eine sorgfältige Nacharbeit.</p>
+        <ul class="check-list">
+          <li><strong>Persönlich:</strong> direkte Abstimmung per E-Mail oder Telefon.</li>
+          <li><strong>Transparent:</strong> nachvollziehbare Kalkulation, keine versteckten Posten.</li>
+          <li><strong>Sorgfältig:</strong> Prüfung von Modell und Maßhaltigkeit vor dem Druck.</li>
+          <li><strong>Regional:</strong> gefertigt in Schömberg, versendet aus Deutschland.</li>
+        </ul>
+      </div>
+      <div>
+        {{ image('service', { sizes: '(max-width: 860px) 100vw, 45vw', alt: 'Bauteile aus dem 3D-Druck-Service' }) | safe }}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Häufige Fragen</p>
+      <h2>Gut zu wissen</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Welche Dateiformate kann ich hochladen?</summary>
+        <div>STL, 3MF und OBJ – direkt im Rechner mit 3D-Vorschau. STEP-Dateien können Sie uns für eine Angebotsanfrage per E-Mail senden; eine Vorschau ist dafür nicht verfügbar.</div>
+      </details>
+      <details>
+        <summary>Wie genau ist der Preis im Rechner?</summary>
+        <div>Der Rechner liefert eine <strong>unverbindliche Schätzung</strong> auf Basis von Volumen, Material, Füllung und Stückzahl. Den verbindlichen Preis nennen wir nach Prüfung des Modells im Angebot.</div>
+      </details>
+      <details>
+        <summary>Wie lange dauert die Fertigung?</summary>
+        <div>Kleine Teile sind meist in 1–3 Werktagen fertig, größere Modelle dauern länger. Nach Eingang Ihres Modells nennen wir Ihnen einen konkreten Termin. Der Versand kommt je nach Versandart hinzu.</div>
+      </details>
+      <details>
+        <summary>Kann ich auch nur ein einzelnes Teil bestellen?</summary>
+        <div>Ja. Wir fertigen ab einem Stück. Bei mehreren gleichen Teilen greift eine Mengenstaffel.</div>
+      </details>
+      <details>
+        <summary>Darf ich fremde Modelle drucken lassen?</summary>
+        <div>Nur, wenn Sie die erforderlichen Nutzungsrechte besitzen. Mit der Anfrage bestätigen Sie, dass Sie zur Nutzung des Modells berechtigt sind.</div>
+      </details>
+      <details>
+        <summary>Welche Farben sind möglich?</summary>
+        <div>Die verfügbaren Farben hängen vom Material ab und werden im Rechner angezeigt. Sonderfarben sind auf Anfrage möglich.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="section">
   <div class="container">
     <div class="cta">
       <div>

@@ -1,0 +1,107 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Kontakt – 3D-Druck-Anfrage an 3D-MIR{% endblock %}
+{% block description %}Fragen zu Ihrem 3D-Druck-Projekt? Schreiben Sie 3D-MIR in Schömberg – wir antworten in der Regel innerhalb eines Werktags.{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li aria-current="page">Kontakt</li></ol>
+    </nav>
+    <h1>Kontakt</h1>
+    <p>Erzählen Sie uns von Ihrem Projekt. Wir prüfen Ihr Modell, beraten zur Materialwahl und melden uns {{ site.contact.responseTime }}.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container contact-layout">
+    <div>
+      {% if error %}
+        <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
+      {% endif %}
+      {% if success %}
+        <div class="alert alert-success" role="status"><p>{{ success }}</p></div>
+      {% endif %}
+
+      <form class="form" method="post" action="/kontakt/" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="name">Name <span aria-hidden="true">*</span></label>
+            <input id="name" name="name" type="text" autocomplete="name" required maxlength="120" value="{{ form.name }}">
+          </div>
+          <div class="field">
+            <label for="email">E-Mail <span aria-hidden="true">*</span></label>
+            <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" value="{{ form.email }}">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="phone">Telefon <span class="hint">(optional)</span></label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="60" value="{{ form.phone }}">
+          </div>
+          <div class="field">
+            <label for="subject">Anliegen</label>
+            <select id="subject" name="subject">
+              {% for option in subjects %}
+                <option value="{{ option }}" {% if form.subject == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="message">Ihre Nachricht <span aria-hidden="true">*</span></label>
+          <textarea id="message" name="message" required maxlength="5000" placeholder="Beschreiben Sie kurz Ihr Bauteil, die gewünschte Stückzahl und den Einsatzbereich.">{{ form.message }}</textarea>
+          <span class="hint">Bitte keine vertraulichen Daten wie Ausweis- oder Kartennummern.</span>
+        </div>
+
+        {# Honeypot: für Menschen unsichtbar, Bots füllen es aus. #}
+        <div class="honeypot" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <label class="checkbox">
+          <input type="checkbox" name="consent" value="1" required {% if form.consent %}checked{% endif %}>
+          <span>Ich habe die <a href="/datenschutz/">Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Angaben zur Bearbeitung der Anfrage einverstanden. <span aria-hidden="true">*</span></span>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn" type="submit">Nachricht senden</button>
+          <span class="hint">Pflichtfelder sind mit * markiert.</span>
+        </div>
+      </form>
+    </div>
+
+    <aside class="contact-aside">
+      <div class="card">
+        <h2>Direkter Kontakt</h2>
+        <address class="contact-address">
+          <strong>{{ site.business.legalName }}</strong><br>
+          {{ site.business.street }}<br>
+          {{ site.business.zip }} {{ site.business.city }}<br>
+          {{ site.business.country }}
+        </address>
+        <dl class="contact-dl">
+          <div><dt>Telefon</dt><dd><a href="tel:{{ site.business.phoneHref }}">{{ site.business.phone }}</a></dd></div>
+          <div><dt>E-Mail</dt><dd><a href="mailto:{{ site.business.email }}">{{ site.business.email }}</a></dd></div>
+          <div><dt>Antwortzeit</dt><dd>{{ site.contact.responseTime }}</dd></div>
+        </dl>
+        <p class="text-muted"><small>Abholung in Schömberg ist nach Absprache möglich.</small></p>
+      </div>
+      <div class="card">
+        <h2>Auch hier zu finden</h2>
+        <ul class="link-list">
+          <li><a href="{{ site.channels.etsy.url }}" target="_blank" rel="noopener">{{ site.channels.etsy.label }}</a></li>
+          <li><a href="{{ site.channels.classifieds.url }}" target="_blank" rel="noopener">{{ site.channels.classifieds.label }}</a></li>
+        </ul>
+      </div>
+      <div class="card card-highlight">
+        <h2>Sie haben eine Datei?</h2>
+        <p class="text-muted">Für eine Preisschätzung laden Sie Ihr Modell direkt im Rechner hoch – mit 3D-Vorschau und sofortiger Kalkulation.</p>
+        <p><a class="btn btn-secondary btn-block" href="/3d-druck-rechner/">Zum 3D-Druck-Rechner</a></p>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
