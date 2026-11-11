@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "status": "PLATZHALTER",
+    "hinweis": "ACHTUNG: Alle Preise und Kalkulationswerte in dieser Datei sind Platzhalter (TODO-PREISE). Sie müssen vom Auftraggeber bestätigt werden, bevor die Seite live geht.",
+    "currency": "EUR",
+    "currencySymbol": "€",
+    "roundTo": 0.1,
+    "minOrderValue": 15.0,
+    "setupFee": 3.5,
+    "setupFeePerExtraPart": 0.75,
+    "vatIncluded": true,
+    "estimateDisclaimer": "Unverbindliche Schätzung auf Basis Ihrer Angaben. Der verbindliche Preis wird nach Prüfung des Modells im Angebot genannt."
+  },
+  "materials": [
+    {
+      "id": "pla",
+      "label": "PLA",
+      "density": 1.24,
+      "pricePerGram": 0.05,
+      "maxTempC": 55,
+      "colors": ["Schwarz", "Weiß", "Grau", "Silber", "Blau", "Himmelblau", "Grün", "Gelb", "Orange", "Rot", "Violett", "Rose", "Regenbogen"],
+      "properties": "Einfach zu drucken, formstabil, feine Details, lebensmittelecht nur mit Zertifizierung",
+      "useCases": "Modelle, Deko, Prototypen, Anschauungsobjekte",
+      "notes": "Nicht für heiße Umgebungen oder dauerhafte UV-Belastung im Außenbereich geeignet."
+    },
+    {
+      "id": "pla-tough",
+      "label": "PLA Tough",
+      "density": 1.22,
+      "pricePerGram": 0.07,
+      "maxTempC": 60,
+      "colors": ["Schwarz", "Weiß", "Grau", "Blau", "Rot"],
+      "properties": "Zäher als Standard-PLA, höhere Schlagfestigkeit",
+      "useCases": "Funktionsteile, Gehäuse, Clips, Prototypen mit Belastung",
+      "notes": "Gute Alternative, wenn PLA zu spröde ist."
+    },
+    {
+      "id": "petg",
+      "label": "PETG",
+      "density": 1.27,
+      "pricePerGram": 0.06,
+      "maxTempC": 75,
+      "colors": ["Schwarz", "Weiß", "Transparent", "Blau", "Rot", "Grün"],
+      "properties": "Zäh, leicht flexibel, feuchtigkeits- und chemikalienbeständiger als PLA",
+      "useCases": "Funktionsteile, Behälter, Outdoor-Anwendungen, Ersatzteile",
+      "notes": "Neigt zu Fäden; Oberfläche etwas matter als PLA."
+    },
+    {
+      "id": "abs",
+      "label": "ABS",
+      "density": 1.04,
+      "pricePerGram": 0.05,
+      "maxTempC": 95,
+      "colors": ["Schwarz", "Weiß", "Grau", "Rot", "Blau"],
+      "properties": "Temperaturbeständig, schlagzäh, gut nachbearbeitbar",
+      "useCases": "Technische Teile, Gehäuse, Automotive, Werkzeuge",
+      "notes": "Druckt nur im geschlossenen Bauraum zuverlässig; Maßhaltigkeit beachten."
+    },
+    {
+      "id": "asa",
+      "label": "ASA",
+      "density": 1.07,
+      "pricePerGram": 0.08,
+      "maxTempC": 100,
+      "colors": ["Schwarz", "Weiß", "Grau", "Natur"],
+      "properties": "UV- und witterungsbeständig, temperaturfest",
+      "useCases": "Außenbereich, Garten, Fahrzeugteile, langlebige Gehäuse",
+      "notes": "Wie ABS nur im geschlossenen Bauraum; gute Wahl für draußen."
+    },
+    {
+      "id": "abs-pc",
+      "label": "ABS-PC",
+      "density": 1.1,
+      "pricePerGram": 0.1,
+      "maxTempC": 110,
+      "colors": ["Schwarz", "Grau", "Natur"],
+      "properties": "Sehr temperaturfest und schlagzäh, hohe Steifigkeit",
+      "useCases": "Technische Belastungsteile, Maschinenbau, Elektronikgehäuse",
+      "notes": "Anspruchsvoll im Druck; Mindestwandstärken beachten."
+    }
+  ],
+  "printers": [
+    {
+      "id": "bambu-x1c",
+      "label": "Bambu Lab X1C",
+      "buildVolume": { "x": 256, "y": 256, "z": 256 },
+      "hourlyRate": 2.5,
+      "materialIds": ["pla", "pla-tough", "petg", "abs", "asa", "abs-pc"],
+      "note": "Geschlossener Bauraum, Mehrfarbdruck möglich (TODO-BESTÄTIGEN)"
+    },
+    {
+      "id": "anycubic-i3",
+      "label": "Anycubic i3 Mega S",
+      "buildVolume": { "x": 210, "y": 210, "z": 205 },
+      "hourlyRate": 1.2,
+      "materialIds": ["pla", "pla-tough", "petg"],
+      "note": "Offener Bauraum, ideal für PLA und PETG (TODO-BESTÄTIGEN)"
+    }
+  ],
+  "infillOptions": [10, 15, 35, 45, 65, 75, 95],
+  "layerHeightOptions": [0.12, 0.16, 0.2, 0.28],
+  "coatings": [
+    { "id": "none", "label": "Ohne Nachbearbeitung", "surchargePercent": 0, "pricePerPart": 0 },
+    { "id": "smooth", "label": "Glätten / Schleifen", "surchargePercent": 0, "pricePerPart": 4.0 },
+    { "id": "primer", "label": "Grundierung / Lackierung", "surchargePercent": 0, "pricePerPart": 9.0 }
+  ],
+  "quantityDiscounts": [
+    { "minQuantity": 1, "percent": 0 },
+    { "minQuantity": 3, "percent": 5 },
+    { "minQuantity": 5, "percent": 10 },
+    { "minQuantity": 10, "percent": 15 },
+    { "minQuantity": 25, "percent": 20 }
+  ],
+  "shipping": {
+    "status": "PLATZHALTER",
+    "note": "TODO-VERSAND: Versandkosten und Anbieter vom Auftraggeber bestätigen.",
+    "methods": [
+      { "id": "dhl-paket", "label": "DHL Paket", "price": 4.99, "deliveryDays": "2–5" },
+      { "id": "abholung", "label": "Abholung nach Absprache", "price": 0, "deliveryDays": "nach Absprache" }
+    ],
+    "freeShippingFrom": 50.0
+  }
+}

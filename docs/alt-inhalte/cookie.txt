@@ -1,0 +1,1730 @@
+======================================================================
+pagecookie-richtlinie-eu_.html
+======================================================================
+Diese Cookie-Richtlinie wurde zuletzt am 1. September 2024 aktualisiert und gilt für Bürger und Einwohner mit ständigem Wohnsitz im Europäischen Wirtschaftsraum und der Schweiz.
+
+1. Einführung
+
+Unsere Website, https://www.3d-mir.de (im folgenden: „Die Website“) verwendet Cookies und ähnliche Technologien (der Einfachheit halber werden all diese unter „Cookies“ zusammengefasst). Cookies werden außerdem von uns beauftragten Drittparteien platziert. In dem unten stehendem Dokument informieren wir dich über die Verwendung von Cookies auf unserer Website.
+
+2. Was sind Cookies?
+
+Ein Cookie ist eine einfache kleine Datei, die gemeinsam mit den Seiten einer Internetadresse versendet und vom Webbrowser auf dem PC oder einem anderen Gerät gespeichert werden kann. Die darin gespeicherten Informationen können während folgender Besuche zu unseren oder den Servern relevanter Drittanbieter gesendet werden.
+
+3. Was sind Skripte?
+
+Ein Script ist ein Stück Programmcode, das benutzt wird, um unserer Website Funktionalität und Interaktivität zu ermöglichen. Dieser Code wird auf unseren Servern oder auf deinem Gerät ausgeführt.
+
+4. Was ist ein Web Beacon?
+
+Ein Web-Beacon (auch Pixel-Tag genannt), ist ein kleines unsichtbares Textfragment oder Bild auf einer Website, das benutzt wird, um den Verkehr auf der Website zu überwachen. Um dies zu ermöglichen werden diverse Daten von dir mittels Web-Beacons gespeichert.
+
+5. Cookies
+
+5.1 Technische oder funktionelle Cookies
+
+Einige Cookies stellen sicher, dass Teile unserer Website richtig funktionieren und deine Nutzervorlieben bekannt bleiben. Durch das Platzieren funktionaler Cookies machen wir es dir einfacher unsere Website zu besuchen. Auf diese Weise musst du bei Besuchen unserer Website nicht wiederholt die gleichen Informationen eingeben, oder deine Gegenstände bleiben beispielsweise in deinem Warenkorb bis du bezahlst. Wir können diese Cookies ohne dein Einverständnis platzieren.
+
+5.2 Analytische Cookies
+
+Wir verwenden analytische Cookies, um das Website-Erlebnis für unsere Nutzer zu optimieren. Mit diesen analytischen Cookies erhalten wir Einblicke in die Nutzung unserer Website. Wir bitten um deine Erlaubnis, analytische Cookies zu setzen.
+
+5.3 Marketing- / Tracking-Cookies
+
+Marketing- / Tracking-Cookies sind Cookies oder eine andere Form der lokalen Speicherung, die zur Erstellung von Benutzerprofilen verwendet werden, um Werbung anzuzeigen oder den Benutzer auf dieser Website oder über mehrere Websites hinweg für ähnliche Marketingzwecke zu verfolgen.
+
+5.4 Soziale-Medien
+
+Auf unserer Website haben wir Inhalte von Facebook, Twitter, LinkedIn, WhatsApp, Instagram, TikTok und Pinterest eingebunden, um Webseiten zu bewerben (z. B. „Gefällt mir“, „Pin“) oder zu teilen (z. B. „Tweet“) in sozialen Netzwerken wie Facebook, Twitter, LinkedIn, WhatsApp, Instagram, TikTok und Pinterest. Dieser Inhalt ist mit einem Code eingebettet, der von Facebook, Twitter, LinkedIn, WhatsApp, Instagram, TikTok und Pinterest stammt und Cookies platziert. Diese Inhalte können bestimmte Informationen für personalisierte Werbung speichern und verarbeiten.
+
+Bitte lies die Datenschutzerklärung dieser sozialen Netzwerke (die sich regelmäßig ändern kann), um zu erfahren, wie sie mit deinen (persönlichen) Daten umgehen, die sie mithilfe dieser Cookies verarbeiten. Die abgerufenen Daten werden so weit wie möglich anonymisiert. Facebook, Twitter, LinkedIn, WhatsApp, Instagram, TikTok und Pinterest hat seine Sitze in den Vereinigten Staaten
+
+6. Platzierte Cookies
+
+WooCommerce
+
+Funktional
+
+Consent to service woocommerce
+
+Nutzung
+
+Wir verwenden WooCommerce für Webshop-Verwaltung. Mehr lesen
+
+Weitergabe von Daten
+
+Diese Daten werden nicht an Dritte weitergegeben.
+
+Funktional
+
+Name
+
+wc_cart_hash_*
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichere Gegenstände im Warenkorb
+
+Name
+
+wc_cart_created
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichere durchgeführte Aktionen der Benutzer auf der Website
+
+Name
+
+wc_fragments_*
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Name
+
+woocommerce_cart_hash
+
+Ablaufdatum
+
+1 Tag
+
+Funktion
+
+Speichere Gegenstände im Warenkorb
+
+Name
+
+woocommerce_items_in_cart
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichere Gegenstände im Warenkorb
+
+Name
+
+wp_woocommerce_session_*
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichere durchgeführte Aktionen der Benutzer auf der Website
+
+mailpoet
+
+Marketing/Tracking
+
+Consent to service mailpoet
+
+Nutzung
+
+Wir verwenden mailpoet für E-Mail-Abonnenten. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die mailpoet Datenschutzerklärung lesen.
+
+Marketing/Tracking
+
+Name
+
+mailpoet_page_view
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Einen Abonnementservice anbieten
+
+Name
+
+mailpoet_subscriber
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Einen Abonnementservice anbieten
+
+Automattic
+
+Statistik
+
+Consent to service automattic
+
+Nutzung
+
+Wir verwenden Automattic für Website-Entwicklung. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Automattic Datenschutzerklärung lesen.
+
+Statistik
+
+Name
+
+tk_qs
+
+Ablaufdatum
+
+30 Min.
+
+Funktion
+
+Stelle Funktionen quer über Seiten bereit
+
+WordPress
+
+Funktional
+
+Consent to service wordpress
+
+Nutzung
+
+Wir verwenden WordPress für Website-Entwicklung. Mehr lesen
+
+Weitergabe von Daten
+
+Diese Daten werden nicht an Dritte weitergegeben.
+
+Funktional
+
+Name
+
+wordpress_test_cookie
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+überprüft, ob Cookies gesetzt werden können
+
+Name
+
+wp-settings-*
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Speicher die Benutzervorlieben
+
+Name
+
+wp-settings-time-*
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speicher die Benutzervorlieben
+
+Name
+
+wordpress_logged_in_*
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Benutzer eingeloggt lassen
+
+Name
+
+wpEmojiSettingsSupports
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichere Browser-Angaben
+
+Name
+
+wp_lang
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichere Spracheinstellungen
+
+Name
+
+WP_PREFERENCES_USER_*
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Speicher die Benutzervorlieben
+
+Jetpack
+
+Statistik
+
+Consent to service jetpack
+
+Nutzung
+
+Wir verwenden Jetpack für Werbung. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Jetpack Datenschutzerklärung lesen.
+
+Statistik
+
+Name
+
+tk_*r
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichere die Übergabe-ID
+
+Name
+
+tk_r3d
+
+Ablaufdatum
+
+3 Tage
+
+Funktion
+
+Stripe
+
+Funktional
+
+Consent to service stripe
+
+Nutzung
+
+Wir verwenden Stripe für Zahlungsabwicklung. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Stripe Datenschutzerklärung lesen.
+
+Funktional
+
+Name
+
+__stripe_mid
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Beuge Betrug vor
+
+Google Fonts
+
+Marketing
+
+Consent to service google-fonts
+
+Nutzung
+
+Wir verwenden Google Fonts für Anzeige von Webfonts. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Google Fonts Datenschutzerklärung lesen.
+
+Marketing
+
+Name
+
+Google Fonts API
+
+Ablaufdatum
+
+keins
+
+Funktion
+
+Fordere die Benutzer-IP-Adresse an
+
+Google reCAPTCHA
+
+Marketing
+
+Consent to service google-recaptcha
+
+Nutzung
+
+Wir verwenden Google reCAPTCHA für Spam-Vorbeugung. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Google reCAPTCHA Datenschutzerklärung lesen.
+
+Marketing
+
+Name
+
+rc::c
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Anfragen von Bots lesen und filtern
+
+Name
+
+rc::b
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Anfragen von Bots lesen und filtern
+
+Name
+
+rc::a
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Anfragen von Bots lesen und filtern
+
+Google Maps
+
+Marketing
+
+Consent to service google-maps
+
+Nutzung
+
+Wir verwenden Google Maps für Kartenanzeige. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Google Maps Datenschutzerklärung lesen.
+
+Marketing
+
+Name
+
+Google Maps API
+
+Ablaufdatum
+
+keins
+
+Funktion
+
+Fordere die Benutzer-IP-Adresse an
+
+YouTube
+
+Marketing
+
+Consent to service youtube
+
+Nutzung
+
+Wir verwenden YouTube für Video-Display. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die YouTube Datenschutzerklärung lesen.
+
+Marketing
+
+Name
+
+GPS
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichere Standortdaten
+
+Name
+
+VISITOR_INFO1_LIVE
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+Anzeigenschaltung oder Retargeting anbieten
+
+Name
+
+YSC
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Interaktion speichern und verfolgen
+
+Name
+
+PREF
+
+Ablaufdatum
+
+8 Monate
+
+Funktion
+
+Speicher die Benutzervorlieben
+
+PayPal
+
+Funktional
+
+Consent to service paypal
+
+Nutzung
+
+Wir verwenden PayPal für Zahlungsabwicklung. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die PayPal Datenschutzerklärung lesen.
+
+Funktional
+
+Name
+
+nsid
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Beuge Betrug vor
+
+Name
+
+enforce_policy
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichere persönliche Vorlieben
+
+Name
+
+tsrce
+
+Ablaufdatum
+
+3 Tage
+
+Funktion
+
+Name
+
+ts_c
+
+Ablaufdatum
+
+3 Jahre
+
+Funktion
+
+Beuge Betrug vor
+
+Name
+
+__paypal_storage__
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Speichere Benutzer-Details
+
+Facebook
+
+Marketing, Funktional
+
+Consent to service facebook
+
+Nutzung
+
+Wir verwenden Facebook für Anzeige der letzten Social-Posts und/oder Social-Share-Buttons. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Facebook Datenschutzerklärung lesen.
+
+Marketing
+
+Name
+
+_fbc
+
+Ablaufdatum
+
+2 Jahre
+
+Funktion
+
+Letzten Besuch speichern
+
+Name
+
+fbm*
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichere Benutzer-Details
+
+Name
+
+xs
+
+Ablaufdatum
+
+3 Monate
+
+Funktion
+
+Eine eindeutige Sitzungs-ID speichern
+
+Name
+
+fr
+
+Ablaufdatum
+
+3 Monate
+
+Funktion
+
+Anzeigenschaltung oder Retargeting anbieten
+
+Name
+
+act
+
+Ablaufdatum
+
+90 Tage
+
+Funktion
+
+Benutzer eingeloggt lassen
+
+Name
+
+_fbp
+
+Ablaufdatum
+
+3 Monate
+
+Funktion
+
+Verfolge Besucher quer über Websiten
+
+Name
+
+datr
+
+Ablaufdatum
+
+2 Jahre
+
+Funktion
+
+Beuge Betrug vor
+
+Name
+
+c_user
+
+Ablaufdatum
+
+30 Tage
+
+Funktion
+
+Speichere die eindeutige User-ID
+
+Name
+
+sb
+
+Ablaufdatum
+
+2 Jahre
+
+Funktion
+
+Speichere Browser-Angaben
+
+Name
+
+*_fbm_
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichere Benutzer-Details
+
+Funktional
+
+Name
+
+wd
+
+Ablaufdatum
+
+1 Woche
+
+Funktion
+
+Festlegung der Bildschirmauflösung
+
+Name
+
+csm
+
+Ablaufdatum
+
+90 Tage
+
+Funktion
+
+Beuge Betrug vor
+
+Name
+
+actppresence
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichern und verfolgen, ob die Browser-Registerkarte aktiv ist
+
+Twitter
+
+Funktional, Marketing
+
+Consent to service twitter
+
+Nutzung
+
+Wir verwenden Twitter für Anzeige der letzten Social-Posts und/oder Social-Share-Buttons. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Twitter Datenschutzerklärung lesen.
+
+Funktional
+
+Name
+
+local_storage_support_test
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Lade ausgeglichene Funktionsweise
+
+Marketing
+
+Name
+
+metrics_token
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+LinkedIn
+
+Funktional, Marketing, Statistik, Präferenzen
+
+Consent to service linkedin
+
+Nutzung
+
+Wir verwenden LinkedIn für Anzeige der letzten Social-Posts und/oder Social-Share-Buttons. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die LinkedIn Datenschutzerklärung lesen.
+
+Funktional
+
+Name
+
+sdsc
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Lade ausgeglichene Funktionsweise
+
+Name
+
+li_gc
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+Speichere Cookie-Einwilligungsvorgaben
+
+Name
+
+BizographicsOptOut
+
+Ablaufdatum
+
+10 Jahre
+
+Funktion
+
+Speichere persönliche Vorlieben
+
+Marketing
+
+Name
+
+lms_ads
+
+Ablaufdatum
+
+30 Tage
+
+Funktion
+
+Verfolge Besucher quer über Websiten
+
+Name
+
+_guid
+
+Ablaufdatum
+
+90 Tage
+
+Funktion
+
+Die Identität eines Besuchers speichern und verfolgen
+
+Name
+
+li-oatml
+
+Ablaufdatum
+
+1 Monat
+
+Funktion
+
+Anzeigenschaltung oder Retargeting anbieten
+
+Name
+
+li_sugr
+
+Ablaufdatum
+
+90 Tage
+
+Funktion
+
+Die Identität eines Besuchers speichern und verfolgen
+
+Name
+
+UserMatchHistory
+
+Ablaufdatum
+
+30 Tage
+
+Funktion
+
+Anzeigenschaltung oder Retargeting anbieten
+
+Statistik
+
+Name
+
+lms_analytics
+
+Ablaufdatum
+
+30 Tage
+
+Funktion
+
+Die Identität eines Besuchers speichern und verfolgen
+
+Name
+
+AnalyticsSyncHistory
+
+Ablaufdatum
+
+30 Tage
+
+Funktion
+
+Verfolge Besucher quer über Websiten
+
+Präferenzen
+
+Name
+
+li_alerts
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichere, wenn eine Nachricht angezeigt wurde
+
+Name
+
+bcookie
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichere Browser-Angaben
+
+Name
+
+lidc
+
+Ablaufdatum
+
+1 Tag
+
+Funktion
+
+Lade ausgeglichene Funktionsweise
+
+Name
+
+bscookie
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Benutzer eingeloggt lassen
+
+WhatsApp
+
+Funktional
+
+Consent to service whatsapp
+
+Nutzung
+
+Wir verwenden WhatsApp für Chat-Support. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die WhatsApp Datenschutzerklärung lesen.
+
+Funktional
+
+Name
+
+wa_lang_pref
+
+Ablaufdatum
+
+6 Tage
+
+Funktion
+
+Speichere Spracheinstellungen
+
+Name
+
+wa_ul
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Zugang gewähren
+
+TikTok
+
+Marketing, Funktional
+
+Consent to service tiktok
+
+Nutzung
+
+Wir verwenden TikTok für Video-Display. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die TikTok Datenschutzerklärung lesen.
+
+Marketing
+
+Name
+
+s_v_web_id
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+MONITOR_WEB_ID
+
+Ablaufdatum
+
+3 Monate
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+tt_webid
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+tt_webid_v2
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+ttwid
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+webapp_launch_mode
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+webapp_session_id
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Eine eindeutige Sitzungs-ID speichern
+
+Name
+
+webapp-session-referer
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Verweisende Website speichern
+
+Name
+
+webapp_tiktok_privious
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+webapp_extra_data
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Stelle Funktionen quer über Seiten bereit
+
+Name
+
+webapp_original_traffic_type
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Speichern, ob der Nutzer eingebettete Inhalte gesehen hat
+
+Name
+
+guide-login-config
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Speichere die eindeutige User-ID
+
+Name
+
+__tea_cache_tokens_*
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Eine eindeutige Sitzungs-ID speichern
+
+Funktional
+
+Name
+
+csrf_session_id
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Schutz vor Hackern bieten
+
+Name
+
+tt_csrf_token
+
+Ablaufdatum
+
+Sitzung
+
+Funktion
+
+Schutz vor Hackern bieten
+
+Name
+
+_abck
+
+Ablaufdatum
+
+1 Jahr
+
+Funktion
+
+Schutz vor Hackern bieten
+
+Name
+
+__tea_cache_first_*
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Lade ausgeglichene Funktionsweise
+
+Name
+
+webapp-newuser
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Ersten Besuch auf der Site speichern
+
+Name
+
+autoplay-config
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Konfiguration speichern
+
+Name
+
+webapp-video-mute
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Konfiguration speichern
+
+Gegenstand der Untersuchung
+
+Name
+
+f
+
+Ablaufdatum
+
+beständig
+
+Funktion
+
+Complianz
+
+Funktional
+
+Consent to service complianz
+
+Nutzung
+
+Wir verwenden Complianz für Verwaltung der Cookie-Einwilligung. Mehr lesen
+
+Weitergabe von Daten
+
+Diese Daten werden nicht an Dritte weitergegeben. Für weitere Informationen, bitte die Complianz Datenschutzerklärung lesen.
+
+Funktional
+
+Name
+
+cmplz_consented_services
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Speichere Cookie-Einwilligungsvorgaben
+
+Name
+
+cmplz_policy_id
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Erfasse die ID für die angenommene Cookie-Richtlinie
+
+Name
+
+cmplz_marketing
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Speichere Cookie-Einwilligungsvorgaben
+
+Name
+
+cmplz_statistics
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Speichere Cookie-Einwilligungsvorgaben
+
+Name
+
+cmplz_preferences
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Speichere Cookie-Einwilligungsvorgaben
+
+Name
+
+cmplz_functional
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Speichere Cookie-Einwilligungsvorgaben
+
+Name
+
+cmplz_banner-status
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Store if the cookie banner has been dismissed
+
+Pinterest
+
+Marketing
+
+Consent to service pinterest
+
+Nutzung
+
+Wir verwenden Pinterest für Anzeige der letzten Social-Posts und/oder Social-Share-Buttons. Mehr lesen
+
+Weitergabe von Daten
+
+Für weitere Informationen, bitte die Pinterest Datenschutzerklärung lesen.
+
+Marketing
+
+Name
+
+_pin_unauth
+
+Ablaufdatum
+
+1 Tag
+
+Funktion
+
+Die Nutzungshistorie des Nutzers speichern
+
+Sourcebuster JS
+
+Statistik
+
+Consent to service sourcebuster-js
+
+Nutzung
+
+Wir verwenden Sourcebuster JS für Besucherverfolgung. Mehr lesen
+
+Weitergabe von Daten
+
+Diese Daten werden nicht an Dritte weitergegeben.
+
+Statistik
+
+Name
+
+sbjs_current
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+Speichere Browser-Angaben
+
+Name
+
+sbjs_session
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+sbjs_first
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+Name
+
+sbjs_first_add
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+Name
+
+sbjs_migrations
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+Sonstiges
+
+Statistik
+
+Consent to service sonstiges
+
+Nutzung
+
+Weitergabe von Daten
+
+Die Weitergabe von Daten wird noch untersucht
+
+Gegenstand der Untersuchung
+
+Name
+
+PUSHTELL-landing_page_cta_display
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+mailpoet-track-events-cache
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+p3dlite_infill
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+p3dlite_material
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+p3dlite_printer
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+p3dlite_unit
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+attributes-notice-dismissed
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+marketplace_redesign_2023_last_shown_date
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+__ssid
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+is_eu
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+cmplz_task_filter
+
+Ablaufdatum
+
+365 Tage
+
+Funktion
+
+Name
+
+__stripe_sid
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+tk_tc
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+_derived_epik
+
+Ablaufdatum
+
+Funktion
+
+Name
+
+formbricks-js
+
+Ablaufdatum
+
+Funktion
+
+Statistik
+
+Name
+
+sbjs_udata
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+Name
+
+sbjs_current_add
+
+Ablaufdatum
+
+6 Monate
+
+Funktion
+
+7. Zustimmung
+
+Wenn du unsere Website das erste Mal besuchst, zeigen wir dir ein Pop-Up mit einer Erklärung über Cookies. Sobald du auf „Speichern“ klickst, gibst du uns dein Einverständnis, alle von dir gewählten Kategorien von Cookies und Plugins wie in dieser Cookie-Erklärung beschrieben zu verwenden. Du kannst die Verwendung von Cookies über deinen Browser deaktivieren, aber bitte beachte, dass unsere Website dann unter Umständen nicht richtig funktioniert.
+
+7.1 Verwalte deine Zustimmungseinstellungen
+
+Du hast die Cookie-Richtlinie ohne Javascript-Unterstützung geladen. Unter AMP kannst du die Schaltfläche zum Zustimmen der Einwilligung unten auf der Seite verwenden.
+
+8. Aktivierung/Deaktivierung und Löschen von Cookies
+
+Du kannst deinen Internetbrowser verwenden um automatisch oder manuell Cookies zu löschen. Du kannst außerdem spezifizieren ob spezielle Cookies nicht platziert werden sollen. Eine andere Möglichkeit ist es deinen Internetbrowser derart einzurichten, dass du jedes Mal benachrichtigt wirst, wenn ein Cookie platziert wird. Für weitere Information über diese Möglichkeiten beachte die Anweisungen in der Hilfesektion deines Browsers.
+
+Bitte nimm zur Kenntnis, dass unsere Website möglicherweise nicht richtig funktioniert, wenn alle Cookies deaktiviert sind. Wenn du die Cookies in deinem Browser löscht, werden diese neu platziert, wenn du unsere Website erneut besuchst.
+
+9. Deine Rechte in Bezug auf persönliche Daten
+
+Du hast in Bezug auf deine persönlichen Daten die folgenden Rechte:
+
+Du hast das Recht zu wissen, warum deine persönlichen Daten gebraucht werden, was mit ihnen passiert und wie lange diese verwahrt werden.
+
+Zugriffsrecht: Du hast das Recht deine uns bekannten persönliche Daten einzusehen.
+
+Recht auf Berichtigung: Du hast das Recht wann immer du wünscht, deine persönlichen Daten zu ergänzen, zu korrigieren sowie gelöscht oder blockiert zu bekommen.
+
+Wenn du uns dein Einverständnis zur Verarbeitung deiner Daten gegeben hast, hast du das Recht dieses Einverständnis zu widerrufen und deine persönlichen Daten löschen zu lassen.
+
+Recht auf Datentransfer deiner Daten: Du hast das Recht, alle deine persönlichen Daten von einem Kontrolleur anzufordern und in ihrer Gesamtheit zu einem anderen Kontrolleur zu transferieren.
+
+Widerspruchsrecht: Du kannst der Verarbeitung deiner Daten widersprechen. Wir entsprechen dem, es sei denn es gibt berechtigte Gründe für die Verarbeitung.
+
+Um diese Rechte auszuüben kontaktiere uns bitte. Bitte beziehe dich auf die Kontaktdaten am Ende dieser Cookie-Erklärung. Wenn du eine Beschwerde darüber hast, wie wir deine Daten behandeln, würden wir diese gerne hören, aber du hast auch das Recht diese an die Aufsichtsbehörde (Datenschutzbehörde) zu richten.
+
+10. Kontaktdaten
+
+Für Fragen und/oder Kommentare über unsere Cookie-Richtlinien und diese Aussage kontaktiere uns bitte mittels der folgenden Kontaktdaten:
+
+Alex Knutas
+
+Hengstbergweg 28
+
+75328 Schömberg
+
+Deutschland
+
+Website: https://www.3d-mir.de
+
+E-Mail: info@3d-mir.de
+
+Phone number: +49 170 48 28 227
+
+Diese Cookie-Richtlinie wurde mit cookiedatabase.org am 1. September 2024 synchronisiert.
+
+-- BILDER --

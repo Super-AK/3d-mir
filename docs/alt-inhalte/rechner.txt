@@ -1,0 +1,125 @@
+======================================================================
+page3d-druck-rechner_.html
+======================================================================
+Willkommen beim 3D-Druck-Rechner!
+
+Erfahren Sie, wie viel Ihr 3D-Druckprojekt kosten wird, indem Sie unseren benutzerfreundlichen 3D-Druck-Rechner verwenden. Geben Sie einfach die erforderlichen Informationen ein, und erhalten Sie sofort einen Geschätzter Preis  für Ihre individuellen Anforderungen.
+
+Schritte zum Gebrauch:
+
+Materialauswahl und Farbe: Wählen Sie das gewünschte Druckmaterial aus der Liste der verfügbaren Optionen. Jedes Material hat unterschiedliche Eigenschaften, Kosten und Anwendungen.
+
+Druckgröße: Geben Sie die Dimensionen Ihres Modells in Millimetern ein. Unser Rechner berücksichtigt automatisch den Materialverbrauch basierend auf der Größe Ihres Druckobjekts.
+
+Stückzahl: Falls Sie mehrere Kopien desselben Modells benötigen, geben Sie einfach die gewünschte Stückzahl ein.
+
+Nachdem Sie alle erforderlichen Informationen eingegeben haben, klicken Sie auf „Angebot anfordern“, um ein genaueres Preis für Ihren 3D-Druckauftrag zu erhalten.
+
+Wir sind stolz darauf, Ihnen transparente und wettbewerbsfähige Preise für hochwertige 3D-Drucke anzubieten. Falls Sie weitere Fragen haben oder Hilfe benötigen, zögern Sie nicht, sich mit uns in Verbindung zu setzen.
+
+Starten Sie jetzt Ihren 3D-Druck-Rechner und bringen Sie Ihre Ideen zum Leben!
+
+Click here to upload or drag and drop your model to the canvas.
+
+The model is too large and has been resized to fit in the printer's build tray. [Hide]
+
+The model is too large to fit in the printer's build tray. [Hide]
+
+The model is too large, a fitting printer is selected. [Hide]
+
+The model is too small and has been upscaled. [Hide]
+
+Warning: The selected printer can not print in full color [Hide]
+
+Warning: obj models with multiple meshes are not yet supported [Hide]
+
+Upload Model
+
+File Unit:   
+
+mm
+  
+
+inch
+
+Scale:
+
+%
+
+ 
+
+×
+×
+ cm
+
+Material Volume:
+
+cm3
+
+Box Volume:
+
+cm3
+
+Surface Area:
+
+cm2
+
+Model Weight:
+
+g
+
+Model Dimensions:
+
+x x
+cm
+
+Estimated Price:
+
+Request a Quote
+
+Material
+
+Material
+
+PLA
+
+PETG
+
+ABS
+
+ABS-PC
+
+ASA
+
+PLA Tough
+
+Coating
+
+Printer
+
+Printer
+
+Bambu Lab X1C
+
+Anycubic i3 Mega S
+
+Infill
+
+10%
+
+15%
+
+35%
+
+45%
+
+65%
+
+75%
+
+95%
+
+-- BILDER --
+  https://3d-mir.de/wp-content/plugins/3dprint-lite/images/ajax-loader.gif | Loading file
+  https://www.3d-mir.de/wp-content/plugins/3dprint-lite/images/upload45.png | Upload
+  https://3d-mir.de/wp-content/plugins/3dprint-lite/images/ajax-loader.gif | Loading price

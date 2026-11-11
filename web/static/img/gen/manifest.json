@@ -1,0 +1,404 @@
+{
+  "hero": {
+    "width": 1344,
+    "height": 768,
+    "alt": "FDM-3D-Drucker bei der Fertigung",
+    "variants": [
+      {
+        "width": 480,
+        "avif": "/assets/img/gen/hero-480.avif",
+        "webp": "/assets/img/gen/hero-480.webp",
+        "jpg": "/assets/img/gen/hero-480.jpg"
+      },
+      {
+        "width": 800,
+        "avif": "/assets/img/gen/hero-800.avif",
+        "webp": "/assets/img/gen/hero-800.webp",
+        "jpg": "/assets/img/gen/hero-800.jpg"
+      },
+      {
+        "width": 1200,
+        "avif": "/assets/img/gen/hero-1200.avif",
+        "webp": "/assets/img/gen/hero-1200.webp",
+        "jpg": "/assets/img/gen/hero-1200.jpg"
+      }
+    ]
+  },
+  "service": {
+    "width": 1344,
+    "height": 768,
+    "alt": "3D-Druck-Service",
+    "variants": [
+      {
+        "width": 480,
+        "avif": "/assets/img/gen/service-480.avif",
+        "webp": "/assets/img/gen/service-480.webp",
+        "jpg": "/assets/img/gen/service-480.jpg"
+      },
+      {
+        "width": 800,
+        "avif": "/assets/img/gen/service-800.avif",
+        "webp": "/assets/img/gen/service-800.webp",
+        "jpg": "/assets/img/gen/service-800.jpg"
+      },
+      {
+        "width": 1200,
+        "avif": "/assets/img/gen/service-1200.avif",
+        "webp": "/assets/img/gen/service-1200.webp",
+        "jpg": "/assets/img/gen/service-1200.jpg"
+      }
+    ]
+  },
+  "calculator": {
+    "width": 1344,
+    "height": 768,
+    "alt": "3D-Druck-Rechner",
+    "variants": [
+      {
+        "width": 480,
+        "avif": "/assets/img/gen/calculator-480.avif",
+        "webp": "/assets/img/gen/calculator-480.webp",
+        "jpg": "/assets/img/gen/calculator-480.jpg"
+      },
+      {
+        "width": 800,
+        "avif": "/assets/img/gen/calculator-800.avif",
+        "webp": "/assets/img/gen/calculator-800.webp",
+        "jpg": "/assets/img/gen/calculator-800.jpg"
+      },
+      {
+        "width": 1200,
+        "avif": "/assets/img/gen/calculator-1200.avif",
+        "webp": "/assets/img/gen/calculator-1200.webp",
+        "jpg": "/assets/img/gen/calculator-1200.jpg"
+      }
+    ]
+  },
+  "product-battery-box": {
+    "width": 900,
+    "height": 1100,
+    "alt": "Recycling-Box für Batterien",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/product-battery-box-400.avif",
+        "webp": "/assets/img/gen/product-battery-box-400.webp",
+        "jpg": "/assets/img/gen/product-battery-box-400.jpg"
+      },
+      {
+        "width": 600,
+        "avif": "/assets/img/gen/product-battery-box-600.avif",
+        "webp": "/assets/img/gen/product-battery-box-600.webp",
+        "jpg": "/assets/img/gen/product-battery-box-600.jpg"
+      },
+      {
+        "width": 900,
+        "avif": "/assets/img/gen/product-battery-box-900.avif",
+        "webp": "/assets/img/gen/product-battery-box-900.webp",
+        "jpg": "/assets/img/gen/product-battery-box-900.jpg"
+      }
+    ]
+  },
+  "gallery-1": {
+    "width": 780,
+    "height": 822,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-1-400.avif",
+        "webp": "/assets/img/gen/gallery-1-400.webp",
+        "jpg": "/assets/img/gen/gallery-1-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-1-700.avif",
+        "webp": "/assets/img/gen/gallery-1-700.webp",
+        "jpg": "/assets/img/gen/gallery-1-700.jpg"
+      }
+    ]
+  },
+  "gallery-2": {
+    "width": 1920,
+    "height": 1498,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-2-400.avif",
+        "webp": "/assets/img/gen/gallery-2-400.webp",
+        "jpg": "/assets/img/gen/gallery-2-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-2-700.avif",
+        "webp": "/assets/img/gen/gallery-2-700.webp",
+        "jpg": "/assets/img/gen/gallery-2-700.jpg"
+      },
+      {
+        "width": 1000,
+        "avif": "/assets/img/gen/gallery-2-1000.avif",
+        "webp": "/assets/img/gen/gallery-2-1000.webp",
+        "jpg": "/assets/img/gen/gallery-2-1000.jpg"
+      }
+    ]
+  },
+  "gallery-3": {
+    "width": 838,
+    "height": 642,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-3-400.avif",
+        "webp": "/assets/img/gen/gallery-3-400.webp",
+        "jpg": "/assets/img/gen/gallery-3-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-3-700.avif",
+        "webp": "/assets/img/gen/gallery-3-700.webp",
+        "jpg": "/assets/img/gen/gallery-3-700.jpg"
+      }
+    ]
+  },
+  "gallery-4": {
+    "width": 1634,
+    "height": 1523,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-4-400.avif",
+        "webp": "/assets/img/gen/gallery-4-400.webp",
+        "jpg": "/assets/img/gen/gallery-4-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-4-700.avif",
+        "webp": "/assets/img/gen/gallery-4-700.webp",
+        "jpg": "/assets/img/gen/gallery-4-700.jpg"
+      },
+      {
+        "width": 1000,
+        "avif": "/assets/img/gen/gallery-4-1000.avif",
+        "webp": "/assets/img/gen/gallery-4-1000.webp",
+        "jpg": "/assets/img/gen/gallery-4-1000.jpg"
+      }
+    ]
+  },
+  "gallery-5": {
+    "width": 631,
+    "height": 604,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-5-400.avif",
+        "webp": "/assets/img/gen/gallery-5-400.webp",
+        "jpg": "/assets/img/gen/gallery-5-400.jpg"
+      }
+    ]
+  },
+  "gallery-6": {
+    "width": 744,
+    "height": 684,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-6-400.avif",
+        "webp": "/assets/img/gen/gallery-6-400.webp",
+        "jpg": "/assets/img/gen/gallery-6-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-6-700.avif",
+        "webp": "/assets/img/gen/gallery-6-700.webp",
+        "jpg": "/assets/img/gen/gallery-6-700.jpg"
+      }
+    ]
+  },
+  "gallery-7": {
+    "width": 780,
+    "height": 1000,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-7-400.avif",
+        "webp": "/assets/img/gen/gallery-7-400.webp",
+        "jpg": "/assets/img/gen/gallery-7-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-7-700.avif",
+        "webp": "/assets/img/gen/gallery-7-700.webp",
+        "jpg": "/assets/img/gen/gallery-7-700.jpg"
+      }
+    ]
+  },
+  "gallery-8": {
+    "width": 940,
+    "height": 670,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-8-400.avif",
+        "webp": "/assets/img/gen/gallery-8-400.webp",
+        "jpg": "/assets/img/gen/gallery-8-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-8-700.avif",
+        "webp": "/assets/img/gen/gallery-8-700.webp",
+        "jpg": "/assets/img/gen/gallery-8-700.jpg"
+      }
+    ]
+  },
+  "gallery-9": {
+    "width": 4032,
+    "height": 3024,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-9-400.avif",
+        "webp": "/assets/img/gen/gallery-9-400.webp",
+        "jpg": "/assets/img/gen/gallery-9-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-9-700.avif",
+        "webp": "/assets/img/gen/gallery-9-700.webp",
+        "jpg": "/assets/img/gen/gallery-9-700.jpg"
+      },
+      {
+        "width": 1000,
+        "avif": "/assets/img/gen/gallery-9-1000.avif",
+        "webp": "/assets/img/gen/gallery-9-1000.webp",
+        "jpg": "/assets/img/gen/gallery-9-1000.jpg"
+      }
+    ]
+  },
+  "gallery-10": {
+    "width": 4032,
+    "height": 3024,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-10-400.avif",
+        "webp": "/assets/img/gen/gallery-10-400.webp",
+        "jpg": "/assets/img/gen/gallery-10-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-10-700.avif",
+        "webp": "/assets/img/gen/gallery-10-700.webp",
+        "jpg": "/assets/img/gen/gallery-10-700.jpg"
+      },
+      {
+        "width": 1000,
+        "avif": "/assets/img/gen/gallery-10-1000.avif",
+        "webp": "/assets/img/gen/gallery-10-1000.webp",
+        "jpg": "/assets/img/gen/gallery-10-1000.jpg"
+      }
+    ]
+  },
+  "gallery-11": {
+    "width": 3024,
+    "height": 4032,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-11-400.avif",
+        "webp": "/assets/img/gen/gallery-11-400.webp",
+        "jpg": "/assets/img/gen/gallery-11-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-11-700.avif",
+        "webp": "/assets/img/gen/gallery-11-700.webp",
+        "jpg": "/assets/img/gen/gallery-11-700.jpg"
+      },
+      {
+        "width": 1000,
+        "avif": "/assets/img/gen/gallery-11-1000.avif",
+        "webp": "/assets/img/gen/gallery-11-1000.webp",
+        "jpg": "/assets/img/gen/gallery-11-1000.jpg"
+      }
+    ]
+  },
+  "gallery-12": {
+    "width": 3024,
+    "height": 4032,
+    "alt": "3D-gedrucktes Bauteil",
+    "variants": [
+      {
+        "width": 400,
+        "avif": "/assets/img/gen/gallery-12-400.avif",
+        "webp": "/assets/img/gen/gallery-12-400.webp",
+        "jpg": "/assets/img/gen/gallery-12-400.jpg"
+      },
+      {
+        "width": 700,
+        "avif": "/assets/img/gen/gallery-12-700.avif",
+        "webp": "/assets/img/gen/gallery-12-700.webp",
+        "jpg": "/assets/img/gen/gallery-12-700.jpg"
+      },
+      {
+        "width": 1000,
+        "avif": "/assets/img/gen/gallery-12-1000.avif",
+        "webp": "/assets/img/gen/gallery-12-1000.webp",
+        "jpg": "/assets/img/gen/gallery-12-1000.jpg"
+      }
+    ]
+  },
+  "colors": {
+    "width": 1494,
+    "height": 987,
+    "alt": "Filamentfarben im Überblick",
+    "variants": [
+      {
+        "width": 500,
+        "avif": "/assets/img/gen/colors-500.avif",
+        "webp": "/assets/img/gen/colors-500.webp",
+        "jpg": "/assets/img/gen/colors-500.jpg"
+      },
+      {
+        "width": 900,
+        "avif": "/assets/img/gen/colors-900.avif",
+        "webp": "/assets/img/gen/colors-900.webp",
+        "jpg": "/assets/img/gen/colors-900.jpg"
+      },
+      {
+        "width": 1400,
+        "avif": "/assets/img/gen/colors-1400.avif",
+        "webp": "/assets/img/gen/colors-1400.webp",
+        "jpg": "/assets/img/gen/colors-1400.jpg"
+      }
+    ]
+  },
+  "shipping": {
+    "width": 1024,
+    "height": 768,
+    "alt": "Versand von 3D-Druck-Teilen",
+    "variants": [
+      {
+        "width": 480,
+        "avif": "/assets/img/gen/shipping-480.avif",
+        "webp": "/assets/img/gen/shipping-480.webp",
+        "jpg": "/assets/img/gen/shipping-480.jpg"
+      },
+      {
+        "width": 800,
+        "avif": "/assets/img/gen/shipping-800.avif",
+        "webp": "/assets/img/gen/shipping-800.webp",
+        "jpg": "/assets/img/gen/shipping-800.jpg"
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+<header class="site-header" data-header>
+  <div class="container header-inner">
+    <a class="brand" href="/" aria-label="3D-MIR Startseite">
+      <img src="/assets/img/gen/logo-44.png" alt="3D-MIR Logo" width="44" height="43" decoding="async">
+      <span class="brand-text">
+        <strong>3D-MIR</strong>
+        <span>3D-Druck Service</span>
+      </span>
+    </a>
+
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="hauptnavigation" data-nav-toggle>
+      <span class="nav-toggle-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Menü öffnen</span>
+    </button>
+
+    <nav class="site-nav" id="hauptnavigation" aria-label="Hauptnavigation" data-nav>
+      <ul>
+        <li><a href="/" {% if currentPath == '/' %}aria-current="page"{% endif %}>Start</a></li>
+        <li><a href="/leistungen/" {% if currentPath == '/leistungen/' %}aria-current="page"{% endif %}>Leistungen</a></li>
+        <li><a href="/3d-druck-rechner/" {% if currentPath == '/3d-druck-rechner/' %}aria-current="page"{% endif %}>Rechner</a></li>
+        <li><a href="/shop/" {% if currentPath.startsWith('/shop') or currentPath.startsWith('/produkt') %}aria-current="page"{% endif %}>Shop</a></li>
+        <li><a href="/kontakt/" {% if currentPath == '/kontakt/' %}aria-current="page"{% endif %}>Kontakt</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a class="icon-link" href="/warenkorb/" aria-label="Warenkorb">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>
+          <span class="cart-count" data-cart-count hidden>0</span>
+        </a>
+        <a class="btn btn-primary btn-small" href="/3d-druck-rechner/">Preis berechnen</a>
+      </div>
+    </nav>
+  </div>
+</header>

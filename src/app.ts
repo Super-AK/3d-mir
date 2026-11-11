@@ -1,0 +1,89 @@
+import Fastify, { type FastifyError } from 'fastify';
+import cookie from '@fastify/cookie';
+import formbody from '@fastify/formbody';
+import fastifyStatic from '@fastify/static';
+import path from 'node:path';
+import fs from 'node:fs';
+import { config } from './config.js';
+import { getLogger } from './lib/logger.js';
+import { render } from './lib/render.js';
+import { publicRoutes } from './routes/public.js';
+import { migrate } from './db/migrate.js';
+
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' data: blob:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+
+export async function buildApp() {
+  const app = Fastify({
+    loggerInstance: getLogger(),
+    trustProxy: config.trustProxy,
+    bodyLimit: 1024 * 1024,
+  });
+
+  await app.register(cookie, { secret: config.sessionSecret });
+  await app.register(formbody);
+
+  const assetsDir = path.join(config.root, 'public', 'assets');
+  if (fs.existsSync(assetsDir)) {
+    await app.register(fastifyStatic, {
+      root: assetsDir,
+      prefix: '/assets/',
+      decorateReply: false,
+      maxAge: config.isProduction ? '7d' : 0,
+      immutable: false,
+    });
+  }
+
+  app.addHook('onSend', async (_request, reply, payload) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+    reply.header('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
+    reply.header('Cross-Origin-Opener-Policy', 'same-origin');
+    reply.header('Content-Security-Policy', CSP);
+    return payload;
+  });
+
+  await app.register(publicRoutes);
+
+  app.setNotFoundHandler((request, reply) => {
+    if (request.url.startsWith('/api/')) {
+      return reply.code(404).send({ error: 'not_found', message: 'Nicht gefunden' });
+    }
+    reply.code(404);
+    return render(reply, 'pages/error.njk', {
+      statusCode: 404,
+      title: 'Seite nicht gefunden',
+      message: 'Die aufgerufene Seite existiert nicht oder wurde verschoben.',
+    });
+  });
+
+  app.setErrorHandler((error: FastifyError, request, reply) => {
+    request.log.error({ err: error }, 'Unbehandelter Fehler');
+    const status = error.statusCode && error.statusCode >= 400 ? error.statusCode : 500;
+    if (request.url.startsWith('/api/')) {
+      return reply.code(status).send({ error: 'server_error', message: 'Interner Fehler' });
+    }
+    reply.code(status);
+    return render(reply, 'pages/error.njk', {
+      statusCode: status,
+      title: status === 500 ? 'Es ist ein Fehler aufgetreten' : 'Anfrage fehlgeschlagen',
+      message: 'Bitte versuchen Sie es später erneut. Wenn das Problem bleibt, schreiben Sie uns eine E-Mail.',
+    });
+  });
+
+  // Migrationen beim Start ausführen (idempotent).
+  migrate();
+
+  return app;
+}

@@ -1,0 +1,46 @@
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <p class="footer-brand">3D-MIR <span>3D-Druck Service</span></p>
+      <address>
+        {{ site.business.street }}<br>
+        {{ site.business.zip }} {{ site.business.city }}<br>
+        <a href="tel:{{ site.business.phoneHref }}">{{ site.business.phone }}</a><br>
+        <a href="mailto:{{ site.business.email }}">{{ site.business.email }}</a>
+      </address>
+      <p class="footer-note">Fertigung in Deutschland. Kleinunternehmer gemäß § 19 UStG.</p>
+    </div>
+    <div>
+      <h2 class="footer-heading">Service</h2>
+      <ul class="footer-links">
+        <li><a href="/leistungen/">Leistungen &amp; Materialien</a></li>
+        <li><a href="/3d-druck-rechner/">3D-Druck-Rechner</a></li>
+        <li><a href="/shop/">Shop</a></li>
+        <li><a href="/kontakt/">Kontakt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="footer-heading">Rechtliches</h2>
+      <ul class="footer-links">
+        <li><a href="/impressum/">Impressum</a></li>
+        <li><a href="/datenschutz/">Datenschutz</a></li>
+        <li><a href="/agb/">AGB</a></li>
+        <li><a href="/widerruf/">Widerrufsbelehrung</a></li>
+        <li><a href="/versand/">Versandarten</a></li>
+        <li><a href="/zahlung/">Zahlungsarten</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="footer-heading">Auch hier zu finden</h2>
+      <ul class="footer-links">
+        <li><a href="{{ site.channels.etsy.url }}" rel="noopener" target="_blank">{{ site.channels.etsy.label }}</a></li>
+        <li><a href="{{ site.channels.classifieds.url }}" rel="noopener" target="_blank">{{ site.channels.classifieds.label }}</a></li>
+      </ul>
+      <p class="footer-note">Cookies nur, soweit technisch notwendig. <a href="/datenschutz/#cookies">Mehr erfahren</a></p>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <p>© {{ year }} 3D-MIR · Alle Rechte vorbehalten.</p>
+    <p>Kein Mehrwertsteuerausweis, da Kleinunternehmer nach § 19 UStG.</p>
+  </div>
+</footer>

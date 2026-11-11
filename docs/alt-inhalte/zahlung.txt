@@ -1,0 +1,26 @@
+======================================================================
+pagebezahlmoeglichkeiten_.html
+======================================================================
+Kredit-/Debitkarte
+
+Direkte Banküberweisung
+
+Überweise direkt an unsere Bankverbindung. Bitte nutze die Bestellnummer als Verwendungszweck. Deine Bestellung wird erst nach Geldeingang auf unserem Konto versandt.
+
+Per Nachnahme
+
+Per Nachnahme zahlen. 1,00 € Zahlungsgebühr. Zzgl. 8,99 € Übermittlungsentgelt (direkt an den Zusteller).
+
+PayPal
+
+Pay via PayPal.
+
+iDEAL
+
+Klarna
+
+-- BILDER --
+  https://www.3d-mir.de/wp-content/plugins/woocommerce-payments/assets/images/payment-methods/generic-card.svg | Kredit-/Debitkarte
+  https://www.3d-mir.de/wp-content/plugins/woocommerce-paypal-payments/modules/ppcp-wc-gateway/assets/images/paypal.svg | PayPal
+  https://www.3d-mir.de/wp-content/plugins/woocommerce-payments/assets/images/payment-methods/ideal.svg | iDEAL
+  https://www.3d-mir.de/wp-content/plugins/woocommerce-payments/assets/images/payment-methods/klarna-pill.svg | Klarna

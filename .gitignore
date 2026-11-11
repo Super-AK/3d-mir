@@ -1,0 +1,36 @@
+# Abhängigkeiten
+node_modules/
+
+# Build-Artefakte (werden auf dem Server gebaut)
+public/
+dist/
+
+# Umgebung / Geheimnisse
+.env
+.env.*
+!.env.example
+
+# Datenbank und Uploads (liegen produktiv unter /var/lib/3d-mir)
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+data/
+
+# Logs
+*.log
+logs/
+
+# Betriebssystem / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Tests
+test-results/
+playwright-report/
+coverage/
+
+# Sonstiges
+*.tsbuildinfo
+.cache/

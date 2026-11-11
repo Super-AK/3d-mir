@@ -1,0 +1,50 @@
+{
+  "baseUrl": "https://www.3d-mir.de",
+  "locale": "de-DE",
+  "business": {
+    "name": "3D-MIR",
+    "legalName": "3D-MIR, 3D-Druck Service",
+    "owner": "Alex Knutas",
+    "street": "Hengstbergweg 28",
+    "zip": "75328",
+    "city": "Schömberg",
+    "country": "Deutschland",
+    "countryCode": "DE",
+    "phone": "+49 170 48 28 227",
+    "phoneHref": "+491704828227",
+    "email": "info@3d-mir.de",
+    "vatNote": "Kein Mehrwertsteuerausweis, da Kleinunternehmer nach § 19 UStG.",
+    "smallBusiness": true
+  },
+  "channels": {
+    "etsy": {
+      "label": "Etsy-Shop",
+      "url": "https://www.etsy.com/de/shop/3DlMIR",
+      "reviewsUrl": "TODO-ETSY-BEWERTUNGEN-URL"
+    },
+    "classifieds": {
+      "label": "eBay Kleinanzeigen",
+      "url": "https://www.ebay-kleinanzeigen.de/s-bestandsliste.html?userId=127840170"
+    }
+  },
+  "contact": {
+    "responseTime": "in der Regel innerhalb von 24 Stunden an Werktagen",
+    "appointmentNote": "Abholung nach Absprache"
+  },
+  "seo": {
+    "siteName": "3D-MIR 3D-Druck Service",
+    "defaultTitle": "3D-Druck Service in Schömberg – 3D-MIR",
+    "defaultDescription": "3D-Druck nach Maß: Prototyping, Modellbau, Kleinserien und Ersatzteile aus PLA, PETG, ABS, ASA und mehr. Jetzt Modell hochladen und Preis schätzen."
+  },
+  "features": {
+    "shop": true,
+    "customerAccounts": false,
+    "calculator": true,
+    "paypal": false,
+    "totp": false
+  },
+  "legal": {
+    "lastUpdated": "2026-11-11",
+    "reviewNotice": "Dieser Text ist ein technischer Entwurf und muss vor Veröffentlichung rechtlich geprüft werden."
+  }
+}

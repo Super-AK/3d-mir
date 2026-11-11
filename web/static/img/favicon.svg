@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="3D-MIR">
+  <rect width="64" height="64" rx="14" fill="#0a1530"/>
+  <path d="M18 22h9a7 7 0 0 1 0 14h-9V22Zm0 14h10a7 7 0 0 1 0 14H18V36Z" fill="#e8eef7"/>
+  <path d="M40 22h12v7h-5v21h-7V29h-5v-7Z" fill="#8fb8dd"/>
+</svg>

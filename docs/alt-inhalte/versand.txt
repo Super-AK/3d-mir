@@ -1,0 +1,50 @@
+======================================================================
+pageversandarten_.html
+======================================================================
+Versandarten und Kosten
+
+Beim Online-Shopping ist es entscheidend zu wissen, welche Versandarten und -kosten verfügbar sind. Hier finden Sie eine Übersicht zu den möglichen Lieferoptionen, die in unserem Shop angeboten werden:
+
+Standardversand
+
+Lieferzeit: 3-5 Werktage
+
+Kosten: 4,99 €
+
+Details: Zuverlässige Zustellung innerhalb der angegebenen Zeit. Kostenloser Versand für Bestellungen über 50 €.
+
+Expressversand
+
+Lieferzeit: 1-2 Werktage
+
+Kosten: 9,99 €
+
+Details: Für Kunden, die ihre Bestellung schnellstmöglich erhalten möchten. Bestellungen, die vor 12 Uhr aufgegeben werden, kommen in der Regel am nächsten Tag an.
+
+Kostenloser Versand
+
+Lieferzeit: 5-7 Werktage
+
+Kosten: Kostenlos
+
+Details: Verfügbar für Bestellungen über 100 €. Ideal für Kunden, die keinen Zeitdruck haben und Kosten sparen möchten.
+
+Abholung im Laden
+
+Lieferzeit: 1-2 Werktage
+
+Kosten: Kostenlos
+
+Details: Bestellen Sie online und holen Sie Ihre Ware bequem in unserer Filiale ab. Sie werden benachrichtigt, sobald Ihre Bestellung zur Abholung bereitsteht.
+
+Internationale Lieferung
+
+Lieferzeit: 7-14 Werktage
+
+Kosten: 19,99 €
+
+Details: Versand in die meisten Länder weltweit. Zoll- und Einfuhrgebühren sind nicht in den Versandkosten enthalten und müssen vom Empfänger getragen werden.
+
+Egal für welche Versandart Sie sich entscheiden, wir sorgen dafür, dass Ihre Bestellung sicher und schnell bei Ihnen ankommt.
+
+-- BILDER --

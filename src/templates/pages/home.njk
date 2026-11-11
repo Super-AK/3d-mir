@@ -1,0 +1,103 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}{{ site.seo.defaultTitle }}{% endblock %}
+{% block description %}{{ site.seo.defaultDescription }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">{{ content['home.hero.kicker'] }}</p>
+      <h1>{{ content['home.hero.title'] }}</h1>
+      <p class="hero-lead">{{ content['home.hero.text'] }}</p>
+      <div class="hero-actions">
+        <a class="btn" href="/3d-druck-rechner/">
+          Preis berechnen
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn-secondary" href="/shop/">Zum Shop</a>
+      </div>
+      <div class="hero-meta">
+        <div><strong>FDM-Druck</strong><span>PLA · PETG · ABS · ASA</span></div>
+        <div><strong>Ab 1 Stück</strong><span>Einzelteile &amp; Kleinserien</span></div>
+        <div><strong>Aus Schömberg</strong><span>Fertigung in Deutschland</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      {{ image('hero', { sizes: '(max-width: 860px) 100vw, 46vw', priority: true, alt: 'FDM-3D-Drucker bei der Fertigung eines Bauteils' }) | safe }}
+      <p class="hero-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        Unverbindliche Preisschätzung in Minuten
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Leistungen</p>
+      <h2>Vom Prototyp bis zum Ersatzteil</h2>
+      <p>Wir drucken Ihre Modelle im FDM-Verfahren – präzise, robust und in der Stückzahl, die Sie brauchen.</p>
+    </div>
+    <div class="grid grid-4">
+      {% for item in services %}
+        <article class="card card-hover">
+          <span class="card-icon" aria-hidden="true">{{ item.icon | safe }}</span>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.text }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">So funktioniert es</p>
+      <h2>In vier Schritten zum fertigen Druck</h2>
+    </div>
+    <ol class="steps">
+      <li class="step"><h3>Modell hochladen</h3><p>STL, 3MF oder OBJ – direkt im Rechner, inklusive 3D-Vorschau.</p></li>
+      <li class="step"><h3>Konfigurieren</h3><p>Material, Farbe, Füllung und Stückzahl wählen – der Preis aktualisiert sich live.</p></li>
+      <li class="step"><h3>Angebot erhalten</h3><p>Wir prüfen das Modell und melden uns mit einem verbindlichen Angebot.</p></li>
+      <li class="step"><h3>Druck &amp; Versand</h3><p>Nach Freigabe produzieren wir und versenden sicher verpackt.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container split">
+    <div>
+      <p class="eyebrow">Materialien</p>
+      <h2>Das richtige Material für Ihren Einsatz</h2>
+      <p class="text-muted">Ob feine Details, hohe Temperaturen oder UV-Beständigkeit: Wir beraten Sie zur passenden Kunststoffwahl – und drucken nur, was zu Ihrem Bauteil passt.</p>
+      <p><a class="btn btn-secondary" href="/leistungen/">Materialien vergleichen</a></p>
+    </div>
+    <div class="material-grid">
+      {% for material in pricing.materials | slice(0, 4) %}
+        <article class="material-card">
+          <h3>{{ material.label }} <span class="badge badge-neutral">bis {{ material.maxTempC }} °C</span></h3>
+          <p class="text-muted">{{ material.useCases }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-soft">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <h2>{{ content['home.contact.title'] }}</h2>
+        <p>{{ content['home.contact.text'] }}</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-light" href="/kontakt/">Kontakt aufnehmen</a>
+        <a class="btn btn-ghost-light" href="/3d-druck-rechner/">Modell hochladen</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

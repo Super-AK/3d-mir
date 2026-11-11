@@ -1,0 +1,21 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}{{ title }} – {{ site.business.name }}{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <h1>{{ title }}</h1>
+    <p>{{ description }}</p>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="alert alert-info">
+      <p>Diese Seite befindet sich im Aufbau. Der Inhalt folgt in Kürze.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

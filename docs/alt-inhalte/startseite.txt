@@ -1,0 +1,12 @@
+======================================================================
+pagestart.html
+======================================================================
+Herzlich willkommen bei unserem 3D-Druck Service!
+
+Wir bieten Ihnen professionelle und zuverlässige Druckdienstleistungen mit dem FDM-Druckverfahren an. Ob Modellbau, Prototyping, Produktion von Kleinserien oder individuelle Teile und Komponenten – wir arbeiten eng mit Ihnen zusammen, um Ihre Anforderungen zu verstehen und Ihnen ein hervorragendes Ergebnis zu liefern. Bei uns finden Sie eine breite Palette an Filamentarten, einschließlich PLA, ABS, ASA, PETG und andere, um sicherzustellen, dass wir für jedes Projekt das richtige Material verwenden.
+Wir verfügen über modernste Drucker und ein qualifiziertes Team, das Ihnen eine schnelle und zuverlässige Ausführung jedes Projekts garantiert. Schauen Sie sich auf unserer Website um und erfahren Sie mehr über unser Angebot und unsere Dienstleistungen.
+
+Wir sind da, um Ihnen zu helfen Ihre Projekte erfolgreich zum Leben erwecken.
+
+-- BILDER --
+  https://www.3d-mir.de/wp-content/uploads/2023/12/FDM3DDrucker-Rechnu-1024x585.jpg | 
