@@ -1,0 +1,174 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Kasse – 3D-MIR{% endblock %}
+{% block description %}Bestellung bei 3D-MIR abschließen.{% endblock %}
+{% block robots %}noindex,nofollow{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li><a href="/shop/">Shop</a></li><li><a href="/warenkorb/">Warenkorb</a></li><li aria-current="page">Kasse</li></ol>
+    </nav>
+    <h1>Kasse</h1>
+    <p>Bitte prüfen Sie Ihre Angaben. Mit „zahlungspflichtig bestellen“ geben Sie eine verbindliche Bestellung ab.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if error %}
+      <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
+    {% endif %}
+    {% if shopConfig.status == 'PLATZHALTER' %}
+      <div class="alert alert-warning" role="status"><p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p></div>
+    {% endif %}
+
+    <div class="checkout-layout">
+      <form class="form checkout-form" method="post" action="/kasse/" data-checkout novalidate>
+        <section class="checkout-block">
+          <h2>Kontakt</h2>
+          <div class="form-row">
+            <div class="field">
+              <label for="firstName">Vorname <span aria-hidden="true">*</span></label>
+              <input id="firstName" name="firstName" type="text" autocomplete="given-name" required maxlength="80" value="{{ form.firstName or '' }}">
+            </div>
+            <div class="field">
+              <label for="lastName">Nachname <span aria-hidden="true">*</span></label>
+              <input id="lastName" name="lastName" type="text" autocomplete="family-name" required maxlength="80" value="{{ form.lastName or '' }}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="email">E-Mail <span aria-hidden="true">*</span></label>
+              <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" value="{{ form.email or '' }}">
+              <span class="hint">Für die Bestellbestätigung und Rückfragen.</span>
+            </div>
+            <div class="field">
+              <label for="phone">Telefon <span class="hint">(optional)</span></label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="60" value="{{ form.phone or '' }}">
+            </div>
+          </div>
+        </section>
+
+        <section class="checkout-block">
+          <h2>Lieferadresse</h2>
+          <div class="field">
+            <label for="company">Firma <span class="hint">(optional)</span></label>
+            <input id="company" name="company" type="text" autocomplete="organization" maxlength="160" value="{{ form.company or '' }}">
+          </div>
+          <div class="field">
+            <label for="street">Straße und Hausnummer <span aria-hidden="true">*</span></label>
+            <input id="street" name="street" type="text" autocomplete="street-address" required maxlength="160" value="{{ form.street or '' }}">
+          </div>
+          <div class="field">
+            <label for="addressExtra">Adresszusatz <span class="hint">(optional)</span></label>
+            <input id="addressExtra" name="addressExtra" type="text" autocomplete="address-line2" maxlength="160" value="{{ form.addressExtra or '' }}">
+          </div>
+          <div class="form-row form-row-3">
+            <div class="field">
+              <label for="zip">Postleitzahl <span aria-hidden="true">*</span></label>
+              <input id="zip" name="zip" type="text" autocomplete="postal-code" required inputmode="numeric" maxlength="5" value="{{ form.zip or '' }}">
+            </div>
+            <div class="field">
+              <label for="city">Ort <span aria-hidden="true">*</span></label>
+              <input id="city" name="city" type="text" autocomplete="address-level2" required maxlength="100" value="{{ form.city or '' }}">
+            </div>
+            <div class="field">
+              <label for="country">Land</label>
+              <select id="country" name="country" autocomplete="country">
+                {% for code in countries %}
+                  <option value="{{ code }}" {% if (form.country or 'DE') == code %}selected{% endif %}>{% if code == 'DE' %}Deutschland{% else %}{{ code }}{% endif %}</option>
+                {% endfor %}
+              </select>
+              <span class="hint">Versand derzeit nur innerhalb Deutschlands.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="checkout-block">
+          <h2>Versandart</h2>
+          <div class="radio-list">
+            {% for option in shippingOptions %}
+              <label class="radio-card">
+                <input type="radio" name="shippingMethod" value="{{ option.id }}" data-shipping-cents="{{ option.cents }}" {% if form.shippingMethod == option.id or (not form.shippingMethod and loop.first) %}checked{% endif %}>
+                <span class="radio-card-text">
+                  <strong>{{ option.label }}</strong>
+                  <span>{{ option.deliveryDays }}</span>
+                </span>
+                <span class="radio-card-price">{% if option.cents == 0 %}{% if option.price > 0 %}kostenlos{% else %}0,00 €{% endif %}{% else %}{{ option.cents | price }}{% endif %}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="checkout-block">
+          <h2>Zahlungsart</h2>
+          <div class="radio-list">
+            {% for method in paymentMethods %}
+              <label class="radio-card radio-card-stacked">
+                <input type="radio" name="paymentMethod" value="{{ method.id }}" {% if form.paymentMethod == method.id or (not form.paymentMethod and loop.first) %}checked{% endif %}>
+                <span class="radio-card-text">
+                  <strong>{{ method.label }}</strong>
+                  <span>{{ method.note }}</span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="checkout-block">
+          <h2>Anmerkung</h2>
+          <div class="field">
+            <label for="customerNote">Nachricht zur Bestellung <span class="hint">(optional)</span></label>
+            <textarea id="customerNote" name="customerNote" maxlength="1000" placeholder="z. B. Wunschtermin, abweichende Lieferadresse oder Hinweise zur Farbe">{{ form.customerNote or '' }}</textarea>
+          </div>
+        </section>
+
+        {# Honeypot: für Menschen unsichtbar, Bots füllen es aus. #}
+        <div class="honeypot" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <label class="checkbox">
+          <input type="checkbox" name="consent" value="1" required {% if form.consent %}checked{% endif %}>
+          <span>Ich habe die <a href="/agb/">AGB</a> und die <a href="/widerruf/">Widerrufsbelehrung</a> gelesen und akzeptiere die AGB. <span aria-hidden="true">*</span></span>
+        </label>
+
+        <p class="text-muted"><small>{{ shopConfig.checkout.legalNote }}</small></p>
+
+        <div class="form-actions">
+          <button class="btn btn-block" type="submit">zahlungspflichtig bestellen</button>
+        </div>
+        <p class="text-muted"><small>Pflichtfelder sind mit * markiert. Es fallen keine Kosten für die Nutzung dieser Seite an.</small></p>
+      </form>
+
+      <aside class="cart-summary checkout-summary card">
+        <h2>Ihre Bestellung</h2>
+        <ul class="summary-items">
+          {% for line in lines %}
+            <li>
+              <span><strong>{{ line.quantity }} ×</strong> {{ line.productName }}<br><span class="text-muted">{{ line.variantLabel }}</span></span>
+              <span>{{ line.lineTotalCents | price }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        <dl class="summary-list">
+          <div><dt>Zwischensumme</dt><dd data-summary-subtotal="{{ subtotalCents }}">{{ subtotalCents | price }}</dd></div>
+          <div><dt>Versand</dt><dd data-summary-shipping="{{ selectedShippingCents }}">{{ selectedShippingCents | price }}</dd></div>
+        </dl>
+        <p class="summary-total"><span>Gesamt</span><strong data-summary-total="{{ totalCents }}">{{ totalCents | price }}</strong></p>
+        <p class="text-muted"><small>{{ site.business.vatNote }}<br>zzgl. Versandkosten.</small></p>
+        <a class="btn btn-secondary btn-block" href="/warenkorb/">Warenkorb bearbeiten</a>
+        <ul class="summary-legal">
+          <li><a href="/agb/">AGB</a></li>
+          <li><a href="/widerruf/">Widerruf</a></li>
+          <li><a href="/datenschutz/">Datenschutz</a></li>
+          <li><a href="/versand/">Versand</a></li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

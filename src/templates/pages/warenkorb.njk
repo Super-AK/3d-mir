@@ -1,0 +1,80 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Warenkorb – 3D-MIR{% endblock %}
+{% block description %}Ihr Warenkorb bei 3D-MIR.{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li><a href="/shop/">Shop</a></li><li aria-current="page">Warenkorb</li></ol>
+    </nav>
+    <h1>Warenkorb</h1>
+    <p>Prüfen Sie Ihre Auswahl und passen Sie die Mengen an. Die Preise werden beim Bestellen erneut geprüft.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if lines.length == 0 %}
+      <div class="empty-state card">
+        <h2>Ihr Warenkorb ist leer</h2>
+        <p>Schauen Sie im Shop vorbei oder lassen Sie sich im Rechner einen Preis für Ihr eigenes Modell schätzen.</p>
+        <div class="hero-actions">
+          <a class="btn" href="/shop/">Zum Shop</a>
+          <a class="btn btn-secondary" href="/3d-druck-rechner/">Preis berechnen</a>
+        </div>
+      </div>
+    {% else %}
+      <div class="cart-layout">
+        <div class="cart-items">
+          {% for line in lines %}
+            <article class="cart-item card">
+              <div class="cart-item-main">
+                <h2><a href="/shop/{{ line.productSlug }}/">{{ line.productName }}</a></h2>
+                <p class="text-muted">Farbe: {{ line.variantLabel }}</p>
+                <p class="cart-unit-price">{{ line.unitPriceCents | price }} pro Stück</p>
+                {% if line.stock != null and line.stock < line.quantity %}
+                  <p class="field-error">Nur noch {{ line.stock }} Stück verfügbar.</p>
+                {% endif %}
+              </div>
+              <div class="cart-item-actions">
+                <form class="cart-quantity" method="post" action="/warenkorb/aktualisieren/">
+                  <label for="quantity_{{ line.variantId }}">Menge</label>
+                  <input id="quantity_{{ line.variantId }}" name="quantity_{{ line.variantId }}" type="number" min="1" max="{{ maxQuantity }}" value="{{ line.quantity }}" inputmode="numeric">
+                  <button class="btn btn-secondary btn-small" type="submit">Aktualisieren</button>
+                </form>
+                <form method="post" action="/warenkorb/entfernen/">
+                  <input type="hidden" name="variantId" value="{{ line.variantId }}">
+                  <button class="btn btn-danger btn-small" type="submit">Entfernen</button>
+                </form>
+              </div>
+              <p class="cart-line-total">{{ line.lineTotalCents | price }}</p>
+            </article>
+          {% endfor %}
+        </div>
+
+        <aside class="cart-summary card">
+          <h2>Zusammenfassung</h2>
+          <dl class="summary-list">
+            <div><dt>Zwischensumme</dt><dd>{{ subtotalCents | price }}</dd></div>
+            <div><dt>Versand</dt><dd>wird an der Kasse berechnet</dd></div>
+          </dl>
+          {% if freeShippingFrom > 0 and subtotalCents < freeShippingFrom * 100 %}
+            <p class="text-muted"><small>Noch {{ (freeShippingFrom * 100 - subtotalCents) | price }} bis zum kostenlosen Versand.</small></p>
+          {% endif %}
+          <p class="summary-total"><span>Gesamt</span><strong>{{ subtotalCents | price }}</strong></p>
+          <p class="text-muted"><small>{{ site.business.vatNote }}</small></p>
+          <a class="btn btn-block" href="/kasse/">Zur Kasse</a>
+          <a class="btn btn-secondary btn-block" href="/shop/">Weiter einkaufen</a>
+        </aside>
+      </div>
+
+      <div class="alert alert-warning mt-2" role="status">
+        <p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Hinweis – 3D-MIR{% endblock %}
+{% block description %}Hinweis zu Ihrer Anfrage bei 3D-MIR.{% endblock %}
+{% block robots %}noindex,nofollow{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li aria-current="page">Hinweis</li></ol>
+    </nav>
+    <h1>Das hat leider nicht geklappt</h1>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="alert alert-danger" role="alert">
+      <p>{{ message }}</p>
+    </div>
+    <div class="hero-actions mt-2">
+      <a class="btn" href="/shop/">Zum Shop</a>
+      <a class="btn btn-secondary" href="/warenkorb/">Zum Warenkorb</a>
+      <a class="btn btn-secondary" href="/kontakt/">Kontakt</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

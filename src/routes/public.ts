@@ -282,14 +282,10 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
   app.get('/zahlung/', async (_request, reply) => render(reply, 'pages/legal/zahlung.njk'));
   app.get('/cookie-hinweis/', async (_request, reply) => render(reply, 'pages/legal/cookies.njk'));
 
-  // Noch nicht umgesetzte Bereiche bleiben als Platzhalter erreichbar.
-  const placeholders: Record<string, { title: string; description: string }> = {
-    '/shop/': { title: 'Shop', description: 'Fertige 3D-Druck-Produkte aus eigener Fertigung.' },
-  };
-  for (const [path, meta] of Object.entries(placeholders)) {
-    app.get(path, async (_request, reply) => render(reply, 'pages/placeholder.njk', meta));
-  }
-
+  app.get(
+    '/produkt/recycling-box-mit-deckel-fuer-leere-batterien-zur-aufbewahrung-gebrauchter-batterien/',
+    async (_request, reply) => reply.redirect('/shop/recycling-box-batterien/', 301),
+  );
   app.get('/produkt/*', async (_request, reply) => reply.redirect('/shop/', 301));
 
   for (const [from, to] of Object.entries(redirects)) {

@@ -2,7 +2,7 @@
 
 Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, Sofort-Preisrechner mit 3D-Vorschau, kleiner Shop und Admin-Bereich.
 
-> **Status:** Aufbau (Phase 1 abgeschlossen). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
+> **Status:** Aufbau (Phasen 1–4 abgeschlossen: Grundgerüst, statische Seiten, Rechner, Shop). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
 
 ## Technik
 
@@ -26,7 +26,7 @@ Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, So
 ├── src/                     Backend, Templates, Migrationen
 ├── web/                     Frontend-Quellen (CSS, TS, Bilder, Schriften)
 ├── public/                  Build-Ausgabe (von NGINX ausgeliefert, nicht im Git)
-├── config/                  site.json, pricing.json (keine Geheimnisse)
+├── config/                  site.json, pricing.json, shop.json (keine Geheimnisse)
 ├── deploy/                  Installer, Update, Backup, Nginx-Vorlage, systemd-Unit
 ├── docs/                    Dokumentation, offene Fragen, Redirects
 └── tests/                   Unit- und E2E-Tests
@@ -73,6 +73,7 @@ Details: `docs/DEPLOYMENT.md`.
 
 - `docs/ANALYSE.md` – Ist-Zustand der alten WordPress-Seite
 - `docs/OFFENE-FRAGEN.md` – gesammelte Fragen an den Auftraggeber
+- `docs/KALKULATION.md` – Preisformel und Platzhalter des Rechners
 - `docs/REDIRECTS.md` – 301-Weiterleitungen der alten URLs
 - `docs/DEPLOYMENT.md` – Installation, Update, Backup, Umzug
 - `docs/ABNAHME.md` – Abnahmeprotokoll

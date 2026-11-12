@@ -1,0 +1,93 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Shop – fertige 3D-Druck-Produkte | 3D-MIR{% endblock %}
+{% block description %}Fertige 3D-Druck-Produkte aus eigener Fertigung: Recycling-Box für Batterien in Wunschfarbe. Weitere Produkte und individuelle Anfertigungen auf Anfrage.{% endblock %}
+{% block ogtitle %}Shop – 3D-MIR{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li aria-current="page">Shop</li></ol>
+    </nav>
+    <h1>Shop</h1>
+    <p>Fertige 3D-Druck-Produkte aus eigener Fertigung – in kleinen Stückzahlen gedruckt, geprüft und in Wunschfarbe geliefert.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if shopConfig.status == 'PLATZHALTER' %}
+      <div class="alert alert-warning" role="status">
+        <p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p>
+      </div>
+    {% endif %}
+
+    <div class="shop-intro">
+      <div>
+        <p class="eyebrow">Aus eigener Fertigung</p>
+        <h2>Kleine Serie, große Sorgfalt</h2>
+        <p>Jedes Teil wird im FDM-Verfahren gedruckt und von Hand nachgearbeitet. Farben und Stückzahlen können je nach Verfügbarkeit abweichen – bei Fragen einfach melden.</p>
+      </div>
+      <div class="shop-intro-facts">
+        <div><strong>Versand</strong><span>ab {{ pricing.shipping.methods[0].price | price }} · frei ab {{ pricing.shipping.freeShippingFrom | price }}</span></div>
+        <div><strong>Fertigung</strong><span>in Schömberg, Deutschland</span></div>
+        <div><strong>Fragen</strong><span><a href="/kontakt/">Persönlich erreichbar</a></span></div>
+      </div>
+    </div>
+
+    <div class="product-grid">
+      {% for product in products %}
+        <article class="product-card card card-hover">
+          <a class="product-card-media" href="/shop/{{ product.slug }}/" tabindex="-1" aria-hidden="true">
+            {{ image(product.image, { sizes: '(max-width: 700px) 100vw, 33vw', alt: product.name }) | safe }}
+          </a>
+          <div class="product-card-body">
+            <p class="eyebrow">Aufbewahrung</p>
+            <h2><a href="/shop/{{ product.slug }}/">{{ product.name }}</a></h2>
+            <p>{{ product.short_description }}</p>
+            <div class="product-card-footer">
+              <p class="product-price">
+                {% if product.price_to_cents and product.price_to_cents > product.price_from_cents %}
+                  {{ product.price_from_cents | price }} – {{ product.price_to_cents | price }}
+                {% else %}
+                  ab {{ product.price_from_cents | price }}
+                {% endif %}
+              </p>
+              <a class="btn btn-secondary btn-small" href="/shop/{{ product.slug }}/">Details ansehen</a>
+            </div>
+          </div>
+        </article>
+      {% else %}
+        <p>Derzeit sind keine Produkte verfügbar. Individuelle Anfertigungen sind über den <a href="/3d-druck-rechner/">Rechner</a> möglich.</p>
+      {% endfor %}
+    </div>
+
+    <div class="shop-note-grid mt-2">
+      <div class="card">
+        <h2>Versand &amp; Abholung</h2>
+        <ul class="check-list">
+          {% for method in pricing.shipping.methods %}
+            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | price }}{% else %} · kostenlos{% endif %}</li>
+          {% endfor %}
+        </ul>
+        <p class="text-muted"><small>Ab {{ pricing.shipping.freeShippingFrom | price }} Warenwert entfallen die Versandkosten für den Paketversand.</small></p>
+      </div>
+      <div class="card">
+        <h2>Zahlung</h2>
+        <ul class="check-list">
+          {% for method in shopConfig.payment.methods %}
+            <li><strong>{{ method.label }}</strong><br><span class="text-muted">{{ method.note }}</span></li>
+          {% endfor %}
+        </ul>
+        <p class="text-muted"><small>{{ site.business.vatNote }}</small></p>
+      </div>
+      <div class="card card-highlight">
+        <h2>Etwas Eigenes?</h2>
+        <p>Sie brauchen ein individuelles Bauteil, ein Ersatzteil oder eine Kleinserie? Laden Sie Ihr Modell im Rechner hoch und erhalten Sie eine erste Preisschätzung.</p>
+        <p><a class="btn btn-small" href="/3d-druck-rechner/">Zum 3D-Druck-Rechner</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

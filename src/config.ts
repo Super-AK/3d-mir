@@ -70,6 +70,7 @@ export const config = {
   },
   site: readJson<SiteConfig>('config/site.json'),
   pricing: readJson<PricingConfig>('config/pricing.json'),
+  shop: readJson<ShopConfig>('config/shop.json'),
 } as const;
 
 export type SiteConfig = {
@@ -152,5 +153,21 @@ export type PricingConfig = {
     note: string;
     methods: { id: string; label: string; price: number; deliveryDays: string }[];
     freeShippingFrom: number;
+  };
+};
+
+export type ShopConfig = {
+  status: string;
+  notice: string;
+  maxQuantityPerItem: number;
+  payment: {
+    status: string;
+    note: string;
+    methods: { id: string; label: string; note: string }[];
+  };
+  checkout: {
+    acceptedCountries: string[];
+    legalNote: string;
+    termsVersion: string;
   };
 };

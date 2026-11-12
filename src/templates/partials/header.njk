@@ -18,13 +18,13 @@
         <li><a href="/" {% if currentPath == '/' %}aria-current="page"{% endif %}>Start</a></li>
         <li><a href="/leistungen/" {% if currentPath == '/leistungen/' %}aria-current="page"{% endif %}>Leistungen</a></li>
         <li><a href="/3d-druck-rechner/" {% if currentPath == '/3d-druck-rechner/' %}aria-current="page"{% endif %}>Rechner</a></li>
-        <li><a href="/shop/" {% if currentPath.startsWith('/shop') or currentPath.startsWith('/produkt') %}aria-current="page"{% endif %}>Shop</a></li>
+        <li><a href="/shop/" {% if currentPath.startsWith('/shop') or currentPath.startsWith('/produkt') or currentPath.startsWith('/warenkorb') or currentPath.startsWith('/kasse') or currentPath.startsWith('/bestellung') %}aria-current="page"{% endif %}>Shop</a></li>
         <li><a href="/kontakt/" {% if currentPath == '/kontakt/' %}aria-current="page"{% endif %}>Kontakt</a></li>
       </ul>
       <div class="nav-actions">
-        <a class="icon-link" href="/warenkorb/" aria-label="Warenkorb">
+        <a class="icon-link" href="/warenkorb/" aria-label="Warenkorb{% if cartCount > 0 %} ({{ cartCount }} Artikel){% endif %}">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>
-          <span class="cart-count" data-cart-count hidden>0</span>
+          {% if cartCount > 0 %}<span class="cart-count" data-cart-count>{{ cartCount }}</span>{% endif %}
         </a>
         <a class="btn btn-primary btn-small" href="/3d-druck-rechner/">Preis berechnen</a>
       </div>

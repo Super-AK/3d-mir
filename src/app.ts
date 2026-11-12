@@ -11,6 +11,7 @@ import { getLogger } from './lib/logger.js';
 import { render } from './lib/render.js';
 import { publicRoutes } from './routes/public.js';
 import { calculatorRoutes } from './routes/calculator.js';
+import { shopRoutes } from './routes/shop.js';
 import { migrate } from './db/migrate.js';
 
 const CSP = [
@@ -69,6 +70,7 @@ export async function buildApp() {
 
   await app.register(publicRoutes);
   await app.register(calculatorRoutes);
+  await app.register(shopRoutes);
 
   app.setNotFoundHandler((request, reply) => {
     if (request.url.startsWith('/api/')) {

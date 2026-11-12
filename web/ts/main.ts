@@ -38,22 +38,31 @@ window.addEventListener(
   { passive: true },
 );
 
-// Warenkorb-Anzahl aus dem technisch notwendigen Cookie anzeigen (ohne externen Request).
-const cartCount = document.querySelector<HTMLElement>('[data-cart-count]');
-if (cartCount) {
-  const match = document.cookie.match(/(?:^|;\s*)cart=([^;]*)/);
-  if (match?.[1]) {
-    try {
-      const items = JSON.parse(decodeURIComponent(match[1])) as Record<string, number>;
-      const count = Object.values(items).reduce((sum, qty) => sum + Number(qty || 0), 0);
-      if (count > 0) {
-        cartCount.textContent = String(count);
-        cartCount.hidden = false;
-      }
-    } catch {
-      /* ungültiges Cookie ignorieren */
+// Versandkosten und Gesamtsumme an der Kasse aktualisieren.
+const checkout = document.querySelector<HTMLFormElement>('[data-checkout]');
+if (checkout) {
+  const shipping = document.querySelector<HTMLElement>('[data-summary-shipping]');
+  const total = document.querySelector<HTMLElement>('[data-summary-total]');
+  const subtotal = Number(document.querySelector<HTMLElement>('[data-summary-subtotal]')?.dataset.summarySubtotal ?? 0);
+  const formatter = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+
+  const updateTotals = (): void => {
+    const selected = checkout.querySelector<HTMLInputElement>('input[name="shippingMethod"]:checked');
+    const cents = Number(selected?.dataset.shippingCents ?? 0);
+    if (shipping) {
+      shipping.textContent = formatter.format(cents / 100);
+      shipping.dataset.summaryShipping = String(cents);
     }
-  }
+    if (total) {
+      total.textContent = formatter.format((subtotal + cents) / 100);
+      total.dataset.summaryTotal = String(subtotal + cents);
+    }
+  };
+
+  checkout.querySelectorAll<HTMLInputElement>('input[name="shippingMethod"]').forEach((input) => {
+    input.addEventListener('change', updateTotals);
+  });
+  updateTotals();
 }
 
 // Sanftes Einblenden, respektiert reduzierte Bewegung.

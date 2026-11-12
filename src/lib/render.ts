@@ -3,6 +3,7 @@ import path from 'node:path';
 import nunjucks from 'nunjucks';
 import { config } from '../config.js';
 import { assetCss, assetUrl } from './assets.js';
+import { cartCount, readCart } from './cart.js';
 
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
 type ImageInfo = { width: number; height: number; alt: string; variants: ImageVariant[] };
@@ -86,9 +87,18 @@ env.addFilter('date', (value: string | Date | null | undefined) => {
 });
 env.addFilter('json', (value: unknown) => JSON.stringify(value));
 env.addFilter('jsonld', (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c'));
+/** Wandelt Klartext mit Leerzeilen in sichere Absätze um. */
+env.addFilter('paragraphs', (value: unknown) => {
+  const text = typeof value === 'string' ? value : '';
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p>${escapeHtml(paragraph.trim()).replaceAll('\n', '<br>')}</p>`)
+    .join('');
+});
 
 env.addGlobal('site', config.site);
 env.addGlobal('pricing', config.pricing);
+env.addGlobal('shopConfig', config.shop);
 env.addGlobal('features', config.site.features);
 env.addGlobal('year', new Date().getFullYear());
 env.addGlobal('asset', assetUrl);
@@ -99,6 +109,7 @@ env.addGlobal('maxUploadMb', Math.round(config.maxUploadBytes / (1024 * 1024)));
 export function render(res: import('fastify').FastifyReply, template: string, context: RenderContext = {}): void {
   const html = env.render(template, {
     currentPath: res.request.url.split('?')[0] ?? '/',
+    cartCount: cartCount(readCart(res.request)),
     ...context,
   });
   res.type('text/html; charset=utf-8').send(html);

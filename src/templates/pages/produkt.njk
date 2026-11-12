@@ -1,0 +1,146 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}{{ product.name }} – 3D-MIR Shop{% endblock %}
+{% block description %}{{ product.short_description }}{% endblock %}
+{% block ogtitle %}{{ product.name }} – 3D-MIR{% endblock %}
+{% block ogdescription %}{{ product.short_description }}{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">{{ productJsonLd | jsonld | safe }}</script>
+{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol>
+        <li><a href="/">Start</a></li>
+        <li><a href="/shop/">Shop</a></li>
+        <li aria-current="page">{{ product.name }}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+
+<section class="section product-section">
+  <div class="container">
+    {% if shopConfig.status == 'PLATZHALTER' %}
+      <div class="alert alert-warning" role="status">
+        <p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p>
+      </div>
+    {% endif %}
+
+    <div class="product-layout">
+      <div class="product-media">
+        {% if images.length > 0 %}
+          {% for item in images %}
+            {{ image(item.file, { sizes: '(max-width: 860px) 100vw, 52vw', alt: item.alt or product.name, priority: loop.first }) | safe }}
+          {% endfor %}
+        {% else %}
+          {{ image('product-battery-box', { sizes: '(max-width: 860px) 100vw, 52vw', alt: product.name, priority: true }) | safe }}
+        {% endif %}
+      </div>
+
+      <div class="product-info">
+        <p class="eyebrow">Aufbewahrung · 3D-Druck</p>
+        <h1>{{ product.name }}</h1>
+        {% if product.sku %}<p class="product-sku">Artikelnummer: {{ product.sku }}</p>{% endif %}
+
+        <p class="product-price product-price-large">
+          {% if product.price_to_cents and product.price_to_cents > product.price_from_cents %}
+            {{ product.price_from_cents | price }} – {{ product.price_to_cents | price }}
+          {% else %}
+            ab {{ product.price_from_cents | price }}
+          {% endif %}
+        </p>
+        <p class="text-muted"><small>{{ site.business.vatNote }} zzgl. Versandkosten.</small></p>
+
+        <p>{{ product.short_description }}</p>
+
+        <form class="product-form" method="post" action="/warenkorb/hinzufuegen/">
+          <div class="field">
+            <label for="variantId">Farbe</label>
+            <select id="variantId" name="variantId" required>
+              {% for variant in variants %}
+                <option value="{{ variant.id }}">{{ variant.label }} – {{ variant.price_cents | price }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="product-buy-row">
+            <div class="field field-quantity">
+              <label for="quantity">Menge</label>
+              <input id="quantity" name="quantity" type="number" min="1" max="{{ maxQuantity }}" value="1" inputmode="numeric" required>
+            </div>
+            <button class="btn btn-block" type="submit" {% if variants.length == 0 %}disabled{% endif %}>In den Warenkorb</button>
+          </div>
+        </form>
+
+        <ul class="product-facts">
+          <li><strong>Lieferzeit:</strong> 2–5 Werktage, Fertigung nach Bestellung</li>
+          <li><strong>Versand:</strong> ab {{ pricing.shipping.methods[0].price | price }}, frei ab {{ pricing.shipping.freeShippingFrom | price }}</li>
+          <li><strong>Abholung:</strong> nach Absprache in Schömberg möglich</li>
+          <li><strong>Material:</strong> PLA, in Wunschfarbe</li>
+        </ul>
+
+        <div class="alert alert-info">
+          <p><strong>Preishinweis:</strong> Die Farbzuordnung der Preise (11,00–12,50 €) ist noch nicht bestätigt. Im Warenkorb wird der niedrigste Preis angesetzt; der verbindliche Preis wird vor der Fertigung geprüft. <a href="/kontakt/">Fragen?</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-soft">
+  <div class="container product-details">
+    <div>
+      <h2>Beschreibung</h2>
+      {{ product.description | paragraphs | safe }}
+    </div>
+    <aside class="product-specs card">
+      <h2>Auf einen Blick</h2>
+      <dl>
+        {% if product.dimensions %}<div><dt>Maße</dt><dd>{{ product.dimensions }}</dd></div>{% endif %}
+        <div><dt>Material</dt><dd>PLA</dd></div>
+        <div><dt>Verfahren</dt><dd>FDM-3D-Druck</dd></div>
+        <div><dt>Farbe</dt><dd>{{ variants.length }} Varianten</dd></div>
+        <div><dt>Artikelnummer</dt><dd>{{ product.sku or '–' }}</dd></div>
+        <div><dt>Herstellung</dt><dd>Deutschland</dd></div>
+      </dl>
+      <p class="text-muted"><small>Hinweis: Das Gewicht aus der alten Produktseite („0,70 g“) ist offensichtlich fehlerhaft und wird hier bewusst nicht angegeben.</small></p>
+    </aside>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="shop-note-grid">
+      <div class="card">
+        <h2>Versand</h2>
+        <ul class="check-list">
+          {% for method in pricing.shipping.methods %}
+            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | price }}{% else %} · kostenlos{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Zahlung</h2>
+        <ul class="check-list">
+          {% for method in shopConfig.payment.methods %}
+            <li><strong>{{ method.label }}</strong><br><span class="text-muted">{{ method.note }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Rechtliches</h2>
+        <ul class="link-list">
+          <li><a href="/agb/">Allgemeine Geschäftsbedingungen</a></li>
+          <li><a href="/widerruf/">Widerrufsbelehrung</a></li>
+          <li><a href="/versand/">Versandarten</a></li>
+          <li><a href="/zahlung/">Zahlungsarten</a></li>
+          <li><a href="/datenschutz/">Datenschutz</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,26 @@
+{
+  "status": "PLATZHALTER",
+  "notice": "Der Shop befindet sich im Aufbau. Preise, Versandkosten und Zahlungsarten sind Platzhalter (TODO-PREISE, TODO-VERSAND, TODO-ZAHLUNG) und werden vor dem Livegang vom Auftraggeber bestätigt.",
+  "maxQuantityPerItem": 20,
+  "payment": {
+    "status": "PLATZHALTER",
+    "note": "TODO-ZAHLUNG: Die angebotenen Zahlungsarten und die Bankverbindung müssen vor dem Livegang bestätigt werden.",
+    "methods": [
+      {
+        "id": "vorkasse",
+        "label": "Vorkasse per Banküberweisung",
+        "note": "Sie erhalten die Bankverbindung nach der Bestellung per E-Mail. Die Bestellung wird nach Zahlungseingang gefertigt bzw. versandt."
+      },
+      {
+        "id": "vereinbarung",
+        "label": "Zahlung nach Vereinbarung",
+        "note": "Wir melden uns nach der Bestellung mit den Zahlungsdetails."
+      }
+    ]
+  },
+  "checkout": {
+    "acceptedCountries": ["DE"],
+    "legalNote": "Es handelt sich um einen Shop-Entwurf. Bestellungen werden erst nach Bestätigung der Preise, Versandkosten und Zahlungsart durch den Betreiber ausgeführt.",
+    "termsVersion": "2026-11-11"
+  }
+}

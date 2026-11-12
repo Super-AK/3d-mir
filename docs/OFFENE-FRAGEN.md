@@ -110,6 +110,7 @@ Ohne SMTP-Zugang werden E-Mails derzeit **nicht versendet**, sondern als `.eml`-
 | F51 | Sind weitere Produkte geplant? Bitte Name, Beschreibung, Preis, Varianten, Fotos. |
 | F52 | Sollen Produktbewertungen möglich sein? (Erfordert Konto + Moderation.) |
 | F53 | Kundenkonto gewünscht oder nur Gastbestellungen? (Aktuell ist das Konto optional und nicht aktiv.) |
+| F67 | Soll der Shop vor Bestätigung von Preisen, Versand und Zahlung live gehen – oder zunächst nur als Katalog ohne Bestellfunktion? Aktuell ist der Checkout technisch aktiv, aber deutlich als Platzhalter gekennzeichnet. |
 
 ## 10. Recht und Datenschutz 🔴
 

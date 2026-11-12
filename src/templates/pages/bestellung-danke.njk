@@ -1,0 +1,63 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Bestellung eingegangen – 3D-MIR{% endblock %}
+{% block description %}Ihre Bestellung bei 3D-MIR.{% endblock %}
+{% block robots %}noindex,nofollow{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li><a href="/shop/">Shop</a></li><li aria-current="page">Bestellung</li></ol>
+    </nav>
+    <h1>Vielen Dank für Ihre Bestellung</h1>
+    {% if number %}
+      <p>Ihre Bestellung <strong>{{ number }}</strong> ist bei uns eingegangen.</p>
+    {% else %}
+      <p>Ihre Anfrage ist bei uns eingegangen.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="container order-layout">
+    <div class="card order-card">
+      <h2>Wie geht es weiter?</h2>
+      <ol class="order-steps">
+        <li><strong>Prüfung:</strong> Wir prüfen Ihre Angaben und die Verfügbarkeit der gewünschten Farbe.</li>
+        <li><strong>Zahlung:</strong> Sie erhalten von uns eine E-Mail mit den Zahlungsdetails.</li>
+        <li><strong>Fertigung:</strong> Nach Zahlungseingang drucken und verpacken wir Ihre Bestellung.</li>
+        <li><strong>Versand:</strong> Sie erhalten eine Nachricht, sobald das Paket unterwegs ist.</li>
+      </ol>
+      <p>Bei Fragen antworten Sie einfach auf die Bestätigungs-E-Mail oder nutzen Sie unser <a href="/kontakt/">Kontaktformular</a>.</p>
+    </div>
+
+    {% if order %}
+      <aside class="cart-summary card">
+        <h2>Ihre Positionen</h2>
+        <ul class="summary-items">
+          {% for item in items %}
+            <li>
+              <span><strong>{{ item.quantity }} ×</strong> {{ item.name }}<br><span class="text-muted">{{ item.variant }}</span></span>
+              <span>{{ item.line_total_cents | price }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        <dl class="summary-list">
+          <div><dt>Zwischensumme</dt><dd>{{ order.subtotal_cents | price }}</dd></div>
+          <div><dt>Versand</dt><dd>{{ order.shipping_cents | price }}</dd></div>
+        </dl>
+        <p class="summary-total"><span>Gesamt</span><strong>{{ order.total_cents | price }}</strong></p>
+        <p class="text-muted"><small>{{ site.business.vatNote }}</small></p>
+      </aside>
+    {% endif %}
+  </div>
+
+  <div class="container mt-2">
+    <div class="hero-actions">
+      <a class="btn" href="/shop/">Weiter im Shop</a>
+      <a class="btn btn-secondary" href="/">Zur Startseite</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

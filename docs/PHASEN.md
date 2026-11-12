@@ -5,7 +5,7 @@
 | 1 | Analyse, Systemprüfung, Projektgerüst, NGINX, systemd, Git | ✅ abgeschlossen |
 | 2 | Design-System, statische Seiten, Rechtsseiten, Kontakt | ✅ abgeschlossen |
 | 3 | Rechner: Upload, 3D-Vorschau, Preis, Angebotsanfrage | ✅ abgeschlossen |
-| 4 | Shop: Produkte, Warenkorb, Checkout, E-Mails | ⬜ offen |
+| 4 | Shop: Produkte, Warenkorb, Checkout, E-Mails | ✅ abgeschlossen |
 | 5 | Admin: Login, Produkte, Bestellungen, Anfragen, Preise | ⬜ offen |
 | 6 | Konto (optional), SEO, Redirects, Performance, Security | ⬜ offen |
 | 7 | Deployment-Paket und Test auf frischer VM | ⬜ offen |
@@ -78,4 +78,35 @@
 - Rechtliche Prüfung des Widerrufsausschlusses für individuell gefertigte Drucke (F58).
 - Speicherdauer für Uploads und Löschroutine (F59, F62) – folgt in Phase 5/6.
 - Verbindliche Angebote/Preisübernahme in den Shop (Phase 4).
+
+## Phase 4 – Bericht
+
+**Fertig**
+- Shop-Übersicht `/shop/` und Produktseite `/shop/recycling-box-batterien/` aus der Datenbank; Produkt, 14 Farbvarianten und Bild per Migration `003_shop_seed.sql` übernommen.
+- Produktdaten aus dem Altbestand: SKU `KAP-202308`, Maße 110 × 65 × 87 mm, Beschreibung und Pflegehinweise; fehlerhaftes Gewicht („0,70 g“) bewusst nicht übernommen.
+- Warenkorb im signierten, httpOnly-Cookie (`warenkorb`): nur Varianten-IDs und Mengen, keine Preise; Preise und Verfügbarkeit werden bei jeder Anzeige und bei der Bestellung neu aus der Datenbank gelesen.
+- Warenkorb-Funktionen: Hinzufügen, Menge ändern, Entfernen, Warenkorb-Zähler im Header, Versandkosten-Hinweis und Mindestwert für kostenlosen Versand.
+- Kasse `/kasse/`: Kontakt- und Lieferadresse, Versandart, Zahlungsart, Anmerkung, AGB-/Widerrufs-Checkbox, Honeypot, Origin-Prüfung, Rate-Limit (5/Stunde), serverseitige Zod-Validierung.
+- Button „zahlungspflichtig bestellen“; Bestellung wird in einer SQLite-Transaktion mit Positionen, Zwischensumme, Versand und Gesamtbetrag gespeichert; Bestandsführung wird bei gepflegtem Lagerbestand berücksichtigt.
+- Bestellnummern im Format `B-JJJJ-XXXXX`; Bestätigungsseite `/bestellung/danke/` zeigt Nummer und Positionen ohne personenbezogene Adressdaten.
+- E-Mails an Betreiber und Kunde mit Bestellübersicht, Zahlungs- und Versandart; ohne SMTP weiterhin `.eml`-Fallback.
+- Konfiguration `config/shop.json` für Shop-Status, Zahlungsarten, Lieferländer und Rechtstext-Hinweis; Versandkosten aus `config/pricing.json`.
+- Klare Platzhalter-Kennzeichnung in Shop, Produkt, Warenkorb und Kasse (Preise, Versand, Zahlung); keine erfundenen Preise oder Zahlungsanbieter.
+- Responsive Shop-, Warenkorb- und Kassen-Gestaltung; kleine Vanilla-TS-Ergänzung aktualisiert die Gesamtsumme bei Wechsel der Versandart.
+
+**Getestet**
+- `npm run typecheck`, `npm run build`, `npm test` (19 Unit-Tests) und `npm run test:e2e` (5 Playwright-Tests) erfolgreich.
+- E2E: Produktseite → Warenkorb → Kasse → Bestellung → Danke-Seite; Versandwechsel aktualisiert die Summe (11,00 € Abholung, 15,99 € DHL); leerer Warenkorb leitet von `/kasse/` zum Warenkorb.
+- API-Tests: Hinzufügen, Menge ändern und Entfernen funktionieren; ungültige Kassendaten → 400 mit Fehlermeldung; fremde Origin → 403; leere Kasse → 303 zum Warenkorb.
+- Bestellung in der DB geprüft (`orders`, `order_items`, Summen, Zahlungs-/Versandart); Warenkorb-Cookie wird nach der Bestellung gelöscht; beide E-Mails werden als `.eml` abgelegt.
+- 301: alte Produkt-URL leitet auf `/shop/recycling-box-batterien/` um.
+
+**Offen**
+- Farbabhängige Preise (11,00–12,50 €) und endgültige Produktpreise bestätigen (F48, F67).
+- Zahlungsarten und Bankverbindung festlegen (F9–F13, F67); aktuell nur Platzhalter „Vorkasse“/„Zahlung nach Vereinbarung“.
+- Versandkosten, Lieferzeiten und Lieferländer bestätigen (F14–F20); derzeit nur Deutschland.
+- Lagerbestand: aktuell ohne Bestandsführung (F50).
+- Weitere Produkte, Fotos und Freigaben (F35, F36, F51).
+- Bestellverwaltung im Admin-Bereich (Phase 5), inklusive Statuswechsel und Rechnungsgrundlage.
+
 
