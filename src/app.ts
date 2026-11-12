@@ -60,6 +60,18 @@ export async function buildApp() {
     });
   }
 
+  // Produktbilder aus dem Upload-Verzeichnis (nur der Medien-Unterordner,
+  // damit hochgeladene 3D-Modelle nicht öffentlich erreichbar sind).
+  const mediaDir = path.join(config.uploadDir, 'media');
+  fs.mkdirSync(mediaDir, { recursive: true });
+  await app.register(fastifyStatic, {
+    root: mediaDir,
+    prefix: '/media/',
+    decorateReply: false,
+    maxAge: '30d',
+    immutable: true,
+  });
+
   app.addHook('onSend', async (_request, reply, payload) => {
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');

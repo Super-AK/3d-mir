@@ -39,6 +39,16 @@ test.describe('Admin', () => {
       await expect(page.locator('h1')).toContainText(heading);
     }
 
+    // Katalogverwaltung und Bild-Upload sind auf den Detailseiten vorhanden.
+    await page.goto('/admin/preise/');
+    for (const heading of ['Materialien', 'Drucker', 'Nachbearbeitung', 'Versand', 'Mengenrabatt']) {
+      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+    }
+    await page.goto('/admin/produkte/');
+    await page.locator('table tbody tr a').first().click();
+    await expect(page.getByRole('heading', { name: 'Bilder', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bild hinzufügen', exact: true })).toBeVisible();
+
     await page.goto('/admin/');
     await page.getByRole('button', { name: 'Abmelden' }).click();
     await expect(page).toHaveURL(/\/admin\/login\/\?abgemeldet=1/);

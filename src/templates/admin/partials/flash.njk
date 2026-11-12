@@ -2,7 +2,7 @@
   <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
 {% endif %}
 {% if meldung and meldung.fehler %}
-  <div class="alert alert-danger" role="alert"><p>Bitte prüfen Sie Ihre Eingaben.</p></div>
+  <div class="alert alert-danger" role="alert"><p>{{ meldung.fehler }}</p></div>
 {% endif %}
 {% if meldung and meldung.gespeichert %}
   <div class="alert alert-success" role="status"><p>Änderungen wurden gespeichert.</p></div>

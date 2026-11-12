@@ -129,19 +129,61 @@
 
     <section class="card admin-panel">
       <h2>Bilder</h2>
+      <p class="text-muted">JPG, PNG, WebP oder AVIF, maximal 12 MB und 12 Bilder pro Produkt. Beim Hochladen werden automatisch AVIF-, WebP- und JPG-Varianten erzeugt und Metadaten entfernt.</p>
+
       {% if images.length > 0 %}
-        <ul class="admin-list">
+        <div class="admin-image-grid">
           {% for image in images %}
-            <li>
-              <code class="admin-code">{{ image.file }}</code>
-              <span>{{ image.alt }}</span>
-            </li>
+            <form class="admin-image-card" method="post" action="/admin/produkte/{{ product.id }}/bilder/{{ image.id }}/">
+              <input type="hidden" name="_csrf" value="{{ csrf }}">
+              {% if image.previewUrl %}
+                <img src="{{ image.previewUrl }}" alt="{{ image.alt }}" width="400" height="300" loading="lazy" decoding="async">
+              {% else %}
+                <p class="text-muted"><small>Vorschau nicht verfügbar</small></p>
+              {% endif %}
+              <div class="field">
+                <label for="image_{{ image.id }}_alt">Alternativtext</label>
+                <input id="image_{{ image.id }}_alt" name="alt" type="text" maxlength="200" value="{{ image.alt }}">
+              </div>
+              <div class="field">
+                <label for="image_{{ image.id }}_sort">Sortierung</label>
+                <input id="image_{{ image.id }}_sort" name="sortOrder" type="number" min="0" max="1000" step="1" value="{{ image.sort_order }}">
+              </div>
+              <div class="admin-image-actions">
+                <label class="admin-check admin-check-inline">
+                  <input type="checkbox" name="delete" value="1">
+                  <span>löschen</span>
+                </label>
+                <button class="btn btn-small" type="submit">Speichern</button>
+              </div>
+              <small class="text-muted"><code class="admin-code">{{ image.file }}</code></small>
+            </form>
           {% endfor %}
-        </ul>
-        <p class="text-muted"><small>Bilder werden über den Bild-Build (`scripts/prepare-images.mjs`) erzeugt. Die Zuordnung erfolgt derzeit über die Datenbank.</small></p>
+        </div>
       {% else %}
         <p class="text-muted">Für dieses Produkt ist noch kein Bild hinterlegt.</p>
       {% endif %}
+
+      <div class="admin-upload">
+        <h3>Bild hinzufügen</h3>
+        <form method="post" action="/admin/produkte/{{ product.id }}/bilder/" enctype="multipart/form-data">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <div class="form-row">
+            <div class="field">
+              <label for="image_file">Bilddatei</label>
+              <input id="image_file" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required>
+              <span class="hint">Das Bild wird automatisch gedreht, verkleinert und in moderne Formate umgewandelt.</span>
+            </div>
+            <div class="field">
+              <label for="image_alt">Alternativtext</label>
+              <input id="image_alt" name="alt" type="text" maxlength="200" placeholder="Beschreibung für Screenreader und Suchmaschinen">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit">Bild hochladen</button>
+          </div>
+        </form>
+      </div>
     </section>
   {% endif %}
 {% endblock %}

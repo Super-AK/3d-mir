@@ -145,15 +145,19 @@ export function csrfToken(session: AdminSession): string {
   return session.data.csrf;
 }
 
-/** Prüft das versteckte CSRF-Feld gegen das Token der Sitzung. */
-export function verifyCsrf(session: AdminSession, request: FastifyRequest): boolean {
-  const body = request.body;
-  if (!body || typeof body !== 'object') return false;
-  const token = (body as Record<string, unknown>)._csrf;
+/** Prüft ein CSRF-Token gegen das Token der Sitzung. */
+export function verifyCsrfToken(session: AdminSession, token: unknown): boolean {
   const expected = session.data.csrf;
   if (typeof token !== 'string' || !expected) return false;
   if (token.length !== expected.length) return false;
   return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+}
+
+/** Prüft das versteckte CSRF-Feld gegen das Token der Sitzung. */
+export function verifyCsrf(session: AdminSession, request: FastifyRequest): boolean {
+  const body = request.body;
+  if (!body || typeof body !== 'object') return false;
+  return verifyCsrfToken(session, (body as Record<string, unknown>)._csrf);
 }
 
 export function writeAudit(actor: string, action: string, details: unknown = ''): void {

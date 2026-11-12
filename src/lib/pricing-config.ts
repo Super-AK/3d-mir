@@ -1,4 +1,4 @@
-import { config, type PricingConfig } from '../config.js';
+import { config, type Material, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
 
 /**
@@ -6,6 +6,14 @@ import { getDb } from '../db/index.js';
  * So kann der Betreiber Preise im Admin-Bereich ändern, ohne die Anwendung neu zu starten.
  * Die JSON-Datei bleibt die dokumentierte Grundeinstellung und dient zum Zurücksetzen.
  */
+export type PricingCatalog = {
+  materials: PricingConfig['materials'];
+  printers: PricingConfig['printers'];
+  coatings: PricingConfig['coatings'];
+  shippingMethods: PricingConfig['shipping']['methods'];
+  quantityDiscounts: PricingConfig['quantityDiscounts'];
+};
+
 export type PricingOverrides = {
   meta?: {
     minOrderValue?: number;
@@ -26,6 +34,8 @@ export type PricingOverrides = {
     methods?: Record<string, { price?: number }>;
   };
   quantityDiscounts?: { minQuantity: number; percent: number }[];
+  /** Vollständige Kataloge, sobald der Betreiber Einträge anlegt oder löscht. */
+  catalog?: PricingCatalog;
 };
 
 const SETTINGS_KEY = 'pricing.overrides';
@@ -36,6 +46,92 @@ function isNumber(value: unknown): value is number {
 
 function applyIfNumber(target: Record<string, unknown>, key: string, value: unknown): void {
   if (isNumber(value)) target[key] = value;
+}
+
+function text(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function positive(value: unknown, fallback: number): number {
+  return isNumber(value) && value > 0 ? value : fallback;
+}
+
+function nonNegative(value: unknown, fallback: number): number {
+  return isNumber(value) && value >= 0 ? value : fallback;
+}
+
+/** Wendet einen vollständig im Admin gepflegten Katalog an und ersetzt die JSON-Listen. */
+function applyCatalog(result: PricingConfig, catalog: PricingCatalog): void {
+  if (Array.isArray(catalog.materials) && catalog.materials.length > 0) {
+    result.materials = catalog.materials.map((material) => ({
+      id: text(material.id),
+      label: text(material.label) || text(material.id),
+      density: positive(material.density, 1),
+      pricePerGram: nonNegative(material.pricePerGram, 0),
+      maxTempC: nonNegative(material.maxTempC, 0),
+      colors: Array.isArray(material.colors) && material.colors.length > 0
+        ? material.colors.filter((color): color is string => typeof color === 'string' && color.trim() !== '')
+        : ['Schwarz'],
+      properties: text(material.properties),
+      useCases: text(material.useCases),
+      notes: text(material.notes),
+    })).filter((material) => material.id !== '') as Material[];
+  }
+
+  if (Array.isArray(catalog.printers) && catalog.printers.length > 0) {
+    const materialIds = new Set(result.materials.map((material) => material.id));
+    result.printers = catalog.printers.map((printer) => {
+      const ids = Array.isArray(printer.materialIds)
+        ? printer.materialIds.filter((id): id is string => typeof id === 'string' && materialIds.has(id))
+        : [];
+      return {
+        id: text(printer.id),
+        label: text(printer.label) || text(printer.id),
+        buildVolume: {
+          x: positive(printer.buildVolume?.x, 200),
+          y: positive(printer.buildVolume?.y, 200),
+          z: positive(printer.buildVolume?.z, 200),
+        },
+        hourlyRate: nonNegative(printer.hourlyRate, 0),
+        materialIds: ids.length > 0 ? ids : [...materialIds],
+        note: text(printer.note),
+      };
+    }).filter((printer) => printer.id !== '');
+  }
+
+  if (Array.isArray(catalog.coatings) && catalog.coatings.length > 0) {
+    result.coatings = catalog.coatings.map((coating) => ({
+      id: text(coating.id),
+      label: text(coating.label) || text(coating.id),
+      surchargePercent: nonNegative(coating.surchargePercent, 0),
+      pricePerPart: nonNegative(coating.pricePerPart, 0),
+    })).filter((coating) => coating.id !== '');
+  }
+
+  if (Array.isArray(catalog.shippingMethods) && catalog.shippingMethods.length > 0) {
+    result.shipping.methods = catalog.shippingMethods.map((method) => ({
+      id: text(method.id),
+      label: text(method.label) || text(method.id),
+      price: nonNegative(method.price, 0),
+      deliveryDays: text(method.deliveryDays),
+    })).filter((method) => method.id !== '');
+  }
+
+  if (Array.isArray(catalog.quantityDiscounts)) {
+    const seen = new Set<number>();
+    result.quantityDiscounts = catalog.quantityDiscounts
+      .filter((tier) => isNumber(tier.minQuantity) && isNumber(tier.percent))
+      .map((tier) => ({
+        minQuantity: Math.max(1, Math.round(tier.minQuantity)),
+        percent: Math.min(100, Math.max(0, tier.percent)),
+      }))
+      .filter((tier) => {
+        if (seen.has(tier.minQuantity)) return false;
+        seen.add(tier.minQuantity);
+        return true;
+      })
+      .sort((a, b) => a.minQuantity - b.minQuantity);
+  }
 }
 
 /** Liest die gespeicherten Überlagerungen (leer, wenn nichts gespeichert ist). */
@@ -102,6 +198,10 @@ export function getPricingConfig(): PricingConfig {
       .filter((tier) => isNumber(tier.minQuantity) && isNumber(tier.percent))
       .map((tier) => ({ minQuantity: Math.max(1, Math.round(tier.minQuantity)), percent: Math.min(100, Math.max(0, tier.percent)) }))
       .sort((a, b) => a.minQuantity - b.minQuantity);
+  }
+
+  if (overrides.catalog) {
+    applyCatalog(result, overrides.catalog);
   }
 
   return result;

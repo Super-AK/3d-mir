@@ -236,3 +236,29 @@
   .admin-dl div { grid-template-columns: 1fr; gap: 0.15rem; }
   .admin-message-actions { width: 100%; }
 }
+
+/* Preisverwaltung: Tabellen mit eingebetteten Formularfeldern */
+.admin-edit-table { min-width: 760px; }
+.admin-edit-table th, .admin-edit-table td { padding: 0.55rem 0.6rem; }
+.admin-edit-table input[type="text"],
+.admin-edit-table input[type="number"] { min-height: 40px; padding: 0.4rem 0.55rem; font-size: 0.9rem; }
+.admin-edit-table .admin-inline-numbers { display: flex; align-items: center; gap: 0.3rem; min-width: 260px; }
+.admin-edit-table .admin-inline-numbers input { width: 5.2rem; }
+.admin-edit-table .admin-inline-numbers span { color: var(--text-muted); }
+.admin-detail-row td { background: var(--surface-2); padding-top: 0; }
+.admin-detail-row summary { cursor: pointer; font-weight: 600; font-size: 0.84rem; color: var(--accent); padding: 0.35rem 0; }
+.admin-detail-row .form-row { margin-top: 0.5rem; }
+.admin-new-row td { background: var(--accent-soft); }
+.admin-new-row input::placeholder { color: var(--silver-600); }
+.admin-check-list { display: flex; flex-wrap: wrap; gap: 0.15rem 0.9rem; max-width: 22rem; }
+.admin-check-list .admin-check-inline { padding: 0; }
+
+/* Produktbilder */
+.admin-image-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.admin-image-card { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+.admin-image-card img { width: 100%; height: 170px; object-fit: contain; border-radius: var(--radius-sm); background: #fff; }
+.admin-image-card .field { gap: 0.2rem; }
+.admin-image-card .field label { font-size: 0.78rem; }
+.admin-image-card input[type="text"], .admin-image-card input[type="number"] { min-height: 38px; padding: 0.35rem 0.5rem; font-size: 0.88rem; }
+.admin-image-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.admin-upload { display: grid; gap: 0.85rem; padding: 1rem; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-2); }

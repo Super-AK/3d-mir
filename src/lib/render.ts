@@ -9,6 +9,7 @@ import { getPricingConfig } from './pricing-config.js';
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
 type ImageInfo = { width: number; height: number; alt: string; variants: ImageVariant[] };
 type ImageManifest = Record<string, ImageInfo>;
+type UploadedImageInfo = { width: number; height: number; variants: { width: number }[] };
 
 let imageManifest: ImageManifest | null = null;
 
@@ -38,6 +39,9 @@ type ImageOptions = {
 
 /** Erzeugt ein responsives `<picture>`-Element aus den vorbereiteten Bildvarianten. */
 export function image(name: string, options: ImageOptions = {}): string {
+  if (name.startsWith(UPLOAD_PREFIX)) {
+    return uploadedImage(name.slice(UPLOAD_PREFIX.length), options);
+  }
   const info = loadImageManifest()[name];
   if (!info || info.variants.length === 0) return '';
   const variants = info.variants;
@@ -54,6 +58,71 @@ export function image(name: string, options: ImageOptions = {}): string {
   <source type="image/webp" srcset="${srcset('webp')}" sizes="${escapeHtml(sizes)}">
   <img src="${largest.jpg}" srcset="${srcset('jpg')}" sizes="${escapeHtml(sizes)}" width="${info.width}" height="${info.height}" alt="${alt}"${cls} loading="${loading}" decoding="async"${priority}>
 </picture>`;
+}
+
+/** Präfix in `product_images.file` für im Admin hochgeladene Bilder. */
+export const UPLOAD_PREFIX = 'upload:';
+
+const mediaRoot = () => path.join(config.uploadDir, 'media');
+
+function uploadedImageFile(key: string): string | null {
+  const root = path.resolve(mediaRoot());
+  const file = path.resolve(root, key);
+  if (!file.startsWith(`${root}${path.sep}`)) return null;
+  return file;
+}
+
+function loadUploadedImage(key: string): UploadedImageInfo | null {
+  const file = uploadedImageFile(key);
+  if (!file) return null;
+  const metaFile = `${file}.json`;
+  if (!fs.existsSync(metaFile)) return null;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(metaFile, 'utf8')) as UploadedImageInfo;
+    if (!parsed || !Array.isArray(parsed.variants) || parsed.variants.length === 0) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function uploadUrl(key: string, width: number, format: 'avif' | 'webp' | 'jpg'): string {
+  return `/media/${key}-${width}.${format}`;
+}
+
+function uploadedImage(key: string, options: ImageOptions): string {
+  const info = loadUploadedImage(key);
+  if (!info) return '';
+  const variants = info.variants.filter((variant) => Number.isFinite(variant.width) && variant.width > 0);
+  if (variants.length === 0) return '';
+  const srcset = (format: 'avif' | 'webp' | 'jpg') =>
+    variants.map((variant) => `${uploadUrl(key, variant.width, format)} ${variant.width}w`).join(', ');
+  const largestWidth = variants[variants.length - 1]!.width;
+  const alt = escapeHtml(options.alt ?? '');
+  const cls = options.class ? ` class="${escapeHtml(options.class)}"` : '';
+  const sizes = options.sizes ?? '100vw';
+  const loading = options.priority ? 'eager' : (options.loading ?? 'lazy');
+  const priority = options.priority ? ' fetchpriority="high"' : '';
+  return `<picture>
+  <source type="image/avif" srcset="${srcset('avif')}" sizes="${escapeHtml(sizes)}">
+  <source type="image/webp" srcset="${srcset('webp')}" sizes="${escapeHtml(sizes)}">
+  <img src="${uploadUrl(key, largestWidth, 'jpg')}" srcset="${srcset('jpg')}" sizes="${escapeHtml(sizes)}" width="${info.width}" height="${info.height}" alt="${alt}"${cls} loading="${loading}" decoding="async"${priority}>
+</picture>`;
+}
+
+/** Vorschaubild für Admin-Listen – funktioniert für Manifest- und Upload-Bilder. */
+export function imagePreview(name: string, width = 480): string {
+  if (name.startsWith(UPLOAD_PREFIX)) {
+    const key = name.slice(UPLOAD_PREFIX.length);
+    const info = loadUploadedImage(key);
+    if (!info) return '';
+    const variant = info.variants.find((item) => item.width >= width) ?? info.variants[info.variants.length - 1];
+    return variant ? uploadUrl(key, variant.width, 'jpg') : '';
+  }
+  const info = loadImageManifest()[name];
+  if (!info || info.variants.length === 0) return '';
+  const variant = info.variants.find((item) => item.width >= width) ?? info.variants[info.variants.length - 1];
+  return variant?.jpg ?? '';
 }
 
 export type RenderContext = Record<string, unknown>;
@@ -104,6 +173,7 @@ env.addGlobal('year', new Date().getFullYear());
 env.addGlobal('asset', assetUrl);
 env.addGlobal('assetCss', assetCss);
 env.addGlobal('image', image);
+env.addGlobal('imagePreview', imagePreview);
 env.addGlobal('maxUploadMb', Math.round(config.maxUploadBytes / (1024 * 1024)));
 
 export function render(res: import('fastify').FastifyReply, template: string, context: RenderContext = {}): void {

@@ -201,3 +201,19 @@
 
 **Offen**
 - Fachliche Freigaben des Auftraggebers (Preise, Versand, Zahlung, SMTP, Recht) und DNS-/TLS-Umstellung – siehe `docs/ABNAHME.md` und `docs/OFFENE-FRAGEN.md`.
+
+## Nachtrag – Katalogverwaltung und Produktbilder
+
+**Fertig**
+- Admin → Preise: Materialien, Drucker, Nachbearbeitung, Versandarten und Mengenrabatt lassen sich vollständig bearbeiten, löschen und neu anlegen. Die Verwaltung erfolgt in einer gemeinsamen Maske mit Löschmarkierungen und „Neu“-Zeilen; IDs werden aus der Bezeichnung erzeugt.
+- Neue Materialien erhalten Farben, Eigenschaften, Anwendungen und Hinweise; Drucker bekommen Bauraum, Maschinenstunde und Materialzuordnung. Beim Löschen eines Materials werden Verweise in Druckern bereinigt.
+- Der komplette Katalog wird als `catalog` in `pricing.overrides` gespeichert und überlagert `config/pricing.json`; Zurücksetzen stellt die Grundeinstellung wieder her. Mindestens ein Material, ein Drucker, eine Nachbearbeitung und eine Versandart bleiben erforderlich.
+- Admin → Produkte: Bilder können hochgeladen, mit Alternativtext und Sortierung versehen und gelöscht werden. Erlaubt sind JPG, PNG, WebP und AVIF bis 12 MB, maximal 12 Bilder je Produkt.
+- Hochgeladene Bilder werden automatisch gedreht, von Metadaten befreit und als AVIF/WebP/JPG in 480/800/1200 px erzeugt. Ablage unter `/var/lib/3d-mir/uploads/media/products/…`, Auslieferung über `/media/…` mit Cache-Headern; 3D-Uploads bleiben weiterhin privat.
+- Dokumentation in `docs/ADMIN.md`.
+
+**Getestet**
+- Preisformular speichern, Material/Versand/Mengenrabatt anlegen und wieder löschen; Validierung „mindestens ein Material“ liefert 400.
+- Bild-Upload (JPG) inkl. Varianten, Vorschau und Auslieferung über `/media/`; Alternativtext/Sortierung ändern; Bild löschen entfernt Datenbankeintrag und Dateien.
+- Sicherheit: Upload ohne gültiges CSRF-Token → 403, fremde Origin → 403, ungültige Bilddatei wird abgelehnt.
+- 19 Unit-Tests und 7 ausführbare E2E-Tests weiterhin erfolgreich.

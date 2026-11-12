@@ -6,7 +6,7 @@
   <div class="admin-page-head">
     <div>
       <h1>Preise und Kalkulation</h1>
-      <p>Parameter für den 3D-Druck-Rechner, die Nachbearbeitung und den Versand.</p>
+      <p>Grundwerte, Materialien, Drucker, Nachbearbeitung, Versand und Mengenrabatt verwalten.</p>
     </div>
     {% if hasOverrides %}
       <div class="admin-page-actions">
@@ -30,73 +30,205 @@
       <div class="form-row">
         <div class="field">
           <label for="meta_min_order">Mindestauftragswert (€)</label>
-          <input id="meta_min_order" name="meta_min_order" type="number" min="0" step="0.01" required value="{{ values.meta_min_order }}">
+          <input id="meta_min_order" name="meta_min_order" type="number" min="0" step="0.01" required value="{{ view.metaValues.minOrder }}">
         </div>
         <div class="field">
           <label for="meta_round">Rundung (€)</label>
-          <input id="meta_round" name="meta_round" type="number" min="0.01" step="0.01" required value="{{ values.meta_round }}">
+          <input id="meta_round" name="meta_round" type="number" min="0.01" step="0.01" required value="{{ view.metaValues.round }}">
         </div>
       </div>
       <div class="form-row">
         <div class="field">
           <label for="meta_setup">Rüstkosten (€)</label>
-          <input id="meta_setup" name="meta_setup" type="number" min="0" step="0.01" required value="{{ values.meta_setup }}">
+          <input id="meta_setup" name="meta_setup" type="number" min="0" step="0.01" required value="{{ view.metaValues.setup }}">
         </div>
         <div class="field">
           <label for="meta_setup_extra">Rüstkosten je weiteres Teil (€)</label>
-          <input id="meta_setup_extra" name="meta_setup_extra" type="number" min="0" step="0.01" required value="{{ values.meta_setup_extra }}">
+          <input id="meta_setup_extra" name="meta_setup_extra" type="number" min="0" step="0.01" required value="{{ view.metaValues.setupExtra }}">
         </div>
       </div>
-    </section>
-
-    <section class="card admin-panel">
-      <h2>Technische Schätzwerte</h2>
       <div class="form-row form-row-3">
         <div class="field">
           <label for="calc_wall">Wandstärke (mm)</label>
-          <input id="calc_wall" name="calc_wall" type="number" min="0.1" max="10" step="0.1" required value="{{ values.calc_wall }}">
+          <input id="calc_wall" name="calc_wall" type="number" min="0.1" max="10" step="0.1" required value="{{ view.calculationValues.wall }}">
         </div>
         <div class="field">
           <label for="calc_flow">Materialdurchsatz (cm³/h)</label>
-          <input id="calc_flow" name="calc_flow" type="number" min="0.1" max="1000" step="0.1" required value="{{ values.calc_flow }}">
+          <input id="calc_flow" name="calc_flow" type="number" min="0.1" max="1000" step="0.1" required value="{{ view.calculationValues.flow }}">
         </div>
         <div class="field">
           <label for="calc_waste">Verschnitt (%)</label>
-          <input id="calc_waste" name="calc_waste" type="number" min="0" max="100" step="0.1" required value="{{ values.calc_waste }}">
+          <input id="calc_waste" name="calc_waste" type="number" min="0" max="100" step="0.1" required value="{{ view.calculationValues.waste }}">
         </div>
       </div>
     </section>
 
     <section class="card admin-panel">
       <h2>Materialien</h2>
+      <p class="text-muted">Farben als kommagetrennte Liste. Mindestens ein Material muss vorhanden sein.</p>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Material</th><th>Preis pro Gramm (€)</th><th>Dichte (g/cm³)</th></tr></thead>
+        <table class="admin-edit-table">
+          <thead>
+            <tr><th>Bezeichnung</th><th>ID</th><th>Dichte (g/cm³)</th><th>Preis je g (€)</th><th>Max. °C</th><th>Löschen</th></tr>
+          </thead>
           <tbody>
-            {% for material in materialRows %}
+            {% for material in view.materials %}
               <tr>
-                <td><strong>{{ material.label }}</strong><br><small class="text-muted">{{ material.id }}</small></td>
-                <td><input name="material_{{ material.id }}_price" type="number" min="0" max="1000" step="0.001" required value="{{ material.priceValue }}"></td>
-                <td><input name="material_{{ material.id }}_density" type="number" min="0.1" max="30" step="0.01" required value="{{ material.densityValue }}"></td>
+                <td>
+                  <input type="hidden" name="material_{{ material.index }}_id" value="{{ material.id }}">
+                  <input name="material_{{ material.index }}_label" type="text" maxlength="80" required value="{{ material.label }}">
+                </td>
+                <td><code class="admin-code">{{ material.id }}</code></td>
+                <td><input name="material_{{ material.index }}_density" type="number" min="0.1" max="30" step="0.01" required value="{{ material.densityValue }}"></td>
+                <td><input name="material_{{ material.index }}_price" type="number" min="0" max="1000" step="0.001" required value="{{ material.priceValue }}"></td>
+                <td><input name="material_{{ material.index }}_max_temp" type="number" min="0" max="500" step="1" required value="{{ material.maxTempValue }}"></td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="material_{{ material.index }}_delete" value="1"><span>löschen</span></label></td>
+              </tr>
+              <tr class="admin-detail-row">
+                <td colspan="6">
+                  <details>
+                    <summary>Farben und Beschreibung</summary>
+                    <div class="form-row">
+                      <div class="field">
+                        <label for="material_{{ material.index }}_colors">Farben (kommagetrennt)</label>
+                        <input id="material_{{ material.index }}_colors" name="material_{{ material.index }}_colors" type="text" maxlength="500" value="{{ material.colorsValue }}">
+                      </div>
+                      <div class="field">
+                        <label for="material_{{ material.index }}_properties">Eigenschaften</label>
+                        <input id="material_{{ material.index }}_properties" name="material_{{ material.index }}_properties" type="text" maxlength="300" value="{{ material.properties }}">
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="field">
+                        <label for="material_{{ material.index }}_use_cases">Anwendungen</label>
+                        <input id="material_{{ material.index }}_use_cases" name="material_{{ material.index }}_use_cases" type="text" maxlength="300" value="{{ material.useCases }}">
+                      </div>
+                      <div class="field">
+                        <label for="material_{{ material.index }}_notes">Hinweise</label>
+                        <input id="material_{{ material.index }}_notes" name="material_{{ material.index }}_notes" type="text" maxlength="500" value="{{ material.notes }}">
+                      </div>
+                    </div>
+                  </details>
+                </td>
               </tr>
             {% endfor %}
+            <tr class="admin-new-row">
+              <td>
+                <input name="new_material_label" type="text" maxlength="80" placeholder="Neues Material">
+              </td>
+              <td><span class="text-muted">wird erzeugt</span></td>
+              <td><input name="new_material_density" type="number" min="0.1" max="30" step="0.01" placeholder="1.24"></td>
+              <td><input name="new_material_price" type="number" min="0" max="1000" step="0.001" placeholder="0.050"></td>
+              <td><input name="new_material_max_temp" type="number" min="0" max="500" step="1" placeholder="60"></td>
+              <td></td>
+            </tr>
+            <tr class="admin-new-row">
+              <td colspan="6">
+                <div class="form-row">
+                  <div class="field">
+                    <label for="new_material_colors">Farben (kommagetrennt)</label>
+                    <input id="new_material_colors" name="new_material_colors" type="text" maxlength="500" placeholder="Schwarz, Weiß, Blau">
+                  </div>
+                  <div class="field">
+                    <label for="new_material_properties">Eigenschaften</label>
+                    <input id="new_material_properties" name="new_material_properties" type="text" maxlength="300">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="field">
+                    <label for="new_material_use_cases">Anwendungen</label>
+                    <input id="new_material_use_cases" name="new_material_use_cases" type="text" maxlength="300">
+                  </div>
+                  <div class="field">
+                    <label for="new_material_notes">Hinweise</label>
+                    <input id="new_material_notes" name="new_material_notes" type="text" maxlength="500">
+                  </div>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
+      <p class="hint">Zum Anlegen die Zeile „Neues Material“ ausfüllen. Leere Zeile wird ignoriert.</p>
     </section>
 
     <section class="card admin-panel">
       <h2>Drucker</h2>
+      <p class="text-muted">Bauraum in mm. Ohne Materialauswahl wird der Drucker für alle Materialien angeboten.</p>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Drucker</th><th>Maschinenstunde (€)</th></tr></thead>
+        <table class="admin-edit-table">
+          <thead>
+            <tr><th>Bezeichnung</th><th>Bauraum X/Y/Z (mm)</th><th>Maschinenstunde (€)</th><th>Materialien</th><th>Löschen</th></tr>
+          </thead>
           <tbody>
-            {% for printer in printerRows %}
+            {% for printer in view.printers %}
               <tr>
-                <td><strong>{{ printer.label }}</strong><br><small class="text-muted">{{ printer.buildVolume.x }} × {{ printer.buildVolume.y }} × {{ printer.buildVolume.z }} mm</small></td>
-                <td><input name="printer_{{ printer.id }}_rate" type="number" min="0" max="1000" step="0.01" required value="{{ printer.rateValue }}"></td>
+                <td>
+                  <input type="hidden" name="printer_{{ printer.index }}_id" value="{{ printer.id }}">
+                  <input name="printer_{{ printer.index }}_label" type="text" maxlength="80" required value="{{ printer.label }}">
+                </td>
+                <td class="admin-inline-numbers">
+                  <input name="printer_{{ printer.index }}_x" type="number" min="10" max="2000" step="1" required value="{{ printer.xValue }}" aria-label="Bauraum X">
+                  <span>×</span>
+                  <input name="printer_{{ printer.index }}_y" type="number" min="10" max="2000" step="1" required value="{{ printer.yValue }}" aria-label="Bauraum Y">
+                  <span>×</span>
+                  <input name="printer_{{ printer.index }}_z" type="number" min="10" max="2000" step="1" required value="{{ printer.zValue }}" aria-label="Bauraum Z">
+                </td>
+                <td><input name="printer_{{ printer.index }}_rate" type="number" min="0" max="1000" step="0.01" required value="{{ printer.rateValue }}"></td>
+                <td>
+                  <div class="admin-check-list">
+                    {% for material in view.materialOptions %}
+                      <label class="admin-check admin-check-inline">
+                        <input type="checkbox" name="printer_{{ printer.index }}_material_{{ material.id }}" value="1" {% if printer.materialChecks[material.id] %}checked{% endif %}>
+                        <span>{{ material.label }}</span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="printer_{{ printer.index }}_delete" value="1"><span>löschen</span></label></td>
+              </tr>
+              <tr class="admin-detail-row">
+                <td colspan="5">
+                  <details>
+                    <summary>Hinweis zum Drucker</summary>
+                    <div class="field">
+                      <label for="printer_{{ printer.index }}_note">Interner Hinweis</label>
+                      <input id="printer_{{ printer.index }}_note" name="printer_{{ printer.index }}_note" type="text" maxlength="500" value="{{ printer.note }}">
+                    </div>
+                  </details>
+                </td>
               </tr>
             {% endfor %}
+            <tr class="admin-new-row">
+              <td><input name="new_printer_label" type="text" maxlength="80" placeholder="Neuer Drucker"></td>
+              <td class="admin-inline-numbers">
+                <input name="new_printer_x" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum X">
+                <span>×</span>
+                <input name="new_printer_y" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum Y">
+                <span>×</span>
+                <input name="new_printer_z" type="number" min="10" max="2000" step="1" placeholder="250" aria-label="Bauraum Z">
+              </td>
+              <td><input name="new_printer_rate" type="number" min="0" max="1000" step="0.01" placeholder="1.00"></td>
+              <td>
+                <div class="admin-check-list">
+                  {% for material in view.materialOptions %}
+                    <label class="admin-check admin-check-inline">
+                      <input type="checkbox" name="new_printer_material_{{ material.id }}" value="1" checked>
+                      <span>{{ material.label }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </td>
+              <td></td>
+            </tr>
+            <tr class="admin-new-row">
+              <td colspan="5">
+                <div class="field">
+                  <label for="new_printer_note">Hinweis zum neuen Drucker</label>
+                  <input id="new_printer_note" name="new_printer_note" type="text" maxlength="500">
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -105,39 +237,63 @@
     <section class="card admin-panel">
       <h2>Nachbearbeitung</h2>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Option</th><th>Preis pro Teil (€)</th></tr></thead>
+        <table class="admin-edit-table">
+          <thead><tr><th>Bezeichnung</th><th>Zuschlag (%)</th><th>Preis je Teil (€)</th><th>Löschen</th></tr></thead>
           <tbody>
-            {% for coating in coatingRows %}
+            {% for coating in view.coatings %}
               <tr>
-                <td><strong>{{ coating.label }}</strong><br><small class="text-muted">{{ coating.id }}</small></td>
-                <td><input name="coating_{{ coating.id }}_price" type="number" min="0" max="10000" step="0.01" required value="{{ coating.priceValue }}"></td>
+                <td>
+                  <input type="hidden" name="coating_{{ coating.index }}_id" value="{{ coating.id }}">
+                  <input name="coating_{{ coating.index }}_label" type="text" maxlength="80" required value="{{ coating.label }}">
+                </td>
+                <td><input name="coating_{{ coating.index }}_percent" type="number" min="0" max="100" step="0.1" required value="{{ coating.percentValue }}"></td>
+                <td><input name="coating_{{ coating.index }}_price" type="number" min="0" max="10000" step="0.01" required value="{{ coating.priceValue }}"></td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="coating_{{ coating.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
+            <tr class="admin-new-row">
+              <td><input name="new_coating_label" type="text" maxlength="80" placeholder="Neue Nachbearbeitung"></td>
+              <td><input name="new_coating_percent" type="number" min="0" max="100" step="0.1" placeholder="0"></td>
+              <td><input name="new_coating_price" type="number" min="0" max="10000" step="0.01" placeholder="0.00"></td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
       </div>
+      <p class="hint">Mindestens eine Option muss vorhanden sein. „Ohne Nachbearbeitung“ sollte erhalten bleiben.</p>
     </section>
 
     <section class="card admin-panel">
       <h2>Versand</h2>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Versandart</th><th>Preis (€)</th></tr></thead>
+        <table class="admin-edit-table">
+          <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Lieferzeit</th><th>Löschen</th></tr></thead>
           <tbody>
-            {% for method in shippingRows %}
+            {% for method in view.shipping %}
               <tr>
-                <td><strong>{{ method.label }}</strong><br><small class="text-muted">{{ method.id }}</small></td>
-                <td><input name="shipping_{{ method.id }}_price" type="number" min="0" max="1000" step="0.01" required value="{{ method.priceValue }}"></td>
+                <td>
+                  <input type="hidden" name="shipping_{{ method.index }}_id" value="{{ method.id }}">
+                  <input name="shipping_{{ method.index }}_label" type="text" maxlength="80" required value="{{ method.label }}">
+                </td>
+                <td><input name="shipping_{{ method.index }}_price" type="number" min="0" max="1000" step="0.01" required value="{{ method.priceValue }}"></td>
+                <td><input name="shipping_{{ method.index }}_days" type="text" maxlength="80" value="{{ method.deliveryDays }}"></td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="shipping_{{ method.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
+            <tr class="admin-new-row">
+              <td><input name="new_shipping_label" type="text" maxlength="80" placeholder="Neue Versandart"></td>
+              <td><input name="new_shipping_price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
+              <td><input name="new_shipping_days" type="text" maxlength="80" placeholder="2–5 Werktage"></td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
       </div>
       <div class="form-row">
         <div class="field">
           <label for="shipping_free_from">Kostenloser Versand ab (€)</label>
-          <input id="shipping_free_from" name="shipping_free_from" type="number" min="0" max="100000" step="0.01" required value="{{ values.shipping_free_from }}">
+          <input id="shipping_free_from" name="shipping_free_from" type="number" min="0" max="100000" step="0.01" required value="{{ view.metaValues.freeShippingFrom }}">
+          <span class="hint">0 = kein kostenloser Versand.</span>
         </div>
       </div>
     </section>
@@ -145,23 +301,31 @@
     <section class="card admin-panel">
       <h2>Mengenrabatt</h2>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Ab Stückzahl</th><th>Rabatt (%)</th></tr></thead>
+        <table class="admin-edit-table">
+          <thead><tr><th>Ab Stückzahl</th><th>Rabatt (%)</th><th>Löschen</th></tr></thead>
           <tbody>
-            {% for tier in discountRows %}
+            {% for tier in view.discounts %}
               <tr>
-                <td>{{ tier.minQuantity }}</td>
-                <td><input name="discount_{{ tier.index }}" type="number" min="0" max="100" step="0.1" required value="{{ tier.percentValue }}"></td>
+                <td><input name="discount_{{ tier.index }}_min" type="number" min="1" max="100000" step="1" required value="{{ tier.minValue }}"></td>
+                <td><input name="discount_{{ tier.index }}_percent" type="number" min="0" max="100" step="0.1" required value="{{ tier.percentValue }}"></td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="discount_{{ tier.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
+            <tr class="admin-new-row">
+              <td><input name="new_discount_min" type="number" min="1" max="100000" step="1" placeholder="z. B. 50"></td>
+              <td><input name="new_discount_percent" type="number" min="0" max="100" step="0.1" placeholder="z. B. 25"></td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
       </div>
+      <p class="hint">Leere Liste bedeutet: kein Mengenrabatt.</p>
     </section>
 
     <div class="form-actions">
-      <button class="btn" type="submit">Preise speichern</button>
+      <button class="btn" type="submit">Alle Änderungen speichern</button>
       <a class="btn btn-secondary" href="/admin/">Zurück</a>
     </div>
+    <p class="hint">Löschmarkierungen werden beim Speichern angewendet. Mindestens ein Material, ein Drucker, eine Nachbearbeitung und eine Versandart müssen bestehen bleiben.</p>
   </form>
 {% endblock %}

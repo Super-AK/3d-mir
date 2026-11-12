@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import sharp from 'sharp';
 import { config, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
-import { render } from '../lib/render.js';
+import { render, imagePreview } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
 import {
@@ -15,6 +17,7 @@ import {
   hashPassword,
   setSessionCookie,
   verifyCsrf,
+  verifyCsrfToken,
   verifyPassword,
   writeAudit,
 } from '../lib/auth.js';
@@ -285,8 +288,12 @@ async function adminGuard(request: FastifyRequest, reply: FastifyReply): Promise
       await adminError(request, reply, 403, 'Die Anfrage konnte nicht zugeordnet werden. Bitte laden Sie die Seite neu.');
       return;
     }
-    if (!verifyCsrf(session, request)) {
+    // Bei Multipart-Uploads wird der Body erst in der Route gelesen;
+    // dort wird das CSRF-Token aus den Formularfeldern geprüft.
+    const contentType = String(request.headers['content-type'] ?? '');
+    if (!contentType.startsWith('multipart/form-data') && !verifyCsrf(session, request)) {
       await adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu und versuchen Sie es erneut.');
+      return;
     }
   }
 }
@@ -505,6 +512,146 @@ function imagesFor(productId: number): ImageRow[] {
     .all(productId) as ImageRow[];
 }
 
+const UPLOAD_PREFIX = 'upload:';
+const PRODUCT_IMAGE_WIDTHS = [480, 800, 1200];
+const MAX_PRODUCT_IMAGE_BYTES = 12 * 1024 * 1024;
+const MAX_PRODUCT_IMAGES = 12;
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
+
+/** Bilder für die Admin-Maske inklusive Vorschau-URL. */
+function imageRowsFor(productId: number) {
+  return imagesFor(productId).map((image) => ({
+    ...image,
+    previewUrl: imagePreview(image.file, 400),
+    isUpload: image.file.startsWith(UPLOAD_PREFIX),
+  }));
+}
+
+function mediaRoot(): string {
+  return path.resolve(config.uploadDir, 'media');
+}
+
+function mediaFile(key: string): string | null {
+  const root = mediaRoot();
+  const file = path.resolve(root, key);
+  if (!file.startsWith(`${root}${path.sep}`)) return null;
+  return file;
+}
+
+type UploadedImage = { buffer: Buffer; filename: string; mimetype: string };
+
+async function readImageUpload(request: FastifyRequest): Promise<{
+  fields: Record<string, string>;
+  file: UploadedImage | null;
+}> {
+  const fields: Record<string, string> = {};
+  let file: UploadedImage | null = null;
+  for await (const part of request.parts()) {
+    if (part.type === 'file') {
+      if (part.fieldname !== 'image' || file) {
+        part.file.resume();
+        continue;
+      }
+      const buffer = await part.toBuffer();
+      file = {
+        buffer,
+        filename: path.basename(part.filename || 'bild'),
+        mimetype: part.mimetype,
+      };
+    } else {
+      fields[part.fieldname] = String(part.value ?? '');
+    }
+  }
+  return { fields, file };
+}
+
+/** Verkleinert ein Bild, entfernt Metadaten und legt AVIF/WebP/JPEG-Varianten ab. */
+async function storeProductImage(productId: number, upload: UploadedImage): Promise<string> {
+  if (!ALLOWED_IMAGE_TYPES.has(upload.mimetype)) {
+    throw new FormError('Bitte eine Bilddatei im Format JPG, PNG, WebP oder AVIF auswählen.');
+  }
+  if (upload.buffer.length > MAX_PRODUCT_IMAGE_BYTES) {
+    throw new FormError('Das Bild ist zu groß. Erlaubt sind bis zu 12 MB.');
+  }
+
+  let width: number;
+  let height: number;
+  try {
+    const meta = await sharp(upload.buffer, { failOn: 'error' }).metadata();
+    if (!meta.width || !meta.height) throw new Error('keine Bildmaße');
+    width = meta.width;
+    height = meta.height;
+    // Hochkant-Fotos: EXIF-Orientierung 5–8 dreht um 90 Grad.
+    if (meta.orientation && meta.orientation >= 5) {
+      [width, height] = [height, width];
+    }
+  } catch {
+    throw new FormError('Die Datei konnte nicht als Bild gelesen werden.');
+  }
+  if (width * height > 40_000_000) {
+    throw new FormError('Das Bild hat zu viele Pixel. Bitte auf maximal 40 Megapixel verkleinern.');
+  }
+
+  const base = crypto.randomBytes(12).toString('hex');
+  const key = `products/${productId}/${base}`;
+  const file = mediaFile(key);
+  if (!file) throw new FormError('Das Bild konnte nicht gespeichert werden.');
+
+  const usedWidths = PRODUCT_IMAGE_WIDTHS.filter((item) => item <= width);
+  if (usedWidths.length === 0) usedWidths.push(width);
+  const variants: { width: number; height: number }[] = [];
+
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o750 });
+    for (const variantWidth of [...new Set(usedWidths)]) {
+      const variantHeight = Math.round((height * variantWidth) / width);
+      const pipeline = () => sharp(upload.buffer).rotate().resize({ width: variantWidth, withoutEnlargement: true });
+      await Promise.all([
+        pipeline().avif({ quality: 55, effort: 4 }).toFile(`${file}-${variantWidth}.avif`),
+        pipeline().webp({ quality: 78 }).toFile(`${file}-${variantWidth}.webp`),
+        pipeline().jpeg({ quality: 82, mozjpeg: true }).toFile(`${file}-${variantWidth}.jpg`),
+      ]);
+      for (const extension of ['avif', 'webp', 'jpg']) {
+        fs.chmodSync(`${file}-${variantWidth}.${extension}`, 0o644);
+      }
+      variants.push({ width: variantWidth, height: variantHeight });
+    }
+    fs.writeFileSync(`${file}.json`, JSON.stringify({ width, height, variants }), { mode: 0o644 });
+    fs.chmodSync(`${file}.json`, 0o644);
+  } catch (error) {
+    deleteProductImageFiles(`${UPLOAD_PREFIX}${key}`);
+    throw error;
+  }
+
+  return `${UPLOAD_PREFIX}${key}`;
+}
+
+/** Entfernt alle Varianten eines hochgeladenen Produktbilds. */
+function deleteProductImageFiles(fileValue: string): void {
+  if (!fileValue.startsWith(UPLOAD_PREFIX)) return;
+  const key = fileValue.slice(UPLOAD_PREFIX.length);
+  const file = mediaFile(key);
+  if (!file) return;
+
+  try {
+    if (fs.existsSync(`${file}.json`)) {
+      const meta = JSON.parse(fs.readFileSync(`${file}.json`, 'utf8')) as {
+        variants?: { width?: number }[];
+      };
+      for (const variant of meta.variants ?? []) {
+        if (!Number.isFinite(variant.width)) continue;
+        for (const extension of ['avif', 'webp', 'jpg']) {
+          const target = `${file}-${variant.width}.${extension}`;
+          if (fs.existsSync(target)) fs.unlinkSync(target);
+        }
+      }
+    }
+    if (fs.existsSync(`${file}.json`)) fs.unlinkSync(`${file}.json`);
+  } catch {
+    // Dateien sind nicht kritisch; der Datenbankeintrag wird trotzdem entfernt.
+  }
+}
+
 class FormError extends Error {}
 
 function updateVariants(productId: number, body: Record<string, unknown>): string | null {
@@ -556,31 +703,86 @@ function updateVariants(productId: number, body: Record<string, unknown>): strin
 // Preise
 // ---------------------------------------------------------------------------
 
-function pricingFormValues(pricing: PricingConfig): Record<string, string> {
-  const values: Record<string, string> = {
-    meta_min_order: String(pricing.meta.minOrderValue),
-    meta_setup: String(pricing.meta.setupFee),
-    meta_setup_extra: String(pricing.meta.setupFeePerExtraPart),
-    meta_round: String(pricing.meta.roundTo),
-    calc_wall: String(pricing.calculation.wallThicknessMm),
-    calc_flow: String(pricing.calculation.materialCm3PerHour),
-    calc_waste: String(pricing.calculation.wastePercent),
-    shipping_free_from: String(pricing.shipping.freeShippingFrom),
+function pricingView(pricing: PricingConfig) {
+  return {
+    metaValues: {
+      minOrder: String(pricing.meta.minOrderValue),
+      setup: String(pricing.meta.setupFee),
+      setupExtra: String(pricing.meta.setupFeePerExtraPart),
+      round: String(pricing.meta.roundTo),
+      freeShippingFrom: String(pricing.shipping.freeShippingFrom),
+    },
+    calculationValues: {
+      wall: String(pricing.calculation.wallThicknessMm),
+      flow: String(pricing.calculation.materialCm3PerHour),
+      waste: String(pricing.calculation.wastePercent),
+    },
+    materials: pricing.materials.map((material, index) => ({
+      ...material,
+      index,
+      priceValue: String(material.pricePerGram),
+      densityValue: String(material.density),
+      maxTempValue: String(material.maxTempC),
+      colorsValue: material.colors.join(', '),
+    })),
+    printers: pricing.printers.map((printer, index) => ({
+      ...printer,
+      index,
+      xValue: String(printer.buildVolume.x),
+      yValue: String(printer.buildVolume.y),
+      zValue: String(printer.buildVolume.z),
+      rateValue: String(printer.hourlyRate),
+      materialChecks: Object.fromEntries(
+        pricing.materials.map((material) => [material.id, printer.materialIds.includes(material.id)]),
+      ),
+    })),
+    coatings: pricing.coatings.map((coating, index) => ({
+      ...coating,
+      index,
+      percentValue: String(coating.surchargePercent),
+      priceValue: String(coating.pricePerPart),
+    })),
+    shipping: pricing.shipping.methods.map((method, index) => ({
+      ...method,
+      index,
+      priceValue: String(method.price),
+    })),
+    discounts: pricing.quantityDiscounts.map((tier, index) => ({
+      ...tier,
+      index,
+      minValue: String(tier.minQuantity),
+      percentValue: String(tier.percent),
+    })),
+    materialOptions: pricing.materials.map((material) => ({ id: material.id, label: material.label })),
   };
-  for (const material of pricing.materials) {
-    values[`material_${material.id}_price`] = String(material.pricePerGram);
-    values[`material_${material.id}_density`] = String(material.density);
-  }
-  for (const printer of pricing.printers) values[`printer_${printer.id}_rate`] = String(printer.hourlyRate);
-  for (const coating of pricing.coatings) values[`coating_${coating.id}_price`] = String(coating.pricePerPart);
-  for (const method of pricing.shipping.methods) values[`shipping_${method.id}_price`] = String(method.price);
-  pricing.quantityDiscounts.forEach((tier, index) => {
-    values[`discount_${index}`] = String(tier.percent);
-  });
-  return values;
 }
 
-function readPricingForm(body: Record<string, unknown>, pricing: PricingConfig): { overrides?: PricingOverrides; error?: string } {
+function uniqueId(label: string, used: Set<string>, fallback: string): string {
+  const base = (slugify(label) || fallback).slice(0, 40);
+  let candidate = base;
+  let counter = 2;
+  while (used.has(candidate)) {
+    candidate = `${base.slice(0, 36)}-${counter}`;
+    counter += 1;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
+function parseColors(value: unknown): string[] {
+  const raw = typeof value === 'string' ? value : '';
+  const colors = raw
+    .split(/[,;\n]/)
+    .map((color) => color.trim())
+    .filter((color) => color.length > 0)
+    .slice(0, 40);
+  return colors.length > 0 ? [...new Set(colors)] : ['Schwarz'];
+}
+
+function readPricingForm(
+  body: Record<string, unknown>,
+  pricing: PricingConfig,
+): { overrides?: PricingOverrides; error?: string } {
   const numberField = (name: string, min: number, max: number, label: string): number => {
     const value = parseDecimal(body[name]);
     if (value === null || value < min || value > max) {
@@ -588,8 +790,170 @@ function readPricingForm(body: Record<string, unknown>, pricing: PricingConfig):
     }
     return value;
   };
+  const value = (name: string, maxLength = 500): string => cleanText(body[name], maxLength);
+  const marked = (name: string): boolean => body[name] === '1' || body[name] === 'on';
+  const optionalNumber = (name: string, min: number, max: number, label: string, fallback: number): number => {
+    const raw = body[name];
+    if (typeof raw !== 'string' || raw.trim() === '') return fallback;
+    return numberField(name, min, max, label);
+  };
 
   try {
+    const materials: PricingConfig['materials'] = [];
+    const usedMaterialIds = new Set<string>();
+
+    pricing.materials.forEach((existing, index) => {
+      if (marked(`material_${index}_delete`)) return;
+      const label = value(`material_${index}_label`, 80);
+      if (!label) throw new FormError('Bitte geben Sie jedem Material eine Bezeichnung.');
+      materials.push({
+        id: existing.id,
+        label,
+        density: numberField(`material_${index}_density`, 0.1, 30, `Dichte ${label}`),
+        pricePerGram: numberField(`material_${index}_price`, 0, 1000, `Materialpreis ${label}`),
+        maxTempC: numberField(`material_${index}_max_temp`, 0, 500, `Temperaturbeständigkeit ${label}`),
+        colors: parseColors(body[`material_${index}_colors`]),
+        properties: value(`material_${index}_properties`, 300),
+        useCases: value(`material_${index}_use_cases`, 300),
+        notes: value(`material_${index}_notes`, 500),
+      });
+      usedMaterialIds.add(existing.id);
+    });
+
+    const newMaterialLabel = value('new_material_label', 80);
+    if (newMaterialLabel) {
+      materials.push({
+        id: uniqueId(newMaterialLabel, usedMaterialIds, 'material'),
+        label: newMaterialLabel,
+        density: optionalNumber('new_material_density', 0.1, 30, 'Dichte neues Material', 1.24),
+        pricePerGram: optionalNumber('new_material_price', 0, 1000, 'Materialpreis neues Material', 0.05),
+        maxTempC: optionalNumber('new_material_max_temp', 0, 500, 'Temperatur neues Material', 60),
+        colors: parseColors(body.new_material_colors),
+        properties: value('new_material_properties', 300),
+        useCases: value('new_material_use_cases', 300),
+        notes: value('new_material_notes', 500),
+      });
+    }
+    if (materials.length === 0) throw new FormError('Mindestens ein Material muss vorhanden sein.');
+
+    const materialIds = materials.map((material) => material.id);
+
+    const printers: PricingConfig['printers'] = [];
+    const usedPrinterIds = new Set<string>();
+    pricing.printers.forEach((existing, index) => {
+      if (marked(`printer_${index}_delete`)) return;
+      const label = value(`printer_${index}_label`, 80);
+      if (!label) throw new FormError('Bitte geben Sie jedem Drucker eine Bezeichnung.');
+      const selected = materialIds.filter((materialId) => marked(`printer_${index}_material_${materialId}`));
+      printers.push({
+        id: existing.id,
+        label,
+        buildVolume: {
+          x: numberField(`printer_${index}_x`, 10, 2000, `Bauraum X ${label}`),
+          y: numberField(`printer_${index}_y`, 10, 2000, `Bauraum Y ${label}`),
+          z: numberField(`printer_${index}_z`, 10, 2000, `Bauraum Z ${label}`),
+        },
+        hourlyRate: numberField(`printer_${index}_rate`, 0, 1000, `Maschinenstunde ${label}`),
+        materialIds: selected.length > 0 ? selected : materialIds,
+        note: value(`printer_${index}_note`, 500),
+      });
+      usedPrinterIds.add(existing.id);
+    });
+
+    const newPrinterLabel = value('new_printer_label', 80);
+    if (newPrinterLabel) {
+      const selected = materialIds.filter((materialId) => marked(`new_printer_material_${materialId}`));
+      printers.push({
+        id: uniqueId(newPrinterLabel, usedPrinterIds, 'drucker'),
+        label: newPrinterLabel,
+        buildVolume: {
+          x: optionalNumber('new_printer_x', 10, 2000, 'Bauraum X neuer Drucker', 220),
+          y: optionalNumber('new_printer_y', 10, 2000, 'Bauraum Y neuer Drucker', 220),
+          z: optionalNumber('new_printer_z', 10, 2000, 'Bauraum Z neuer Drucker', 250),
+        },
+        hourlyRate: optionalNumber('new_printer_rate', 0, 1000, 'Maschinenstunde neuer Drucker', 1),
+        materialIds: selected.length > 0 ? selected : materialIds,
+        note: value('new_printer_note', 500),
+      });
+    }
+    if (printers.length === 0) throw new FormError('Mindestens ein Drucker muss vorhanden sein.');
+
+    const coatings: PricingConfig['coatings'] = [];
+    const usedCoatingIds = new Set<string>();
+    pricing.coatings.forEach((existing, index) => {
+      if (marked(`coating_${index}_delete`)) return;
+      const label = value(`coating_${index}_label`, 80);
+      if (!label) throw new FormError('Bitte geben Sie jeder Nachbearbeitung eine Bezeichnung.');
+      coatings.push({
+        id: existing.id,
+        label,
+        surchargePercent: numberField(`coating_${index}_percent`, 0, 100, `Zuschlag ${label}`),
+        pricePerPart: numberField(`coating_${index}_price`, 0, 10000, `Preis ${label}`),
+      });
+      usedCoatingIds.add(existing.id);
+    });
+    const newCoatingLabel = value('new_coating_label', 80);
+    if (newCoatingLabel) {
+      coatings.push({
+        id: uniqueId(newCoatingLabel, usedCoatingIds, 'nachbearbeitung'),
+        label: newCoatingLabel,
+        surchargePercent: optionalNumber('new_coating_percent', 0, 100, 'Zuschlag neue Nachbearbeitung', 0),
+        pricePerPart: optionalNumber('new_coating_price', 0, 10000, 'Preis neue Nachbearbeitung', 0),
+      });
+    }
+    if (coatings.length === 0) throw new FormError('Mindestens eine Nachbearbeitungsoption muss vorhanden sein.');
+
+    const shippingMethods: PricingConfig['shipping']['methods'] = [];
+    const usedShippingIds = new Set<string>();
+    pricing.shipping.methods.forEach((existing, index) => {
+      if (marked(`shipping_${index}_delete`)) return;
+      const label = value(`shipping_${index}_label`, 80);
+      if (!label) throw new FormError('Bitte geben Sie jeder Versandart eine Bezeichnung.');
+      shippingMethods.push({
+        id: existing.id,
+        label,
+        price: numberField(`shipping_${index}_price`, 0, 1000, `Versandkosten ${label}`),
+        deliveryDays: value(`shipping_${index}_days`, 80),
+      });
+      usedShippingIds.add(existing.id);
+    });
+    const newShippingLabel = value('new_shipping_label', 80);
+    if (newShippingLabel) {
+      shippingMethods.push({
+        id: uniqueId(newShippingLabel, usedShippingIds, 'versand'),
+        label: newShippingLabel,
+        price: optionalNumber('new_shipping_price', 0, 1000, 'Preis neue Versandart', 0),
+        deliveryDays: value('new_shipping_days', 80),
+      });
+    }
+    if (shippingMethods.length === 0) throw new FormError('Mindestens eine Versandart muss vorhanden sein.');
+
+    const quantityDiscounts: PricingConfig['quantityDiscounts'] = [];
+    const seenQuantities = new Set<number>();
+    pricing.quantityDiscounts.forEach((_tier, index) => {
+      if (marked(`discount_${index}_delete`)) return;
+      const minQuantity = Math.round(numberField(`discount_${index}_min`, 1, 100000, 'Mengenrabatt: Stückzahl'));
+      if (seenQuantities.has(minQuantity)) {
+        throw new FormError(`Die Stückzahl ${minQuantity} ist beim Mengenrabatt doppelt vorhanden.`);
+      }
+      seenQuantities.add(minQuantity);
+      quantityDiscounts.push({
+        minQuantity,
+        percent: numberField(`discount_${index}_percent`, 0, 100, `Rabatt ab ${minQuantity} Stück`),
+      });
+    });
+    if (typeof body.new_discount_min === 'string' && body.new_discount_min.trim() !== '') {
+      const minQuantity = Math.round(numberField('new_discount_min', 1, 100000, 'Mengenrabatt: Stückzahl'));
+      if (seenQuantities.has(minQuantity)) {
+        throw new FormError(`Die Stückzahl ${minQuantity} ist beim Mengenrabatt doppelt vorhanden.`);
+      }
+      quantityDiscounts.push({
+        minQuantity,
+        percent: optionalNumber('new_discount_percent', 0, 100, 'Rabatt neue Staffel', 0),
+      });
+    }
+    quantityDiscounts.sort((a, b) => a.minQuantity - b.minQuantity);
+
     const overrides: PricingOverrides = {
       meta: {
         minOrderValue: numberField('meta_min_order', 0, 100000, 'Mindestauftragswert'),
@@ -602,42 +966,17 @@ function readPricingForm(body: Record<string, unknown>, pricing: PricingConfig):
         materialCm3PerHour: numberField('calc_flow', 0.1, 1000, 'Materialdurchsatz'),
         wastePercent: numberField('calc_waste', 0, 100, 'Verschnitt'),
       },
-      materials: {},
-      printers: {},
-      coatings: {},
-      shipping: { methods: {} },
-      quantityDiscounts: [],
+      shipping: {
+        freeShippingFrom: numberField('shipping_free_from', 0, 100000, 'Kostenloser Versand ab'),
+      },
+      catalog: {
+        materials,
+        printers,
+        coatings,
+        shippingMethods,
+        quantityDiscounts,
+      },
     };
-
-    for (const material of pricing.materials) {
-      overrides.materials![material.id] = {
-        pricePerGram: numberField(`material_${material.id}_price`, 0, 1000, `Materialpreis ${material.label}`),
-        density: numberField(`material_${material.id}_density`, 0.1, 30, `Dichte ${material.label}`),
-      };
-    }
-    for (const printer of pricing.printers) {
-      overrides.printers![printer.id] = {
-        hourlyRate: numberField(`printer_${printer.id}_rate`, 0, 1000, `Maschinenstunde ${printer.label}`),
-      };
-    }
-    for (const coating of pricing.coatings) {
-      overrides.coatings![coating.id] = {
-        pricePerPart: numberField(`coating_${coating.id}_price`, 0, 10000, `Nachbearbeitung ${coating.label}`),
-      };
-    }
-    for (const method of pricing.shipping.methods) {
-      overrides.shipping!.methods![method.id] = {
-        price: numberField(`shipping_${method.id}_price`, 0, 1000, `Versandkosten ${method.label}`),
-      };
-    }
-    overrides.shipping!.freeShippingFrom = numberField('shipping_free_from', 0, 100000, 'Kostenloser Versand ab');
-
-    pricing.quantityDiscounts.forEach((tier, index) => {
-      overrides.quantityDiscounts!.push({
-        minQuantity: tier.minQuantity,
-        percent: numberField(`discount_${index}`, 0, 100, `Mengenrabatt ab ${tier.minQuantity} Stück`),
-      });
-    });
 
     return { overrides };
   } catch (error) {
@@ -1111,7 +1450,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         product,
         form: productFormFromRow(product),
         variants: variantFormRows(id),
-        images: imagesFor(id),
+        images: imageRowsFor(id),
         isNew: false,
       }));
     });
@@ -1129,7 +1468,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           product,
           form,
           variants: variantFormRows(id),
-          images: imagesFor(id),
+          images: imageRowsFor(id),
           isNew: false,
           error: result.error ?? 'Bitte prüfen Sie Ihre Angaben.',
         }));
@@ -1140,7 +1479,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           product,
           form,
           variants: variantFormRows(id),
-          images: imagesFor(id),
+          images: imageRowsFor(id),
           isNew: false,
           error: 'Dieser Slug wird bereits von einem anderen Produkt verwendet.',
         }));
@@ -1201,35 +1540,91 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       },
     );
 
+    // Produktbilder -------------------------------------------------------
+    scope.post<{ Params: { id: string } }>('/admin/produkte/:id/bilder/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+
+      const { fields, file } = await readImageUpload(request);
+      if (!verifyCsrfToken(session, fields._csrf)) {
+        return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu.');
+      }
+      if (!file) {
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte wählen Sie eine Bilddatei aus.')}`, 303);
+      }
+
+      const count = (db().prepare('SELECT COUNT(*) AS count FROM product_images WHERE product_id = ?').get(id) as { count: number }).count;
+      if (count >= MAX_PRODUCT_IMAGES) {
+        return reply.redirect(
+          `/admin/produkte/${id}/?fehler=${encodeURIComponent(`Maximal ${MAX_PRODUCT_IMAGES} Bilder pro Produkt.`)}`,
+          303,
+        );
+      }
+
+      let stored: string;
+      try {
+        stored = await storeProductImage(id, file);
+      } catch (error) {
+        const message = error instanceof FormError ? error.message : 'Das Bild konnte nicht verarbeitet werden.';
+        request.log.warn({ err: error, product: id }, 'Produktbild konnte nicht gespeichert werden');
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent(message)}`, 303);
+      }
+
+      const alt = cleanText(fields.alt, 200) || product.name;
+      const maxSort = db()
+        .prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM product_images WHERE product_id = ?')
+        .get(id) as { value: number };
+      db()
+        .prepare('INSERT INTO product_images (product_id, file, alt, sort_order) VALUES (?, ?, ?, ?)')
+        .run(id, stored, alt, maxSort.value + 1);
+      writeAudit(request.admin?.email ?? 'admin', 'product.image.add', { product: id, file: stored });
+      return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
+    });
+
+    scope.post<{ Params: { id: string; imageId: string } }>(
+      '/admin/produkte/:id/bilder/:imageId/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        const imageId = Number(request.params.imageId);
+        if (!Number.isInteger(id) || !Number.isInteger(imageId)) {
+          return adminError(request, reply, 404, 'Dieses Bild wurde nicht gefunden.');
+        }
+        const image = db()
+          .prepare('SELECT * FROM product_images WHERE id = ? AND product_id = ?')
+          .get(imageId, id) as ImageRow | undefined;
+        if (!image) return adminError(request, reply, 404, 'Dieses Bild wurde nicht gefunden.');
+
+        const body = bodyObject(request);
+        if (body.delete === '1' || body.delete === 'on') {
+          deleteProductImageFiles(image.file);
+          db().prepare('DELETE FROM product_images WHERE id = ? AND product_id = ?').run(imageId, id);
+          writeAudit(request.admin?.email ?? 'admin', 'product.image.delete', { product: id, file: image.file });
+          return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
+        }
+
+        const alt = cleanText(body.alt, 200);
+        const sortOrder = intOrNull(body.sortOrder);
+        if (sortOrder === null || sortOrder < 0 || sortOrder > 1000) {
+          return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte eine Sortierung zwischen 0 und 1000 angeben.')}`, 303);
+        }
+        db()
+          .prepare('UPDATE product_images SET alt = ?, sort_order = ? WHERE id = ? AND product_id = ?')
+          .run(alt, sortOrder, imageId, id);
+        writeAudit(request.admin?.email ?? 'admin', 'product.image.update', { product: id, image: imageId });
+        return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
+      },
+    );
+
     // Preise --------------------------------------------------------------
     scope.get('/admin/preise/', async (request, reply) => {
       const pricing = getPricingConfig();
-      const values = pricingFormValues(pricing);
       render(reply, 'admin/prices.njk', adminContext(request, {
         pricing,
-        values,
-        materialRows: pricing.materials.map((material) => ({
-          ...material,
-          priceValue: values[`material_${material.id}_price`] ?? '',
-          densityValue: values[`material_${material.id}_density`] ?? '',
-        })),
-        printerRows: pricing.printers.map((printer) => ({
-          ...printer,
-          rateValue: values[`printer_${printer.id}_rate`] ?? '',
-        })),
-        coatingRows: pricing.coatings.map((coating) => ({
-          ...coating,
-          priceValue: values[`coating_${coating.id}_price`] ?? '',
-        })),
-        shippingRows: pricing.shipping.methods.map((method) => ({
-          ...method,
-          priceValue: values[`shipping_${method.id}_price`] ?? '',
-        })),
-        discountRows: pricing.quantityDiscounts.map((tier, index) => ({
-          ...tier,
-          index,
-          percentValue: values[`discount_${index}`] ?? '',
-        })),
+        view: pricingView(pricing),
         hasOverrides: Object.keys(getPricingOverrides()).length > 0,
       }));
     });
@@ -1239,36 +1634,10 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const body = bodyObject(request);
       const result = readPricingForm(body, pricing);
       if (result.error || !result.overrides) {
-        const values = { ...pricingFormValues(pricing) };
-        for (const [key, value] of Object.entries(body)) {
-          if (typeof value === 'string') values[key] = value;
-        }
         reply.code(400);
         return render(reply, 'admin/prices.njk', adminContext(request, {
           pricing,
-          values,
-          materialRows: pricing.materials.map((material) => ({
-            ...material,
-            priceValue: values[`material_${material.id}_price`] ?? '',
-            densityValue: values[`material_${material.id}_density`] ?? '',
-          })),
-          printerRows: pricing.printers.map((printer) => ({
-            ...printer,
-            rateValue: values[`printer_${printer.id}_rate`] ?? '',
-          })),
-          coatingRows: pricing.coatings.map((coating) => ({
-            ...coating,
-            priceValue: values[`coating_${coating.id}_price`] ?? '',
-          })),
-          shippingRows: pricing.shipping.methods.map((method) => ({
-            ...method,
-            priceValue: values[`shipping_${method.id}_price`] ?? '',
-          })),
-          discountRows: pricing.quantityDiscounts.map((tier, index) => ({
-            ...tier,
-            index,
-            percentValue: values[`discount_${index}`] ?? '',
-          })),
+          view: pricingView(pricing),
           hasOverrides: Object.keys(getPricingOverrides()).length > 0,
           error: result.error ?? 'Bitte prüfen Sie Ihre Angaben.',
         }));

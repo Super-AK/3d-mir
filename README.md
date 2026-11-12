@@ -77,6 +77,7 @@ Details: `docs/DEPLOYMENT.md`.
 
 - `docs/ANALYSE.md` – Ist-Zustand der alten WordPress-Seite
 - `docs/OFFENE-FRAGEN.md` – gesammelte Fragen an den Auftraggeber
+- `docs/ADMIN.md` – Preise, Katalog und Produktbilder im Admin-Bereich
 - `docs/KALKULATION.md` – Preisformel und Platzhalter des Rechners
 - `docs/REDIRECTS.md` – 301-Weiterleitungen der alten URLs
 - `docs/DEPLOYMENT.md` – Installation, Update, Backup, Umzug
