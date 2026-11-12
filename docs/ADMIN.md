@@ -48,6 +48,8 @@ Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pfle
 
 Name, Slug, Kurz- und Langbeschreibung, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.
 
+Die Preisanzeige im Shop wird aus den Farbvarianten berechnet: Gibt es unterschiedliche Variantenpreise, steht dort „ab <kleinster Preis>“; sind alle Preise gleich oder gibt es keine Varianten, steht ein einzelner Preis. Auf der Produktseite erscheint zunächst „ab …“ und nach Auswahl einer Farbe der konkrete Variantenpreis.
+
 ### Farbvarianten
 
 Varianten werden direkt in der Tabelle bearbeitet, ergänzt oder per Löschmarkierung entfernt. Der Lagerbestand ist optional; ist er gesetzt, prüft die Kasse die verfügbare Menge.

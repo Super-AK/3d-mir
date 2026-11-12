@@ -257,3 +257,17 @@
 - Versandseite listet DHL Paket und Abholung aus der Datenbank.
 - Aktiv-Test: PLA, Anycubic, Glätten und Abholung deaktiviert → nicht mehr auf Rechner/Versandseite; nach Reaktivierung wieder sichtbar.
 - Typecheck, Build, Unit- und E2E-Tests erfolgreich.
+
+## Nachtrag – Preisanzeige aus Varianten
+
+**Fertig**
+- Shop-Übersicht und Produktseite zeigen keinen Preisbereich mehr („11,00 € – 12,50 €“), sondern automatisch „ab <kleinster Variantenpreis>“.
+- Sind alle Variantenpreise gleich oder gibt es keine Varianten, wird ein einzelner Preis ohne „ab“ angezeigt.
+- Produktseite startet mit „ab …“ (Farbwahl noch offen); nach Auswahl einer Farbe erscheint der konkrete Variantenpreis. Ohne JavaScript bleibt der „ab“-Preis sichtbar, die Auswahl funktioniert weiterhin.
+- JSON-LD (`lowPrice`/`highPrice`) nutzt jetzt ausschließlich die Variantenpreise; veraltete Preisbereichsfelder am Produkt werden dafür ignoriert.
+- Hinweis „Farbzuordnung noch nicht bestätigt“ ohne fest verdrahtete Beispielpreise.
+
+**Getestet**
+- Shop-Karte: „ab 11,00 €“; Produktseite initial „ab 11,00 €“, nach Auswahl von „Random-Verlauf“ „12,00 €“.
+- Auswahl-Platzhalter „Bitte Farbe wählen“ ist vorausgewählt und deaktiviert.
+- E2E-Shop-Test angepasst; 19 Unit-Tests und 7 E2E-Tests erfolgreich.

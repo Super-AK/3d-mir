@@ -9,7 +9,7 @@ test('Shop: Produkt in den Warenkorb legen und bestellen', async ({ page }) => {
   await page.getByRole('link', { name: 'Details ansehen' }).click();
   await expect(page.locator('h1')).toContainText('Recycling-Box');
 
-  await page.selectOption('#variantId', { index: 0 });
+  await page.selectOption('#variantId', { index: 1 });
   await page.fill('#quantity', '1');
   await page.getByRole('button', { name: 'In den Warenkorb' }).click();
 

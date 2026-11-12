@@ -47,13 +47,7 @@
             <h2><a href="/shop/{{ product.slug }}/">{{ product.name }}</a></h2>
             <p>{{ product.short_description }}</p>
             <div class="product-card-footer">
-              <p class="product-price">
-                {% if product.price_to_cents and product.price_to_cents > product.price_from_cents %}
-                  {{ product.price_from_cents | price }} – {{ product.price_to_cents | price }}
-                {% else %}
-                  ab {{ product.price_from_cents | price }}
-                {% endif %}
-              </p>
+              <p class="product-price">{{ product.priceLabel }}</p>
               <a class="btn btn-secondary btn-small" href="/shop/{{ product.slug }}/">Details ansehen</a>
             </div>
           </div>

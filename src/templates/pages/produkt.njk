@@ -82,13 +82,7 @@
         <h1>{{ product.name }}</h1>
         {% if product.sku %}<p class="product-sku">Artikelnummer: {{ product.sku }}</p>{% endif %}
 
-        <p class="product-price product-price-large">
-          {% if product.price_to_cents and product.price_to_cents > product.price_from_cents %}
-            {{ product.price_from_cents | price }} – {{ product.price_to_cents | price }}
-          {% else %}
-            ab {{ product.price_from_cents | price }}
-          {% endif %}
-        </p>
+        <p class="product-price product-price-large" data-product-price data-price-base="{{ basePriceText }}">{{ basePriceText }}</p>
         <p class="text-muted"><small>{{ site.business.vatNote }} zzgl. Versandkosten.</small></p>
 
         <p>{{ product.short_description }}</p>
@@ -96,9 +90,10 @@
         <form class="product-form" method="post" action="/warenkorb/hinzufuegen/">
           <div class="field">
             <label for="variantId">Farbe</label>
-            <select id="variantId" name="variantId" required>
+            <select id="variantId" name="variantId" required data-variant-select>
+              <option value="" selected disabled>Bitte Farbe wählen</option>
               {% for variant in variants %}
-                <option value="{{ variant.id }}">{{ variant.label }} – {{ variant.price_cents | price }}</option>
+                <option value="{{ variant.id }}" data-price-cents="{{ variant.price_cents }}">{{ variant.label }} – {{ variant.price_cents | price }}</option>
               {% endfor %}
             </select>
           </div>
@@ -119,7 +114,7 @@
         </ul>
 
         <div class="alert alert-info">
-          <p><strong>Preishinweis:</strong> Die Farbzuordnung der Preise (11,00–12,50 €) ist noch nicht bestätigt. Im Warenkorb wird der niedrigste Preis angesetzt; der verbindliche Preis wird vor der Fertigung geprüft. <a href="/kontakt/">Fragen?</a></p>
+          <p><strong>Preishinweis:</strong> Die Farbzuordnung der Preise ist noch nicht bestätigt. Im Warenkorb wird der niedrigste Preis angesetzt; der verbindliche Preis wird vor der Fertigung geprüft. <a href="/kontakt/">Fragen?</a></p>
         </div>
       </div>
     </div>

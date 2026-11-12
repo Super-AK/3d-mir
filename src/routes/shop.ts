@@ -43,7 +43,12 @@ type VariantRow = {
 
 type ImageRow = { file: string; alt: string; sort_order: number };
 
-type ProductListItem = ProductRow & { image: string | null };
+type ProductListItem = ProductRow & {
+  image: string | null;
+  variant_min_price: number | null;
+  variant_max_price: number | null;
+  priceLabel: string;
+};
 
 type CartLine = {
   variantId: number;
@@ -62,16 +67,31 @@ type ShippingOption = ShippingMethod & { cents: number; free: boolean };
 const db = () => getDb();
 
 function listProducts(): ProductListItem[] {
-  return db()
+  const rows = db()
     .prepare(
       `SELECT p.*, (
          SELECT file FROM product_images i WHERE i.product_id = p.id ORDER BY i.sort_order, i.id LIMIT 1
-       ) AS image
+       ) AS image,
+       (SELECT MIN(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS variant_min_price,
+       (SELECT MAX(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS variant_max_price
        FROM products p
        WHERE p.active = 1
        ORDER BY p.sort_order, p.name`,
     )
-    .all() as ProductListItem[];
+    .all() as (ProductRow & {
+    image: string | null;
+    variant_min_price: number | null;
+    variant_max_price: number | null;
+  })[];
+
+  return rows.map((row) => {
+    const min = row.variant_min_price ?? row.price_from_cents;
+    const max = row.variant_max_price ?? row.price_from_cents;
+    return {
+      ...row,
+      priceLabel: max > min ? `ab ${formatEuro(min)}` : formatEuro(min),
+    };
+  });
 }
 
 function findProduct(slug: string): { product: ProductRow; variants: VariantRow[]; images: ImageRow[] } | null {
@@ -152,11 +172,7 @@ function shippingOptions(subtotal: number): ShippingOption[] {
 function productJsonLd(product: ProductRow, variants: VariantRow[]) {
   const prices = variants.map((variant) => variant.price_cents);
   const low = prices.length > 0 ? Math.min(...prices) : product.price_from_cents;
-  const high = Math.max(
-    ...prices,
-    product.price_to_cents ?? 0,
-    product.price_from_cents,
-  );
+  const high = prices.length > 0 ? Math.max(...prices) : product.price_from_cents;
   return [
     {
       '@context': 'https://schema.org',
@@ -328,6 +344,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     const found = findProduct(request.params.slug);
     if (!found) return shopError(reply, 404, 'Dieses Produkt wurde nicht gefunden.');
     const { product, variants, images } = found;
+    const prices = variants.map((variant) => variant.price_cents);
+    const minPrice = prices.length > 0 ? Math.min(...prices) : product.price_from_cents;
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : product.price_from_cents;
     render(reply, 'pages/produkt.njk', {
       product,
       variants,
@@ -335,6 +354,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       productJsonLd: productJsonLd(product, variants),
       maxQuantity: config.shop.maxQuantityPerItem,
       shipping: getPricingConfig().shipping,
+      basePriceText: maxPrice > minPrice ? `ab ${formatEuro(minPrice)}` : formatEuro(minPrice),
     });
   });
 

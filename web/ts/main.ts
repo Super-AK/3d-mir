@@ -174,3 +174,19 @@ if (gallery) {
     if (event.target === dialog) dialog.close();
   });
 }
+
+// Produktpreis: zunächst „ab …“, nach Farbauswahl der konkrete Variantenpreis.
+const variantSelect = document.querySelector<HTMLSelectElement>('[data-variant-select]');
+const productPrice = document.querySelector<HTMLElement>('[data-product-price]');
+if (variantSelect && productPrice) {
+  const formatter = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+  const baseText = productPrice.dataset.priceBase ?? productPrice.textContent ?? '';
+  const updatePrice = (): void => {
+    const option = variantSelect.selectedOptions[0];
+    const cents = Number(option?.dataset.priceCents ?? '');
+    productPrice.textContent =
+      variantSelect.value !== '' && Number.isFinite(cents) ? formatter.format(cents / 100) : baseText;
+  };
+  variantSelect.addEventListener('change', updatePrice);
+  updatePrice();
+}
