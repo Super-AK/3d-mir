@@ -1,0 +1,43 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Produkte importieren – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <nav class="breadcrumb" aria-label="Brotkrumen">
+    <ol><li><a href="/admin/produkte/">Produkte</a></li><li aria-current="page">Importieren</li></ol>
+  </nav>
+
+  <div class="admin-page-head">
+    <div>
+      <h1>Produkte importieren</h1>
+      <p>Produkte aus einer zuvor exportierten JSON-Datei anlegen.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info" role="status">
+    <p><strong>Format:</strong> Die Datei muss mit <code>3d-mir-products</code> beginnen und Produkte inklusive Varianten und Bildern enthalten. Am einfachsten über <a href="/admin/produkte/export/">Exportieren</a> erzeugen. Beim Import werden vorhandene Slugs automatisch durchnummeriert; Produkte werden mit ihrem gespeicherten Aktiv-Status angelegt.</p>
+  </div>
+
+  <form class="form card admin-panel" method="post" action="/admin/produkte/import/" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="field">
+      <label for="import_file">JSON-Datei</label>
+      <input id="import_file" name="file" type="file" accept="application/json,.json" required>
+      <span class="hint">Maximal 20 MB. Bilder sind als Base64 enthalten und werden beim Import neu verarbeitet.</span>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit">Import starten</button>
+      <a class="btn btn-secondary" href="/admin/produkte/">Zurück</a>
+    </div>
+  </form>
+
+  <div class="card admin-panel">
+    <h2>Hinweise</h2>
+    <ul class="check-list">
+      <li>Der Import legt neue Produkte an und überschreibt keine vorhandenen Produkte.</li>
+      <li>Gleiche Slugs werden mit einem Suffix wie <code>-2</code> ergänzt.</li>
+      <li>Bilder aus dem Export werden als JPG eingebettet und beim Import erneut in AVIF/WebP/JPG umgewandelt.</li>
+      <li>Nicht mehr vorhandene Build-Bilder (z. B. alte Motivschlüssel) werden übersprungen.</li>
+    </ul>
+  </div>
+{% endblock %}

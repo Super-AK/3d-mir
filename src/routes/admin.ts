@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import sharp from 'sharp';
+import { z } from 'zod';
 import { config, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render, imagePreview } from '../lib/render.js';
@@ -231,12 +232,21 @@ function bodyObject(request: FastifyRequest): Record<string, unknown> {
   return (request.body ?? {}) as Record<string, unknown>;
 }
 
+function idList(value: unknown): number[] {
+  const values = Array.isArray(value) ? value : [value];
+  const ids = values
+    .map((entry) => Number(entry))
+    .filter((id) => Number.isInteger(id) && id > 0);
+  return [...new Set(ids)];
+}
+
 function flash(request: FastifyRequest) {
   const query = queryObject(request);
   return {
     gespeichert: query.gespeichert === '1',
     geloescht: query.geloescht === '1',
     zurueckgesetzt: query.zurueckgesetzt === '1',
+    importiert: typeof query.importiert === 'string' ? Number.parseInt(query.importiert, 10) || 0 : 0,
     fehler: typeof query.fehler === 'string' ? query.fehler : '',
   };
 }
@@ -477,6 +487,17 @@ function productExists(slug: string, exceptId?: number): boolean {
   return Boolean(row);
 }
 
+function uniqueProductSlug(base: string, exceptId?: number): string {
+  const root = (slugify(base) || 'produkt').slice(0, 105);
+  let slug = root;
+  let counter = 2;
+  while (productExists(slug, exceptId)) {
+    slug = `${root.slice(0, 100)}-${counter}`;
+    counter += 1;
+  }
+  return slug;
+}
+
 function productPriceLabel(product: { min_price: number | null; max_price: number | null; price_from_cents: number; price_to_cents: number | null }): string {
   if (product.min_price !== null) {
     return product.min_price === product.max_price
@@ -659,6 +680,248 @@ function deleteProductImageFiles(fileValue: string): void {
 }
 
 class FormError extends Error {}
+
+// ---------------------------------------------------------------------------
+// Produkte löschen, kopieren, exportieren und importieren
+// ---------------------------------------------------------------------------
+
+function removeProduct(id: number): void {
+  for (const image of imagesFor(id)) deleteProductImageFiles(image.file);
+  db().prepare('DELETE FROM products WHERE id = ?').run(id);
+}
+
+async function duplicateProductImage(sourceFile: string, productId: number): Promise<string | null> {
+  if (!sourceFile.startsWith(UPLOAD_PREFIX)) return sourceFile;
+  const key = sourceFile.slice(UPLOAD_PREFIX.length);
+  const base = mediaFile(key);
+  if (!base) return null;
+  try {
+    const meta = JSON.parse(fs.readFileSync(`${base}.json`, 'utf8')) as {
+      variants?: { width?: number }[];
+    };
+    const widths = (meta.variants ?? [])
+      .map((variant) => variant.width)
+      .filter((width): width is number => typeof width === 'number');
+    if (widths.length === 0) return null;
+    const largest = Math.max(...widths);
+    const jpg = `${base}-${largest}.jpg`;
+    if (!fs.existsSync(jpg)) return null;
+    const buffer = fs.readFileSync(jpg);
+    return await storeProductImage(productId, { buffer, filename: 'produktbild.jpg', mimetype: 'image/jpeg' });
+  } catch {
+    return null;
+  }
+}
+
+type ExportedImage = { alt: string; sortOrder: number; file?: string; data?: string; contentType?: string };
+
+function exportImage(image: ImageRow): ExportedImage | null {
+  if (!image.file.startsWith(UPLOAD_PREFIX)) {
+    return { alt: image.alt, sortOrder: image.sort_order, file: image.file };
+  }
+  const key = image.file.slice(UPLOAD_PREFIX.length);
+  const base = mediaFile(key);
+  if (!base) return null;
+  try {
+    const meta = JSON.parse(fs.readFileSync(`${base}.json`, 'utf8')) as {
+      variants?: { width?: number }[];
+    };
+    const widths = (meta.variants ?? [])
+      .map((variant) => variant.width)
+      .filter((width): width is number => typeof width === 'number');
+    if (widths.length === 0) return null;
+    const largest = Math.max(...widths);
+    const jpg = `${base}-${largest}.jpg`;
+    if (!fs.existsSync(jpg)) return null;
+    return {
+      alt: image.alt,
+      sortOrder: image.sort_order,
+      data: fs.readFileSync(jpg).toString('base64'),
+      contentType: 'image/jpeg',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function exportProducts(ids?: number[]) {
+  const all = db().prepare('SELECT * FROM products ORDER BY sort_order, id').all() as ProductRow[];
+  const products = ids && ids.length > 0 ? all.filter((product) => ids.includes(product.id)) : all;
+  return {
+    format: '3d-mir-products',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    products: products.map((product) => ({
+      slug: product.slug,
+      name: product.name,
+      shortDescription: product.short_description,
+      description: product.description,
+      priceFromCents: product.price_from_cents,
+      priceToCents: product.price_to_cents,
+      sku: product.sku ?? '',
+      weightG: product.weight_g,
+      dimensions: product.dimensions ?? '',
+      stock: product.stock,
+      active: product.active === 1,
+      sortOrder: product.sort_order,
+      variants: variantsFor(product.id).map((variant) => ({
+        label: variant.label,
+        priceCents: variant.price_cents,
+        stock: variant.stock,
+        sortOrder: variant.sort_order,
+      })),
+      images: imagesFor(product.id)
+        .map((image) => exportImage(image))
+        .filter((image): image is ExportedImage => image !== null),
+    })),
+  };
+}
+
+const importImageSchema = z.object({
+  alt: z.string().max(200).optional().default(''),
+  sortOrder: z.number().int().optional(),
+  file: z.string().max(200).optional(),
+  data: z.string().optional(),
+  contentType: z.string().max(100).optional(),
+});
+
+const importProductSchema = z.object({
+  slug: z.string().max(120).optional(),
+  name: z.string().min(1).max(200),
+  shortDescription: z.string().max(300).optional().default(''),
+  description: z.string().max(20000).optional().default(''),
+  priceFromCents: z.number().int().min(0).max(100_000_000).optional(),
+  priceToCents: z.number().int().min(0).max(100_000_000).nullable().optional(),
+  sku: z.string().max(60).optional().default(''),
+  weightG: z.number().min(0).max(1_000_000).nullable().optional(),
+  dimensions: z.string().max(100).optional().default(''),
+  stock: z.number().int().min(0).max(1_000_000).nullable().optional(),
+  active: z.boolean().optional().default(true),
+  sortOrder: z.number().int().min(-100_000).max(100_000).optional().default(0),
+  variants: z
+    .array(
+      z.object({
+        label: z.string().min(1).max(80),
+        priceCents: z.number().int().min(0).max(100_000_000),
+        stock: z.number().int().min(0).max(1_000_000).nullable().optional(),
+        sortOrder: z.number().int().optional().default(0),
+      }),
+    )
+    .max(100)
+    .optional()
+    .default([]),
+  images: z.array(importImageSchema).max(MAX_PRODUCT_IMAGES).optional().default([]),
+});
+
+const importFileSchema = z.object({
+  format: z.literal('3d-mir-products'),
+  version: z.number().optional(),
+  exportedAt: z.string().optional(),
+  products: z.array(importProductSchema).min(1).max(200),
+});
+
+async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{ imported: number; errors: string[] }> {
+  let imported = 0;
+  const errors: string[] = [];
+  const maxSort = (db().prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM products').get() as { value: number }).value;
+
+  for (const item of data.products) {
+    try {
+      const slug = uniqueProductSlug(item.slug || item.name);
+      const prices = item.variants.map((variant) => variant.priceCents);
+      const priceFrom = item.priceFromCents ?? (prices.length > 0 ? Math.min(...prices) : 0);
+      const sortOrder = item.sortOrder !== 0 ? item.sortOrder : maxSort + imported + 1;
+      const info = db()
+        .prepare(
+          `INSERT INTO products
+             (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
+              dimensions, stock, active, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          slug,
+          item.name.slice(0, 200),
+          item.shortDescription,
+          item.description,
+          priceFrom,
+          item.priceToCents ?? null,
+          item.sku,
+          item.weightG ?? null,
+          item.dimensions,
+          item.stock ?? null,
+          item.active ? 1 : 0,
+          sortOrder,
+        );
+      const productId = Number(info.lastInsertRowid);
+
+      const insertVariant = db().prepare(
+        'INSERT INTO product_variants (product_id, label, price_cents, stock, sort_order) VALUES (?, ?, ?, ?, ?)',
+      );
+      const variantTx = db().transaction(() => {
+        item.variants.forEach((variant, index) => {
+          insertVariant.run(productId, variant.label, variant.priceCents, variant.stock ?? null, variant.sortOrder || index + 1);
+        });
+      });
+      variantTx();
+
+      let sortOrderImage = 0;
+      for (const image of item.images) {
+        sortOrderImage += 1;
+        try {
+          let stored: string | null = null;
+          if (image.data) {
+            const buffer = Buffer.from(image.data, 'base64');
+            if (buffer.length === 0) continue;
+            if (buffer.length > MAX_PRODUCT_IMAGE_BYTES) {
+              errors.push(`${item.name}: Ein Bild überschreitet 12 MB.`);
+              continue;
+            }
+            const contentType = image.contentType && ALLOWED_IMAGE_TYPES.has(image.contentType)
+              ? image.contentType
+              : 'image/jpeg';
+            stored = await storeProductImage(productId, { buffer, filename: 'import.jpg', mimetype: contentType });
+          } else if (image.file && /^[a-z0-9-]+$/.test(image.file) && imagePreview(image.file)) {
+            stored = image.file;
+          }
+          if (!stored) continue;
+          db()
+            .prepare('INSERT INTO product_images (product_id, file, alt, sort_order) VALUES (?, ?, ?, ?)')
+            .run(productId, stored, image.alt || item.name, image.sortOrder || sortOrderImage);
+        } catch (error) {
+          errors.push(`${item.name}: Bild konnte nicht importiert werden.`);
+        }
+      }
+
+      imported += 1;
+    } catch (error) {
+      errors.push(`${item.name}: ${error instanceof Error ? error.message : 'Import fehlgeschlagen.'}`);
+    }
+  }
+
+  return { imported, errors };
+}
+
+async function readImportUpload(request: FastifyRequest): Promise<{
+  fields: Record<string, string>;
+  file: { buffer: Buffer; filename: string } | null;
+}> {
+  const fields: Record<string, string> = {};
+  let file: { buffer: Buffer; filename: string } | null = null;
+  for await (const part of request.parts({
+    limits: { files: 1, fileSize: 20 * 1024 * 1024, fields: 5 },
+  })) {
+    if (part.type === 'file') {
+      if (part.fieldname !== 'file') {
+        part.file.resume();
+        continue;
+      }
+      file = { buffer: await part.toBuffer(), filename: path.basename(part.filename || 'produkte.json') };
+    } else {
+      fields[part.fieldname] = String(part.value ?? '');
+    }
+  }
+  return { fields, file };
+}
 
 function updateVariants(productId: number, body: Record<string, unknown>): string | null {
   const existing = variantsFor(productId);
@@ -1410,6 +1673,197 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         stockEmpty: product.stock === null,
       }));
       render(reply, 'admin/products.njk', adminContext(request, { products }));
+    });
+
+    // Export / Import -----------------------------------------------------
+    scope.get('/admin/produkte/export/', async (_request, reply) => {
+      const stamp = new Date().toISOString().slice(0, 10);
+      return reply
+        .type('application/json; charset=utf-8')
+        .header('Content-Disposition', `attachment; filename="3d-mir-produkte-${stamp}.json"`)
+        .send(JSON.stringify(exportProducts(), null, 2));
+    });
+
+    scope.get<{ Params: { id: string } }>('/admin/produkte/:id/export/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+      const stamp = new Date().toISOString().slice(0, 10);
+      return reply
+        .type('application/json; charset=utf-8')
+        .header('Content-Disposition', `attachment; filename="3d-mir-${product.slug}-${stamp}.json"`)
+        .send(JSON.stringify(exportProducts([id]), null, 2));
+    });
+
+    scope.get('/admin/produkte/import/', async (request, reply) => {
+      render(reply, 'admin/import.njk', adminContext(request, {}));
+    });
+
+    scope.post('/admin/produkte/import/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+
+      let upload;
+      try {
+        upload = await readImportUpload(request);
+      } catch (error) {
+        request.log.warn({ err: error }, 'Import-Datei konnte nicht gelesen werden');
+        return reply.redirect(
+          `/admin/produkte/import/?fehler=${encodeURIComponent('Die Datei ist zu groß oder konnte nicht gelesen werden (maximal 20 MB).')}`,
+          303,
+        );
+      }
+
+      if (!verifyCsrfToken(session, upload.fields._csrf)) {
+        return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu.');
+      }
+      if (!upload.file) {
+        return reply.redirect(
+          `/admin/produkte/import/?fehler=${encodeURIComponent('Bitte wählen Sie eine JSON-Datei aus.')}`,
+          303,
+        );
+      }
+
+      let parsedJson: unknown;
+      try {
+        parsedJson = JSON.parse(upload.file.buffer.toString('utf8'));
+      } catch {
+        return reply.redirect(
+          `/admin/produkte/import/?fehler=${encodeURIComponent('Die Datei enthält kein gültiges JSON.')}`,
+          303,
+        );
+      }
+
+      const parsed = importFileSchema.safeParse(parsedJson);
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const message = issue ? `${issue.path.join('.') || 'Datei'}: ${issue.message}` : 'Ungültiges Importformat.';
+        return reply.redirect(`/admin/produkte/import/?fehler=${encodeURIComponent(message)}`, 303);
+      }
+
+      const result = await importProducts(parsed.data);
+      writeAudit(request.admin?.email ?? 'admin', 'product.import', {
+        file: upload.file.filename,
+        imported: result.imported,
+        errors: result.errors.length,
+      });
+
+      if (result.imported === 0) {
+        return reply.redirect(
+          `/admin/produkte/import/?fehler=${encodeURIComponent(result.errors[0] ?? 'Es wurden keine Produkte importiert.')}`,
+          303,
+        );
+      }
+      const warning = result.errors.length > 0
+        ? `&fehler=${encodeURIComponent(result.errors[0] ?? 'Ein Produkt konnte nicht vollständig importiert werden.')}`
+        : '';
+      return reply.redirect(`/admin/produkte/?gespeichert=1&importiert=${result.imported}${warning}`, 303);
+    });
+
+    // Löschen / Kopieren / Massenlöschung --------------------------------
+    scope.get<{ Params: { id: string } }>('/admin/produkte/:id/loeschen/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+      render(reply, 'admin/confirm.njk', adminContext(request, {
+        title: 'Produkt löschen',
+        message: `Soll das Produkt „${product.name}“ mit allen Varianten und Bildern endgültig gelöscht werden? Bestellungen bleiben erhalten.`,
+        action: `/admin/produkte/${id}/loeschen/`,
+        cancel: `/admin/produkte/${id}/`,
+      }));
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/produkte/:id/loeschen/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+      removeProduct(id);
+      writeAudit(request.admin?.email ?? 'admin', 'product.delete', { id, slug: product.slug, name: product.name });
+      return reply.redirect('/admin/produkte/?geloescht=1', 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/produkte/:id/kopieren/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+
+      const slug = uniqueProductSlug(`${product.slug}-kopie`);
+      const maxSort = db()
+        .prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM products')
+        .get() as { value: number };
+      const info = db()
+        .prepare(
+          `INSERT INTO products
+             (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
+              dimensions, stock, active, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          slug,
+          `${product.name} (Kopie)`.slice(0, 200),
+          product.short_description,
+          product.description,
+          product.price_from_cents,
+          product.price_to_cents,
+          product.sku,
+          product.weight_g,
+          product.dimensions,
+          product.stock,
+          0,
+          maxSort.value + 1,
+        );
+      const productId = Number(info.lastInsertRowid);
+
+      const insertVariant = db().prepare(
+        'INSERT INTO product_variants (product_id, label, price_cents, stock, sort_order) VALUES (?, ?, ?, ?, ?)',
+      );
+      for (const variant of variantsFor(id)) {
+        insertVariant.run(productId, variant.label, variant.price_cents, variant.stock, variant.sort_order);
+      }
+
+      let imageSort = 0;
+      for (const image of imagesFor(id)) {
+        const copied = await duplicateProductImage(image.file, productId);
+        if (!copied) continue;
+        imageSort += 1;
+        db()
+          .prepare('INSERT INTO product_images (product_id, file, alt, sort_order) VALUES (?, ?, ?, ?)')
+          .run(productId, copied, image.alt, image.sort_order || imageSort);
+      }
+
+      writeAudit(request.admin?.email ?? 'admin', 'product.copy', { from: id, to: productId, slug });
+      return reply.redirect(`/admin/produkte/${productId}/?gespeichert=1`, 303);
+    });
+
+    scope.post('/admin/produkte/massenloeschen/', async (request, reply) => {
+      const ids = idList(bodyObject(request).ids);
+      const products = ids.length > 0
+        ? (db()
+            .prepare(`SELECT * FROM products WHERE id IN (${ids.map(() => '?').join(',')}) ORDER BY sort_order, name`)
+            .all(...ids) as ProductRow[])
+        : [];
+      if (products.length === 0) {
+        return reply.redirect(`/admin/produkte/?fehler=${encodeURIComponent('Bitte wählen Sie mindestens ein Produkt aus.')}`, 303);
+      }
+      render(reply, 'admin/product-bulk-delete.njk', adminContext(request, { products }));
+    });
+
+    scope.post('/admin/produkte/massenloeschen/bestaetigen/', async (request, reply) => {
+      const ids = idList(bodyObject(request).ids);
+      const products = ids.length > 0
+        ? (db()
+            .prepare(`SELECT * FROM products WHERE id IN (${ids.map(() => '?').join(',')})`)
+            .all(...ids) as ProductRow[])
+        : [];
+      if (products.length === 0) {
+        return reply.redirect(`/admin/produkte/?fehler=${encodeURIComponent('Keine Produkte zum Löschen ausgewählt.')}`, 303);
+      }
+      for (const product of products) removeProduct(product.id);
+      writeAudit(request.admin?.email ?? 'admin', 'product.bulk_delete', {
+        ids: products.map((product) => product.id),
+        names: products.map((product) => product.name),
+      });
+      return reply.redirect('/admin/produkte/?geloescht=1', 303);
     });
 
     scope.get('/admin/produkte/neu/', async (request, reply) => {

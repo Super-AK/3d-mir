@@ -44,6 +44,16 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 
 Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pflegen.
 
+### Löschen, Kopieren, Import und Export
+
+- **Löschen:** Über „Löschen“ in der Produktzeile öffnet sich eine Bestätigungsseite. Gelöscht werden Produkt, Varianten und Bilder; bestehende Bestellungen bleiben mit ihren Positionsdaten erhalten.
+- **Massenlöschung:** Produkte in der Liste markieren (oder „Alle auswählen“) und „Ausgewählte löschen“ klicken. Es folgt eine Bestätigungsseite mit allen betroffenen Produkten.
+- **Kopieren:** Legt eine vollständige Kopie inklusive Varianten und Bildern an. Name erhält „(Kopie)“, der Slug ein eindeutiges Suffix; die Kopie ist zunächst **inaktiv**.
+- **Exportieren:** „Exportieren“ lädt alle Produkte als JSON herunter; pro Zeile gibt es zusätzlich einen Einzel-Export. Enthalten sind Produktdaten, Varianten und Bilder (hochgeladene Bilder als Base64-JPG).
+- **Importieren:** JSON-Datei über „Importieren“ hochladen (max. 20 MB). Produkte werden neu angelegt, vorhandene Slugs automatisch durchnummeriert (`-2`, `-3`, …). Bilder werden beim Import erneut in AVIF/WebP/JPG umgewandelt. Der Import überschreibt keine bestehenden Produkte.
+
+Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `products` mit Produkt-, Varianten- und Bilddaten. Ein Export kann unverändert wieder importiert werden (erzeugt dann Kopien mit neuen Slugs).
+
 ### Produktdaten
 
 Name, Slug, Kurz- und Langbeschreibung, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.

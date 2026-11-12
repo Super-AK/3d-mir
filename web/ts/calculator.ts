@@ -55,6 +55,7 @@ function init(root: HTMLElement): void {
   const previewCanvas = element<HTMLCanvasElement>(root, '#model-preview');
   const previewEmpty = element<HTMLElement>(root, '[data-preview-empty]');
   const previewStatus = element<HTMLElement>(root, '[data-preview-status]');
+  const previewOrientation = element<HTMLButtonElement>(root, '[data-preview-orientation]');
   const metricsBox = element<HTMLElement>(root, '[data-metrics]');
   const metricDimensions = element<HTMLElement>(root, '[data-metric-dimensions]');
   const metricVolume = element<HTMLElement>(root, '[data-metric-volume]');
@@ -235,6 +236,7 @@ function init(root: HTMLElement): void {
     grid: null as THREE.GridHelper | null,
     object: null as THREE.Object3D | null,
     resizeObserver: null as ResizeObserver | null,
+    orientation: 'standing' as 'standing' | 'lying',
   };
 
   function renderPreview(): void {
@@ -333,54 +335,87 @@ function init(root: HTMLElement): void {
     throw new Error('Unbekanntes Dateiformat für die Vorschau.');
   }
 
+  function applyOrientation(object: THREE.Object3D): void {
+    // STL/OBJ/3MF sind in der 3D-Druck-Praxis Z-up; three.js ist Y-up.
+    object.rotation.x = preview.orientation === 'standing' ? -Math.PI / 2 : 0;
+    object.updateMatrixWorld(true);
+  }
+
+  function updateOrientationButton(): void {
+    if (!previewOrientation) return;
+    previewOrientation.hidden = !preview.object;
+    previewOrientation.textContent = preview.orientation === 'standing' ? 'Liegend anzeigen' : 'Stehend anzeigen';
+    previewOrientation.setAttribute(
+      'aria-label',
+      preview.orientation === 'standing' ? 'Modell liegend anzeigen' : 'Modell stehend anzeigen',
+    );
+  }
+
+  function framePreview(): void {
+    if (!preview.scene || !preview.camera || !preview.controls || !preview.object) return;
+    const object = preview.object;
+    object.position.set(0, 0, 0);
+    object.updateMatrixWorld(true);
+
+    if (preview.grid) {
+      preview.scene.remove(preview.grid);
+      preview.grid.geometry.dispose();
+    }
+
+    const box = new THREE.Box3().setFromObject(object);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    object.position.sub(center);
+
+    const maxDimension = Math.max(size.x, size.y, size.z, 1);
+    const grid = new THREE.GridHelper(maxDimension * 4, 20, 0x9fb2c8, 0xdbe3ee);
+    grid.position.y = -size.y / 2;
+    preview.scene.add(grid);
+    preview.grid = grid;
+
+    preview.camera.near = maxDimension / 1000;
+    preview.camera.far = maxDimension * 100;
+    preview.camera.position.set(maxDimension * 1.15, maxDimension * 0.85, maxDimension * 1.55);
+    preview.camera.updateProjectionMatrix();
+    preview.controls.target.set(0, 0, 0);
+    preview.controls.minDistance = maxDimension * 0.35;
+    preview.controls.maxDistance = maxDimension * 12;
+    preview.controls.update();
+    resizePreview();
+    renderPreview();
+  }
+
   async function showPreview(selected: File): Promise<void> {
     setupPreview();
     if (!preview.scene || !preview.camera || !preview.controls) return;
     if (previewStatus) previewStatus.textContent = '3D-Vorschau wird geladen …';
     try {
       const object = normalizeObject(await parsePreviewFile(selected));
-      // STL/OBJ/3MF sind in der 3D-Druck-Praxis Z-up; three.js ist Y-up.
-      // Ohne diese Drehung liegen Modelle flach auf der Vorschau.
-      object.rotation.x = -Math.PI / 2;
-      object.updateMatrixWorld(true);
       if (preview.object) {
         preview.scene.remove(preview.object);
         disposeObject(preview.object);
       }
-      if (preview.grid) {
-        preview.scene.remove(preview.grid);
-        preview.grid.geometry.dispose();
-      }
 
-      const box = new THREE.Box3().setFromObject(object);
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      object.position.sub(center);
+      applyOrientation(object);
       preview.scene.add(object);
       preview.object = object;
+      framePreview();
 
-      const maxDimension = Math.max(size.x, size.y, size.z, 1);
-      const grid = new THREE.GridHelper(maxDimension * 4, 20, 0x9fb2c8, 0xdbe3ee);
-      grid.position.y = -size.y / 2;
-      preview.scene.add(grid);
-      preview.grid = grid;
-
-      preview.camera.near = maxDimension / 1000;
-      preview.camera.far = maxDimension * 100;
-      preview.camera.position.set(maxDimension * 1.15, maxDimension * 0.85, maxDimension * 1.55);
-      preview.camera.updateProjectionMatrix();
-      preview.controls.target.set(0, 0, 0);
-      preview.controls.minDistance = maxDimension * 0.35;
-      preview.controls.maxDistance = maxDimension * 12;
-      preview.controls.update();
       if (previewEmpty) previewEmpty.hidden = true;
       if (previewStatus) previewStatus.textContent = 'Vorschau mit Maus oder Finger drehen und zoomen.';
-      resizePreview();
-      renderPreview();
+      updateOrientationButton();
     } catch {
       if (previewStatus) previewStatus.textContent = 'Für diese Datei ist keine Vorschau möglich. Die Analyse funktioniert trotzdem.';
     }
   }
+
+  previewOrientation?.addEventListener('click', () => {
+    if (!preview.object) return;
+    preview.orientation = preview.orientation === 'standing' ? 'lying' : 'standing';
+    applyOrientation(preview.object);
+    framePreview();
+    updateOrientationButton();
+  });
 
   // -------------------------------------------------------------------------
   // Analyse und Anfrage

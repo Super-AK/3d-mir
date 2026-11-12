@@ -281,3 +281,18 @@
 **Getestet**
 - Testmodell 10 × 10 × 40 mm hochgeladen: Analyse meldet korrekte Maße, Vorschau zeigt das Modell aufrecht auf dem Raster.
 - Typecheck, 19 Unit-Tests, 7 E2E-Tests erfolgreich.
+
+## Nachtrag – Produktverwaltung und Vorschau-Umschaltung
+
+**Fertig**
+- Admin → Produkte: Einzel-Löschen mit Bestätigungsseite, Massenlöschung per Checkbox (inkl. „Alle auswählen“ und Bestätigungsseite), Kopieren inklusive Varianten und Bilder (Kopie zunächst inaktiv) sowie Export und Import als JSON.
+- Export enthält Produktdaten, Varianten und Bilder (hochgeladene Bilder als Base64-JPG); Import prüft das Format, vergibt eindeutige Slugs, verarbeitet Bilder neu und überschreibt keine bestehenden Produkte.
+- Bilder einer Kopie werden physisch dupliziert, damit Löschen der Kopie die Originalbilder nicht entfernt.
+- 3D-Vorschau: Umschalter „Liegend anzeigen“ / „Stehend anzeigen“. Standard bleibt die Z-up→Y-up-Drehung; beim Umschalten werden Zentrierung, Raster und Kamera neu berechnet.
+
+**Getestet**
+- Export aller Produkte (1 Produkt, 14 Varianten, 9 Bilder) und Einzel-Export.
+- Kopieren von Produkt 1: 14 Varianten, 9 Bilder, 80 duplizierte Bilddateien; Kopie inaktiv.
+- Import einer Testdatei mit zwei Varianten und einem Bild; anschließende Massenlöschung von Kopie und Importprodukt inklusive Dateien.
+- Vorschau-Umschalter: „Liegend anzeigen“ → Modell liegt flach, „Stehend anzeigen“ → Modell steht wieder; keine Konsolenfehler.
+- Typecheck, Build, 19 Unit-Tests, 7 E2E-Tests und Betriebsprüfung erfolgreich.

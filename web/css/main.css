@@ -777,6 +777,24 @@ input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="
   font-size: 0.9rem;
   pointer-events: none;
 }
+.preview-orientation {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.preview-orientation:hover { border-color: var(--accent); color: var(--accent); }
+.preview-orientation[hidden] { display: none; }
 .preview-status {
   position: absolute;
   left: 0.75rem;

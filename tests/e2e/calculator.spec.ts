@@ -29,6 +29,9 @@ test('Rechner analysiert ein STL und zeigt einen Preis', async ({ page }) => {
   await expect(page.locator('[data-weight]')).not.toHaveText('–');
   await expect(page.locator('[data-submit]')).toBeEnabled();
   await expect(page.locator('[data-preview-empty]')).toBeHidden({ timeout: 15_000 });
+  await expect(page.locator('[data-preview-orientation]')).toHaveText('Liegend anzeigen');
+  await page.locator('[data-preview-orientation]').click();
+  await expect(page.locator('[data-preview-orientation]')).toHaveText('Stehend anzeigen');
 
   // Die Schätzung muss einen plausiblen Preis liefern (Mindestwert ist im Admin konfigurierbar).
   const priceText = (await page.locator('[data-price]').textContent()) ?? '';

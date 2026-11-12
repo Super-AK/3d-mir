@@ -72,3 +72,27 @@ if (uploadForm) {
     request.send(data);
   });
 }
+
+// Produktliste: „Alle auswählen“ für die Massenlöschung.
+const selectAllBoxes = document.querySelectorAll<HTMLInputElement>('[data-select-all]');
+const productBoxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-select-product]'));
+if (selectAllBoxes.length > 0 && productBoxes.length > 0) {
+  selectAllBoxes.forEach((selectAll) => {
+    selectAll.addEventListener('change', () => {
+      productBoxes.forEach((box) => {
+        box.checked = selectAll.checked;
+      });
+      selectAllBoxes.forEach((other) => {
+        other.checked = selectAll.checked;
+      });
+    });
+  });
+  productBoxes.forEach((box) => {
+    box.addEventListener('change', () => {
+      const allChecked = productBoxes.every((item) => item.checked);
+      selectAllBoxes.forEach((selectAll) => {
+        selectAll.checked = allChecked;
+      });
+    });
+  });
+}

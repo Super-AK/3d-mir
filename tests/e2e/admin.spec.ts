@@ -45,6 +45,9 @@ test.describe('Admin', () => {
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
     }
     await page.goto('/admin/produkte/');
+    await expect(page.getByRole('link', { name: 'Importieren' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Exportieren' })).toBeVisible();
+    await expect(page.locator('[data-select-product]').first()).toBeVisible();
     await page.locator('table tbody tr a').first().click();
     await expect(page.getByRole('heading', { name: 'Bilder', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Bild hinzufügen', exact: true })).toBeVisible();

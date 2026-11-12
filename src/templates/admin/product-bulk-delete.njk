@@ -1,0 +1,32 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Produkte löschen – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Produkte löschen</h1>
+      <p>{{ products.length }} Produkt(e) endgültig löschen? Varianten und Bilder werden mit entfernt.</p>
+    </div>
+  </div>
+
+  <div class="card admin-panel">
+    <ul class="admin-list">
+      {% for product in products %}
+        <li><strong>{{ product.name }}</strong><span class="text-muted">{{ product.slug }}</span></li>
+      {% endfor %}
+    </ul>
+
+    <form class="form" method="post" action="/admin/produkte/massenloeschen/bestaetigen/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      {% for product in products %}
+        <input type="hidden" name="ids" value="{{ product.id }}">
+      {% endfor %}
+      <div class="form-actions">
+        <button class="btn btn-danger" type="submit">Endgültig löschen</button>
+        <a class="btn btn-secondary" href="/admin/produkte/">Abbrechen</a>
+      </div>
+    </form>
+    <p class="hint">Bestehende Bestellungen bleiben erhalten; die Produktverweise in Bestellpositionen werden geleert.</p>
+  </div>
+{% endblock %}

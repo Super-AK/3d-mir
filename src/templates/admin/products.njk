@@ -6,47 +6,78 @@
   <div class="admin-page-head">
     <div>
       <h1>Produkte</h1>
-      <p>Produkte, Preise und Farbvarianten pflegen.</p>
+      <p>Produkte, Preise, Farbvarianten und Bilder pflegen, kopieren sowie exportieren/importieren.</p>
     </div>
     <div class="admin-page-actions">
       <a class="btn btn-small" href="/admin/produkte/neu/">Neues Produkt</a>
+      <a class="btn btn-secondary btn-small" href="/admin/produkte/import/">Importieren</a>
+      <a class="btn btn-secondary btn-small" href="/admin/produkte/export/">Exportieren</a>
     </div>
   </div>
 
   {% if products.length > 0 %}
+    <form id="bulk-delete-form" method="post" action="/admin/produkte/massenloeschen/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+    </form>
+
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th class="admin-check-cell"><input type="checkbox" data-select-all aria-label="Alle Produkte auswählen"></th>
             <th>Produkt</th>
             <th>Slug</th>
             <th>Preis</th>
             <th>Varianten</th>
             <th>Lager</th>
             <th>Status</th>
+            <th>Aktionen</th>
           </tr>
         </thead>
         <tbody>
           {% for product in products %}
             <tr>
+              <td class="admin-check-cell">
+                <input type="checkbox" name="ids" value="{{ product.id }}" form="bulk-delete-form" data-select-product aria-label="Produkt {{ product.name }} auswählen">
+              </td>
               <td><a href="/admin/produkte/{{ product.id }}/"><strong>{{ product.name }}</strong></a><br><small class="text-muted">{{ product.sku or 'ohne SKU' }}</small></td>
               <td><code class="admin-code">{{ product.slug }}</code></td>
-              <td>
-                {{ product.priceLabel }}
-              </td>
+              <td>{{ product.priceLabel }}</td>
               <td>{{ product.variant_count }}</td>
               <td><span class="{% if product.stockEmpty %}text-muted{% endif %}">{{ product.stockLabel }}</span></td>
               <td>{% if product.active %}<span class="badge badge-success">Aktiv</span>{% else %}<span class="badge badge-neutral">Inaktiv</span>{% endif %}</td>
+              <td>
+                <div class="admin-row-actions">
+                  <form method="post" action="/admin/produkte/{{ product.id }}/kopieren/">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <button class="btn btn-secondary btn-small" type="submit">Kopieren</button>
+                  </form>
+                  <a class="btn btn-secondary btn-small" href="/admin/produkte/{{ product.id }}/export/">Export</a>
+                  <a class="btn btn-danger btn-small" href="/admin/produkte/{{ product.id }}/loeschen/">Löschen</a>
+                </div>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+
+    <div class="admin-bulk-actions">
+      <label class="admin-check admin-check-inline">
+        <input type="checkbox" data-select-all aria-label="Alle Produkte auswählen">
+        <span>Alle auswählen</span>
+      </label>
+      <button class="btn btn-danger btn-small" type="submit" form="bulk-delete-form">Ausgewählte löschen</button>
+    </div>
+    <p class="hint">Beim Löschen werden Varianten und Bilder entfernt; bestehende Bestellungen bleiben mit ihren Positionsdaten erhalten. Kopien werden zunächst inaktiv angelegt.</p>
   {% else %}
     <div class="card empty-state">
       <h2>Noch keine Produkte</h2>
-      <p class="text-muted">Legen Sie das erste Produkt an.</p>
-      <a class="btn" href="/admin/produkte/neu/">Neues Produkt</a>
+      <p class="text-muted">Legen Sie das erste Produkt an oder importieren Sie eine JSON-Datei.</p>
+      <div class="form-actions">
+        <a class="btn" href="/admin/produkte/neu/">Neues Produkt</a>
+        <a class="btn btn-secondary" href="/admin/produkte/import/">Importieren</a>
+      </div>
     </div>
   {% endif %}
 {% endblock %}

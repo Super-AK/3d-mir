@@ -279,3 +279,17 @@
 .upload-progress progress::-webkit-progress-value { background: var(--accent); border-radius: 999px; }
 .upload-progress progress::-moz-progress-bar { background: var(--accent); border-radius: 999px; }
 .upload-status { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+
+/* Produktliste: Auswahl, Zeilenaktionen, Massenlöschung */
+.admin-check-cell { width: 2.4rem; text-align: center; vertical-align: middle; }
+.admin-check-cell input { width: 18px; height: 18px; accent-color: var(--accent); }
+.admin-row-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.admin-row-actions form { margin: 0; }
+.admin-bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
