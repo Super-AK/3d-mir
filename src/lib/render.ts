@@ -4,6 +4,7 @@ import nunjucks from 'nunjucks';
 import { config } from '../config.js';
 import { assetCss, assetUrl } from './assets.js';
 import { cartCount, readCart } from './cart.js';
+import { getPricingConfig } from './pricing-config.js';
 
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
 type ImageInfo = { width: number; height: number; alt: string; variants: ImageVariant[] };
@@ -97,7 +98,6 @@ env.addFilter('paragraphs', (value: unknown) => {
 });
 
 env.addGlobal('site', config.site);
-env.addGlobal('pricing', config.pricing);
 env.addGlobal('shopConfig', config.shop);
 env.addGlobal('features', config.site.features);
 env.addGlobal('year', new Date().getFullYear());
@@ -110,6 +110,7 @@ export function render(res: import('fastify').FastifyReply, template: string, co
   const html = env.render(template, {
     currentPath: res.request.url.split('?')[0] ?? '/',
     cartCount: cartCount(readCart(res.request)),
+    pricing: getPricingConfig(),
     ...context,
   });
   res.type('text/html; charset=utf-8').send(html);

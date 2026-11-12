@@ -1,0 +1,15 @@
+{% if error %}
+  <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
+{% endif %}
+{% if meldung and meldung.fehler %}
+  <div class="alert alert-danger" role="alert"><p>Bitte prüfen Sie Ihre Eingaben.</p></div>
+{% endif %}
+{% if meldung and meldung.gespeichert %}
+  <div class="alert alert-success" role="status"><p>Änderungen wurden gespeichert.</p></div>
+{% endif %}
+{% if meldung and meldung.geloescht %}
+  <div class="alert alert-success" role="status"><p>Der Eintrag wurde gelöscht.</p></div>
+{% endif %}
+{% if meldung and meldung.zurueckgesetzt %}
+  <div class="alert alert-success" role="status"><p>Die Preise wurden auf die Grundeinstellung zurückgesetzt.</p></div>
+{% endif %}

@@ -17,6 +17,7 @@ export default defineConfig({
       input: {
         main: path.join(root, 'web', 'ts', 'main.ts'),
         calculator: path.join(root, 'web', 'ts', 'calculator.ts'),
+        admin: path.join(root, 'web', 'ts', 'admin.ts'),
       },
       output: {
         entryFileNames: 'js/[name]-[hash].js',

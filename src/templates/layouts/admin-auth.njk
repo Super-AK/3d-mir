@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Anmeldung – 3D-MIR Admin{% endblock %}</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0a1530">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  {% for css in assetCss('ts/admin.ts') %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
+</head>
+<body class="admin-auth-body">
+  <main class="admin-auth" id="admin-inhalt">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -6,6 +6,7 @@ import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
 import { cleanText, createReference, isSameOrigin } from '../lib/http.js';
 import { clearCart, readCart, writeCart, type Cart } from '../lib/cart.js';
+import { getPricingConfig } from '../lib/pricing-config.js';
 import {
   findShippingMethod,
   formatEuro,
@@ -141,8 +142,9 @@ function loadCartLines(cart: Cart): CartLine[] {
 }
 
 function shippingOptions(subtotal: number): ShippingOption[] {
-  return config.pricing.shipping.methods.map((method) => {
-    const cents = shippingCents(config.pricing.shipping, method, subtotal);
+  const shipping = getPricingConfig().shipping;
+  return shipping.methods.map((method) => {
+    const cents = shippingCents(shipping, method, subtotal);
     return { ...method, cents, free: cents === 0 && method.price > 0 };
   });
 }
@@ -316,7 +318,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       images,
       productJsonLd: productJsonLd(product, variants),
       maxQuantity: config.shop.maxQuantityPerItem,
-      shipping: config.pricing.shipping,
+      shipping: getPricingConfig().shipping,
     });
   });
 
@@ -353,7 +355,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       subtotalCents: subtotal,
       shippingOptions: shippingOptions(subtotal),
       maxQuantity: config.shop.maxQuantityPerItem,
-      freeShippingFrom: config.pricing.shipping.freeShippingFrom,
+      freeShippingFrom: getPricingConfig().shipping.freeShippingFrom,
     });
   });
 
@@ -430,12 +432,13 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
         return fail('Wir liefern derzeit nur innerhalb Deutschlands. Bitte wählen Sie ein anderes Lieferland oder kontaktieren Sie uns.');
       }
 
-      const shippingMethod = findShippingMethod(config.pricing.shipping, data.shippingMethod);
+      const pricing = getPricingConfig();
+      const shippingMethod = findShippingMethod(pricing.shipping, data.shippingMethod);
       if (!shippingMethod) return fail('Bitte wählen Sie eine gültige Versandart.');
       const paymentMethod = config.shop.payment.methods.find((method) => method.id === data.paymentMethod);
       if (!paymentMethod) return fail('Bitte wählen Sie eine gültige Zahlungsart.');
 
-      const totals = orderTotals(lines, config.pricing.shipping, shippingMethod);
+      const totals = orderTotals(lines, pricing.shipping, shippingMethod);
 
       for (const line of lines) {
         if (line.stock != null && line.stock < line.quantity) {

@@ -1,0 +1,52 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Produkte – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Produkte</h1>
+      <p>Produkte, Preise und Farbvarianten pflegen.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-small" href="/admin/produkte/neu/">Neues Produkt</a>
+    </div>
+  </div>
+
+  {% if products.length > 0 %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Produkt</th>
+            <th>Slug</th>
+            <th>Preis</th>
+            <th>Varianten</th>
+            <th>Lager</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in products %}
+            <tr>
+              <td><a href="/admin/produkte/{{ product.id }}/"><strong>{{ product.name }}</strong></a><br><small class="text-muted">{{ product.sku or 'ohne SKU' }}</small></td>
+              <td><code class="admin-code">{{ product.slug }}</code></td>
+              <td>
+                {{ product.priceLabel }}
+              </td>
+              <td>{{ product.variant_count }}</td>
+              <td><span class="{% if product.stockEmpty %}text-muted{% endif %}">{{ product.stockLabel }}</span></td>
+              <td>{% if product.active %}<span class="badge badge-success">Aktiv</span>{% else %}<span class="badge badge-neutral">Inaktiv</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="card empty-state">
+      <h2>Noch keine Produkte</h2>
+      <p class="text-muted">Legen Sie das erste Produkt an.</p>
+      <a class="btn" href="/admin/produkte/neu/">Neues Produkt</a>
+    </div>
+  {% endif %}
+{% endblock %}

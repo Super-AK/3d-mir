@@ -12,6 +12,7 @@ import { render } from './lib/render.js';
 import { publicRoutes } from './routes/public.js';
 import { calculatorRoutes } from './routes/calculator.js';
 import { shopRoutes } from './routes/shop.js';
+import { adminRoutes } from './routes/admin.js';
 import { migrate } from './db/migrate.js';
 
 const CSP = [
@@ -65,12 +66,16 @@ export async function buildApp() {
     reply.header('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
     reply.header('Cross-Origin-Opener-Policy', 'same-origin');
     reply.header('Content-Security-Policy', CSP);
+    if (_request.url.startsWith('/admin')) {
+      reply.header('X-Robots-Tag', 'noindex, nofollow');
+    }
     return payload;
   });
 
   await app.register(publicRoutes);
   await app.register(calculatorRoutes);
   await app.register(shopRoutes);
+  await app.register(adminRoutes);
 
   app.setNotFoundHandler((request, reply) => {
     if (request.url.startsWith('/api/')) {

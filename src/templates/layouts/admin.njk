@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Admin – 3D-MIR{% endblock %}</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0a1530">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  {% for css in assetCss('ts/admin.ts') %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
+</head>
+<body class="admin-body">
+  <a class="skip-link" href="#admin-inhalt">Zum Inhalt springen</a>
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a class="admin-brand" href="/admin/">
+        <img src="/assets/img/gen/logo-44.png" alt="" width="32" height="31" decoding="async">
+        <span><strong>3D-MIR</strong><span>Admin</span></span>
+      </a>
+      <nav class="admin-nav" aria-label="Admin-Navigation">
+        <a href="/admin/" {% if currentPath == '/admin/' %}aria-current="page"{% endif %}>Dashboard</a>
+        <a href="/admin/bestellungen/" {% if currentPath.startsWith('/admin/bestellungen') %}aria-current="page"{% endif %}>Bestellungen</a>
+        <a href="/admin/anfragen/" {% if currentPath.startsWith('/admin/anfragen') %}aria-current="page"{% endif %}>Anfragen</a>
+        <a href="/admin/nachrichten/" {% if currentPath.startsWith('/admin/nachrichten') %}aria-current="page"{% endif %}>Nachrichten</a>
+        <a href="/admin/produkte/" {% if currentPath.startsWith('/admin/produkte') %}aria-current="page"{% endif %}>Produkte</a>
+        <a href="/admin/preise/" {% if currentPath.startsWith('/admin/preise') %}aria-current="page"{% endif %}>Preise</a>
+      </nav>
+      <div class="admin-user">
+        <a href="/" class="admin-user-link" target="_blank" rel="noopener">Website</a>
+        <a href="/admin/passwort/" {% if currentPath == '/admin/passwort/' %}aria-current="page"{% endif %}>{{ admin.name or admin.email }}</a>
+        <form method="post" action="/admin/logout/">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <button class="btn btn-secondary btn-small" type="submit">Abmelden</button>
+        </form>
+      </div>
+    </div>
+  </header>
+  <main id="admin-inhalt" class="admin-main" tabindex="-1">
+    {% include "admin/partials/flash.njk" %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

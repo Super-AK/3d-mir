@@ -1,0 +1,73 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Bestellungen – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Bestellungen</h1>
+      <p>Bestellungen prüfen, Status ändern und Kunden informieren.</p>
+    </div>
+  </div>
+
+  <form class="admin-filter card" method="get" action="/admin/bestellungen/">
+    <div class="field">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">Alle Status</option>
+        {% for item in statuses %}
+          <option value="{{ item.id }}" {% if status == item.id %}selected{% endif %}>{{ item.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="q">Suche</label>
+      <input id="q" name="q" type="search" value="{{ q }}" placeholder="Nummer, E-Mail oder Name">
+    </div>
+    <div class="admin-filter-actions">
+      <button class="btn btn-small" type="submit">Filtern</button>
+      <a class="btn btn-secondary btn-small" href="/admin/bestellungen/">Zurücksetzen</a>
+    </div>
+  </form>
+
+  {% if orders.length > 0 %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nummer</th>
+            <th>Datum</th>
+            <th>Kunde</th>
+            <th>Status</th>
+            <th>Zahlung / Versand</th>
+            <th class="text-right">Gesamt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td><a href="/admin/bestellungen/{{ order.id }}/"><strong>{{ order.order_number }}</strong></a></td>
+              <td>{{ order.created_at | date }}</td>
+              <td>{{ order.first_name }} {{ order.last_name }}<br><small class="text-muted">{{ order.email }}</small></td>
+              <td>
+                {% if order.status == 'neu' %}<span class="badge badge-warning">Neu</span>
+                {% elif order.status == 'bezahlt' %}<span class="badge badge-info">Bezahlt</span>
+                {% elif order.status == 'in_druck' %}<span class="badge badge-info">In Druck</span>
+                {% elif order.status == 'versandt' %}<span class="badge badge-success">Versandt</span>
+                {% elif order.status == 'abgeschlossen' %}<span class="badge badge-success">Abgeschlossen</span>
+                {% else %}<span class="badge badge-danger">Storniert</span>{% endif %}
+              </td>
+              <td><small>{{ order.payment_method }}<br>{{ order.shipping_method }}</small></td>
+              <td class="text-right">{{ order.total_cents | price }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="card empty-state">
+      <h2>Keine Bestellungen gefunden</h2>
+      <p class="text-muted">Für die gewählten Filter gibt es keine Einträge.</p>
+    </div>
+  {% endif %}
+{% endblock %}

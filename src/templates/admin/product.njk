@@ -1,0 +1,147 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}{% if isNew %}Neues Produkt{% else %}{{ product.name }}{% endif %} – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <nav class="breadcrumb" aria-label="Brotkrumen">
+    <ol><li><a href="/admin/produkte/">Produkte</a></li><li aria-current="page">{% if isNew %}Neues Produkt{% else %}{{ product.name }}{% endif %}</li></ol>
+  </nav>
+
+  <div class="admin-page-head">
+    <div>
+      <h1>{% if isNew %}Neues Produkt{% else %}{{ product.name }}{% endif %}</h1>
+      <p>{% if isNew %}Produkt anlegen. Farbvarianten können anschließend ergänzt werden.{% else %}Produktdaten, Preise und Varianten bearbeiten.{% endif %}</p>
+    </div>
+    {% if not isNew %}
+      <div class="admin-page-actions">
+        <a class="btn btn-secondary btn-small" href="/shop/{{ product.slug }}/" target="_blank" rel="noopener">Im Shop ansehen</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <form class="form card admin-panel" method="post" action="{% if isNew %}/admin/produkte/neu/{% else %}/admin/produkte/{{ product.id }}/{% endif %}">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="form-row">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" maxlength="200" required value="{{ form.name }}">
+      </div>
+      <div class="field">
+        <label for="slug">Slug</label>
+        <input id="slug" name="slug" type="text" maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" value="{{ form.slug }}" placeholder="wird aus dem Namen erzeugt">
+        <span class="hint">Nur Kleinbuchstaben, Zahlen und Bindestriche. URL: /shop/&lt;slug&gt;/</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="shortDescription">Kurzbeschreibung</label>
+      <textarea id="shortDescription" name="shortDescription" rows="2" maxlength="300">{{ form.shortDescription }}</textarea>
+      <span class="hint">Erscheint in der Shop-Übersicht und in Suchmaschinen.</span>
+    </div>
+
+    <div class="field">
+      <label for="description">Beschreibung</label>
+      <textarea id="description" name="description" rows="12" maxlength="10000">{{ form.description }}</textarea>
+      <span class="hint">Leerzeilen erzeugen Absätze. HTML wird nicht ausgeführt.</span>
+    </div>
+
+    <div class="form-row form-row-3">
+      <div class="field">
+        <label for="priceFrom">Preis von (€)</label>
+        <input id="priceFrom" name="priceFrom" type="number" min="0" step="0.01" required value="{{ form.priceFrom }}">
+      </div>
+      <div class="field">
+        <label for="priceTo">Preis bis (€)</label>
+        <input id="priceTo" name="priceTo" type="number" min="0" step="0.01" value="{{ form.priceTo }}">
+        <span class="hint">Leer lassen, wenn es nur einen Preis gibt.</span>
+      </div>
+      <div class="field">
+        <label for="sku">Artikelnummer (SKU)</label>
+        <input id="sku" name="sku" type="text" maxlength="60" value="{{ form.sku }}">
+      </div>
+    </div>
+
+    <div class="form-row form-row-3">
+      <div class="field">
+        <label for="weightG">Gewicht (g)</label>
+        <input id="weightG" name="weightG" type="number" min="0" step="0.1" value="{{ form.weightG }}">
+      </div>
+      <div class="field">
+        <label for="dimensions">Maße</label>
+        <input id="dimensions" name="dimensions" type="text" maxlength="100" value="{{ form.dimensions }}" placeholder="z. B. 110 × 65 × 87 mm">
+      </div>
+      <div class="field">
+        <label for="stock">Lagerbestand</label>
+        <input id="stock" name="stock" type="number" min="0" step="1" value="{{ form.stock }}">
+        <span class="hint">Leer = keine Bestandsführung.</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="sortOrder">Sortierung</label>
+        <input id="sortOrder" name="sortOrder" type="number" step="1" value="{{ form.sortOrder }}">
+      </div>
+      <label class="admin-check">
+        <input type="checkbox" name="active" value="1" {% if form.active %}checked{% endif %}>
+        <span>Produkt im Shop anzeigen</span>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Speichern</button>
+      <a class="btn btn-secondary" href="/admin/produkte/">Zurück</a>
+    </div>
+  </form>
+
+  {% if not isNew %}
+    <section class="card admin-panel">
+      <h2>Farbvarianten</h2>
+      <p class="text-muted">Preise werden im Shop pro Variante angezeigt. Ist ein Lagerbestand eingetragen, wird die Bestellmenge dagegen geprüft.</p>
+      <form method="post" action="/admin/produkte/{{ product.id }}/varianten/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Bestand</th><th>Löschen</th></tr></thead>
+            <tbody>
+              {% for variant in variants %}
+                <tr>
+                  <td><input name="variant_{{ variant.id }}_label" type="text" maxlength="80" required value="{{ variant.label }}"></td>
+                  <td><input name="variant_{{ variant.id }}_price" type="number" min="0" step="0.01" required value="{{ variant.priceValue }}"></td>
+                  <td><input name="variant_{{ variant.id }}_stock" type="number" min="0" step="1" value="{{ variant.stockValue }}"></td>
+                  <td><label class="admin-check admin-check-inline"><input type="checkbox" name="variant_{{ variant.id }}_delete" value="1"><span>löschen</span></label></td>
+                </tr>
+              {% endfor %}
+              <tr>
+                <td><input name="new_label" type="text" maxlength="80" placeholder="Neue Variante"></td>
+                <td><input name="new_price" type="number" min="0" step="0.01" placeholder="0.00"></td>
+                <td><input name="new_stock" type="number" min="0" step="1" placeholder="optional"></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Varianten speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Bilder</h2>
+      {% if images.length > 0 %}
+        <ul class="admin-list">
+          {% for image in images %}
+            <li>
+              <code class="admin-code">{{ image.file }}</code>
+              <span>{{ image.alt }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        <p class="text-muted"><small>Bilder werden über den Bild-Build (`scripts/prepare-images.mjs`) erzeugt. Die Zuordnung erfolgt derzeit über die Datenbank.</small></p>
+      {% else %}
+        <p class="text-muted">Für dieses Produkt ist noch kein Bild hinterlegt.</p>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

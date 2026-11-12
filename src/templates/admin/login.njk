@@ -1,0 +1,35 @@
+{% extends "layouts/admin-auth.njk" %}
+
+{% block title %}Anmeldung – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-auth-card card">
+    <a class="admin-auth-brand" href="/">
+      <img src="/assets/img/gen/logo-44.png" alt="3D-MIR Logo" width="44" height="43" decoding="async">
+      <span><strong>3D-MIR</strong><span>Admin-Bereich</span></span>
+    </a>
+    <h1>Anmelden</h1>
+    <p class="text-muted">Bitte melden Sie sich mit Ihrem Admin-Konto an.</p>
+
+    {% if abgemeldet %}
+      <div class="alert alert-success" role="status"><p>Sie wurden abgemeldet.</p></div>
+    {% endif %}
+    {% if error %}
+      <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
+    {% endif %}
+
+    <form class="form" method="post" action="/admin/login/">
+      <input type="hidden" name="weiter" value="{{ weiter }}">
+      <div class="field">
+        <label for="email">E-Mail-Adresse</label>
+        <input id="email" name="email" type="email" autocomplete="username" required value="{{ email }}">
+      </div>
+      <div class="field">
+        <label for="password">Passwort</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-block" type="submit">Anmelden</button>
+    </form>
+    <p class="admin-auth-hint text-muted"><small>Der Zugang ist nur für den Betreiber bestimmt. Bei Problemen wenden Sie sich an die Person, die den Zugang eingerichtet hat.</small></p>
+  </div>
+{% endblock %}

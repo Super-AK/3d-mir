@@ -1,0 +1,107 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Dashboard – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Überblick über Bestellungen, Anfragen und Nachrichten.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-small" href="/admin/bestellungen/">Bestellungen</a>
+      <a class="btn btn-secondary btn-small" href="/admin/anfragen/">Anfragen</a>
+    </div>
+  </div>
+
+  <div class="admin-stats">
+    <a class="admin-stat card card-hover" href="/admin/bestellungen/?status=neu">
+      <span class="admin-stat-label">Offene Bestellungen</span>
+      <strong>{{ openOrders }}</strong>
+      <span class="admin-stat-note">{{ counts.neu or 0 }} neu · {{ counts.bezahlt or 0 }} bezahlt · {{ counts.in_druck or 0 }} im Druck</span>
+    </a>
+    <a class="admin-stat card card-hover" href="/admin/anfragen/?status=neu">
+      <span class="admin-stat-label">Neue Anfragen</span>
+      <strong>{{ newQuotes }}</strong>
+      <span class="admin-stat-note">Angebotsanfragen aus dem Rechner</span>
+    </a>
+    <a class="admin-stat card card-hover" href="/admin/nachrichten/">
+      <span class="admin-stat-label">Offene Nachrichten</span>
+      <strong>{{ openMessages }}</strong>
+      <span class="admin-stat-note">Kontaktformular</span>
+    </a>
+    <div class="admin-stat card">
+      <span class="admin-stat-label">Erfasster Umsatz</span>
+      <strong>{{ revenue | price }}</strong>
+      <span class="admin-stat-note">Bezahlte, gedruckte, versandte und abgeschlossene Bestellungen</span>
+    </div>
+  </div>
+
+  <div class="admin-grid-2">
+    <section class="card admin-panel">
+      <div class="admin-panel-head">
+        <h2>Letzte Bestellungen</h2>
+        <a href="/admin/bestellungen/">Alle anzeigen</a>
+      </div>
+      {% if recentOrders.length > 0 %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nummer</th><th>Kunde</th><th>Status</th><th>Gesamt</th></tr></thead>
+            <tbody>
+              {% for order in recentOrders %}
+                <tr>
+                  <td><a href="/admin/bestellungen/{{ order.id }}/">{{ order.order_number }}</a><br><small class="text-muted">{{ order.created_at | date }}</small></td>
+                  <td>{{ order.first_name }} {{ order.last_name }}</td>
+                  <td><span class="badge badge-neutral">{{ order.status }}</span></td>
+                  <td>{{ order.total_cents | price }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Noch keine Bestellungen.</p>
+      {% endif %}
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head">
+        <h2>Letzte Anfragen</h2>
+        <a href="/admin/anfragen/">Alle anzeigen</a>
+      </div>
+      {% if recentQuotes.length > 0 %}
+        <ul class="admin-list">
+          {% for quote in recentQuotes %}
+            <li>
+              <a href="/admin/anfragen/{{ quote.id }}/">{{ quote.reference }}</a>
+              <span>{{ quote.name }}</span>
+              <small class="text-muted">{{ quote.created_at | date }} · {{ quote.estimated_price_cents | price }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">Noch keine Anfragen.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head">
+      <h2>Letzte Nachrichten</h2>
+      <a href="/admin/nachrichten/">Alle anzeigen</a>
+    </div>
+    {% if recentMessages.length > 0 %}
+      <ul class="admin-list">
+        {% for message in recentMessages %}
+          <li>
+            <a href="/admin/nachrichten/">{{ message.subject or 'Kontaktnachricht' }}</a>
+            <span>{{ message.name }}</span>
+            <small class="text-muted">{{ message.created_at | date }}{% if message.handled %} · erledigt{% endif %}</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">Noch keine Nachrichten.</p>
+    {% endif %}
+  </section>
+{% endblock %}

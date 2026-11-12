@@ -1,0 +1,167 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Preise – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Preise und Kalkulation</h1>
+      <p>Parameter für den 3D-Druck-Rechner, die Nachbearbeitung und den Versand.</p>
+    </div>
+    {% if hasOverrides %}
+      <div class="admin-page-actions">
+        <form method="post" action="/admin/preise/zuruecksetzen/">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <button class="btn btn-secondary btn-small" type="submit">Auf Grundeinstellung zurücksetzen</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="alert alert-warning" role="status">
+    <p><strong>Platzhalter:</strong> Alle Werte sind technische Annahmen und müssen vor dem Livegang vom Betreiber bestätigt werden. Die Grundeinstellung steht in <code>config/pricing.json</code>; Änderungen hier werden in der Datenbank gespeichert und überlagern diese Werte.</p>
+  </div>
+
+  <form class="form" method="post" action="/admin/preise/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <section class="card admin-panel">
+      <h2>Grundwerte</h2>
+      <div class="form-row">
+        <div class="field">
+          <label for="meta_min_order">Mindestauftragswert (€)</label>
+          <input id="meta_min_order" name="meta_min_order" type="number" min="0" step="0.01" required value="{{ values.meta_min_order }}">
+        </div>
+        <div class="field">
+          <label for="meta_round">Rundung (€)</label>
+          <input id="meta_round" name="meta_round" type="number" min="0.01" step="0.01" required value="{{ values.meta_round }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="meta_setup">Rüstkosten (€)</label>
+          <input id="meta_setup" name="meta_setup" type="number" min="0" step="0.01" required value="{{ values.meta_setup }}">
+        </div>
+        <div class="field">
+          <label for="meta_setup_extra">Rüstkosten je weiteres Teil (€)</label>
+          <input id="meta_setup_extra" name="meta_setup_extra" type="number" min="0" step="0.01" required value="{{ values.meta_setup_extra }}">
+        </div>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Technische Schätzwerte</h2>
+      <div class="form-row form-row-3">
+        <div class="field">
+          <label for="calc_wall">Wandstärke (mm)</label>
+          <input id="calc_wall" name="calc_wall" type="number" min="0.1" max="10" step="0.1" required value="{{ values.calc_wall }}">
+        </div>
+        <div class="field">
+          <label for="calc_flow">Materialdurchsatz (cm³/h)</label>
+          <input id="calc_flow" name="calc_flow" type="number" min="0.1" max="1000" step="0.1" required value="{{ values.calc_flow }}">
+        </div>
+        <div class="field">
+          <label for="calc_waste">Verschnitt (%)</label>
+          <input id="calc_waste" name="calc_waste" type="number" min="0" max="100" step="0.1" required value="{{ values.calc_waste }}">
+        </div>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Materialien</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Material</th><th>Preis pro Gramm (€)</th><th>Dichte (g/cm³)</th></tr></thead>
+          <tbody>
+            {% for material in materialRows %}
+              <tr>
+                <td><strong>{{ material.label }}</strong><br><small class="text-muted">{{ material.id }}</small></td>
+                <td><input name="material_{{ material.id }}_price" type="number" min="0" max="1000" step="0.001" required value="{{ material.priceValue }}"></td>
+                <td><input name="material_{{ material.id }}_density" type="number" min="0.1" max="30" step="0.01" required value="{{ material.densityValue }}"></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Drucker</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Drucker</th><th>Maschinenstunde (€)</th></tr></thead>
+          <tbody>
+            {% for printer in printerRows %}
+              <tr>
+                <td><strong>{{ printer.label }}</strong><br><small class="text-muted">{{ printer.buildVolume.x }} × {{ printer.buildVolume.y }} × {{ printer.buildVolume.z }} mm</small></td>
+                <td><input name="printer_{{ printer.id }}_rate" type="number" min="0" max="1000" step="0.01" required value="{{ printer.rateValue }}"></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Nachbearbeitung</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Preis pro Teil (€)</th></tr></thead>
+          <tbody>
+            {% for coating in coatingRows %}
+              <tr>
+                <td><strong>{{ coating.label }}</strong><br><small class="text-muted">{{ coating.id }}</small></td>
+                <td><input name="coating_{{ coating.id }}_price" type="number" min="0" max="10000" step="0.01" required value="{{ coating.priceValue }}"></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Versand</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Versandart</th><th>Preis (€)</th></tr></thead>
+          <tbody>
+            {% for method in shippingRows %}
+              <tr>
+                <td><strong>{{ method.label }}</strong><br><small class="text-muted">{{ method.id }}</small></td>
+                <td><input name="shipping_{{ method.id }}_price" type="number" min="0" max="1000" step="0.01" required value="{{ method.priceValue }}"></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="shipping_free_from">Kostenloser Versand ab (€)</label>
+          <input id="shipping_free_from" name="shipping_free_from" type="number" min="0" max="100000" step="0.01" required value="{{ values.shipping_free_from }}">
+        </div>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Mengenrabatt</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ab Stückzahl</th><th>Rabatt (%)</th></tr></thead>
+          <tbody>
+            {% for tier in discountRows %}
+              <tr>
+                <td>{{ tier.minQuantity }}</td>
+                <td><input name="discount_{{ tier.index }}" type="number" min="0" max="100" step="0.1" required value="{{ tier.percentValue }}"></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Preise speichern</button>
+      <a class="btn btn-secondary" href="/admin/">Zurück</a>
+    </div>
+  </form>
+{% endblock %}

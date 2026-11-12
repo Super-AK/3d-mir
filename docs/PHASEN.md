@@ -6,7 +6,7 @@
 | 2 | Design-System, statische Seiten, Rechtsseiten, Kontakt | ✅ abgeschlossen |
 | 3 | Rechner: Upload, 3D-Vorschau, Preis, Angebotsanfrage | ✅ abgeschlossen |
 | 4 | Shop: Produkte, Warenkorb, Checkout, E-Mails | ✅ abgeschlossen |
-| 5 | Admin: Login, Produkte, Bestellungen, Anfragen, Preise | ⬜ offen |
+| 5 | Admin: Login, Produkte, Bestellungen, Anfragen, Preise | ✅ abgeschlossen |
 | 6 | Konto (optional), SEO, Redirects, Performance, Security | ⬜ offen |
 | 7 | Deployment-Paket und Test auf frischer VM | ⬜ offen |
 | 8 | Abnahme und Abschlussbericht | ⬜ offen |
@@ -110,3 +110,31 @@
 - Bestellverwaltung im Admin-Bereich (Phase 5), inklusive Statuswechsel und Rechnungsgrundlage.
 
 
+
+## Phase 5 – Bericht
+
+**Fertig**
+- Admin-Anmeldung unter `/admin/login/` mit E-Mail und Passwort; Passwörter als Argon2id-Hash, Sitzungen serverseitig in `sessions`, Cookie `mir3d_admin` (httpOnly, SameSite=Lax, signiert, Path `/admin`, 8 Stunden).
+- Schutz aller Admin-Seiten: fehlende Sitzung → 303 zur Anmeldung, CSRF-Token pro Sitzung in allen Formularen, Origin-/Referer-Prüfung, Login-Rate-Limit (5 Versuche / 15 Minuten), Audit-Log für Anmeldung, Änderungen und Löschungen.
+- Dashboard mit offenen Bestellungen, neuen Anfragen, offenen Kontaktnachrichten und erfasstem Umsatz sowie den letzten Vorgängen.
+- Bestellungen: Liste mit Statusfilter und Suche, Detailseite mit Kunden-, Liefer- und Positionsdaten, Statuswechsel, interne Notiz, optionaler Status-E-Mail an den Kunden und Statusverlauf (`order_status_history`).
+- Anfragen: Liste und Detailseite inklusive Modellparametern, Preisschätzung, Datei-Download (nur innerhalb des Upload-Verzeichnisses), Statuswechsel, Notiz, Verlauf und endgültigem Löschen inklusive Upload-Datei.
+- Kontaktnachrichten: Übersicht, Als-erledigt-Markierung, Wiederöffnen und Löschen.
+- Produkte: Anlegen und Bearbeiten (Name, Slug, Beschreibung, Preise, SKU, Gewicht, Maße, Bestand, Sortierung, Sichtbarkeit), Farbvarianten einzeln bearbeiten, ergänzen und löschen.
+- Preise: Grundwerte, technische Schätzwerte, Materialpreise und -dichten, Maschinenstunden, Nachbearbeitung, Versandkosten, Schwelle für kostenlosen Versand und Mengenrabatt. Änderungen werden als `pricing.overrides` in `settings` gespeichert und überlagern `config/pricing.json` ohne Neustart; „Auf Grundeinstellung zurücksetzen“ löscht die Überlagerung.
+- Passwortänderung im Admin-Bereich (mindestens 12 Zeichen); andere Sitzungen des Benutzers werden dabei beendet.
+- Admin-Zugang per CLI: `npm run admin:create -- --email … --name …` (Passwort interaktiv oder einmalig über `ADMIN_PASSWORD`), kein Passwort im Repository.
+- Eigenes Admin-Layout und Stylesheet (`web/css/admin.css`), ohne externes Framework; `X-Robots-Tag: noindex, nofollow` für alle Admin-Antworten.
+
+**Getestet**
+- `npm run typecheck`, `npm run build`, `npm test` (19 Unit-Tests) und `npm run test:e2e` (6 Playwright-Tests, davon 1 Admin-Test) erfolgreich.
+- Alle Admin-Seiten liefern 200: Dashboard, Bestellungen (Liste/Detail), Anfragen (Liste/Detail), Nachrichten, Produkte (Liste/Detail/Neu), Preise, Passwort.
+- POST-Formulare mit CSRF geprüft: Bestellstatus und Notiz, Anfragestatus und Notiz, Nachricht erledigt, Produkt anlegen und speichern, Variante anlegen und löschen, Preise speichern und zurücksetzen, Passwort ändern.
+- Negativtests: POST ohne CSRF → 403, fremde Origin → 403, falsches aktuelles Passwort → 400, ungültige Produktdaten → 400.
+- Anmeldung, Abmeldung und erneuter Zugriffsschutz geprüft; Testkonto und Testdaten nach den Tests aus der Produktions-DB entfernt.
+
+**Offen**
+- Konkreter Admin-Zugang (Name/E-Mail) muss vom Auftraggeber benannt und per CLI angelegt werden (F64).
+- TOTP-2FA ist vorbereitet (Feld `totp_secret`), aber nicht aktiviert (F63).
+- Produktbilder werden weiterhin über den Bild-Build und die Datenbankzuordnung gepflegt; eine Upload-Oberfläche im Admin ist nicht Teil dieser Phase.
+- Rechnungen, Steuersätze und Buchhaltungsexporte sind nicht umgesetzt (F66).

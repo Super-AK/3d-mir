@@ -2,7 +2,7 @@
 
 Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, Sofort-Preisrechner mit 3D-Vorschau, kleiner Shop und Admin-Bereich.
 
-> **Status:** Aufbau (Phasen 1–4 abgeschlossen: Grundgerüst, statische Seiten, Rechner, Shop). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
+> **Status:** Aufbau (Phasen 1–5 abgeschlossen: Grundgerüst, statische Seiten, Rechner, Shop, Admin). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
 
 ## Technik
 
@@ -55,7 +55,11 @@ npm run typecheck             # TypeScript prüfen
 npm test                      # Unit-Tests (Vitest)
 npm run test:e2e              # E2E-Tests (Playwright, benötigt laufenden Server)
 npm run build                 # Produktionsbuild
+npm run admin:create -- --email admin@example.de --name "Betreiber"
+                              # Admin-Zugang anlegen oder Passwort zurücksetzen
 ```
+
+Der Admin-Bereich liegt unter `/admin/`. Das Passwort wird bei `admin:create` interaktiv abgefragt (mindestens 12 Zeichen) oder einmalig über `ADMIN_PASSWORD` übergeben; es wird nicht im Repository gespeichert. Für die optionalen Admin-E2E-Tests `E2E_ADMIN_EMAIL` und `E2E_ADMIN_PASSWORD` setzen.
 
 Bilder werden mit `node scripts/prepare-images.mjs` aus `web/static/img/` erzeugt (AVIF/WebP/JPG, Favicons, OG-Bild). Das Skript entfernt dabei EXIF-/GPS-Daten.
 

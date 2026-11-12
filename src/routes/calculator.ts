@@ -10,32 +10,37 @@ import { sendMail } from '../lib/mailer.js';
 import { cleanText, createReference, escapeHtml, isSameOrigin } from '../lib/http.js';
 import { MeshError, parseMesh, type MeshFormat } from '../lib/mesh.js';
 import { calculatePrice, choosePrinter, type PriceMetrics, type PriceOptions } from '../lib/pricing.js';
+import { getPricingConfig } from '../lib/pricing-config.js';
 
 type UploadedFile = { buffer: Buffer; filename: string; mimetype: string };
 type MultipartData = { fields: Record<string, string>; file: UploadedFile | null };
 
-const calculatorConfig = {
-  meta: config.pricing.meta,
-  calculation: config.pricing.calculation,
-  materials: config.pricing.materials.map(({ id, label, density, pricePerGram, colors }) => ({
-    id,
-    label,
-    density,
-    pricePerGram,
-    colors,
-  })),
-  printers: config.pricing.printers.map(({ id, label, buildVolume, hourlyRate, materialIds }) => ({
-    id,
-    label,
-    buildVolume,
-    hourlyRate,
-    materialIds,
-  })),
-  coatings: config.pricing.coatings,
-  quantityDiscounts: config.pricing.quantityDiscounts,
-  infillOptions: config.pricing.infillOptions,
-  layerHeightOptions: config.pricing.layerHeightOptions,
-};
+/** Konfiguration für den Browser: nur die für die Live-Schätzung nötigen Werte. */
+function getCalculatorConfig() {
+  const pricing = getPricingConfig();
+  return {
+    meta: pricing.meta,
+    calculation: pricing.calculation,
+    materials: pricing.materials.map(({ id, label, density, pricePerGram, colors }) => ({
+      id,
+      label,
+      density,
+      pricePerGram,
+      colors,
+    })),
+    printers: pricing.printers.map(({ id, label, buildVolume, hourlyRate, materialIds }) => ({
+      id,
+      label,
+      buildVolume,
+      hourlyRate,
+      materialIds,
+    })),
+    coatings: pricing.coatings,
+    quantityDiscounts: pricing.quantityDiscounts,
+    infillOptions: pricing.infillOptions,
+    layerHeightOptions: pricing.layerHeightOptions,
+  };
+}
 
 const quoteSchema = z.object({
   name: z.string().min(2, 'Bitte geben Sie Ihren Namen an.').max(120),
@@ -117,7 +122,7 @@ function meshErrorMessage(error: unknown): string {
 export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
   app.get('/3d-druck-rechner/', async (_request, reply) => {
     render(reply, 'pages/rechner.njk', {
-      calculatorConfig,
+      calculatorConfig: getCalculatorConfig(),
       maxUploadMb: Math.round(config.maxUploadBytes / (1024 * 1024)),
     });
   });
@@ -150,9 +155,10 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const options = quoteOptions(data.fields);
+      const pricing = getPricingConfig();
       const suggestedPrinterId =
-        choosePrinter(parsed.metrics.dimensionsMm, options.materialId, config.pricing.printers, options.scalePercent) ??
-        config.pricing.printers[0]?.id ??
+        choosePrinter(parsed.metrics.dimensionsMm, options.materialId, pricing.printers, options.scalePercent) ??
+        pricing.printers[0]?.id ??
         null;
 
       return reply.send({
@@ -208,10 +214,11 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
         return jsonError(reply, 400, parsed.error.issues[0]?.message ?? 'Bitte prüfen Sie Ihre Angaben.');
       }
       const input = parsed.data;
+      const pricing = getPricingConfig();
 
-      const material = config.pricing.materials.find((item) => item.id === input.materialId);
-      const printer = config.pricing.printers.find((item) => item.id === input.printerId);
-      const coating = config.pricing.coatings.find((item) => item.id === input.coating);
+      const material = pricing.materials.find((item) => item.id === input.materialId);
+      const printer = pricing.printers.find((item) => item.id === input.printerId);
+      const coating = pricing.coatings.find((item) => item.id === input.coating);
       if (!material || !printer || !coating) {
         return jsonError(reply, 400, 'Bitte wählen Sie Material, Drucker und Nachbearbeitung erneut aus.');
       }
@@ -233,7 +240,7 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
         coatingId: input.coating,
         scalePercent: input.scalePercent,
       };
-      const price = calculatePrice(parsedMesh.metrics, options, config.pricing);
+      const price = calculatePrice(parsedMesh.metrics, options, pricing);
 
       const reference = createReference('ANF');
       const sha256 = crypto.createHash('sha256').update(data.file.buffer).digest('hex');

@@ -1,0 +1,53 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Nachrichten – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Nachrichten</h1>
+      <p>Anfragen aus dem Kontaktformular. Erledigte Nachrichten bleiben zur Nachvollziehbarkeit erhalten.</p>
+    </div>
+  </div>
+
+  {% if messages.length > 0 %}
+    <div class="admin-messages">
+      {% for message in messages %}
+        <article class="card admin-message {% if message.handled %}is-handled{% endif %}">
+          <div class="admin-message-head">
+            <div>
+              <h2>{{ message.subject or 'Kontaktnachricht' }}</h2>
+              <p class="text-muted">
+                {{ message.name }} · <a href="mailto:{{ message.email }}">{{ message.email }}</a>
+                {% if message.phone %} · {{ message.phone }}{% endif %}
+                · {{ message.created_at | date }}
+              </p>
+            </div>
+            <div class="admin-message-actions">
+              {% if message.handled %}
+                <span class="badge badge-success">Erledigt</span>
+              {% else %}
+                <span class="badge badge-warning">Offen</span>
+              {% endif %}
+              <form method="post" action="/admin/nachrichten/{{ message.id }}/">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <input type="hidden" name="handled" value="{% if message.handled %}0{% else %}1{% endif %}">
+                <button class="btn btn-secondary btn-small" type="submit">{% if message.handled %}Wieder öffnen{% else %}Als erledigt markieren{% endif %}</button>
+              </form>
+              <a class="btn btn-danger btn-small" href="/admin/nachrichten/{{ message.id }}/loeschen/">Löschen</a>
+            </div>
+          </div>
+          <details class="admin-message-text" {% if not message.handled %}open{% endif %}>
+            <summary>Nachricht anzeigen</summary>
+            <p>{{ message.message }}</p>
+          </details>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card empty-state">
+      <h2>Keine Nachrichten</h2>
+      <p class="text-muted">Über das Kontaktformular sind noch keine Nachrichten eingegangen.</p>
+    </div>
+  {% endif %}
+{% endblock %}

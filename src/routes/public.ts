@@ -5,6 +5,7 @@ import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
 import { cleanText, escapeHtml, isSameOrigin } from '../lib/http.js';
+import { getPricingConfig } from '../lib/pricing-config.js';
 
 /** Liest alle Inhaltsblöcke als Schlüssel-Wert-Paare. */
 export function getContent(): Record<string, string> {
@@ -47,12 +48,15 @@ const services = [
 ];
 
 /** Drucker inklusive aufgelöster Materialnamen für das Template. */
-const printers = config.pricing.printers.map((printer) => {
-  const labels = printer.materialIds.map(
-    (id) => config.pricing.materials.find((material) => material.id === id)?.label ?? id,
-  );
-  return { ...printer, materialLabels: labels };
-});
+function getPrinters() {
+  const pricing = getPricingConfig();
+  return pricing.printers.map((printer) => {
+    const labels = printer.materialIds.map(
+      (id) => pricing.materials.find((material) => material.id === id)?.label ?? id,
+    );
+    return { ...printer, materialLabels: labels };
+  });
+}
 
 /** Lokale Geschäftsdaten als JSON-LD (strukturierte Daten für Suchmaschinen). */
 const localBusinessJsonLd = {
@@ -202,7 +206,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.get('/leistungen/', async (_request, reply) => {
-    render(reply, 'pages/leistungen.njk', { printers });
+    render(reply, 'pages/leistungen.njk', { printers: getPrinters() });
   });
 
   app.get('/kontakt/', async (_request, reply) => {

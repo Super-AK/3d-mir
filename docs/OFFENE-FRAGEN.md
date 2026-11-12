@@ -130,6 +130,6 @@ Ohne SMTP-Zugang werden E-Mails derzeit **nicht versendet**, sondern als `.eml`-
 | --- | --- |
 | F61 | Tägliches Backup: nur lokal unter `/var/lib/3d-mir/backups` oder zusätzlich extern (z. B. Hetzner Storage Box/S3)? |
 | F62 | Aufbewahrungsdauer für Bestellungen/Rechnungen (steuerlich 10 Jahre) und für Angebotsanfragen? |
-| F63 | Soll die Admin-Anmeldung zusätzlich per TOTP-2FA abgesichert werden? |
-| F64 | Wer soll Admin-Zugang erhalten (Name/E-Mail)? Passwort wird beim Setup gesetzt, nie im Repo gespeichert. |
+| F63 | Soll die Admin-Anmeldung zusätzlich per TOTP-2FA abgesichert werden? Das Datenfeld ist vorbereitet, 2FA ist noch nicht aktiviert. |
+| F64 | Wer soll Admin-Zugang erhalten (Name/E-Mail)? Der Zugang wird mit `npm run admin:create -- --email … --name …` angelegt; das Passwort wird dabei gesetzt und nie im Repo gespeichert. |
 | F65 | Soll ein Monitoring/Alerting (z. B. Uptime-Check) eingerichtet werden? |
