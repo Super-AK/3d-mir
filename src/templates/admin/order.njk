@@ -52,6 +52,9 @@
       <dl class="admin-dl admin-totals">
         <div><dt>Zwischensumme</dt><dd>{{ order.subtotal_cents | price }}</dd></div>
         <div><dt>Versand ({{ shippingLabel }})</dt><dd>{{ order.shipping_cents | price }}</dd></div>
+        {% for option in options %}
+          <div><dt>Option: {{ option.label }}</dt><dd>{{ option.price_cents | price }}</dd></div>
+        {% endfor %}
         <div class="admin-total"><dt>Gesamt</dt><dd>{{ order.total_cents | price }}</dd></div>
       </dl>
 

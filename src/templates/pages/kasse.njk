@@ -102,6 +102,25 @@
           </div>
         </section>
 
+        {% if shippingAddons.length > 0 %}
+          <section class="checkout-block">
+            <h2>Versandoptionen</h2>
+            <p class="hint">Optionales Zubehör für die gewählten Produkte.</p>
+            <div class="radio-list">
+              {% for option in shippingAddons %}
+                <label class="radio-card">
+                  <input type="checkbox" name="shippingOptions" value="{{ option.id }}" data-addon-cents="{{ option.cents }}" {% if option.id in selectedAddonIds %}checked{% endif %}>
+                  <span class="radio-card-text">
+                    <strong>{{ option.label }}</strong>
+                    {% if option.note %}<span>{{ option.note }}</span>{% endif %}
+                  </span>
+                  <span class="radio-card-price">{% if option.price > 0 %}+ {{ option.price | euro }}{% else %}kostenlos{% endif %}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
         <section class="checkout-block">
           <h2>Zahlungsart</h2>
           <div class="radio-list">
@@ -157,6 +176,7 @@
         <dl class="summary-list">
           <div><dt>Zwischensumme</dt><dd data-summary-subtotal="{{ subtotalCents }}">{{ subtotalCents | price }}</dd></div>
           <div><dt>Versand</dt><dd data-summary-shipping="{{ selectedShippingCents }}">{{ selectedShippingCents | price }}</dd></div>
+          <div data-summary-addons-row {% if optionsCents == 0 %}hidden{% endif %}><dt>Optionen</dt><dd data-summary-addons="{{ optionsCents }}">{{ optionsCents | price }}</dd></div>
         </dl>
         <p class="summary-total"><span>Gesamt</span><strong data-summary-total="{{ totalCents }}">{{ totalCents | price }}</strong></p>
         <p class="text-muted"><small>{{ site.business.vatNote }}<br>zzgl. Versandkosten.</small></p>

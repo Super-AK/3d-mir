@@ -296,3 +296,20 @@
 - Import einer Testdatei mit zwei Varianten und einem Bild; anschließende Massenlöschung von Kopie und Importprodukt inklusive Dateien.
 - Vorschau-Umschalter: „Liegend anzeigen“ → Modell liegt flach, „Stehend anzeigen“ → Modell steht wieder; keine Konsolenfehler.
 - Typecheck, Build, 19 Unit-Tests, 7 E2E-Tests und Betriebsprüfung erfolgreich.
+
+## Nachtrag – Versandarten und Versandoptionen pro Produkt
+
+**Fertig**
+- Produkte speichern ausgewählte Versandarten (`shipping_method_ids`) und Versand-Zusatzoptionen (`shipping_option_ids`). Ohne Versandarten-Auswahl gelten alle aktiven Versandarten.
+- Neue Katalogliste „Versandoptionen“ unter Admin → Preise → Versandoptionen: Bezeichnung, Preis, Hinweis, Aktiv-Status, Löschen und Neu anlegen.
+- Produktformular bietet Checkboxen für Versandarten und Versandoptionen; inaktive Einträge sind gekennzeichnet.
+- Checkout: Es werden nur die für alle Warenkorb-Produkte erlaubten Versandarten angeboten; passende Zusatzoptionen erscheinen als Checkboxen mit Preis. Die Summe aktualisiert sich sofort, Optionen werden in `order_options` und `orders.options_cents` gespeichert.
+- Bestellbestätigung, Kunden-/Betreiber-E-Mail und Admin-Bestelldetail zeigen die gewählten Optionen und den Gesamtbetrag.
+- Produktkopie, Export und Import übernehmen die Versandzuordnungen.
+- Datenbankmigrationen `005_product_shipping.sql` und `006_order_options.sql`.
+
+**Getestet**
+- Zwei Versandoptionen (Express 9,50 €, Geschenk 2,00 €) angelegt, Produkt 1 zugewiesen (nur DHL) und im Checkout geprüft: nur DHL sichtbar, beide Optionen wählbar.
+- Bestellung mit Geschenkverpackung: Zwischensumme 11,00 € + Versand 4,99 € + Option 2,00 € = 17,99 €; Option in DB, Danke-Seite und Admin-Bestellung sichtbar.
+- Testoptionen, Testbestellung und Produktzuordnung anschließend entfernt.
+- Typecheck, Build, Unit-Tests und E2E-Tests erfolgreich.

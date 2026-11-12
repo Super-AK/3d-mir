@@ -125,6 +125,7 @@
       { "id": "dhl-paket", "label": "DHL Paket", "price": 4.99, "deliveryDays": "2–5" },
       { "id": "abholung", "label": "Abholung nach Absprache", "price": 0, "deliveryDays": "nach Absprache" }
     ],
+    "options": [],
     "freeShippingFrom": 50.0
   }
 }

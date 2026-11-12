@@ -46,6 +46,9 @@
         <dl class="summary-list">
           <div><dt>Zwischensumme</dt><dd>{{ order.subtotal_cents | price }}</dd></div>
           <div><dt>Versand</dt><dd>{{ order.shipping_cents | price }}</dd></div>
+          {% for option in options %}
+            <div><dt>{{ option.label }}</dt><dd>{{ option.price_cents | price }}</dd></div>
+          {% endfor %}
         </dl>
         <p class="summary-total"><span>Gesamt</span><strong>{{ order.total_cents | price }}</strong></p>
         <p class="text-muted"><small>{{ site.business.vatNote }}</small></p>

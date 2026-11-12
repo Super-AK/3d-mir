@@ -7,8 +7,8 @@ import { sendMail } from '../lib/mailer.js';
 import { cleanText, createReference, isSameOrigin } from '../lib/http.js';
 import { clearCart, readCart, writeCart, type Cart } from '../lib/cart.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
+import type { PricingConfig } from '../config.js';
 import {
-  findShippingMethod,
   formatEuro,
   orderTotals,
   shippingCents,
@@ -30,6 +30,8 @@ type ProductRow = {
   stock: number | null;
   active: number;
   sort_order: number;
+  shipping_method_ids: string;
+  shipping_option_ids: string;
 };
 
 type VariantRow = {
@@ -60,11 +62,49 @@ type CartLine = {
   productSlug: string;
   productName: string;
   stock: number | null;
+  shippingMethodIds: string[];
+  shippingOptionIds: string[];
 };
+
+type ShippingAddon = PricingConfig['shipping']['options'][number];
 
 type ShippingOption = ShippingMethod & { cents: number; free: boolean };
 
 const db = () => getDb();
+
+function parseIdList(value: string | null | undefined): string[] {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === 'string' && /^[a-z0-9-]+$/.test(entry))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Versandarten, die für alle Produkte im Warenkorb erlaubt sind. */
+function availableShippingMethods(shipping: PricingConfig['shipping'], lines: CartLine[]) {
+  const methods = shipping.methods.filter((method) => method.active !== false);
+  const restricted = lines.filter((line) => line.shippingMethodIds.length > 0);
+  if (restricted.length === 0) return methods;
+  const allowed = methods.filter((method) =>
+    restricted.every((line) => line.shippingMethodIds.includes(method.id)),
+  );
+  return allowed.length > 0 ? allowed : methods;
+}
+
+/** Zusatzoptionen, die mindestens einem Produkt im Warenkorb zugeordnet sind. */
+function availableShippingAddons(shipping: PricingConfig['shipping'], lines: CartLine[]): ShippingAddon[] {
+  const assigned = new Set(lines.flatMap((line) => line.shippingOptionIds));
+  if (assigned.size === 0) return [];
+  return shipping.options.filter((option) => option.active !== false && assigned.has(option.id));
+}
+
+function addonCents(options: ShippingAddon[]): number {
+  return options.reduce((sum, option) => sum + Math.max(0, Math.round(option.price * 100)), 0);
+}
 
 function listProducts(): ProductListItem[] {
   const rows = db()
@@ -126,7 +166,8 @@ function loadCartLines(cart: Cart): CartLine[] {
   const placeholders = ids.map(() => '?').join(',');
   const rows = db()
     .prepare(
-      `SELECT v.id, v.label, v.price_cents, v.stock, p.id AS product_id, p.slug, p.name
+      `SELECT v.id, v.label, v.price_cents, v.stock, p.id AS product_id, p.slug, p.name,
+              p.shipping_method_ids, p.shipping_option_ids
        FROM product_variants v JOIN products p ON p.id = v.product_id
        WHERE p.active = 1 AND v.id IN (${placeholders})`,
     )
@@ -138,6 +179,8 @@ function loadCartLines(cart: Cart): CartLine[] {
     product_id: number;
     slug: string;
     name: string;
+    shipping_method_ids: string;
+    shipping_option_ids: string;
   }[];
 
   const byId = new Map(rows.map((row) => [row.id, row]));
@@ -156,14 +199,16 @@ function loadCartLines(cart: Cart): CartLine[] {
       productSlug: row.slug,
       productName: row.name,
       stock: row.stock,
+      shippingMethodIds: parseIdList(row.shipping_method_ids),
+      shippingOptionIds: parseIdList(row.shipping_option_ids),
     });
   }
   return lines;
 }
 
-function shippingOptions(subtotal: number): ShippingOption[] {
+function shippingOptions(subtotal: number, lines: CartLine[]): ShippingOption[] {
   const shipping = getPricingConfig().shipping;
-  return shipping.methods.map((method) => {
+  return availableShippingMethods(shipping, lines).map((method) => {
     const cents = shippingCents(shipping, method, subtotal);
     return { ...method, cents, free: cents === 0 && method.price > 0 };
   });
@@ -236,6 +281,7 @@ const checkoutSchema = z.object({
   phone: z.string().max(60),
   paymentMethod: z.string().min(1, 'Bitte wählen Sie eine Zahlungsart.'),
   shippingMethod: z.string().min(1, 'Bitte wählen Sie eine Versandart.'),
+  shippingOptions: z.array(z.string().max(60)).default([]),
   customerNote: z.string().max(1000),
   consent: z.literal('1', {
     errorMap: () => ({ message: 'Bitte akzeptieren Sie AGB und Widerrufsbelehrung.' }),
@@ -243,6 +289,15 @@ const checkoutSchema = z.object({
 });
 
 type CheckoutForm = z.infer<typeof checkoutSchema>;
+
+function selectedIds(value: unknown): string[] {
+  const values = Array.isArray(value) ? value : value === undefined ? [] : [value];
+  return [
+    ...new Set(
+      values.filter((entry): entry is string => typeof entry === 'string' && /^[a-z0-9-]+$/.test(entry)),
+    ),
+  ];
+}
 
 function readCheckoutForm(request: FastifyRequest): CheckoutForm {
   const body = (request.body ?? {}) as Record<string, unknown>;
@@ -259,6 +314,7 @@ function readCheckoutForm(request: FastifyRequest): CheckoutForm {
     phone: cleanText(body.phone, 60),
     paymentMethod: cleanText(body.paymentMethod, 40),
     shippingMethod: cleanText(body.shippingMethod, 40),
+    shippingOptions: selectedIds(body.shippingOptions),
     customerNote: cleanText(body.customerNote, 1000),
     consent: body.consent === '1' || body.consent === 'on' ? '1' : '',
   } as CheckoutForm;
@@ -266,15 +322,23 @@ function readCheckoutForm(request: FastifyRequest): CheckoutForm {
 
 function checkoutContext(form: Partial<CheckoutForm>, lines: CartLine[]) {
   const subtotal = subtotalCents(lines);
-  const options = shippingOptions(subtotal);
+  const shipping = getPricingConfig().shipping;
+  const options = shippingOptions(subtotal, lines);
   const selected = options.find((option) => option.id === form.shippingMethod) ?? options[0];
+  const addons = availableShippingAddons(shipping, lines);
+  const chosenAddonIds = form.shippingOptions ?? [];
+  const selectedAddons = addons.filter((addon) => chosenAddonIds.includes(addon.id));
+  const extras = addonCents(selectedAddons);
   return {
     form,
     lines,
     subtotalCents: subtotal,
     shippingOptions: options,
     selectedShippingCents: selected?.cents ?? 0,
-    totalCents: subtotal + (selected?.cents ?? 0),
+    shippingAddons: addons.map((addon) => ({ ...addon, cents: Math.round(addon.price * 100) })),
+    selectedAddonIds: selectedAddons.map((addon) => addon.id),
+    optionsCents: extras,
+    totalCents: subtotal + (selected?.cents ?? 0) + extras,
     paymentMethods: config.shop.payment.methods,
     countries: config.shop.checkout.acceptedCountries,
   };
@@ -297,6 +361,7 @@ function orderMailText(
   totals: ReturnType<typeof orderTotals>,
   paymentLabel: string,
   shippingLabel: string,
+  addons: ShippingAddon[],
 ): string {
   return [
     `Bestellung ${number}`,
@@ -317,6 +382,9 @@ function orderMailText(
     '',
     `Zwischensumme: ${formatEuro(totals.subtotalCents)}`,
     `Versand (${shippingLabel}): ${totals.shippingCents === 0 ? 'kostenlos' : formatEuro(totals.shippingCents)}`,
+    ...(addons.length > 0
+      ? addons.map((addon) => `Option: ${addon.label} (+ ${formatEuro(Math.round(addon.price * 100))})`)
+      : []),
     `Gesamt: ${formatEuro(totals.totalCents)}`,
     '',
     `Zahlungsart: ${paymentLabel}`,
@@ -347,13 +415,23 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     const prices = variants.map((variant) => variant.price_cents);
     const minPrice = prices.length > 0 ? Math.min(...prices) : product.price_from_cents;
     const maxPrice = prices.length > 0 ? Math.max(...prices) : product.price_from_cents;
+    const shipping = getPricingConfig().shipping;
+    const assignedMethods = parseIdList(product.shipping_method_ids);
+    const activeMethods = shipping.methods.filter((method) => method.active !== false);
+    const allowedMethods = assignedMethods.length > 0
+      ? activeMethods.filter((method) => assignedMethods.includes(method.id))
+      : activeMethods;
+    const productShippingMethods = allowedMethods.length > 0 ? allowedMethods : activeMethods;
+    const paidShipping = productShippingMethods.filter((method) => method.price > 0).map((method) => method.price);
     render(reply, 'pages/produkt.njk', {
       product,
       variants,
       images,
       productJsonLd: productJsonLd(product, variants),
       maxQuantity: config.shop.maxQuantityPerItem,
-      shipping: getPricingConfig().shipping,
+      shipping,
+      productShippingMethods,
+      shippingFromPrice: paidShipping.length > 0 ? Math.min(...paidShipping) : null,
       basePriceText: maxPrice > minPrice ? `ab ${formatEuro(minPrice)}` : formatEuro(minPrice),
     });
   });
@@ -389,7 +467,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     render(reply, 'pages/warenkorb.njk', {
       lines,
       subtotalCents: subtotal,
-      shippingOptions: shippingOptions(subtotal),
+      shippingOptions: shippingOptions(subtotal, lines),
       maxQuantity: config.shop.maxQuantityPerItem,
       freeShippingFrom: getPricingConfig().shipping.freeShippingFrom,
     });
@@ -469,12 +547,20 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const pricing = getPricingConfig();
-      const shippingMethod = findShippingMethod(pricing.shipping, data.shippingMethod);
-      if (!shippingMethod) return fail('Bitte wählen Sie eine gültige Versandart.');
+      const allowedMethods = availableShippingMethods(pricing.shipping, lines);
+      const shippingMethod = allowedMethods.find((method) => method.id === data.shippingMethod) ?? null;
+      if (!shippingMethod) return fail('Bitte wählen Sie eine für diese Produkte verfügbare Versandart.');
       const paymentMethod = config.shop.payment.methods.find((method) => method.id === data.paymentMethod);
       if (!paymentMethod) return fail('Bitte wählen Sie eine gültige Zahlungsart.');
 
-      const totals = orderTotals(lines, pricing.shipping, shippingMethod);
+      const allowedAddons = availableShippingAddons(pricing.shipping, lines);
+      const allowedAddonIds = new Set(allowedAddons.map((addon) => addon.id));
+      if (data.shippingOptions.some((id) => !allowedAddonIds.has(id))) {
+        return fail('Bitte prüfen Sie die gewählten Versandoptionen.');
+      }
+      const selectedAddons = allowedAddons.filter((addon) => data.shippingOptions.includes(addon.id));
+
+      const totals = orderTotals(lines, pricing.shipping, shippingMethod, addonCents(selectedAddons));
 
       for (const line of lines) {
         if (line.stock != null && line.stock < line.quantity) {
@@ -492,8 +578,8 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
             .prepare(
               `INSERT INTO orders
                 (order_number, status, email, first_name, last_name, company, street, address_extra, zip, city,
-                 country, phone, payment_method, shipping_method, shipping_cents, subtotal_cents, total_cents, customer_note)
-               VALUES (?, 'neu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                 country, phone, payment_method, shipping_method, shipping_cents, options_cents, subtotal_cents, total_cents, customer_note)
+               VALUES (?, 'neu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             )
             .run(
               number,
@@ -510,11 +596,18 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               data.paymentMethod,
               data.shippingMethod,
               totals.shippingCents,
+              totals.optionsCents,
               totals.subtotalCents,
               totals.totalCents,
               data.customerNote,
             );
           const orderId = Number(result.lastInsertRowid);
+          const insertOption = db().prepare(
+            'INSERT INTO order_options (order_id, option_id, label, price_cents) VALUES (?, ?, ?, ?)',
+          );
+          for (const addon of selectedAddons) {
+            insertOption.run(orderId, addon.id, addon.label, Math.round(addon.price * 100));
+          }
           const insertItem = db().prepare(
             `INSERT INTO order_items (order_id, product_id, name, variant, unit_price_cents, quantity, line_total_cents)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -547,7 +640,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       try {
         await sendMail({
           subject: `[Bestellung ${number}] ${lines.length} Position(en), ${formatEuro(totals.totalCents)}`,
-          text: orderMailText(number, data, lines, totals, paymentMethod.label, shippingMethod.label),
+          text: orderMailText(number, data, lines, totals, paymentMethod.label, shippingMethod.label, selectedAddons),
           replyTo: data.email,
         });
         await sendMail({
@@ -566,6 +659,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
             '',
             `Zwischensumme: ${formatEuro(totals.subtotalCents)}`,
             `Versand: ${totals.shippingCents === 0 ? 'kostenlos' : formatEuro(totals.shippingCents)}`,
+            ...(selectedAddons.length > 0
+              ? selectedAddons.map((addon) => `Option: ${addon.label} (+ ${formatEuro(Math.round(addon.price * 100))})`)
+              : []),
             `Gesamt: ${formatEuro(totals.totalCents)}`,
             '',
             `Zahlungsart: ${paymentMethod.label}`,
@@ -591,19 +687,32 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     const query = request.query as Record<string, unknown>;
     const raw = typeof query.nummer === 'string' ? query.nummer : '';
     const number = /^B-\d{4}-[A-Z2-9]{5}$/.test(raw) ? raw : null;
-    let order: { order_number: string; total_cents: number; shipping_cents: number; subtotal_cents: number } | null = null;
+    let order: {
+      order_number: string;
+      total_cents: number;
+      shipping_cents: number;
+      options_cents: number;
+      subtotal_cents: number;
+    } | null = null;
     let items: { name: string; variant: string; quantity: number; line_total_cents: number }[] = [];
+    let options: { label: string; price_cents: number }[] = [];
     if (number) {
       order =
         (db()
-          .prepare('SELECT order_number, total_cents, shipping_cents, subtotal_cents FROM orders WHERE order_number = ?')
+          .prepare(
+            'SELECT order_number, total_cents, shipping_cents, options_cents, subtotal_cents FROM orders WHERE order_number = ?',
+          )
           .get(number) as typeof order) ?? null;
       if (order) {
+        const orderId = (db().prepare('SELECT id FROM orders WHERE order_number = ?').get(number) as { id: number }).id;
         items = db()
-          .prepare('SELECT name, variant, quantity, line_total_cents FROM order_items WHERE order_id = (SELECT id FROM orders WHERE order_number = ?) ORDER BY id')
-          .all(number) as typeof items;
+          .prepare('SELECT name, variant, quantity, line_total_cents FROM order_items WHERE order_id = ? ORDER BY id')
+          .all(orderId) as typeof items;
+        options = db()
+          .prepare('SELECT label, price_cents FROM order_options WHERE order_id = ? ORDER BY id')
+          .all(orderId) as typeof options;
       }
     }
-    render(reply, 'pages/bestellung-danke.njk', { number: order ? number : null, order, items });
+    render(reply, 'pages/bestellung-danke.njk', { number: order ? number : null, order, items, options });
   });
 }

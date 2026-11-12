@@ -37,9 +37,16 @@ describe('Warenkorb-Summen', () => {
     expect(totals).toEqual({
       subtotalCents: 2200,
       shippingCents: 499,
+      optionsCents: 0,
       totalCents: 2699,
       freeShipping: false,
     });
+  });
+
+  it('addiert Versandoptionen auf den Gesamtbetrag', () => {
+    const totals = orderTotals([{ unitPriceCents: 1100, quantity: 1 }], shipping, dhl, 700);
+    expect(totals.optionsCents).toBe(700);
+    expect(totals.totalCents).toBe(2299);
   });
 
   it('markiert kostenlosen Versand ab dem Mindestwert', () => {

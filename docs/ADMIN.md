@@ -19,6 +19,7 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 | Drucker | Bezeichnung, Bauraum X/Y/Z, Maschinenstunde, Materialzuordnung, Hinweis | ✓ | ✓ |
 | Nachbearbeitung | Bezeichnung, Zuschlag in Prozent, Preis je Teil | ✓ | ✓ |
 | Versand | Bezeichnung, Preis, Lieferzeit | ✓ | ✓ |
+| Versandoptionen | Bezeichnung, Preis, Hinweis (z. B. Express, Geschenkverpackung) | ✓ | ✓ |
 | Mengenrabatt | Staffel ab Stückzahl, Rabatt in Prozent | ✓ | ✓ |
 
 **Speichern:** Alle Änderungen werden mit einer Schaltfläche am Seitenende gespeichert. Löschmarkierungen gelten erst beim Speichern.
@@ -59,6 +60,15 @@ Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `p
 Name, Slug, Kurz- und Langbeschreibung, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.
 
 Die Preisanzeige im Shop wird aus den Farbvarianten berechnet: Gibt es unterschiedliche Variantenpreise, steht dort „ab <kleinster Preis>“; sind alle Preise gleich oder gibt es keine Varianten, steht ein einzelner Preis. Auf der Produktseite erscheint zunächst „ab …“ und nach Auswahl einer Farbe der konkrete Variantenpreis.
+
+### Versandarten und Versandoptionen pro Produkt
+
+Im Produktformular gibt es die Bereiche **Versandarten** und **Versand-Zusatzoptionen**:
+
+- **Versandarten:** Nur die ausgewählten Versandarten werden für dieses Produkt im Checkout angeboten. Ohne Auswahl gelten alle aktiven Versandarten.
+- **Versandoptionen:** Zusatzleistungen wie „Expressversand“ oder „Geschenkverpackung“, die unter „Preise → Versandoptionen“ angelegt werden. Sie erscheinen im Checkout nur bei Produkten, denen sie zugeordnet wurden, und werden mit ihrem Preis auf die Bestellung addiert.
+- Bei Warenkörben mit mehreren Produkten werden nur Versandarten angeboten, die für alle Produkte erlaubt sind. Versandoptionen werden angeboten, wenn mindestens ein Produkt sie unterstützt; sie werden pro Bestellung einmal berechnet.
+- Inaktive Versandarten oder Optionen werden im Shop und Checkout nicht angeboten, bleiben aber im Admin zur Bearbeitung sichtbar.
 
 ### Farbvarianten
 

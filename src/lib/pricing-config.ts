@@ -11,6 +11,7 @@ export type PricingCatalog = {
   printers: PricingConfig['printers'];
   coatings: PricingConfig['coatings'];
   shippingMethods: PricingConfig['shipping']['methods'];
+  shippingOptions: PricingConfig['shipping']['options'];
   quantityDiscounts: PricingConfig['quantityDiscounts'];
 };
 
@@ -121,6 +122,16 @@ function applyCatalog(result: PricingConfig, catalog: PricingCatalog): void {
     })).filter((method) => method.id !== '');
   }
 
+  if (Array.isArray(catalog.shippingOptions)) {
+    result.shipping.options = catalog.shippingOptions.map((option) => ({
+      id: text(option.id),
+      label: text(option.label) || text(option.id),
+      price: nonNegative(option.price, 0),
+      note: text(option.note),
+      active: option.active !== false,
+    })).filter((option) => option.id !== '');
+  }
+
   if (Array.isArray(catalog.quantityDiscounts)) {
     const seen = new Set<number>();
     result.quantityDiscounts = catalog.quantityDiscounts
@@ -156,6 +167,7 @@ export function getPricingOverrides(): PricingOverrides {
 export function getPricingConfig(options: { includeInactive?: boolean } = {}): PricingConfig {
   const result = structuredClone(config.pricing) as PricingConfig;
   const overrides = getPricingOverrides();
+  if (!Array.isArray(result.shipping.options)) result.shipping.options = [];
 
   if (overrides.meta) {
     const meta = result.meta as unknown as Record<string, unknown>;
@@ -222,6 +234,7 @@ export function getPricingConfig(options: { includeInactive?: boolean } = {}): P
       .filter((printer) => printer.materialIds.length > 0);
     result.coatings = result.coatings.filter((coating) => coating.active !== false);
     result.shipping.methods = result.shipping.methods.filter((method) => method.active !== false);
+    result.shipping.options = result.shipping.options.filter((option) => option.active !== false);
   }
 
   return result;

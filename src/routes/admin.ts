@@ -71,6 +71,7 @@ type OrderRow = {
   payment_method: string;
   shipping_method: string;
   shipping_cents: number;
+  options_cents: number;
   subtotal_cents: number;
   total_cents: number;
   customer_note: string;
@@ -146,6 +147,8 @@ type ProductRow = {
   stock: number | null;
   active: number;
   sort_order: number;
+  shipping_method_ids: string;
+  shipping_option_ids: string;
   created_at: string;
   updated_at: string;
 };
@@ -174,6 +177,8 @@ type ProductForm = {
   stock: string;
   sortOrder: string;
   active: boolean;
+  shippingMethodIds: string[];
+  shippingOptionIds: string[];
 };
 
 function orderStatusLabel(status: string): string {
@@ -237,6 +242,26 @@ function idList(value: unknown): number[] {
   const ids = values
     .map((entry) => Number(entry))
     .filter((id) => Number.isInteger(id) && id > 0);
+  return [...new Set(ids)];
+}
+
+/** Liest eine in der Datenbank als JSON gespeicherte ID-Liste. */
+function parseIdJson(value: string | null | undefined): string[] {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === 'string' && /^[a-z0-9-]+$/.test(entry))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Liest Mehrfach-Checkboxen aus einem Formular. */
+function bodyIds(value: unknown): string[] {
+  const values = Array.isArray(value) ? value : [value];
+  const ids = values.filter((entry): entry is string => typeof entry === 'string' && /^[a-z0-9-]+$/.test(entry));
   return [...new Set(ids)];
 }
 
@@ -373,6 +398,11 @@ async function notifyQuoteStatus(request: FastifyRequest, quote: QuoteRow, statu
 // Produkte
 // ---------------------------------------------------------------------------
 
+function productShippingChoices() {
+  const shipping = getPricingConfig({ includeInactive: true }).shipping;
+  return { shippingMethods: shipping.methods, shippingOptions: shipping.options };
+}
+
 function emptyProductForm(): ProductForm {
   return {
     name: '',
@@ -387,6 +417,8 @@ function emptyProductForm(): ProductForm {
     stock: '',
     sortOrder: '0',
     active: true,
+    shippingMethodIds: [],
+    shippingOptionIds: [],
   };
 }
 
@@ -404,6 +436,8 @@ function productFormFromRow(product: ProductRow): ProductForm {
     stock: product.stock === null ? '' : String(product.stock),
     sortOrder: String(product.sort_order),
     active: product.active === 1,
+    shippingMethodIds: parseIdJson(product.shipping_method_ids),
+    shippingOptionIds: parseIdJson(product.shipping_option_ids),
   };
 }
 
@@ -421,6 +455,8 @@ function readProductForm(body: Record<string, unknown>): ProductForm {
     stock: cleanText(body.stock, 20),
     sortOrder: cleanText(body.sortOrder, 20) || '0',
     active: body.active === '1' || body.active === 'on',
+    shippingMethodIds: bodyIds(body.shippingMethodIds),
+    shippingOptionIds: bodyIds(body.shippingOptionIds),
   };
 }
 
@@ -437,6 +473,8 @@ type ProductData = {
   stock: number | null;
   sortOrder: number;
   active: boolean;
+  shippingMethodIds: string[];
+  shippingOptionIds: string[];
 };
 
 function validateProductForm(form: ProductForm): { data?: ProductData; error?: string } {
@@ -476,6 +514,8 @@ function validateProductForm(form: ProductForm): { data?: ProductData; error?: s
       stock,
       sortOrder,
       active: form.active,
+      shippingMethodIds: form.shippingMethodIds,
+      shippingOptionIds: form.shippingOptionIds,
     },
   };
 }
@@ -764,6 +804,8 @@ function exportProducts(ids?: number[]) {
       stock: product.stock,
       active: product.active === 1,
       sortOrder: product.sort_order,
+      shippingMethodIds: parseIdJson(product.shipping_method_ids),
+      shippingOptionIds: parseIdJson(product.shipping_option_ids),
       variants: variantsFor(product.id).map((variant) => ({
         label: variant.label,
         priceCents: variant.price_cents,
@@ -798,6 +840,8 @@ const importProductSchema = z.object({
   stock: z.number().int().min(0).max(1_000_000).nullable().optional(),
   active: z.boolean().optional().default(true),
   sortOrder: z.number().int().min(-100_000).max(100_000).optional().default(0),
+  shippingMethodIds: z.array(z.string().regex(/^[a-z0-9-]+$/)).max(50).optional().default([]),
+  shippingOptionIds: z.array(z.string().regex(/^[a-z0-9-]+$/)).max(50).optional().default([]),
   variants: z
     .array(
       z.object({
@@ -835,8 +879,8 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
         .prepare(
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
-              dimensions, stock, active, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -851,6 +895,8 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
           item.stock ?? null,
           item.active ? 1 : 0,
           sortOrder,
+          JSON.stringify(item.shippingMethodIds),
+          JSON.stringify(item.shippingOptionIds),
         );
       const productId = Number(info.lastInsertRowid);
 
@@ -1019,6 +1065,12 @@ function pricingView(pricing: PricingConfig) {
       index,
       isActive: method.active !== false,
       priceValue: String(method.price),
+    })),
+    shippingOptions: pricing.shipping.options.map((option, index) => ({
+      ...option,
+      index,
+      isActive: option.active !== false,
+      priceValue: String(option.price),
     })),
     discounts: pricing.quantityDiscounts.map((tier, index) => ({
       ...tier,
@@ -1221,6 +1273,32 @@ function readPricingForm(
       throw new FormError('Mindestens eine Versandart muss aktiv sein.');
     }
 
+    const shippingOptions: PricingConfig['shipping']['options'] = [];
+    const usedShippingOptionIds = new Set<string>();
+    pricing.shipping.options.forEach((existing, index) => {
+      if (marked(`shipping_option_${index}_delete`)) return;
+      const label = value(`shipping_option_${index}_label`, 80);
+      if (!label) throw new FormError('Bitte geben Sie jeder Versandoption eine Bezeichnung.');
+      shippingOptions.push({
+        id: existing.id,
+        label,
+        price: numberField(`shipping_option_${index}_price`, 0, 1000, `Preis ${label}`),
+        note: value(`shipping_option_${index}_note`, 200),
+        active: marked(`shipping_option_${index}_active`),
+      });
+      usedShippingOptionIds.add(existing.id);
+    });
+    const newShippingOptionLabel = value('new_shipping_option_label', 80);
+    if (newShippingOptionLabel) {
+      shippingOptions.push({
+        id: uniqueId(newShippingOptionLabel, usedShippingOptionIds, 'versandoption'),
+        label: newShippingOptionLabel,
+        price: optionalNumber('new_shipping_option_price', 0, 1000, 'Preis neue Versandoption', 0),
+        note: value('new_shipping_option_note', 200),
+        active: marked('new_shipping_option_active'),
+      });
+    }
+
     const quantityDiscounts: PricingConfig['quantityDiscounts'] = [];
     const seenQuantities = new Set<number>();
     pricing.quantityDiscounts.forEach((_tier, index) => {
@@ -1267,6 +1345,7 @@ function readPricingForm(
         printers,
         coatings,
         shippingMethods,
+        shippingOptions,
         quantityDiscounts,
       },
     };
@@ -1422,6 +1501,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const order = Number.isInteger(id) ? (db().prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow | undefined) : undefined;
       if (!order) return adminError(request, reply, 404, 'Diese Bestellung wurde nicht gefunden.');
       const items = db().prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(id) as OrderItemRow[];
+      const selectedOptions = db()
+        .prepare('SELECT label, price_cents FROM order_options WHERE order_id = ? ORDER BY id')
+        .all(id) as { label: string; price_cents: number }[];
       const history = db()
         .prepare('SELECT * FROM order_status_history WHERE order_id = ? ORDER BY created_at DESC, id DESC')
         .all(id) as { from_status: string; to_status: string; actor: string; note: string; created_at: string }[];
@@ -1431,6 +1513,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         adminContext(request, {
           order,
           items,
+          options: selectedOptions,
           history,
           statuses: orderStatuses,
           paymentLabel: paymentLabel(order.payment_method),
@@ -1795,8 +1878,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .prepare(
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
-              dimensions, stock, active, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -1811,6 +1894,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           product.stock,
           0,
           maxSort.value + 1,
+          product.shipping_method_ids,
+          product.shipping_option_ids,
         );
       const productId = Number(info.lastInsertRowid);
 
@@ -1873,6 +1958,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         variants: [],
         images: [],
         isNew: true,
+        ...productShippingChoices(),
       }));
     });
 
@@ -1887,6 +1973,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: [],
           images: [],
           isNew: true,
+          ...productShippingChoices(),
           error: result.error ?? 'Bitte prüfen Sie Ihre Angaben.',
         }));
       }
@@ -1898,6 +1985,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: [],
           images: [],
           isNew: true,
+          ...productShippingChoices(),
           error: 'Dieser Slug wird bereits verwendet.',
         }));
       }
@@ -1905,8 +1993,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const info = db()
         .prepare(
           `INSERT INTO products
-            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           data.slug,
@@ -1921,6 +2009,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.stock,
           data.active ? 1 : 0,
           data.sortOrder,
+          JSON.stringify(data.shippingMethodIds),
+          JSON.stringify(data.shippingOptionIds),
         );
       writeAudit(request.admin?.email ?? 'admin', 'product.create', { id: info.lastInsertRowid, slug: data.slug });
       return reply.redirect(`/admin/produkte/${info.lastInsertRowid}/?gespeichert=1`, 303);
@@ -1936,6 +2026,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         variants: variantFormRows(id),
         images: imageRowsFor(id),
         isNew: false,
+        ...productShippingChoices(),
       }));
     });
 
@@ -1954,6 +2045,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: variantFormRows(id),
           images: imageRowsFor(id),
           isNew: false,
+          ...productShippingChoices(),
           error: result.error ?? 'Bitte prüfen Sie Ihre Angaben.',
         }));
       }
@@ -1965,6 +2057,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: variantFormRows(id),
           images: imageRowsFor(id),
           isNew: false,
+          ...productShippingChoices(),
           error: 'Dieser Slug wird bereits von einem anderen Produkt verwendet.',
         }));
       }
@@ -1974,7 +2067,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           `UPDATE products SET
              slug = ?, name = ?, short_description = ?, description = ?, price_from_cents = ?,
              price_to_cents = ?, sku = ?, weight_g = ?, dimensions = ?, stock = ?, active = ?,
-             sort_order = ?, updated_at = datetime('now')
+             sort_order = ?, shipping_method_ids = ?, shipping_option_ids = ?, updated_at = datetime('now')
            WHERE id = ?`,
         )
         .run(
@@ -1990,6 +2083,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.stock,
           data.active ? 1 : 0,
           data.sortOrder,
+          JSON.stringify(data.shippingMethodIds),
+          JSON.stringify(data.shippingOptionIds),
           id,
         );
       writeAudit(request.admin?.email ?? 'admin', 'product.update', { id, slug: data.slug });

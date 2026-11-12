@@ -148,7 +148,7 @@
       <div class="card">
         <h2>Versand</h2>
         <ul class="check-list">
-          {% for method in pricing.shipping.methods %}
+          {% for method in productShippingMethods %}
             <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | euro }}{% else %} · kostenlos{% endif %}</li>
           {% endfor %}
         </ul>

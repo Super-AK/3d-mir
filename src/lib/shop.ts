@@ -32,6 +32,7 @@ export function shippingCents(
 export type OrderTotals = {
   subtotalCents: number;
   shippingCents: number;
+  optionsCents: number;
   totalCents: number;
   freeShipping: boolean;
 };
@@ -40,13 +41,16 @@ export function orderTotals(
   lines: OrderLine[],
   shipping: PricingConfig['shipping'],
   method: ShippingMethod,
+  optionsCents = 0,
 ): OrderTotals {
   const subtotal = subtotalCents(lines);
   const shippingValue = shippingCents(shipping, method, subtotal);
+  const extra = Math.max(0, Math.round(optionsCents));
   return {
     subtotalCents: subtotal,
     shippingCents: shippingValue,
-    totalCents: subtotal + shippingValue,
+    optionsCents: extra,
+    totalCents: subtotal + shippingValue + extra,
     freeShipping: shippingValue === 0 && method.price > 0,
   };
 }

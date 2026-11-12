@@ -154,6 +154,7 @@ export type PricingConfig = {
     status: string;
     note: string;
     methods: { id: string; label: string; price: number; deliveryDays: string; active?: boolean }[];
+    options: { id: string; label: string; price: number; note: string; active?: boolean }[];
     freeShippingFrom: number;
   };
 };

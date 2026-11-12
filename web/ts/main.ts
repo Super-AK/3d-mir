@@ -43,23 +43,35 @@ const checkout = document.querySelector<HTMLFormElement>('[data-checkout]');
 if (checkout) {
   const shipping = document.querySelector<HTMLElement>('[data-summary-shipping]');
   const total = document.querySelector<HTMLElement>('[data-summary-total]');
+  const addons = document.querySelector<HTMLElement>('[data-summary-addons]');
+  const addonsRow = document.querySelector<HTMLElement>('[data-summary-addons-row]');
   const subtotal = Number(document.querySelector<HTMLElement>('[data-summary-subtotal]')?.dataset.summarySubtotal ?? 0);
   const formatter = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
 
   const updateTotals = (): void => {
     const selected = checkout.querySelector<HTMLInputElement>('input[name="shippingMethod"]:checked');
     const cents = Number(selected?.dataset.shippingCents ?? 0);
+    const addonCents = Array.from(checkout.querySelectorAll<HTMLInputElement>('input[name="shippingOptions"]:checked'))
+      .reduce((sum, input) => sum + Number(input.dataset.addonCents ?? 0), 0);
     if (shipping) {
       shipping.textContent = formatter.format(cents / 100);
       shipping.dataset.summaryShipping = String(cents);
     }
+    if (addons) {
+      addons.textContent = formatter.format(addonCents / 100);
+      addons.dataset.summaryAddons = String(addonCents);
+    }
+    if (addonsRow) addonsRow.hidden = addonCents === 0;
     if (total) {
-      total.textContent = formatter.format((subtotal + cents) / 100);
-      total.dataset.summaryTotal = String(subtotal + cents);
+      total.textContent = formatter.format((subtotal + cents + addonCents) / 100);
+      total.dataset.summaryTotal = String(subtotal + cents + addonCents);
     }
   };
 
   checkout.querySelectorAll<HTMLInputElement>('input[name="shippingMethod"]').forEach((input) => {
+    input.addEventListener('change', updateTotals);
+  });
+  checkout.querySelectorAll<HTMLInputElement>('input[name="shippingOptions"]').forEach((input) => {
     input.addEventListener('change', updateTotals);
   });
   updateTotals();

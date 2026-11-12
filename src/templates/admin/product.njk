@@ -88,6 +88,36 @@
       </label>
     </div>
 
+    <fieldset class="admin-fieldset">
+      <legend>Versandarten für dieses Produkt</legend>
+      <p class="hint">Nur ausgewählte Versandarten werden im Checkout angeboten. Keine Auswahl = alle aktiven Versandarten.</p>
+      <div class="admin-check-list">
+        {% for method in shippingMethods %}
+          <label class="admin-check admin-check-inline">
+            <input type="checkbox" name="shippingMethodIds" value="{{ method.id }}" {% if method.id in form.shippingMethodIds %}checked{% endif %}>
+            <span>{{ method.label }}{% if method.active == false %} (inaktiv){% endif %}</span>
+          </label>
+        {% else %}
+          <p class="text-muted">Keine Versandarten vorhanden. Bitte unter „Preise → Versand“ anlegen.</p>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend>Versand-Zusatzoptionen</legend>
+      <p class="hint">Optionen wie Expressversand oder Geschenkverpackung, die für dieses Produkt im Checkout wählbar sind. Preise werden unter „Preise → Versandoptionen“ gepflegt.</p>
+      <div class="admin-check-list">
+        {% for option in shippingOptions %}
+          <label class="admin-check admin-check-inline">
+            <input type="checkbox" name="shippingOptionIds" value="{{ option.id }}" {% if option.id in form.shippingOptionIds %}checked{% endif %}>
+            <span>{{ option.label }}{% if option.price > 0 %} (+ {{ option.price | euro }}){% endif %}{% if option.active == false %} (inaktiv){% endif %}</span>
+          </label>
+        {% else %}
+          <p class="text-muted">Keine Versandoptionen vorhanden. Bitte unter „Preise → Versandoptionen“ anlegen.</p>
+        {% endfor %}
+      </div>
+    </fieldset>
+
     <div class="form-actions">
       <button class="btn" type="submit">Speichern</button>
       <a class="btn btn-secondary" href="/admin/produkte/">Zurück</a>
