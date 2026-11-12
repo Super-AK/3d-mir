@@ -271,3 +271,13 @@
 - Shop-Karte: „ab 11,00 €“; Produktseite initial „ab 11,00 €“, nach Auswahl von „Random-Verlauf“ „12,00 €“.
 - Auswahl-Platzhalter „Bitte Farbe wählen“ ist vorausgewählt und deaktiviert.
 - E2E-Shop-Test angepasst; 19 Unit-Tests und 7 E2E-Tests erfolgreich.
+
+## Nachtrag – 3D-Vorschau steht aufrecht
+
+**Fertig**
+- Hochgeladene Modelle werden in der 3D-Vorschau von Z-up (3D-Druck-Standard bei STL/OBJ/3MF) auf Y-up (three.js) gedreht. Dadurch liegen sie nicht mehr flach auf der Seite, sondern stehen auf dem Raster.
+- Die Zentrierung, Kameraposition und Bodenfläche werden nach der Drehung aus der tatsächlichen Bounding-Box berechnet.
+
+**Getestet**
+- Testmodell 10 × 10 × 40 mm hochgeladen: Analyse meldet korrekte Maße, Vorschau zeigt das Modell aufrecht auf dem Raster.
+- Typecheck, 19 Unit-Tests, 7 E2E-Tests erfolgreich.

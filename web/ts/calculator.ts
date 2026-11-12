@@ -339,6 +339,10 @@ function init(root: HTMLElement): void {
     if (previewStatus) previewStatus.textContent = '3D-Vorschau wird geladen …';
     try {
       const object = normalizeObject(await parsePreviewFile(selected));
+      // STL/OBJ/3MF sind in der 3D-Druck-Praxis Z-up; three.js ist Y-up.
+      // Ohne diese Drehung liegen Modelle flach auf der Vorschau.
+      object.rotation.x = -Math.PI / 2;
+      object.updateMatrixWorld(true);
       if (preview.object) {
         preview.scene.remove(preview.object);
         disposeObject(preview.object);
