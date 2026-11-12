@@ -2,7 +2,7 @@
 
 Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, Sofort-Preisrechner mit 3D-Vorschau, kleiner Shop und Admin-Bereich.
 
-> **Status:** Aufbau (Phasen 1–6 abgeschlossen: Grundgerüst, statische Seiten, Rechner, Shop, Admin, SEO/Performance). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
+> **Status:** Aufbau (Phasen 1–7 abgeschlossen: Grundgerüst, statische Seiten, Rechner, Shop, Admin, SEO/Performance, Deployment). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
 
 ## Technik
 

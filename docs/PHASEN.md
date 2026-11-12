@@ -8,7 +8,7 @@
 | 4 | Shop: Produkte, Warenkorb, Checkout, E-Mails | ✅ abgeschlossen |
 | 5 | Admin: Login, Produkte, Bestellungen, Anfragen, Preise | ✅ abgeschlossen |
 | 6 | Konto (optional), SEO, Redirects, Performance, Security | ✅ abgeschlossen |
-| 7 | Deployment-Paket und Test auf frischer VM | ⬜ offen |
+| 7 | Deployment-Paket und Test auf frischer VM | ✅ abgeschlossen |
 | 8 | Abnahme und Abschlussbericht | ⬜ offen |
 
 ## Phase 1 – Bericht
@@ -158,3 +158,27 @@
 **Offen**
 - Domainumstellung und TLS (F30–F33): HSTS greift erst mit HTTPS; `site.baseUrl` steht bereits auf `https://www.3d-mir.de`.
 - Lighthouse-Werte sind Momentaufnahmen der lokalen Umgebung; nach dem Livegang mit echten Netzwerkbedingungen erneut messen.
+
+## Phase 7 – Bericht
+
+**Fertig**
+- Deployment-Paket in `deploy/`:
+  - `install.sh` – geführte Installation (whiptail oder Umgebungsvariablen), installiert Pakete, legt Dienstbenutzer und Verzeichnisse an, erzeugt `.env` mit zufälligem `SESSION_SECRET`, baut die Anwendung, richtet systemd, NGINX, UFW und optional TLS ein, legt optional den Admin-Zugang an und prüft den Health-Endpunkt.
+  - `update.sh` – Backup, optionaler Git-Pull, `npm ci`, Build, Neustart, Health-Check und automatischer Rollback auf Commit und Build-Artefakte.
+  - `backup.sh` – konsistente SQLite-Sicherung mit Integritätsprüfung, Uploads, `config/*.json`, `.env` und Git-Commit; Aufbewahrung 14 Tage.
+  - `restore.sh` – Sicherung des aktuellen Stands, Wiederherstellung von Datenbank, Uploads, Konfiguration und `.env`, Health-Check.
+  - `verify.sh` – lesende Betriebsprüfung (Dienst, NGINX, Seiten, Header, Redirects, DB, Rechte, TLS-Ablauf), Exit-Code für Monitoring.
+  - `nginx.conf.tpl` und `3d-mir.service.tpl` als Vorlagen.
+- `docs/DEPLOYMENT.md` mit Erstinstallation, DNS/TLS, Updates, Backup/Restore, Logs, Fehlersuche und Checkliste für die frische VM.
+- Installer und Update sind idempotent; vorhandene `.env`- und NGINX-Dateien werden vor Änderungen gesichert.
+
+**Getestet**
+- `install.sh --non-interactive` auf dem vorhandenen Ubuntu-26.04-System erneut ausgeführt: Paketprüfung, `npm ci`, Build, systemd-Unit, NGINX-Vhost, Health-Check erfolgreich; bestehende NGINX-Konfiguration automatisch gesichert.
+- `update.sh` erfolgreich: Backup, Build, Neustart und Health-Check ohne Ausfall.
+- `backup.sh` erzeugt ein 13-KiB-Archiv mit Datenbank, Upload, Konfiguration und `.env`; SQLite-Integritätsprüfung `ok`.
+- `verify.sh`: 26 Prüfungen bestanden, 0 fehlgeschlagen (TLS erwartungsgemäß noch offen).
+- Nach dem Re-Install alle 7 ausführbaren E2E-Tests und 19 Unit-Tests erfolgreich.
+
+**Offen**
+- Ein Test auf einer wirklich frischen VM ist in dieser Umgebung nicht möglich; die Checkliste in `docs/DEPLOYMENT.md` ist dafür vorbereitet. Der idempotente Re-Run auf dem Produktionssystem wurde vollständig geprüft.
+- DNS-Umstellung und Let's-Encrypt-Zertifikat stehen aus (F30–F33).
