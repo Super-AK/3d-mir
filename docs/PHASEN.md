@@ -230,3 +230,15 @@
 - Mehrfach-Upload von drei Bildern: alle Varianten erzeugt, Datenbankeinträge mit fortlaufender Sortierung.
 - Galerie im Browser geprüft: eine sichtbare Großansicht, Miniaturenwechsel, Dialog öffnen/schließen, Pfeiltasten, keine Konsolenfehler.
 - Aufräumen der Testbilder; vorhandenes Betreiber-Bild blieb unangetastet.
+
+## Nachtrag – Kompaktere Galerie, Blätterfunktion und Upload-Fortschritt
+
+**Fertig**
+- Hauptbild der Produktgalerie auf maximal ca. 430 px Breite begrenzt und zentriert; Miniaturen etwas kompakter.
+- Vergrößerte Ansicht mit Blätterfunktion: Zurück-/Weiter-Buttons, Pfeiltasten, Zähler „Bild X von Y“, Wrap-around. Das große Bild der Seite folgt beim Blättern mit.
+- Bild-Upload zeigt eine Fortschrittsanzeige (Prozent, Fortschrittsbalken) über XMLHttpRequest; Button ist während des Uploads gesperrt. Die Route antwortet für diese Anfragen mit JSON und leitet anschließend weiter; ohne JavaScript bleibt der normale Formular-Upload erhalten.
+
+**Getestet**
+- Galerie im Browser: Hauptbild 430 × 538 px, Blättern per Button und Pfeiltasten, Zähler 4/11 → 5/11 → 4/11, Dialog schließt per Escape, keine Konsolenfehler.
+- Upload mit gedrosselter Verbindung: Fortschritt bei 12 %, Button deaktiviert, anschließend Weiterleitung mit Erfolgsmeldung.
+- Testbilder anschließend entfernt; die vom Betreiber hochgeladenen Bilder blieben erhalten.

@@ -166,7 +166,7 @@
 
       <div class="admin-upload">
         <h3>Bild hinzufügen</h3>
-        <form method="post" action="/admin/produkte/{{ product.id }}/bilder/" enctype="multipart/form-data">
+        <form method="post" action="/admin/produkte/{{ product.id }}/bilder/" enctype="multipart/form-data" data-upload-form>
           <input type="hidden" name="_csrf" value="{{ csrf }}">
           <div class="form-row">
             <div class="field">
@@ -182,6 +182,10 @@
           </div>
           <div class="form-actions">
             <button class="btn" type="submit">Bilder hochladen</button>
+          </div>
+          <div class="upload-progress" data-upload-progress hidden>
+            <progress max="100" value="0" data-upload-bar aria-label="Upload-Fortschritt"></progress>
+            <p class="upload-status" data-upload-status role="status" aria-live="polite"></p>
           </div>
         </form>
       </div>

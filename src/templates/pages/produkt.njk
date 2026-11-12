@@ -38,7 +38,7 @@
               {% for item in images %}
                 <figure class="gallery-slide{% if loop.first %} is-active{% endif %}" data-gallery-slide>
                   <a class="gallery-open" href="{{ imagePreview(item.file, 1200) }}" data-gallery-open aria-label="Bild vergrößern: {{ item.alt or product.name }}">
-                    {{ image(item.file, { sizes: '(max-width: 860px) 100vw, 52vw', alt: item.alt or product.name, priority: loop.first }) | safe }}
+                    {{ image(item.file, { sizes: '(max-width: 620px) 100vw, 420px', alt: item.alt or product.name, priority: loop.first }) | safe }}
                     <span class="gallery-zoom" aria-hidden="true">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4M11 8v6M8 11h6"/></svg>
                       Vergrößern
@@ -51,15 +51,26 @@
               <nav class="gallery-thumbs" aria-label="Produktbilder auswählen">
                 {% for item in images %}
                   <a class="gallery-thumb{% if loop.first %} is-active{% endif %}" href="{{ imagePreview(item.file, 1200) }}" data-gallery-thumb="{{ loop.index0 }}" aria-label="Bild {{ loop.index }} anzeigen"{% if loop.first %} aria-current="true"{% endif %}>
-                    <img src="{{ imagePreview(item.file, 480) }}" alt="" width="96" height="96" loading="lazy" decoding="async">
+                    {{ imageThumbnail(item.file) | safe }}
                   </a>
                 {% endfor %}
               </nav>
             {% endif %}
           </div>
           <dialog class="gallery-dialog" data-gallery-dialog aria-label="Bildvergrößerung">
-            <button class="gallery-dialog-close" type="button" data-gallery-close aria-label="Schließen">×</button>
-            <img data-gallery-dialog-image alt="">
+            <div class="gallery-dialog-bar">
+              <span class="gallery-dialog-counter" data-gallery-counter>1 / {{ images.length }}</span>
+              <button class="gallery-dialog-close" type="button" data-gallery-close aria-label="Schließen">×</button>
+            </div>
+            <div class="gallery-dialog-body">
+              {% if images.length > 1 %}
+                <button class="gallery-dialog-nav gallery-dialog-prev" type="button" data-gallery-prev aria-label="Vorheriges Bild">‹</button>
+              {% endif %}
+              <img data-gallery-dialog-image alt="">
+              {% if images.length > 1 %}
+                <button class="gallery-dialog-nav gallery-dialog-next" type="button" data-gallery-next aria-label="Nächstes Bild">›</button>
+              {% endif %}
+            </div>
           </dialog>
         {% else %}
           {{ image('product-battery-box', { sizes: '(max-width: 860px) 100vw, 52vw', alt: product.name, priority: true }) | safe }}

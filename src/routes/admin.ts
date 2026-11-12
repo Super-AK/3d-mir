@@ -1555,32 +1555,44 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const session = request.adminSession;
       if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
 
+      const wantsJson =
+        String(request.headers.accept ?? '').includes('application/json') ||
+        request.headers['x-requested-with'] === 'XMLHttpRequest';
+      const fail = (message: string, status = 400) => {
+        if (wantsJson) return reply.code(status).send({ ok: false, error: message });
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent(message)}`, 303);
+      };
+      const success = (warning?: string) => {
+        const target = warning
+          ? `/admin/produkte/${id}/?fehler=${encodeURIComponent(warning)}`
+          : `/admin/produkte/${id}/?gespeichert=1`;
+        if (wantsJson) return reply.send({ ok: true, redirect: target });
+        return reply.redirect(target, 303);
+      };
+
       let upload;
       try {
         upload = await readImageUpload(request);
       } catch (error) {
         request.log.warn({ err: error }, 'Bild-Upload konnte nicht gelesen werden');
-        return reply.redirect(
-          `/admin/produkte/${id}/?fehler=${encodeURIComponent('Der Upload war zu groß oder unvollständig. Erlaubt sind bis zu 12 MB pro Bild.')}`,
-          303,
-        );
+        return fail('Der Upload war zu groß oder unvollständig. Erlaubt sind bis zu 12 MB pro Bild.');
       }
 
       const { fields, files } = upload;
       if (!verifyCsrfToken(session, fields._csrf)) {
+        if (wantsJson) {
+          return reply.code(403).send({ ok: false, error: 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu.' });
+        }
         return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu.');
       }
       if (files.length === 0) {
-        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte wählen Sie mindestens eine Bilddatei aus.')}`, 303);
+        return fail('Bitte wählen Sie mindestens eine Bilddatei aus.');
       }
 
       const count = (db().prepare('SELECT COUNT(*) AS count FROM product_images WHERE product_id = ?').get(id) as { count: number }).count;
       const remaining = Math.max(0, MAX_PRODUCT_IMAGES - count);
       if (remaining === 0) {
-        return reply.redirect(
-          `/admin/produkte/${id}/?fehler=${encodeURIComponent(`Maximal ${MAX_PRODUCT_IMAGES} Bilder pro Produkt.`)}`,
-          303,
-        );
+        return fail(`Maximal ${MAX_PRODUCT_IMAGES} Bilder pro Produkt.`);
       }
 
       const alt = cleanText(fields.alt, 200) || product.name;
@@ -1612,18 +1624,12 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       }
 
       if (added === 0) {
-        return reply.redirect(
-          `/admin/produkte/${id}/?fehler=${encodeURIComponent(errors[0] ?? 'Die Bilder konnten nicht gespeichert werden.')}`,
-          303,
-        );
+        return fail(errors[0] ?? 'Die Bilder konnten nicht gespeichert werden.');
       }
       if (errors.length > 0) {
-        return reply.redirect(
-          `/admin/produkte/${id}/?fehler=${encodeURIComponent(`${added} Bild(er) gespeichert. ${errors[0]}`)}`,
-          303,
-        );
+        return success(`${added} Bild(er) gespeichert. ${errors[0]}`);
       }
-      return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
+      return success();
     });
 
     scope.post<{ Params: { id: string; imageId: string } }>(

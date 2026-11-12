@@ -88,7 +88,10 @@ if (gallery) {
   const thumbs = Array.from(gallery.querySelectorAll<HTMLAnchorElement>('[data-gallery-thumb]'));
   const dialog = document.querySelector<HTMLDialogElement>('[data-gallery-dialog]');
   const dialogImage = dialog?.querySelector<HTMLImageElement>('[data-gallery-dialog-image]');
+  const dialogCounter = dialog?.querySelector<HTMLElement>('[data-gallery-counter]');
+  const links = slides.map((slide) => slide.querySelector<HTMLAnchorElement>('[data-gallery-open]'));
   let active = 0;
+  let dialogIndex = 0;
 
   const show = (index: number): void => {
     if (index < 0 || index >= slides.length) return;
@@ -102,6 +105,29 @@ if (gallery) {
     });
   };
 
+  const renderDialog = (index: number): void => {
+    const link = links[index];
+    if (!link || !dialogImage) return;
+    dialogIndex = index;
+    dialogImage.src = link.href;
+    dialogImage.alt = link.querySelector('img')?.alt ?? '';
+    if (dialogCounter) dialogCounter.textContent = `${index + 1} / ${slides.length}`;
+  };
+
+  const openDialog = (index: number): void => {
+    if (!dialog || !dialogImage || dialog.open) return;
+    renderDialog(index);
+    dialog.showModal();
+    dialog.querySelector<HTMLButtonElement>('[data-gallery-close]')?.focus();
+  };
+
+  const step = (direction: number): void => {
+    if (slides.length < 2) return;
+    const next = (dialogIndex + direction + slides.length) % slides.length;
+    show(next);
+    renderDialog(next);
+  };
+
   thumbs.forEach((thumb, index) => {
     thumb.addEventListener('click', (event) => {
       event.preventDefault();
@@ -109,16 +135,11 @@ if (gallery) {
     });
   });
 
-  gallery.querySelectorAll<HTMLAnchorElement>('[data-gallery-open]').forEach((link) => {
-    link.addEventListener('click', (event) => {
+  links.forEach((link, index) => {
+    link?.addEventListener('click', (event) => {
       if (!dialog || !dialogImage) return;
       event.preventDefault();
-      if (dialog.open) return;
-      const image = link.querySelector('img');
-      dialogImage.src = link.href;
-      dialogImage.alt = image?.alt ?? '';
-      dialog.showModal();
-      dialog.querySelector<HTMLButtonElement>('[data-gallery-close]')?.focus();
+      openDialog(index);
     });
   });
 
@@ -137,6 +158,17 @@ if (gallery) {
     }
   });
 
+  dialog?.querySelector<HTMLButtonElement>('[data-gallery-prev]')?.addEventListener('click', () => step(-1));
+  dialog?.querySelector<HTMLButtonElement>('[data-gallery-next]')?.addEventListener('click', () => step(1));
+  dialog?.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      step(-1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      step(1);
+    }
+  });
   dialog?.querySelector<HTMLButtonElement>('[data-gallery-close]')?.addEventListener('click', () => dialog.close());
   dialog?.addEventListener('click', (event) => {
     if (event.target === dialog) dialog.close();

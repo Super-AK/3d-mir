@@ -125,6 +125,39 @@ export function imagePreview(name: string, width = 480): string {
   return variant?.jpg ?? '';
 }
 
+/** Kleines Galerie-Vorschaubild mit AVIF/WebP-Quellen für Miniaturen. */
+export function imageThumbnail(name: string, width = 160): string {
+  let sources: { avif: string; webp: string; jpg: string } | null = null;
+
+  if (name.startsWith(UPLOAD_PREFIX)) {
+    const key = name.slice(UPLOAD_PREFIX.length);
+    const info = loadUploadedImage(key);
+    if (info) {
+      const variant = info.variants.find((item) => item.width >= width) ?? info.variants[info.variants.length - 1];
+      if (variant) {
+        sources = {
+          avif: uploadUrl(key, variant.width, 'avif'),
+          webp: uploadUrl(key, variant.width, 'webp'),
+          jpg: uploadUrl(key, variant.width, 'jpg'),
+        };
+      }
+    }
+  } else {
+    const info = loadImageManifest()[name];
+    if (info && info.variants.length > 0) {
+      const variant = info.variants.find((item) => item.width >= width) ?? info.variants[info.variants.length - 1];
+      if (variant) sources = { avif: variant.avif, webp: variant.webp, jpg: variant.jpg };
+    }
+  }
+
+  if (!sources) return '';
+  return `<picture>
+  <source type="image/avif" srcset="${sources.avif}">
+  <source type="image/webp" srcset="${sources.webp}">
+  <img src="${sources.jpg}" width="64" height="64" alt="" loading="lazy" decoding="async">
+</picture>`;
+}
+
 export type RenderContext = Record<string, unknown>;
 
 const env = nunjucks.configure(path.join(config.root, 'src', 'templates'), {
@@ -174,6 +207,7 @@ env.addGlobal('asset', assetUrl);
 env.addGlobal('assetCss', assetCss);
 env.addGlobal('image', image);
 env.addGlobal('imagePreview', imagePreview);
+env.addGlobal('imageThumbnail', imageThumbnail);
 env.addGlobal('maxUploadMb', Math.round(config.maxUploadBytes / (1024 * 1024)));
 
 export function render(res: import('fastify').FastifyReply, template: string, context: RenderContext = {}): void {
