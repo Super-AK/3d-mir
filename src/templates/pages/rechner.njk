@@ -82,7 +82,7 @@
             <label for="coating">Nachbearbeitung</label>
             <select id="coating" name="coating">
               {% for coating in pricing.coatings %}
-                <option value="{{ coating.id }}">{{ coating.label }}{% if coating.pricePerPart > 0 %} (+ {{ coating.pricePerPart | price }}){% endif %}</option>
+                <option value="{{ coating.id }}">{{ coating.label }}{% if coating.pricePerPart > 0 %} (+ {{ coating.pricePerPart | euro }}){% endif %}</option>
               {% endfor %}
             </select>
           </div>

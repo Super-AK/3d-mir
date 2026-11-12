@@ -30,7 +30,7 @@
         <p>Jedes Teil wird im FDM-Verfahren gedruckt und von Hand nachgearbeitet. Farben und Stückzahlen können je nach Verfügbarkeit abweichen – bei Fragen einfach melden.</p>
       </div>
       <div class="shop-intro-facts">
-        <div><strong>Versand</strong><span>ab {{ pricing.shipping.methods[0].price | price }} · frei ab {{ pricing.shipping.freeShippingFrom | price }}</span></div>
+        <div><strong>Versand</strong><span>{% if shippingFromPrice is not null %}ab {{ shippingFromPrice | euro }}{% else %}kostenlos{% endif %}{% if pricing.shipping.freeShippingFrom > 0 %} · frei ab {{ pricing.shipping.freeShippingFrom | euro }}{% endif %}</span></div>
         <div><strong>Fertigung</strong><span>in Schömberg, Deutschland</span></div>
         <div><strong>Fragen</strong><span><a href="/kontakt/">Persönlich erreichbar</a></span></div>
       </div>
@@ -68,10 +68,12 @@
         <h2>Versand &amp; Abholung</h2>
         <ul class="check-list">
           {% for method in pricing.shipping.methods %}
-            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | price }}{% else %} · kostenlos{% endif %}</li>
+            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | euro }}{% else %} · kostenlos{% endif %}</li>
           {% endfor %}
         </ul>
-        <p class="text-muted"><small>Ab {{ pricing.shipping.freeShippingFrom | price }} Warenwert entfallen die Versandkosten für den Paketversand.</small></p>
+        {% if pricing.shipping.freeShippingFrom > 0 %}
+          <p class="text-muted"><small>Ab {{ pricing.shipping.freeShippingFrom | euro }} Warenwert entfallen die Versandkosten für den Paketversand.</small></p>
+        {% endif %}
       </div>
       <div class="card">
         <h2>Zahlung</h2>

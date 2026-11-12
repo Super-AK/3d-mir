@@ -27,6 +27,10 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 
 **Löschen:** Mindestens ein Material, ein Drucker, eine Nachbearbeitung und eine Versandart müssen bestehen bleiben. Mengenrabattstaffeln dürfen vollständig entfernt werden. Wird ein Material gelöscht, entfernen sich seine Verknüpfungen zu Druckern automatisch.
 
+**Aktiv:** Materialien, Drucker, Nachbearbeitung und Versandarten haben eine Checkbox „Aktiv“. Inaktive Einträge bleiben im Admin erhalten, werden aber im Rechner, im Shop, im Checkout und auf der Seite „Versandarten und Kosten“ nicht angezeigt. Mindestens ein Eintrag je Bereich muss aktiv bleiben.
+
+**Versandseite:** Die öffentliche Seite `/versand/` wird aus den Versandarten unter „Preise → Versand“ erzeugt. Bezeichnung, Preis, Lieferzeit und die Schwelle für kostenlosen Versand erscheinen dort automatisch; inaktive Versandarten werden ausgeblendet.
+
 **Wo liegen die Daten?** `config/pricing.json` bleibt die dokumentierte Grundeinstellung. Änderungen im Admin werden als `pricing.overrides` in der Tabelle `settings` gespeichert und überlagern die JSON-Datei ohne Neustart. Sobald ein Katalog im Admin gespeichert wurde, gilt die Datenbank als führend; „Auf Grundeinstellung zurücksetzen“ löscht die Überlagerung und stellt `config/pricing.json` wieder her.
 
 **Hinweise:**

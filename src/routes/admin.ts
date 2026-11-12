@@ -188,7 +188,7 @@ function paymentLabel(id: string): string {
 }
 
 function shippingLabel(id: string): string {
-  return getPricingConfig().shipping.methods.find((method) => method.id === id)?.label ?? id;
+  return getPricingConfig({ includeInactive: true }).shipping.methods.find((method) => method.id === id)?.label ?? id;
 }
 
 function parseDecimal(value: unknown): number | null {
@@ -726,6 +726,7 @@ function pricingView(pricing: PricingConfig) {
     materials: pricing.materials.map((material, index) => ({
       ...material,
       index,
+      isActive: material.active !== false,
       priceValue: String(material.pricePerGram),
       densityValue: String(material.density),
       maxTempValue: String(material.maxTempC),
@@ -734,6 +735,7 @@ function pricingView(pricing: PricingConfig) {
     printers: pricing.printers.map((printer, index) => ({
       ...printer,
       index,
+      isActive: printer.active !== false,
       xValue: String(printer.buildVolume.x),
       yValue: String(printer.buildVolume.y),
       zValue: String(printer.buildVolume.z),
@@ -745,12 +747,14 @@ function pricingView(pricing: PricingConfig) {
     coatings: pricing.coatings.map((coating, index) => ({
       ...coating,
       index,
+      isActive: coating.active !== false,
       percentValue: String(coating.surchargePercent),
       priceValue: String(coating.pricePerPart),
     })),
     shipping: pricing.shipping.methods.map((method, index) => ({
       ...method,
       index,
+      isActive: method.active !== false,
       priceValue: String(method.price),
     })),
     discounts: pricing.quantityDiscounts.map((tier, index) => ({
@@ -822,6 +826,7 @@ function readPricingForm(
         properties: value(`material_${index}_properties`, 300),
         useCases: value(`material_${index}_use_cases`, 300),
         notes: value(`material_${index}_notes`, 500),
+        active: marked(`material_${index}_active`),
       });
       usedMaterialIds.add(existing.id);
     });
@@ -838,9 +843,13 @@ function readPricingForm(
         properties: value('new_material_properties', 300),
         useCases: value('new_material_use_cases', 300),
         notes: value('new_material_notes', 500),
+        active: marked('new_material_active'),
       });
     }
     if (materials.length === 0) throw new FormError('Mindestens ein Material muss vorhanden sein.');
+    if (!materials.some((material) => material.active)) {
+      throw new FormError('Mindestens ein Material muss aktiv sein, sonst steht der Rechner nicht zur Verfügung.');
+    }
 
     const materialIds = materials.map((material) => material.id);
 
@@ -862,6 +871,7 @@ function readPricingForm(
         hourlyRate: numberField(`printer_${index}_rate`, 0, 1000, `Maschinenstunde ${label}`),
         materialIds: selected.length > 0 ? selected : materialIds,
         note: value(`printer_${index}_note`, 500),
+        active: marked(`printer_${index}_active`),
       });
       usedPrinterIds.add(existing.id);
     });
@@ -880,9 +890,13 @@ function readPricingForm(
         hourlyRate: optionalNumber('new_printer_rate', 0, 1000, 'Maschinenstunde neuer Drucker', 1),
         materialIds: selected.length > 0 ? selected : materialIds,
         note: value('new_printer_note', 500),
+        active: marked('new_printer_active'),
       });
     }
     if (printers.length === 0) throw new FormError('Mindestens ein Drucker muss vorhanden sein.');
+    if (!printers.some((printer) => printer.active)) {
+      throw new FormError('Mindestens ein Drucker muss aktiv sein, sonst steht der Rechner nicht zur Verfügung.');
+    }
 
     const coatings: PricingConfig['coatings'] = [];
     const usedCoatingIds = new Set<string>();
@@ -895,6 +909,7 @@ function readPricingForm(
         label,
         surchargePercent: numberField(`coating_${index}_percent`, 0, 100, `Zuschlag ${label}`),
         pricePerPart: numberField(`coating_${index}_price`, 0, 10000, `Preis ${label}`),
+        active: marked(`coating_${index}_active`),
       });
       usedCoatingIds.add(existing.id);
     });
@@ -905,9 +920,13 @@ function readPricingForm(
         label: newCoatingLabel,
         surchargePercent: optionalNumber('new_coating_percent', 0, 100, 'Zuschlag neue Nachbearbeitung', 0),
         pricePerPart: optionalNumber('new_coating_price', 0, 10000, 'Preis neue Nachbearbeitung', 0),
+        active: marked('new_coating_active'),
       });
     }
     if (coatings.length === 0) throw new FormError('Mindestens eine Nachbearbeitungsoption muss vorhanden sein.');
+    if (!coatings.some((coating) => coating.active)) {
+      throw new FormError('Mindestens eine Nachbearbeitung muss aktiv sein.');
+    }
 
     const shippingMethods: PricingConfig['shipping']['methods'] = [];
     const usedShippingIds = new Set<string>();
@@ -920,6 +939,7 @@ function readPricingForm(
         label,
         price: numberField(`shipping_${index}_price`, 0, 1000, `Versandkosten ${label}`),
         deliveryDays: value(`shipping_${index}_days`, 80),
+        active: marked(`shipping_${index}_active`),
       });
       usedShippingIds.add(existing.id);
     });
@@ -930,9 +950,13 @@ function readPricingForm(
         label: newShippingLabel,
         price: optionalNumber('new_shipping_price', 0, 1000, 'Preis neue Versandart', 0),
         deliveryDays: value('new_shipping_days', 80),
+        active: marked('new_shipping_active'),
       });
     }
     if (shippingMethods.length === 0) throw new FormError('Mindestens eine Versandart muss vorhanden sein.');
+    if (!shippingMethods.some((method) => method.active)) {
+      throw new FormError('Mindestens eine Versandart muss aktiv sein.');
+    }
 
     const quantityDiscounts: PricingConfig['quantityDiscounts'] = [];
     const seenQuantities = new Set<number>();
@@ -1212,7 +1236,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         ? (db().prepare('SELECT * FROM quote_requests WHERE id = ?').get(id) as QuoteRow | undefined)
         : undefined;
       if (!quote) return adminError(request, reply, 404, 'Diese Anfrage wurde nicht gefunden.');
-      const pricing = getPricingConfig();
+      const pricing = getPricingConfig({ includeInactive: true });
       const material = pricing.materials.find((item) => item.id === quote.material_id);
       const printer = pricing.printers.find((item) => item.id === quote.printer_id);
       const coating = pricing.coatings.find((item) => item.id === quote.coating);
@@ -1668,7 +1692,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     // Preise --------------------------------------------------------------
     scope.get('/admin/preise/', async (request, reply) => {
-      const pricing = getPricingConfig();
+      const pricing = getPricingConfig({ includeInactive: true });
       render(reply, 'admin/prices.njk', adminContext(request, {
         pricing,
         view: pricingView(pricing),
@@ -1677,7 +1701,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     });
 
     scope.post('/admin/preise/', async (request, reply) => {
-      const pricing = getPricingConfig();
+      const pricing = getPricingConfig({ includeInactive: true });
       const body = bodyObject(request);
       const result = readPricingForm(body, pricing);
       if (result.error || !result.overrides) {

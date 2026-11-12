@@ -111,6 +111,7 @@ export type Material = {
   properties: string;
   useCases: string;
   notes: string;
+  active?: boolean;
 };
 
 export type Printer = {
@@ -120,6 +121,7 @@ export type Printer = {
   hourlyRate: number;
   materialIds: string[];
   note: string;
+  active?: boolean;
 };
 
 export type PricingConfig = {
@@ -146,12 +148,12 @@ export type PricingConfig = {
   printers: Printer[];
   infillOptions: number[];
   layerHeightOptions: number[];
-  coatings: { id: string; label: string; surchargePercent: number; pricePerPart: number }[];
+  coatings: { id: string; label: string; surchargePercent: number; pricePerPart: number; active?: boolean }[];
   quantityDiscounts: { minQuantity: number; percent: number }[];
   shipping: {
     status: string;
     note: string;
-    methods: { id: string; label: string; price: number; deliveryDays: string }[];
+    methods: { id: string; label: string; price: number; deliveryDays: string; active?: boolean }[];
     freeShippingFrom: number;
   };
 };

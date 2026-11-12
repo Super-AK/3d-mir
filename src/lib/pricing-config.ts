@@ -75,6 +75,7 @@ function applyCatalog(result: PricingConfig, catalog: PricingCatalog): void {
       properties: text(material.properties),
       useCases: text(material.useCases),
       notes: text(material.notes),
+      active: material.active !== false,
     })).filter((material) => material.id !== '') as Material[];
   }
 
@@ -95,6 +96,7 @@ function applyCatalog(result: PricingConfig, catalog: PricingCatalog): void {
         hourlyRate: nonNegative(printer.hourlyRate, 0),
         materialIds: ids.length > 0 ? ids : [...materialIds],
         note: text(printer.note),
+        active: printer.active !== false,
       };
     }).filter((printer) => printer.id !== '');
   }
@@ -105,6 +107,7 @@ function applyCatalog(result: PricingConfig, catalog: PricingCatalog): void {
       label: text(coating.label) || text(coating.id),
       surchargePercent: nonNegative(coating.surchargePercent, 0),
       pricePerPart: nonNegative(coating.pricePerPart, 0),
+      active: coating.active !== false,
     })).filter((coating) => coating.id !== '');
   }
 
@@ -114,6 +117,7 @@ function applyCatalog(result: PricingConfig, catalog: PricingCatalog): void {
       label: text(method.label) || text(method.id),
       price: nonNegative(method.price, 0),
       deliveryDays: text(method.deliveryDays),
+      active: method.active !== false,
     })).filter((method) => method.id !== '');
   }
 
@@ -149,7 +153,7 @@ export function getPricingOverrides(): PricingOverrides {
 }
 
 /** Liefert die wirksame Preis-Konfiguration inklusive Admin-Änderungen. */
-export function getPricingConfig(): PricingConfig {
+export function getPricingConfig(options: { includeInactive?: boolean } = {}): PricingConfig {
   const result = structuredClone(config.pricing) as PricingConfig;
   const overrides = getPricingOverrides();
 
@@ -202,6 +206,22 @@ export function getPricingConfig(): PricingConfig {
 
   if (overrides.catalog) {
     applyCatalog(result, overrides.catalog);
+  }
+
+  if (!options.includeInactive) {
+    const activeMaterials = new Set(
+      result.materials.filter((material) => material.active !== false).map((material) => material.id),
+    );
+    result.materials = result.materials.filter((material) => material.active !== false);
+    result.printers = result.printers
+      .filter((printer) => printer.active !== false)
+      .map((printer) => ({
+        ...printer,
+        materialIds: printer.materialIds.filter((id) => activeMaterials.has(id)),
+      }))
+      .filter((printer) => printer.materialIds.length > 0);
+    result.coatings = result.coatings.filter((coating) => coating.active !== false);
+    result.shipping.methods = result.shipping.methods.filter((method) => method.active !== false);
   }
 
   return result;

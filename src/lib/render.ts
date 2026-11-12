@@ -170,6 +170,10 @@ const env = nunjucks.configure(path.join(config.root, 'src', 'templates'), {
 const eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
 
 env.addFilter('price', (cents: number | null | undefined) => (cents == null ? '' : eur.format(cents / 100)));
+/** Formatiert einen Betrag in Euro (nicht Cent), z. B. Versandkosten aus der Konfiguration. */
+env.addFilter('euro', (value: number | null | undefined) =>
+  value == null || !Number.isFinite(Number(value)) ? '' : eur.format(Number(value)),
+);
 env.addFilter('number', (value: number | null | undefined, digits = 2) =>
   value == null
     ? ''
@@ -211,10 +215,13 @@ env.addGlobal('imageThumbnail', imageThumbnail);
 env.addGlobal('maxUploadMb', Math.round(config.maxUploadBytes / (1024 * 1024)));
 
 export function render(res: import('fastify').FastifyReply, template: string, context: RenderContext = {}): void {
+  const pricing = getPricingConfig();
+  const paidShipping = pricing.shipping.methods.filter((method) => method.price > 0).map((method) => method.price);
   const html = env.render(template, {
     currentPath: res.request.url.split('?')[0] ?? '/',
     cartCount: cartCount(readCart(res.request)),
-    pricing: getPricingConfig(),
+    pricing,
+    shippingFromPrice: paidShipping.length > 0 ? Math.min(...paidShipping) : null,
     ...context,
   });
   res.type('text/html; charset=utf-8').send(html);

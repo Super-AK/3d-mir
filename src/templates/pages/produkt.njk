@@ -113,7 +113,7 @@
 
         <ul class="product-facts">
           <li><strong>Lieferzeit:</strong> 2–5 Werktage, Fertigung nach Bestellung</li>
-          <li><strong>Versand:</strong> ab {{ pricing.shipping.methods[0].price | price }}, frei ab {{ pricing.shipping.freeShippingFrom | price }}</li>
+          <li><strong>Versand:</strong> {% if shippingFromPrice is not null %}ab {{ shippingFromPrice | euro }}{% else %}kostenlos{% endif %}{% if pricing.shipping.freeShippingFrom > 0 %}, frei ab {{ pricing.shipping.freeShippingFrom | euro }}{% endif %}</li>
           <li><strong>Abholung:</strong> nach Absprache in Schömberg möglich</li>
           <li><strong>Material:</strong> PLA, in Wunschfarbe</li>
         </ul>
@@ -154,7 +154,7 @@
         <h2>Versand</h2>
         <ul class="check-list">
           {% for method in pricing.shipping.methods %}
-            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | price }}{% else %} · kostenlos{% endif %}</li>
+            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | euro }}{% else %} · kostenlos{% endif %}</li>
           {% endfor %}
         </ul>
       </div>

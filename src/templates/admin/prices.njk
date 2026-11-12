@@ -21,6 +21,9 @@
   <div class="alert alert-warning" role="status">
     <p><strong>Platzhalter:</strong> Alle Werte sind technische Annahmen und müssen vor dem Livegang vom Betreiber bestätigt werden. Die Grundeinstellung steht in <code>config/pricing.json</code>; Änderungen hier werden in der Datenbank gespeichert und überlagern diese Werte.</p>
   </div>
+  <div class="alert alert-info" role="status">
+    <p><strong>Aktiv:</strong> Nur aktive Materialien, Drucker, Nachbearbeitungen und Versandarten werden im Rechner, Shop und auf der Versandseite angezeigt. Inaktive Einträge bleiben zur Bearbeitung erhalten.</p>
+  </div>
 
   <form class="form" method="post" action="/admin/preise/">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
@@ -69,7 +72,7 @@
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead>
-            <tr><th>Bezeichnung</th><th>ID</th><th>Dichte (g/cm³)</th><th>Preis je g (€)</th><th>Max. °C</th><th>Löschen</th></tr>
+            <tr><th>Bezeichnung</th><th>ID</th><th>Dichte (g/cm³)</th><th>Preis je g (€)</th><th>Max. °C</th><th>Aktiv</th><th>Löschen</th></tr>
           </thead>
           <tbody>
             {% for material in view.materials %}
@@ -82,10 +85,11 @@
                 <td><input name="material_{{ material.index }}_density" type="number" min="0.1" max="30" step="0.01" required value="{{ material.densityValue }}"></td>
                 <td><input name="material_{{ material.index }}_price" type="number" min="0" max="1000" step="0.001" required value="{{ material.priceValue }}"></td>
                 <td><input name="material_{{ material.index }}_max_temp" type="number" min="0" max="500" step="1" required value="{{ material.maxTempValue }}"></td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="material_{{ material.index }}_active" value="1" {% if material.isActive %}checked{% endif %}><span>aktiv</span></label></td>
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="material_{{ material.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
               <tr class="admin-detail-row">
-                <td colspan="6">
+                <td colspan="7">
                   <details>
                     <summary>Farben und Beschreibung</summary>
                     <div class="form-row">
@@ -120,10 +124,11 @@
               <td><input name="new_material_density" type="number" min="0.1" max="30" step="0.01" placeholder="1.24"></td>
               <td><input name="new_material_price" type="number" min="0" max="1000" step="0.001" placeholder="0.050"></td>
               <td><input name="new_material_max_temp" type="number" min="0" max="500" step="1" placeholder="60"></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_material_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
             <tr class="admin-new-row">
-              <td colspan="6">
+              <td colspan="7">
                 <div class="form-row">
                   <div class="field">
                     <label for="new_material_colors">Farben (kommagetrennt)</label>
@@ -158,7 +163,7 @@
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead>
-            <tr><th>Bezeichnung</th><th>Bauraum X/Y/Z (mm)</th><th>Maschinenstunde (€)</th><th>Materialien</th><th>Löschen</th></tr>
+            <tr><th>Bezeichnung</th><th>Bauraum X/Y/Z (mm)</th><th>Maschinenstunde (€)</th><th>Materialien</th><th>Aktiv</th><th>Löschen</th></tr>
           </thead>
           <tbody>
             {% for printer in view.printers %}
@@ -185,10 +190,11 @@
                     {% endfor %}
                   </div>
                 </td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="printer_{{ printer.index }}_active" value="1" {% if printer.isActive %}checked{% endif %}><span>aktiv</span></label></td>
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="printer_{{ printer.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
               <tr class="admin-detail-row">
-                <td colspan="5">
+                <td colspan="6">
                   <details>
                     <summary>Hinweis zum Drucker</summary>
                     <div class="field">
@@ -219,10 +225,11 @@
                   {% endfor %}
                 </div>
               </td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_printer_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
             <tr class="admin-new-row">
-              <td colspan="5">
+              <td colspan="6">
                 <div class="field">
                   <label for="new_printer_note">Hinweis zum neuen Drucker</label>
                   <input id="new_printer_note" name="new_printer_note" type="text" maxlength="500">
@@ -238,7 +245,7 @@
       <h2>Nachbearbeitung</h2>
       <div class="table-wrap">
         <table class="admin-edit-table">
-          <thead><tr><th>Bezeichnung</th><th>Zuschlag (%)</th><th>Preis je Teil (€)</th><th>Löschen</th></tr></thead>
+          <thead><tr><th>Bezeichnung</th><th>Zuschlag (%)</th><th>Preis je Teil (€)</th><th>Aktiv</th><th>Löschen</th></tr></thead>
           <tbody>
             {% for coating in view.coatings %}
               <tr>
@@ -248,6 +255,7 @@
                 </td>
                 <td><input name="coating_{{ coating.index }}_percent" type="number" min="0" max="100" step="0.1" required value="{{ coating.percentValue }}"></td>
                 <td><input name="coating_{{ coating.index }}_price" type="number" min="0" max="10000" step="0.01" required value="{{ coating.priceValue }}"></td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="coating_{{ coating.index }}_active" value="1" {% if coating.isActive %}checked{% endif %}><span>aktiv</span></label></td>
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="coating_{{ coating.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
@@ -255,6 +263,7 @@
               <td><input name="new_coating_label" type="text" maxlength="80" placeholder="Neue Nachbearbeitung"></td>
               <td><input name="new_coating_percent" type="number" min="0" max="100" step="0.1" placeholder="0"></td>
               <td><input name="new_coating_price" type="number" min="0" max="10000" step="0.01" placeholder="0.00"></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_coating_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
           </tbody>
@@ -265,9 +274,10 @@
 
     <section class="card admin-panel">
       <h2>Versand</h2>
+      <p class="text-muted">Diese Angaben erscheinen auch auf der öffentlichen Seite <a href="/versand/" target="_blank" rel="noopener">Versandarten und Kosten</a>. Inaktive Versandarten werden dort und im Checkout nicht angeboten.</p>
       <div class="table-wrap">
         <table class="admin-edit-table">
-          <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Lieferzeit</th><th>Löschen</th></tr></thead>
+          <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Lieferzeit</th><th>Aktiv</th><th>Löschen</th></tr></thead>
           <tbody>
             {% for method in view.shipping %}
               <tr>
@@ -277,6 +287,7 @@
                 </td>
                 <td><input name="shipping_{{ method.index }}_price" type="number" min="0" max="1000" step="0.01" required value="{{ method.priceValue }}"></td>
                 <td><input name="shipping_{{ method.index }}_days" type="text" maxlength="80" value="{{ method.deliveryDays }}"></td>
+                <td><label class="admin-check admin-check-inline"><input type="checkbox" name="shipping_{{ method.index }}_active" value="1" {% if method.isActive %}checked{% endif %}><span>aktiv</span></label></td>
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="shipping_{{ method.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
@@ -284,6 +295,7 @@
               <td><input name="new_shipping_label" type="text" maxlength="80" placeholder="Neue Versandart"></td>
               <td><input name="new_shipping_price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
               <td><input name="new_shipping_days" type="text" maxlength="80" placeholder="2–5 Werktage"></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_shipping_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
           </tbody>

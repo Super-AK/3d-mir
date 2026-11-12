@@ -242,3 +242,18 @@
 - Galerie im Browser: Hauptbild 430 × 538 px, Blättern per Button und Pfeiltasten, Zähler 4/11 → 5/11 → 4/11, Dialog schließt per Escape, keine Konsolenfehler.
 - Upload mit gedrosselter Verbindung: Fortschritt bei 12 %, Button deaktiviert, anschließend Weiterleitung mit Erfolgsmeldung.
 - Testbilder anschließend entfernt; die vom Betreiber hochgeladenen Bilder blieben erhalten.
+
+## Nachtrag – Versandanzeige, Versandseite und Aktiv-Schalter
+
+**Fertig**
+- Fehlerhafte Euro-Anzeige behoben: Versandkosten und Schwellenwerte wurden als Cent interpretiert („ab 0,05 €“). Jetzt erscheinen korrekte Beträge („ab 4,99 €, frei ab 50,00 €“); auch Nachbearbeitungspreise im Rechner nutzen den Euro-Filter.
+- Versandübersicht zeigt den günstigsten aktiven Paketversand statt starr der ersten Versandart; ohne kostenlosen Versand entfällt der Hinweis.
+- Die öffentliche Seite „Versandarten und Kosten“ (`/versand/`) wird vollständig aus den im Admin gepflegten Versandarten erzeugt (Bezeichnung, Lieferzeit, Preis, kostenloser Versand ab). Die alten erfundenen Versandarten (Express, International) sind entfernt.
+- Materialien, Drucker, Nachbearbeitung und Versandarten haben im Admin eine Checkbox „Aktiv“. Inaktive Einträge bleiben bearbeitbar, werden aber im Rechner, Shop, Checkout und auf der Versandseite nicht angezeigt. Mindestens ein aktiver Eintrag je Bereich ist erforderlich.
+- Drucker-Materialzuordnungen werden beim Ausblenden inaktiver Materialien automatisch bereinigt.
+
+**Getestet**
+- Anzeige auf Shop- und Produktseite: „ab 4,99 € · frei ab 50,00 €“; Rechner zeigt „+ 4,00 €“ für Glätten.
+- Versandseite listet DHL Paket und Abholung aus der Datenbank.
+- Aktiv-Test: PLA, Anycubic, Glätten und Abholung deaktiviert → nicht mehr auf Rechner/Versandseite; nach Reaktivierung wieder sichtbar.
+- Typecheck, Build, Unit- und E2E-Tests erfolgreich.
