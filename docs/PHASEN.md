@@ -9,7 +9,7 @@
 | 5 | Admin: Login, Produkte, Bestellungen, Anfragen, Preise | ✅ abgeschlossen |
 | 6 | Konto (optional), SEO, Redirects, Performance, Security | ✅ abgeschlossen |
 | 7 | Deployment-Paket und Test auf frischer VM | ✅ abgeschlossen |
-| 8 | Abnahme und Abschlussbericht | ⬜ offen |
+| 8 | Abnahme und Abschlussbericht | ✅ abgeschlossen |
 
 ## Phase 1 – Bericht
 
@@ -182,3 +182,22 @@
 **Offen**
 - Ein Test auf einer wirklich frischen VM ist in dieser Umgebung nicht möglich; die Checkliste in `docs/DEPLOYMENT.md` ist dafür vorbereitet. Der idempotente Re-Run auf dem Produktionssystem wurde vollständig geprüft.
 - DNS-Umstellung und Let's-Encrypt-Zertifikat stehen aus (F30–F33).
+
+## Phase 8 – Bericht
+
+**Fertig**
+- `docs/ABNAHME.md`: Umfang, Prüfergebnisse, Abnahmekriterien, offene Punkte und Abnahmeerklärung mit Unterschriftenfeldern.
+- `docs/ABSCHLUSSBERICHT.md`: Zusammenfassung, Architektur, Phasen, Messwerte, Datenschutz, Betrieb, Risiken und Übergabe.
+- Abschließende Prüfung von Build, Unit- und E2E-Tests, Betriebsprüfung, 404-Seite, Admin-Headern, Rechtstext-Hinweisen und Platzhalter-Kennzeichnung.
+- Statusübersicht und README auf den finalen Stand gebracht.
+
+**Getestet**
+- `npm run typecheck` und `npm run build` erfolgreich.
+- `npm test`: 19/19 Unit-Tests bestanden.
+- `npm run test:e2e`: 7/7 ausführbare Tests bestanden (Admin-Test ohne Zugangsdaten übersprungen).
+- `sudo deploy/verify.sh`: 26/26 Prüfungen bestanden.
+- Lighthouse mobil: Start 100/100/100/100, Shop 99/100/100/100, Rechner 97/100/100/100, Kontakt 99/100/100/100.
+- 404-Seite liefert 404; Admin-Antworten tragen `X-Robots-Tag: noindex, nofollow`; Rechtsseiten zeigen den Prüfhinweis; Shop und Rechner weisen auf Platzhalterpreise hin.
+
+**Offen**
+- Fachliche Freigaben des Auftraggebers (Preise, Versand, Zahlung, SMTP, Recht) und DNS-/TLS-Umstellung – siehe `docs/ABNAHME.md` und `docs/OFFENE-FRAGEN.md`.
