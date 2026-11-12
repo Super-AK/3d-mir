@@ -542,27 +542,33 @@ type UploadedImage = { buffer: Buffer; filename: string; mimetype: string };
 
 async function readImageUpload(request: FastifyRequest): Promise<{
   fields: Record<string, string>;
-  file: UploadedImage | null;
+  files: UploadedImage[];
 }> {
   const fields: Record<string, string> = {};
-  let file: UploadedImage | null = null;
-  for await (const part of request.parts()) {
+  const files: UploadedImage[] = [];
+  for await (const part of request.parts({
+    limits: {
+      files: MAX_PRODUCT_IMAGES,
+      fileSize: MAX_PRODUCT_IMAGE_BYTES,
+      fields: 10,
+    },
+  })) {
     if (part.type === 'file') {
-      if (part.fieldname !== 'image' || file) {
+      if (part.fieldname !== 'image') {
         part.file.resume();
         continue;
       }
       const buffer = await part.toBuffer();
-      file = {
+      files.push({
         buffer,
         filename: path.basename(part.filename || 'bild'),
         mimetype: part.mimetype,
-      };
+      });
     } else {
       fields[part.fieldname] = String(part.value ?? '');
     }
   }
-  return { fields, file };
+  return { fields, files };
 }
 
 /** Verkleinert ein Bild, entfernt Metadaten und legt AVIF/WebP/JPEG-Varianten ab. */
@@ -1549,39 +1555,74 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const session = request.adminSession;
       if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
 
-      const { fields, file } = await readImageUpload(request);
+      let upload;
+      try {
+        upload = await readImageUpload(request);
+      } catch (error) {
+        request.log.warn({ err: error }, 'Bild-Upload konnte nicht gelesen werden');
+        return reply.redirect(
+          `/admin/produkte/${id}/?fehler=${encodeURIComponent('Der Upload war zu groß oder unvollständig. Erlaubt sind bis zu 12 MB pro Bild.')}`,
+          303,
+        );
+      }
+
+      const { fields, files } = upload;
       if (!verifyCsrfToken(session, fields._csrf)) {
         return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu.');
       }
-      if (!file) {
-        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte wählen Sie eine Bilddatei aus.')}`, 303);
+      if (files.length === 0) {
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte wählen Sie mindestens eine Bilddatei aus.')}`, 303);
       }
 
       const count = (db().prepare('SELECT COUNT(*) AS count FROM product_images WHERE product_id = ?').get(id) as { count: number }).count;
-      if (count >= MAX_PRODUCT_IMAGES) {
+      const remaining = Math.max(0, MAX_PRODUCT_IMAGES - count);
+      if (remaining === 0) {
         return reply.redirect(
           `/admin/produkte/${id}/?fehler=${encodeURIComponent(`Maximal ${MAX_PRODUCT_IMAGES} Bilder pro Produkt.`)}`,
           303,
         );
       }
 
-      let stored: string;
-      try {
-        stored = await storeProductImage(id, file);
-      } catch (error) {
-        const message = error instanceof FormError ? error.message : 'Das Bild konnte nicht verarbeitet werden.';
-        request.log.warn({ err: error, product: id }, 'Produktbild konnte nicht gespeichert werden');
-        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent(message)}`, 303);
-      }
-
       const alt = cleanText(fields.alt, 200) || product.name;
       const maxSort = db()
         .prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM product_images WHERE product_id = ?')
         .get(id) as { value: number };
-      db()
-        .prepare('INSERT INTO product_images (product_id, file, alt, sort_order) VALUES (?, ?, ?, ?)')
-        .run(id, stored, alt, maxSort.value + 1);
-      writeAudit(request.admin?.email ?? 'admin', 'product.image.add', { product: id, file: stored });
+      let sortOrder = maxSort.value;
+      let added = 0;
+      const errors: string[] = [];
+
+      for (const file of files.slice(0, remaining)) {
+        try {
+          const stored = await storeProductImage(id, file);
+          sortOrder += 1;
+          db()
+            .prepare('INSERT INTO product_images (product_id, file, alt, sort_order) VALUES (?, ?, ?, ?)')
+            .run(id, stored, alt, sortOrder);
+          writeAudit(request.admin?.email ?? 'admin', 'product.image.add', { product: id, file: stored, name: file.filename });
+          added += 1;
+        } catch (error) {
+          const message = error instanceof FormError ? error.message : 'Das Bild konnte nicht verarbeitet werden.';
+          request.log.warn({ err: error, product: id, file: file.filename }, 'Produktbild konnte nicht gespeichert werden');
+          errors.push(`${file.filename}: ${message}`);
+        }
+      }
+
+      if (files.length > remaining) {
+        errors.push(`Nur noch ${remaining} von ${files.length} Bildern konnten übernommen werden (Maximum ${MAX_PRODUCT_IMAGES}).`);
+      }
+
+      if (added === 0) {
+        return reply.redirect(
+          `/admin/produkte/${id}/?fehler=${encodeURIComponent(errors[0] ?? 'Die Bilder konnten nicht gespeichert werden.')}`,
+          303,
+        );
+      }
+      if (errors.length > 0) {
+        return reply.redirect(
+          `/admin/produkte/${id}/?fehler=${encodeURIComponent(`${added} Bild(er) gespeichert. ${errors[0]}`)}`,
+          303,
+        );
+      }
       return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
     });
 

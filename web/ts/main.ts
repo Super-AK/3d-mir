@@ -80,3 +80,65 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'Intersect
   );
   document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => observer.observe(el));
 }
+
+// Produktgalerie: Miniaturen wechseln das große Bild, Klick öffnet die Vergrößerung.
+const gallery = document.querySelector<HTMLElement>('[data-gallery]');
+if (gallery) {
+  const slides = Array.from(gallery.querySelectorAll<HTMLElement>('[data-gallery-slide]'));
+  const thumbs = Array.from(gallery.querySelectorAll<HTMLAnchorElement>('[data-gallery-thumb]'));
+  const dialog = document.querySelector<HTMLDialogElement>('[data-gallery-dialog]');
+  const dialogImage = dialog?.querySelector<HTMLImageElement>('[data-gallery-dialog-image]');
+  let active = 0;
+
+  const show = (index: number): void => {
+    if (index < 0 || index >= slides.length) return;
+    active = index;
+    slides.forEach((slide, position) => slide.classList.toggle('is-active', position === index));
+    thumbs.forEach((thumb, position) => {
+      const selected = position === index;
+      thumb.classList.toggle('is-active', selected);
+      if (selected) thumb.setAttribute('aria-current', 'true');
+      else thumb.removeAttribute('aria-current');
+    });
+  };
+
+  thumbs.forEach((thumb, index) => {
+    thumb.addEventListener('click', (event) => {
+      event.preventDefault();
+      show(index);
+    });
+  });
+
+  gallery.querySelectorAll<HTMLAnchorElement>('[data-gallery-open]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (!dialog || !dialogImage) return;
+      event.preventDefault();
+      if (dialog.open) return;
+      const image = link.querySelector('img');
+      dialogImage.src = link.href;
+      dialogImage.alt = image?.alt ?? '';
+      dialog.showModal();
+      dialog.querySelector<HTMLButtonElement>('[data-gallery-close]')?.focus();
+    });
+  });
+
+  gallery.addEventListener('keydown', (event) => {
+    if (thumbs.length < 2) return;
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      const next = (active + 1) % slides.length;
+      show(next);
+      thumbs[next]?.focus();
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      const previous = (active - 1 + slides.length) % slides.length;
+      show(previous);
+      thumbs[previous]?.focus();
+    }
+  });
+
+  dialog?.querySelector<HTMLButtonElement>('[data-gallery-close]')?.addEventListener('click', () => dialog.close());
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+}

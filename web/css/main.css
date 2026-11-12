@@ -942,6 +942,7 @@ legend { padding: 0 0.4rem; font-weight: 700; font-size: 0.92rem; }
 .alert-danger { border-left-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
 .alert-warning { border-left-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
 .alert-info { border-left-color: var(--accent); background: var(--accent-soft); }
+.alert-info a { color: var(--steel-700); text-decoration: underline; }
 
 /* --------------------------------------------------------------------------
    Tabellen
@@ -1315,15 +1316,90 @@ tbody tr:hover { background: var(--surface-2); }
   gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
   align-items: start;
 }
-.product-media {
+.product-media { background: transparent; }
+.product-media > picture {
+  display: block;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface-2);
 }
-.product-media picture,
-.product-media img { display: block; width: 100%; }
-.product-media img { aspect-ratio: 4 / 5; object-fit: cover; }
+.product-media > picture img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+
+/* Produktgalerie: ein großes Bild, weitere als Miniaturen */
+.product-gallery { display: grid; gap: 0.75rem; }
+.product-gallery-main {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.gallery-slide { margin: 0; }
+.gallery-slide:not(.is-active) { display: none; }
+.gallery-open { position: relative; display: block; cursor: zoom-in; }
+.gallery-open picture, .gallery-open img { display: block; width: 100%; }
+.gallery-open img { aspect-ratio: 4 / 5; object-fit: cover; transition: transform 240ms ease; }
+.gallery-open:hover img, .gallery-open:focus-visible img { transform: scale(1.015); }
+.gallery-zoom {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  background: rgb(10 21 48 / 78%);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+.gallery-thumbs { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.1rem 0.1rem 0.35rem; scrollbar-width: thin; }
+.gallery-thumb {
+  flex: 0 0 auto;
+  width: 76px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  cursor: pointer;
+}
+.gallery-thumb img { display: block; width: 72px; height: 72px; object-fit: cover; }
+.gallery-thumb.is-active { border-color: var(--accent); }
+.gallery-thumb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Vergrößerte Ansicht */
+.gallery-dialog {
+  width: min(1200px, 94vw);
+  max-width: none;
+  max-height: 92vh;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #0a1530;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 45%);
+}
+.gallery-dialog::backdrop { background: rgb(7 13 28 / 84%); backdrop-filter: blur(3px); }
+.gallery-dialog img { display: block; width: 100%; max-height: 88vh; object-fit: contain; }
+.gallery-dialog-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 92%);
+  color: #0a1530;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.gallery-dialog-close:hover { background: #fff; }
 .product-info { display: flex; flex-direction: column; gap: 0.7rem; }
 .product-info h1 { margin: 0; font-size: clamp(1.6rem, 1.2rem + 2vw, 2.4rem); }
 .product-info > p { margin: 0; }

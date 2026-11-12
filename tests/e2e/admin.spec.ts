@@ -48,6 +48,7 @@ test.describe('Admin', () => {
     await page.locator('table tbody tr a').first().click();
     await expect(page.getByRole('heading', { name: 'Bilder', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Bild hinzufügen', exact: true })).toBeVisible();
+    await expect(page.locator('#image_file')).toHaveAttribute('multiple', '');
 
     await page.goto('/admin/');
     await page.getByRole('button', { name: 'Abmelden' }).click();

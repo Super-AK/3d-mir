@@ -170,17 +170,18 @@
           <input type="hidden" name="_csrf" value="{{ csrf }}">
           <div class="form-row">
             <div class="field">
-              <label for="image_file">Bilddatei</label>
-              <input id="image_file" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required>
-              <span class="hint">Das Bild wird automatisch gedreht, verkleinert und in moderne Formate umgewandelt.</span>
+              <label for="image_file">Bilddateien</label>
+              <input id="image_file" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple required>
+              <span class="hint">Mehrere Dateien gleichzeitig auswählen (Strg/Cmd gedrückt halten). Automatische Drehung, Verkleinerung und Umwandlung in AVIF, WebP und JPG.</span>
             </div>
             <div class="field">
               <label for="image_alt">Alternativtext</label>
               <input id="image_alt" name="alt" type="text" maxlength="200" placeholder="Beschreibung für Screenreader und Suchmaschinen">
+              <span class="hint">Gilt für alle Bilder dieses Uploads und kann danach einzeln geändert werden.</span>
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn" type="submit">Bild hochladen</button>
+            <button class="btn" type="submit">Bilder hochladen</button>
           </div>
         </form>
       </div>

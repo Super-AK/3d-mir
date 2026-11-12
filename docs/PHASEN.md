@@ -217,3 +217,16 @@
 - Bild-Upload (JPG) inkl. Varianten, Vorschau und Auslieferung über `/media/`; Alternativtext/Sortierung ändern; Bild löschen entfernt Datenbankeintrag und Dateien.
 - Sicherheit: Upload ohne gültiges CSRF-Token → 403, fremde Origin → 403, ungültige Bilddatei wird abgelehnt.
 - 19 Unit-Tests und 7 ausführbare E2E-Tests weiterhin erfolgreich.
+
+## Nachtrag – Produktgalerie und Mehrfach-Upload
+
+**Fertig**
+- Produktseite zeigt eine Galerie: ein großes Bild, alle weiteren als Miniaturen; Auswahl per Klick oder Pfeiltasten.
+- Klick auf das große Bild öffnet eine vergrößerte Ansicht als modaler Dialog (natives `<dialog>`) mit Schließen-Button, Backdrop-Klick und Escape. Ohne JavaScript öffnen die Verweise direkt die Bilddatei.
+- Im Admin können mehrere Bilder gleichzeitig hochgeladen werden; das Limit von 12 Bildern pro Produkt gilt für den gesamten Upload. Teilfehler werden verständlich gemeldet, erfolgreiche Bilder bleiben erhalten.
+- Gemeinsamer Alternativtext pro Upload, danach einzeln editierbar.
+
+**Getestet**
+- Mehrfach-Upload von drei Bildern: alle Varianten erzeugt, Datenbankeinträge mit fortlaufender Sortierung.
+- Galerie im Browser geprüft: eine sichtbare Großansicht, Miniaturenwechsel, Dialog öffnen/schließen, Pfeiltasten, keine Konsolenfehler.
+- Aufräumen der Testbilder; vorhandenes Betreiber-Bild blieb unangetastet.

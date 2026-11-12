@@ -52,10 +52,11 @@ Varianten werden direkt in der Tabelle bearbeitet, ergänzt oder per Löschmarki
 
 Auf der Produktseite im Admin gibt es einen Bereich **Bilder**:
 
-- **Hochladen:** JPG, PNG, WebP oder AVIF, maximal 12 MB und maximal 12 Bilder pro Produkt.
-- **Automatische Verarbeitung:** Das Bild wird gedreht, auf maximal 1200 px Breite verkleinert, in AVIF, WebP und JPG umgewandelt und von EXIF-/GPS-Metadaten befreit. Es werden Varianten mit 480, 800 und 1200 px erzeugt (keine Vergrößerung).
+- **Hochladen:** JPG, PNG, WebP oder AVIF, maximal 12 MB pro Bild und maximal 12 Bilder pro Produkt. Es können **mehrere Dateien gleichzeitig** ausgewählt werden (Strg/Cmd gedrückt halten); ein gemeinsamer Alternativtext gilt für alle Bilder des Uploads und kann danach einzeln geändert werden.
+- **Automatische Verarbeitung:** Jedes Bild wird gedreht, auf maximal 1200 px Breite verkleinert, in AVIF, WebP und JPG umgewandelt und von EXIF-/GPS-Metadaten befreit. Es werden Varianten mit 480, 800 und 1200 px erzeugt (keine Vergrößerung).
 - **Alternativtext:** Für Screenreader und Suchmaschinen. Ohne Angabe wird der Produktname verwendet.
-- **Sortierung:** Kleine Zahl zuerst. Das erste Bild erscheint in der Shop-Übersicht, alle Bilder auf der Produktseite.
+- **Sortierung:** Kleine Zahl zuerst. Das erste Bild erscheint in der Shop-Übersicht und als großes Bild in der Galerie, alle weiteren als Miniaturen.
+- **Galerie auf der Produktseite:** Ein großes Bild und darunter alle weiteren als Miniaturen. Ein Klick auf eine Miniatur wechselt das große Bild, ein Klick auf das große Bild öffnet eine vergrößerte Ansicht (Dialog). Pfeiltasten wechseln die Bilder, sofern die Galerie den Fokus hat; ohne JavaScript öffnen die Verweise direkt die Bilddatei.
 - **Löschen:** Löschmarkierung setzen und speichern; die erzeugten Dateien werden mit entfernt.
 
 Die Dateien liegen unter `/var/lib/3d-mir/uploads/media/products/<produkt-id>/` und werden über `/media/…` ausgeliefert. Sie sind nicht im Git und werden durch `deploy/backup.sh` mitgesichert.
