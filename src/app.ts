@@ -66,6 +66,9 @@ export async function buildApp() {
     reply.header('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
     reply.header('Cross-Origin-Opener-Policy', 'same-origin');
     reply.header('Content-Security-Policy', CSP);
+    if (_request.protocol === 'https') {
+      reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
     if (_request.url.startsWith('/admin')) {
       reply.header('X-Robots-Tag', 'noindex, nofollow');
     }
@@ -81,6 +84,19 @@ export async function buildApp() {
     if (request.url.startsWith('/api/')) {
       return reply.code(404).send({ error: 'not_found', message: 'Nicht gefunden' });
     }
+
+    // Reste der alten WordPress-Installation dauerhaft umleiten.
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const path = request.url.split('?')[0] ?? '';
+      const legacy: [prefix: string, target: string][] = [
+        ['/wp-json/', '/'],
+        ['/wp-admin/', '/admin/'],
+        ['/wp-sitemap-posts-', '/sitemap.xml'],
+      ];
+      const match = legacy.find(([prefix]) => path.startsWith(prefix));
+      if (match) return reply.redirect(match[1], 301);
+    }
+
     reply.code(404);
     return render(reply, 'pages/error.njk', {
       statusCode: 404,

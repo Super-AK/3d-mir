@@ -1050,6 +1050,7 @@ tbody tr:hover { background: var(--surface-2); }
 .footer-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
 .footer-links li { margin: 0; }
 .footer-note { margin-top: 1rem; font-size: 0.8rem; color: #8fa3bd; }
+.footer-note a { text-decoration: underline; }
 .footer-bottom {
   display: flex;
   flex-wrap: wrap;

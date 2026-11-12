@@ -157,25 +157,41 @@ function productJsonLd(product: ProductRow, variants: VariantRow[]) {
     product.price_to_cents ?? 0,
     product.price_from_cents,
   );
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    description: product.short_description,
-    sku: product.sku ?? undefined,
-    image: [`${config.site.baseUrl}/assets/img/gen/product-battery-box-900.jpg`],
-    brand: { '@type': 'Brand', name: config.site.business.name },
-    offers: {
-      '@type': 'AggregateOffer',
-      priceCurrency: 'EUR',
-      lowPrice: (low / 100).toFixed(2),
-      highPrice: (high / 100).toFixed(2),
-      offerCount: Math.max(1, variants.length),
-      availability: 'https://schema.org/InStock',
-      url: `${config.site.baseUrl}/shop/${product.slug}/`,
-      seller: { '@type': 'Organization', name: config.site.business.legalName },
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: product.short_description,
+      sku: product.sku ?? undefined,
+      image: [`${config.site.baseUrl}/assets/img/gen/product-battery-box-900.jpg`],
+      brand: { '@type': 'Brand', name: config.site.business.name },
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'EUR',
+        lowPrice: (low / 100).toFixed(2),
+        highPrice: (high / 100).toFixed(2),
+        offerCount: Math.max(1, variants.length),
+        availability: 'https://schema.org/InStock',
+        url: `${config.site.baseUrl}/shop/${product.slug}/`,
+        seller: { '@type': 'Organization', name: config.site.business.legalName },
+      },
     },
-  };
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Start', item: `${config.site.baseUrl}/` },
+        { '@type': 'ListItem', position: 2, name: 'Shop', item: `${config.site.baseUrl}/shop/` },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: product.name,
+          item: `${config.site.baseUrl}/shop/${product.slug}/`,
+        },
+      ],
+    },
+  ];
 }
 
 function secureCookie(request: FastifyRequest): boolean {

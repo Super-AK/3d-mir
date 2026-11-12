@@ -47,7 +47,7 @@ export function image(name: string, options: ImageOptions = {}): string {
   const alt = escapeHtml(options.alt ?? info.alt ?? '');
   const cls = options.class ? ` class="${escapeHtml(options.class)}"` : '';
   const sizes = options.sizes ?? '100vw';
-  const loading = options.loading ?? 'lazy';
+  const loading = options.priority ? 'eager' : (options.loading ?? 'lazy');
   const priority = options.priority ? ' fetchpriority="high"' : '';
   return `<picture>
   <source type="image/avif" srcset="${srcset('avif')}" sizes="${escapeHtml(sizes)}">

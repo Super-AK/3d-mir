@@ -80,6 +80,15 @@ const localBusinessJsonLd = {
   sameAs: [config.site.channels.etsy.url, config.site.channels.classifieds.url],
 };
 
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: config.site.seo.siteName,
+  url: config.site.baseUrl,
+  inLanguage: 'de-DE',
+  publisher: { '@type': 'Organization', name: config.site.business.legalName },
+};
+
 const contactSubjects = [
   'Angebot für ein 3D-Modell',
   'Ersatzteil / Nachbau',
@@ -174,10 +183,13 @@ const redirects: Record<string, string> = {
   '/cookie-richtlinie-eu/': '/datenschutz/#cookies',
   '/echtheit-von-bewertungen/': '/datenschutz/#bewertungen',
   '/hallo-welt/': '/',
+  '/mein-konto/': '/kontakt/',
   '/feed/': '/',
   '/startseite/feed/': '/',
   '/shop/feed/': '/',
   '/comments/feed/': '/',
+  '/wp-sitemap.xml': '/sitemap.xml',
+  '/xmlrpc.php': '/',
   '/wp-login.php': '/admin',
 };
 
@@ -186,8 +198,78 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
     render(reply, 'pages/home.njk', {
       content: getContent(),
       services,
-      localBusinessJsonLd,
+      localBusinessJsonLd: [localBusinessJsonLd, websiteJsonLd],
     });
+  });
+
+  app.get('/robots.txt', async (_request, reply) => {
+    const lines = [
+      'User-agent: *',
+      'Allow: /',
+      'Disallow: /admin/',
+      'Disallow: /api/',
+      'Disallow: /warenkorb/',
+      'Disallow: /kasse/',
+      'Disallow: /bestellung/',
+      'Disallow: /kontakt/danke/',
+      '',
+      `Sitemap: ${config.site.baseUrl}/sitemap.xml`,
+      '',
+    ];
+    return reply.type('text/plain; charset=utf-8').send(lines.join('\n'));
+  });
+
+  app.get('/sitemap.xml', async (_request, reply) => {
+    const staticPages: { path: string; priority: string; changefreq: string }[] = [
+      { path: '/', priority: '1.0', changefreq: 'weekly' },
+      { path: '/leistungen/', priority: '0.9', changefreq: 'monthly' },
+      { path: '/3d-druck-rechner/', priority: '0.9', changefreq: 'monthly' },
+      { path: '/shop/', priority: '0.9', changefreq: 'weekly' },
+      { path: '/kontakt/', priority: '0.7', changefreq: 'yearly' },
+      { path: '/impressum/', priority: '0.3', changefreq: 'yearly' },
+      { path: '/datenschutz/', priority: '0.3', changefreq: 'yearly' },
+      { path: '/agb/', priority: '0.3', changefreq: 'yearly' },
+      { path: '/widerruf/', priority: '0.3', changefreq: 'yearly' },
+      { path: '/versand/', priority: '0.4', changefreq: 'yearly' },
+      { path: '/zahlung/', priority: '0.4', changefreq: 'yearly' },
+    ];
+
+    const products = getDb()
+      .prepare('SELECT slug, updated_at FROM products WHERE active = 1 ORDER BY sort_order, id')
+      .all() as { slug: string; updated_at: string }[];
+
+    const escapeXml = (value: string): string =>
+      value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&apos;');
+
+    const url = (path: string, priority: string, changefreq: string, lastmod?: string): string => {
+      const lines = [
+        '  <url>',
+        `    <loc>${escapeXml(`${config.site.baseUrl}${path}`)}</loc>`,
+      ];
+      if (lastmod) lines.push(`    <lastmod>${lastmod.slice(0, 10)}</lastmod>`);
+      lines.push(`    <changefreq>${changefreq}</changefreq>`, `    <priority>${priority}</priority>`, '  </url>');
+      return lines.join('\n');
+    };
+
+    const entries = [
+      ...staticPages.map((page) => url(page.path, page.priority, page.changefreq)),
+      ...products.map((product) => url(`/shop/${product.slug}/`, '0.8', 'weekly', product.updated_at)),
+    ];
+
+    const xml = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ...entries,
+      '</urlset>',
+      '',
+    ].join('\n');
+
+    return reply.type('application/xml; charset=utf-8').send(xml);
   });
 
   app.get('/api/health', async (_request, reply) => {

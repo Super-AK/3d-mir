@@ -7,7 +7,7 @@
 | 3 | Rechner: Upload, 3D-Vorschau, Preis, Angebotsanfrage | ✅ abgeschlossen |
 | 4 | Shop: Produkte, Warenkorb, Checkout, E-Mails | ✅ abgeschlossen |
 | 5 | Admin: Login, Produkte, Bestellungen, Anfragen, Preise | ✅ abgeschlossen |
-| 6 | Konto (optional), SEO, Redirects, Performance, Security | ⬜ offen |
+| 6 | Konto (optional), SEO, Redirects, Performance, Security | ✅ abgeschlossen |
 | 7 | Deployment-Paket und Test auf frischer VM | ⬜ offen |
 | 8 | Abnahme und Abschlussbericht | ⬜ offen |
 
@@ -138,3 +138,23 @@
 - TOTP-2FA ist vorbereitet (Feld `totp_secret`), aber nicht aktiviert (F63).
 - Produktbilder werden weiterhin über den Bild-Build und die Datenbankzuordnung gepflegt; eine Upload-Oberfläche im Admin ist nicht Teil dieser Phase.
 - Rechnungen, Steuersätze und Buchhaltungsexporte sind nicht umgesetzt (F66).
+
+## Phase 6 – Bericht
+
+**Fertig**
+- `robots.txt` und `sitemap.xml` kommen aus der Anwendung. Die Sitemap enthält alle statischen Seiten und alle aktiven Produkte mit `lastmod`; `robots.txt` sperrt Admin, API, Warenkorb, Kasse und Danke-Seiten und verweist auf die Sitemap.
+- Kanonische URLs und `og:url` auf allen Seiten; Produktseiten mit `Product`- und `BreadcrumbList`-JSON-LD, Startseite mit `LocalBusiness` und `WebSite`-JSON-LD.
+- 301-Weiterleitungen der alten WordPress-URLs vollständig in der Anwendung ergänzt: u. a. `/versandarten/`, `/bezahlmoeglichkeiten/`, `/widerrufsbelehrung/`, `/cookie-richtlinie-eu/`, `/echtheit-von-bewertungen/`, `/kontakt`, `/mein-konto/`, `/wp-sitemap.xml`, `/wp-login.php`; Präfixe `/wp-json/`, `/wp-admin/`, `/wp-sitemap-posts-` und die alte Produkt-URL werden ebenfalls dauerhaft umgeleitet. Alte Upload-URLs laufen bewusst ins 404.
+- Performance: Inter-Variable-Schrift auf den tatsächlich genutzten Zeichensatz reduziert (352 kB → 80 kB) und vorgeladen; Logo in 2×-Auflösung; LCP-Bild lädt jetzt `eager` mit `fetchpriority="high"`; Bild- und Schriftdateien mit Cache-Headern.
+- Sicherheit: HSTS wird bei HTTPS automatisch gesetzt, `Permissions-Policy` und `Cross-Origin-Opener-Policy` bleiben aktiv, CSP ohne Inline-Skripte; sicherheitsrelevante Header auch für statische Assets.
+- Konto-Funktion ist laut `config/site.json` deaktiviert (`customerAccounts: false`); es werden keine Kundenkonten und keine zusätzlichen Cookies eingeführt.
+
+**Getestet**
+- Lighthouse (mobil, gedrosselt) auf Startseite, Shop, Rechner und Kontakt: Performance 97–100, Accessibility 100, Best Practices 100, SEO 100.
+- Neue E2E-Tests für `robots.txt`, Sitemap, Canonical und die 301-Weiterleitungen; alle 7 ausführbaren E2E-Tests und 19 Unit-Tests erfolgreich.
+- `nginx -t` erfolgreich; `robots.txt` und `sitemap.xml` liefern 200 über NGINX, Sitemap ist gültiges XML.
+- Keine 404-Ressourcen und keine Konsolenfehler auf der Startseite (vorher fehlendes Web-Manifest).
+
+**Offen**
+- Domainumstellung und TLS (F30–F33): HSTS greift erst mit HTTPS; `site.baseUrl` steht bereits auf `https://www.3d-mir.de`.
+- Lighthouse-Werte sind Momentaufnahmen der lokalen Umgebung; nach dem Livegang mit echten Netzwerkbedingungen erneut messen.

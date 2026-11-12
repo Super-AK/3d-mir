@@ -2,7 +2,7 @@
 
 Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, Sofort-Preisrechner mit 3D-Vorschau, kleiner Shop und Admin-Bereich.
 
-> **Status:** Aufbau (Phasen 1–5 abgeschlossen: Grundgerüst, statische Seiten, Rechner, Shop, Admin). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
+> **Status:** Aufbau (Phasen 1–6 abgeschlossen: Grundgerüst, statische Seiten, Rechner, Shop, Admin, SEO/Performance). Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md`.
 
 ## Technik
 
@@ -43,7 +43,7 @@ Voraussetzungen: Node.js ≥ 22, npm, SQLite (nur CLI nötig), optional NGINX.
 ```bash
 cp .env.example .env          # Werte anpassen, SESSION_SECRET setzen
 npm ci
-npm run build                 # Backend (tsc) + Frontend (Vite) + Bilder
+npm run build                 # Backend (tsc) + Frontend (Vite) + Schrift-Subset
 npm run migrate               # Datenbank anlegen/aktualisieren
 npm run dev                   # http://127.0.0.1:3000
 ```
