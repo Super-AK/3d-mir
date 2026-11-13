@@ -331,7 +331,8 @@
 - Vorkasse-Bestellung inkl. Bestellübersicht, Bankdaten, Admin-Bestätigung, Statuswechsel und Zahlungsbestätigung per E-Mail.
 - Stripe-Test mit Mock-API: Checkout-Weiterleitung, signierter Webhook, Statuswechsel auf „bezahlt“, doppelter Webhook ohne Doppelbuchung, Betragsabweichung mit manueller Prüfnotiz, erneuter Zahlungsversuch, Rückleitung ohne Webhook.
 - Unsignierter Webhook wird mit HTTP 400 abgelehnt.
-- Zusätzlich Amazon Pay und Klarna als Stripe-Zahlungsarten im Checkout geprüft (Weiterleitung, `payment_method_types`, `tax_behavior=inclusive`).
+- Zusätzlich Amazon Pay und Klarna als Stripe-Zahlungsarten im Checkout geprüft (Weiterleitung, `tax_behavior=inclusive`).
+- Stripe-API-Migration: `payment_method_types` ist ab API-Version 2026-09-30 nicht mehr beschreibbar; die App verwendet jetzt `allowed_payment_method_types`. Karte, PayPal, Amazon Pay, Klarna und iDEAL wurden mit den Stripe-Testschlüsseln erfolgreich als Checkout-Sessions angelegt.
 - 25 Unit-Tests, 8 E2E-Tests (inkl. Admin) und Betriebsprüfung erfolgreich.
 - Noch nicht getestet: echter Stripe-Testmodus mit Stripe-Konto, echte PayPal-/Amazon-Pay-/Klarna-/iDEAL-Zahlung und Live-Schlüssel. Dafür sind Konto, Schlüssel und öffentliche HTTPS-Erreichbarkeit nötig.
 

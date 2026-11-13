@@ -113,7 +113,9 @@ export async function createCheckoutSession(input: CreateCheckoutSessionInput): 
   params.set('success_url', appendSessionPlaceholder(input.successUrl));
   params.set('cancel_url', input.cancelUrl);
   params.set('expires_at', String(Math.floor(Date.now() / 1000) + 60 * 60));
-  params.set('payment_method_types[0]', input.stripeMethod);
+  // Seit Stripe API 2026-09-30 ist payment_method_types nicht mehr beschreibbar.
+  // allowed_payment_method_types filtert die vom Dashboard freigegebenen Methoden.
+  params.set('allowed_payment_method_types[0]', input.stripeMethod);
   params.set('metadata[order_id]', String(input.orderId));
   params.set('metadata[order_number]', input.orderNumber);
   params.set('metadata[public_token]', input.publicToken);
