@@ -351,3 +351,18 @@
 - Admin-Seite speichert Kanal, SMTP- und Telegram-Werte; Test-E-Mail erzeugt ohne SMTP eine `.eml`; fehlendes Telegram wird verständlich gemeldet.
 - Unit-Tests für Telegram-Versand, API-Fehler, fehlende Konfiguration und ungültigen Token.
 - Typecheck, Unit-Tests und Admin-E2E-Tests erfolgreich.
+
+## Nachtrag – Shared-Server-Portprüfung und eigene NGINX-Konfiguration
+
+**Fertig**
+- Installer prüft vor der Einrichtung, ob der Anwendungsport belegt ist. Ohne explizite `PORT`-Vorgabe wählt er automatisch einen freien Port im Bereich 3000–3099 und schreibt ihn in `/etc/3d-mir/3d-mir.env` sowie in die NGINX-Konfiguration.
+- Ein explizit gesetzter `PORT` wird respektiert; ist er belegt, bricht der Installer mit einem konkreten Port-Vorschlag ab.
+- Bestehende Installationen: Wird der bisherige Port von einer anderen Web-App blockiert, wählt der Installer einen freien Port und aktualisiert `.env` und NGINX-Proxy.
+- Eigene NGINX-Datei `/etc/nginx/sites-available/<domain>.conf`; die NGINX-Default-Site und andere Vhosts bleiben unangetastet.
+- Setup-Menü: neuer Punkt „Port prüfen / freien Port setzen“, der Port, `.env` und `proxy_pass` aktualisiert, Dienst neu startet und den Health-Check prüft.
+- Voraussetzungen und Systemcheck zeigen bei belegtem Port einen freien Vorschlag.
+
+**Getestet**
+- Voraussetzungsprüfung erkennt belegten Port und schlägt den nächsten freien Port vor.
+- Systemcheck zeigt, ob der Port von `3d-mir.service` oder einem anderen Prozess genutzt wird.
+- `bash -n` für Installer und Setup-Menü erfolgreich.

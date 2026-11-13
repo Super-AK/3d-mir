@@ -238,7 +238,7 @@ sqlite3 /var/lib/3d-mir/db/3d-mir.sqlite 'PRAGMA integrity_check;'
 | Problem | Ursache / Lösung |
 | --- | --- |
 | 502 Bad Gateway | Dienst nicht aktiv: `systemctl status 3d-mir`, Logs prüfen. |
-| Startfehler `EADDRINUSE` | Port 3000 ist belegt, meist durch einen alten Node-Prozess. Prüfen mit `ss -ltnp '( sport = :3000 )'`, Prozess beenden; der Dienst versucht es beim Start bis zu fünfmal im Sekundenabstand. |
+| Startfehler `EADDRINUSE` | Der Anwendungsport ist belegt, z. B. durch eine andere Web-App. Der Installer prüft das vorab und wählt bei freier Wahl automatisch einen Port im Bereich 3000–3099. Nachträglich: Setup-Menü → „Port prüfen / freien Port setzen“ oder `ss -ltnp '( sport = :3000 )'` prüfen. Der Dienst versucht es beim Start bis zu fünfmal. |
 | Health-Check rot, DB-Fehler | Rechte auf `/var/lib/3d-mir` prüfen; Dienst läuft als `mir3d`. |
 | Kein TLS | DNS noch nicht umgestellt oder Port 80 blockiert; `certbot` erneut ausführen. |
 | E-Mails fehlen | Ohne SMTP werden `.eml`-Dateien unter `/var/log/3d-mir/mail/` abgelegt. |

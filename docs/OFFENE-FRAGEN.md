@@ -1,6 +1,6 @@
 # Offene Fragen an den Auftraggeber
 
-**Stand:** 13.11.2026 · **Version:** 2.0 · **Zuletzt geprüft:** 13.11.2026
+**Stand:** 13.11.2026 · **Version:** 2.1 · **Zuletzt geprüft:** 13.11.2026
 
 Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; Einzelfragen sind mit `[F1]` usw. nummeriert. Erledigte Punkte bleiben mit Datum und Nachweis dokumentiert, damit Verweise und die Historie erhalten bleiben.
 
@@ -95,8 +95,9 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | F25 | ✅ Erledigt | **Entschieden:** Repository `git@github.com:Super-AK/3d-mir.git`.<br>*(13.11.2026)* |
 | F26 | ✅ Erledigt | **Entschieden:** SSH-Deploy-Key; Push von `main` nach `origin/main` funktioniert.<br>*(13.11.2026)* |
 | F27 | 🟡 In Arbeit | Sichtbarkeit des Repositories (privat/öffentlich) bestätigen. Der Push funktioniert unabhängig davon. |
-| F28 | 🔴 Offen | Ist der aktuelle Server `www3d-mir` die endgültige Produktionsmaschine? Aktuell ist die Anwendung dort installiert. |
+| F28 | 🟡 In Arbeit | **Produktionsserver:** `kap-srv` mit weiteren Web-Apps. Bitte bestätigen, ob dies die endgültige Maschine ist und welcher Portbereich für 3D-MIR reserviert werden soll. |
 | F29 | 🟡 In Arbeit | Gibt es einen Staging-/Testserver? Aktuell nicht dokumentiert. |
+| F72 | 🟡 In Arbeit | **Port auf `kap-srv`:** Der Installer prüft die Belegung und wählt bei freier Wahl automatisch einen Port im Bereich 3000–3099. Soll ein fester Port reserviert werden? |
 
 ## 6. Domain, DNS und TLS 🔴
 
@@ -173,7 +174,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 1. **Preise und Versand bestätigen:** F1–F8, F14–F20 und F66 in `config/pricing.json` bzw. im Admin korrigieren.
 2. **Zahlung live schalten:** F13 (Bankverbindung) und F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test).
 3. **Benachrichtigungen einrichten:** F21–F24, F69–F71 (SMTP, Telegram, Kanal und Ereignisse).
-4. **DNS und TLS:** F30–F33 (Domain auf neuen Server, certbot, kanonische www-Variante).
+4. **DNS, TLS und Port:** F30–F33 (Domain, certbot, kanonische www-Variante) und F72 (reservierter Port auf dem Shared Server).
 5. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
 6. **Betrieb absichern:** F61–F65 (externes Backup, Aufbewahrung, 2FA, Monitoring).
 7. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.

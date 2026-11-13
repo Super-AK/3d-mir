@@ -187,6 +187,8 @@ cd /var/www/3d-mir.de
 sudo DOMAIN=3d-mir.de CERTBOT_EMAIL=admin@example.de deploy/install.sh
 ```
 
+Der Installer prüft vor dem Start, ob der Anwendungsport frei ist. Ist Port 3000 bereits durch eine andere Web-App belegt, wählt er automatisch einen freien Port im Bereich 3000–3099 und schreibt ihn in `.env` und NGINX-Konfiguration. Ein explizit gesetzter `PORT` wird respektiert; ist er belegt, bricht der Installer mit einem Vorschlag ab.
+
 Der Installer fragt zusätzlich nach Admin-E-Mail und Name. Er richtet ein:
 
 - Systempakete (NGINX, SQLite, certbot, ufw, rsync),
@@ -195,7 +197,7 @@ Der Installer fragt zusätzlich nach Admin-E-Mail und Name. Er richtet ein:
 - `/etc/3d-mir/3d-mir.env` mit zufälligem `SESSION_SECRET`,
 - Node-Abhängigkeiten und Produktionsbuild,
 - systemd-Dienst `3d-mir.service`,
-- NGINX-Vhost für Domain und `www`,
+- eigene NGINX-Konfiguration `/etc/nginx/sites-available/<domain>.conf` für Domain und `www`,
 - Firewall-Regeln für 22/80/443,
 - optional Admin-Zugang,
 - optional TLS.
@@ -330,6 +332,7 @@ Das Menü bietet:
 - Logs anzeigen
 - Konfiguration anzeigen
 - Menü neu laden
+- Port prüfen / freien Port setzen
 - Beenden
 
 Nach jeder Aktion erscheint das Menü erneut. Mit „Menü neu laden“ wird die Ansicht frisch aufgebaut.
@@ -401,11 +404,14 @@ Der Installer legt an:
 /etc/nginx/sites-enabled/3d-mir.de.conf
 ```
 
-Andere Vhosts bleiben unverändert. Der Installer entfernt lediglich den Symlink `/etc/nginx/sites-enabled/default`, falls vorhanden. Wenn die Standardseite erhalten bleiben soll, vorher sichern:
+Andere Vhosts bleiben unverändert. Der Installer legt ausschließlich eine **eigene** Konfiguration an:
 
-```bash
-sudo cp -a /etc/nginx/sites-enabled/default /root/backups/nginx-default-$(date +%F).conf
+```text
+/etc/nginx/sites-available/3d-mir.de.conf
+/etc/nginx/sites-enabled/3d-mir.de.conf
 ```
+
+Die NGINX-Default-Site wird **nicht** entfernt. Sie bleibt für andere Hostnamen/IP-Aufrufe zuständig; die 3D-MIR-Domain wird über den spezifischen `server_name` dieser eigenen Datei bedient. Vor Änderungen wird die bestehende NGINX-Konfiguration gesichert.
 
 Vor dem Installer-Backup:
 

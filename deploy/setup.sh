@@ -17,6 +17,7 @@ ENV_FILE="${ENV_FILE:-/etc/3d-mir/3d-mir.env}"
 SERVICE="${SERVICE:-3d-mir.service}"
 SERVICE_USER="${SERVICE_USER:-mir3d}"
 DOMAIN="${DOMAIN:-3d-mir.de}"
+NGINX_SITE_NAME="${NGINX_SITE_NAME:-${DOMAIN}.conf}"
 PORT="${PORT:-3000}"
 DB_PATH="${DB_PATH:-$DATA_DIR/db/3d-mir.sqlite}"
 
@@ -67,6 +68,28 @@ set_env() {
   ' "$ENV_FILE" > "$tmp"
   install -m 600 -o root -g root "$tmp" "$ENV_FILE"
   rm -f "$tmp"
+}
+
+port_in_use() {
+  ss -ltnH "( sport = :$1 )" 2>/dev/null | grep -q .
+}
+
+port_owned_by_service() {
+  local pid
+  pid="$(systemctl show -p MainPID --value "$SERVICE" 2>/dev/null || true)"
+  [[ "$pid" =~ ^[0-9]+$ && "$pid" -gt 0 ]] || return 1
+  ss -ltnpH "( sport = :$1 )" 2>/dev/null | grep -q "pid=$pid,"
+}
+
+find_free_port() {
+  local start="${1:-3000}" end="${2:-3099}" p
+  for p in $(seq "$start" "$end"); do
+    if ! port_in_use "$p"; then
+      printf '%s' "$p"
+      return 0
+    fi
+  done
+  return 1
 }
 
 require_app() {
@@ -164,8 +187,11 @@ action_prerequisites() {
     local app_port
     app_port="$(get_env PORT)"; app_port="${app_port:-$PORT}"
     printf '%-34s' "Port $app_port:"
-    if ss -ltn 2>/dev/null | grep -Eq ":${app_port}[[:space:]]"; then
+    if port_in_use "$app_port"; then
       echo "belegt"
+      local free_port
+      free_port="$(find_free_port 3000 3099 || true)"
+      [[ -n "$free_port" ]] && echo "                                     Vorschlag: Port $free_port"
     else
       echo "frei"
     fi
@@ -206,6 +232,20 @@ action_systemcheck() {
     echo
     echo "--- Ports ---"
     ss -ltnp 2>/dev/null | sed -n '1,20p' || true
+    echo
+    echo "--- Anwendungsport ---"
+    if port_in_use "$app_port"; then
+      if port_owned_by_service "$app_port"; then
+        echo "Port $app_port: von $SERVICE genutzt"
+      else
+        echo "Port $app_port: durch einen anderen Prozess belegt"
+        local free_port
+        free_port="$(find_free_port 3000 3099 || true)"
+        [[ -n "$free_port" ]] && echo "Vorschlag: Port $free_port"
+      fi
+    else
+      echo "Port $app_port: frei"
+    fi
     echo
     echo "--- Speicher ---"
     df -h "$DATA_DIR" "$LOG_DIR" 2>/dev/null || true
@@ -381,6 +421,54 @@ action_admin_setup() {
   fi
 }
 
+action_port_setup() {
+  require_app || return 0
+  local current suggested default_port new_port site out
+  current="$(get_env PORT)"; current="${current:-$PORT}"
+  suggested="$(find_free_port 3000 3099 || true)"
+
+  if port_in_use "$current" && ! port_owned_by_service "$current"; then
+    warn "Port $current ist bereits durch einen anderen Prozess belegt."
+    default_port="${suggested:-$current}"
+  else
+    default_port="$current"
+  fi
+
+  ask new_port "Anwendungsport (Vorschlag: ${suggested:-$current}):" "$default_port" || return 0
+  [[ "$new_port" =~ ^[0-9]+$ ]] && (( new_port >= 1024 && new_port <= 65535 )) || {
+    warn "Ungültiger Port: $new_port. Bitte einen Wert zwischen 1024 und 65535 angeben."
+    return 0
+  }
+  if [[ "$new_port" != "$current" ]] && port_in_use "$new_port" && ! port_owned_by_service "$new_port"; then
+    warn "Port $new_port ist belegt. Bitte einen freien Port wählen."
+    return 0
+  fi
+
+  set_env PORT "$new_port"
+  site="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
+  if [[ -f "$site" ]]; then
+    cp -a "$site" "${site}.bak-$(date +%Y%m%d-%H%M%S)"
+    sed -i "s/127.0.0.1:${current}/127.0.0.1:${new_port}/g" "$site"
+    log "NGINX-Konfiguration angepasst: $site"
+  else
+    warn "$site nicht gefunden. Bitte proxy_pass manuell auf 127.0.0.1:$new_port ändern."
+  fi
+
+  out="$(mktemp)"
+  {
+    systemctl restart "$SERVICE" 2>&1 || true
+    nginx -t 2>&1 || true
+    systemctl reload nginx 2>&1 || true
+    sleep 1
+    systemctl status "$SERVICE" --no-pager 2>&1 | sed -n '1,12p' || true
+    echo
+    echo "Health auf Port $new_port:"
+    curl -fsS "http://127.0.0.1:${new_port}/api/health" 2>&1 || echo "nicht erreichbar"
+  } > "$out" 2>&1
+  show_text "Port $new_port" "$out"
+  rm -f "$out"
+}
+
 action_restart_services() {
   log "Dienste neu starten"
   local out
@@ -419,6 +507,7 @@ action_config() {
     echo "ENV_FILE:   $ENV_FILE"
     echo "DB_PATH:    $DB_PATH"
     echo "DOMAIN:     $DOMAIN"
+    echo "NGINX-SITE: $NGINX_SITE_NAME"
     local env_port
     env_port="$(get_env PORT)"
     echo "PORT:       ${env_port:-$PORT}"
@@ -486,7 +575,8 @@ main_menu() {
       12 "Logs anzeigen" \
       13 "Konfiguration anzeigen" \
       14 "Menü neu laden" \
-      15 "Beenden" \
+      15 "Port prüfen / freien Port setzen" \
+      16 "Beenden" \
       3>&1 1>&2 2>&3
     return
   fi
@@ -508,7 +598,8 @@ main_menu() {
 12) Logs anzeigen
 13) Konfiguration anzeigen
 14) Menü neu laden
-15) Beenden
+15) Port prüfen / freien Port setzen
+16) Beenden
 EOF
   local choice
   read -r -p "Auswahl: " choice || return 1
@@ -533,6 +624,7 @@ if [[ -n "${SETUP_ACTION:-}" ]]; then
     logs) action_logs ;;
     config) action_config ;;
     notifications) action_notification_help ;;
+    port) action_port_setup ;;
     *) die "Unbekannte SETUP_ACTION: $SETUP_ACTION" ;;
   esac
   exit 0
@@ -558,7 +650,8 @@ while true; do
     12) action_logs ;;
     13) action_config ;;
     14) clear ;;
-    15) exit 0 ;;
+    15) action_port_setup ;;
+    16) exit 0 ;;
     *) warn "Unbekannte Auswahl: $choice" ;;
   esac
 
