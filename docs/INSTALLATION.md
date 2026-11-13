@@ -334,6 +334,12 @@ Das Menü bietet:
 
 Nach jeder Aktion erscheint das Menü erneut. Mit „Menü neu laden“ wird die Ansicht frisch aufgebaut.
 
+Wenn `whiptail` fehlt oder die Sitzung kein interaktives Terminal ist, erscheint automatisch ein numerisches Textmenü. Für die grafische Variante:
+
+```bash
+sudo apt-get install -y whiptail
+```
+
 ---
 
 ## 4. Variante B – Vorhandener Server

@@ -474,7 +474,7 @@ main_menu() {
     return
   fi
 
-  cat <<'EOF'
+  cat >&2 <<'EOF'
 3D-MIR Setup
 ============
  1) Installation / Reparatur starten
@@ -495,6 +495,8 @@ main_menu() {
 EOF
   local choice
   read -r -p "Auswahl: " choice || return 1
+  # Nur die Auswahl auf stdout; der Menütext geht nach stderr, damit er bei
+  # `choice="$(main_menu)"` nicht in der Variablen landet.
   echo "$choice"
 }
 
