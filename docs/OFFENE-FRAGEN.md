@@ -1,144 +1,170 @@
 # Offene Fragen an den Auftraggeber
 
-Stand: 13.11.2026 · Zuletzt geprüft: 13.11.2026 · Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; Einzelfragen sind mit `[F1]` usw. nummeriert.
+**Stand:** 13.11.2026 · **Version:** 2.0 · **Zuletzt geprüft:** 13.11.2026
 
-**Legende:** 🔴 blockiert eine Phase · 🟡 wichtig, aber mit Platzhalter überbrückbar · 🟢 später klärbar
+Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; Einzelfragen sind mit `[F1]` usw. nummeriert. Erledigte Punkte bleiben mit Datum und Nachweis dokumentiert, damit Verweise und die Historie erhalten bleiben.
+
+**Legende:**
+
+| Status | Bedeutung |
+| --- | --- |
+| 🔴 Offen | blockiert den Livegang oder eine Freigabe |
+| 🟡 In Arbeit | technisch vorbereitet, aber Werte, Zugangsdaten oder Freigabe fehlen |
+| ✅ Erledigt | umgesetzt und geprüft; Datum und Nachweis sind angegeben |
+| 🟢 Später | wichtig, aber nicht für den Start erforderlich |
 
 **Kurzstand:** Zahlung, Benachrichtigungen, Setup-Menü und Installationsanleitung sind technisch umgesetzt. Offen sind vor allem fachliche Freigaben (Preise, Versand, Recht), Zugangsdaten (Bank, SMTP, Telegram, Stripe live) und DNS/TLS.
 
 ---
 
+## Statusübersicht
+
+| Bereich | Status | Kurzbemerkung |
+| --- | --- | --- |
+| Zahlungsarten | 🟡 In Arbeit | Testmodus und alle Methoden geprüft; Bankdaten und Live-Schaltung offen |
+| Benachrichtigungen | 🟡 In Arbeit | Admin/Setup vorhanden; SMTP- und Telegram-Daten offen |
+| Installation/Deployment | ✅ Erledigt | Installationsanleitung und interaktives Setup-Menü vorhanden |
+| Preise/Kalkulation | 🔴 Offen | Platzhalter und Overrides müssen bestätigt werden |
+| Versand | 🟡 In Arbeit | Technik vorhanden; Preise/Lieferzeiten unbestätigt |
+| DNS/TLS | 🔴 Offen | Domain zeigt noch auf WordPress; TLS nicht aktiv |
+| Rechtstexte | 🔴 Offen | Entwürfe vorhanden; rechtliche Prüfung offen |
+| Betrieb/Backup | 🟡 In Arbeit | Backup-Skripte vorhanden; externes Ziel/Monitoring offen |
+
+---
+
 ## 1. Preise und Kalkulation (Rechner) 🔴
 
-Alle Werte stehen aktuell als **Platzhalter** in `config/pricing.json` und sind in der Oberfläche als „unverbindliche Schätzung“ gekennzeichnet.
+Alle Werte stehen aktuell als **Platzhalter** in `config/pricing.json` und sind in der Oberfläche als „unverbindliche Schätzung“ gekennzeichnet. Einzelne Werte werden bereits durch Admin-Overrides überlagert.
 
-| Nr. | Frage | Aktueller Platzhalter |
-| --- | --- | --- |
-| F1 | Materialpreis pro Gramm für PLA, PLA Tough, PETG, ABS, ASA, ABS-PC? | 0,05–0,10 €/g |
-| F2 | Maschinenstundensatz für Bambu Lab X1C und Anycubic i3 Mega S? | 2,50 €/h bzw. 1,20 €/h |
-| F3 | Rüstkosten pro Auftrag und pro zusätzlichem Teil? | 3,50 € / 0,75 € |
-| F4 | Mindestauftragswert? | aktuell 6,00 € (Admin-Override), Grunddatei 15,00 € |
-| F5 | Mengenrabatte (ab welcher Stückzahl, wie viel Prozent)? | 5 % ab 3, 10 % ab 5, 15 % ab 10, 20 % ab 25 |
-| F6 | Aufschläge für Nachbearbeitung (Schleifen, Grundieren/Lackieren)? | 4,00 € / 9,00 € pro Teil |
-| F7 | Sollen Druckzeit und Materialverbrauch pauschal oder modellgenau geschätzt werden? (Die Berechnung nutzt Volumen × Füllung + Wandstärken; eine exakte Slicer-Zeit ist ohne Slicer nicht möglich.) | modellgenaue Schätzung |
-| F8 | Sollen Preise inkl. oder zzgl. der gesetzlichen USt. gedacht sein? (Kleinunternehmer: kein USt.-Ausweis) | Brutto, kein USt.-Ausweis |
+| Nr. | Status | Frage | Aktueller Platzhalter |
+| --- | --- | --- | --- |
+| F1 | 🔴 Offen | Materialpreis pro Gramm für PLA, PLA Tough, PETG, ABS, ASA, ABS-PC? | 0,05–0,10 €/g |
+| F2 | 🔴 Offen | Maschinenstundensatz für Bambu Lab X1C und Anycubic i3 Mega S? | 2,50 €/h bzw. 1,20 €/h |
+| F3 | 🔴 Offen | Rüstkosten pro Auftrag und pro zusätzlichem Teil? | 3,50 € / 0,75 € |
+| F4 | 🔴 Offen | Mindestauftragswert? | aktuell 6,00 € (Admin-Override), Grunddatei 15,00 € |
+| F5 | 🔴 Offen | Mengenrabatte (ab welcher Stückzahl, wie viel Prozent)? | 5 % ab 3, 10 % ab 5, 15 % ab 10, 20 % ab 25 |
+| F6 | 🔴 Offen | Aufschläge für Nachbearbeitung (Schleifen, Grundieren/Lackieren)? | 4,00 € / 9,00 € pro Teil |
+| F7 | 🔴 Offen | Sollen Druckzeit und Materialverbrauch pauschal oder modellgenau geschätzt werden? (Die Berechnung nutzt Volumen × Füllung + Wandstärken; eine exakte Slicer-Zeit ist ohne Slicer nicht möglich.) | modellgenaue Schätzung |
+| F8 | 🔴 Offen | Sollen Preise inkl. oder zzgl. der gesetzlichen USt. gedacht sein? (Kleinunternehmer: kein USt.-Ausweis) | Brutto, kein USt.-Ausweis |
 
 ## 2. Zahlungsarten 🟡
 
 Die Altseite nennt Kreditkarte, Überweisung, Nachnahme, PayPal, iDEAL und Klarna (WooPayments/PayPal-Plugins). Technisch umgesetzt sind Vorkasse, Karte, PayPal, Amazon Pay, Klarna und iDEAL über Stripe. Der Stripe-Testmodus ist eingerichtet; alle fünf Online-Zahlungsarten wurden als Checkout-Session erfolgreich geprüft. Offen sind Bankverbindung, Live-Schlüssel, Live-Webhook und der Live-Test.
 
-| Nr. | Entscheidung / offener Punkt |
-| --- | --- |
-| F9 | **Entschieden:** Vorkasse, Kredit-/Debitkarte, PayPal, Amazon Pay, Klarna und iDEAL zum Start. SEPA-Lastschrift, Nachnahme und Rechnung später. |
-| F10 | **Entschieden:** PayPal läuft über Stripe. Das bestehende PayPal-Business-Konto wird für diese Shop-Zahlungen nicht genutzt; direkte PayPal-Anbindung bleibt Option für später. |
-| F11 | **Entschieden:** Stripe Checkout für Karte, PayPal, Amazon Pay, Klarna und iDEAL. Testkonto und Testschlüssel sind eingerichtet, die Zahlungsarten sind freigeschaltet. Offen: Live-Verifizierung und Live-Webhook. |
-| F12 | **Entschieden:** Nachnahme zum Start nicht. Die alte Gebühr (1,00 € + 8,99 €) wird nicht übernommen. |
-| F13 | **Offen:** Bankverbindung (IBAN, BIC, Kontoinhaber) unter **Admin → Zahlungen** eintragen – nicht per E-Mail oder ins Repository. |
-| F68 | **Offen:** Livegang von Stripe: Live-Schlüssel (`sk_live_…`), Live-Webhook-Secret, finaler `PAYMENT_BASE_URL` und eine echte Live-Testzahlung. Der Testmodus läuft bereits. |
-
-## 3. Versand 🔴
-
-| Nr. | Frage | Platzhalter |
+| Nr. | Status | Entscheidung / offener Punkt |
 | --- | --- | --- |
-| F14 | Versanddienstleister (DHL, Hermes, …)? | DHL Paket |
-| F15 | Versandkosten und Gewichts-/Größenstaffel? | 4,99 € pauschal |
-| F16 | Ab welchem Bestellwert versandkostenfrei? | ab 50,00 € |
-| F17 | Lieferzeit (Altseite: 2–5 Tage)? | 2–5 Werktage |
-| F18 | Abholung in Schömberg möglich? | ja, nach Absprache |
-| F19 | Versand ins Ausland? Wenn ja, welche Länder und zu welchen Kosten? | nein |
-| F20 | Versand von Rechner-Aufträgen: pauschal, nach Gewicht oder individuell im Angebot? | individuell im Angebot |
+| F9 | ✅ Erledigt | **Entschieden:** Vorkasse, Kredit-/Debitkarte, PayPal, Amazon Pay, Klarna und iDEAL zum Start. SEPA-Lastschrift, Nachnahme und Rechnung später. Nachweis: Commit `c21ac49`, `764d8a7`.<br>*(13.11.2026)* |
+| F10 | ✅ Erledigt | **Entschieden:** PayPal läuft über Stripe. Das bestehende PayPal-Business-Konto wird für diese Shop-Zahlungen nicht genutzt; direkte PayPal-Anbindung bleibt Option für später. Nachweis: Stripe-Test.<br>*(13.11.2026)* |
+| F11 | 🟡 In Arbeit | **Entschieden:** Stripe Checkout für Karte, PayPal, Amazon Pay, Klarna und iDEAL. Testkonto und Testschlüssel sind eingerichtet, die Zahlungsarten sind freigeschaltet. Offen: Live-Verifizierung und Live-Webhook. |
+| F12 | ✅ Erledigt | **Entschieden:** Nachnahme zum Start nicht. Die alte Gebühr (1,00 € + 8,99 €) wird nicht übernommen.<br>*(13.11.2026)* |
+| F13 | 🔴 Offen | Bankverbindung (IBAN, BIC, Kontoinhaber) unter **Admin → Zahlungen** eintragen – nicht per E-Mail oder ins Repository. |
+| F68 | 🟡 In Arbeit | **Livegang von Stripe:** Testmodus läuft. Offen: Live-Schlüssel (`sk_live_…`), Live-Webhook-Secret, finaler `PAYMENT_BASE_URL` und eine echte Live-Testzahlung. |
+
+## 3. Versand 🟡
+
+Die Versandseite, Versandoptionen und die Checkout-Logik sind umgesetzt. Die fachlichen Werte sind weiterhin Platzhalter.
+
+| Nr. | Status | Frage | Platzhalter |
+| --- | --- | --- | --- |
+| F14 | 🟡 In Arbeit | Versanddienstleister (DHL, Hermes, …)? | DHL Paket |
+| F15 | 🟡 In Arbeit | Versandkosten und Gewichts-/Größenstaffel? | 4,99 € pauschal |
+| F16 | 🟡 In Arbeit | Ab welchem Bestellwert versandkostenfrei? | ab 50,00 € |
+| F17 | 🟡 In Arbeit | Lieferzeit (Altseite: 2–5 Tage)? | 2–5 Werktage |
+| F18 | 🟡 In Arbeit | Abholung in Schömberg möglich? | ja, nach Absprache |
+| F19 | 🟡 In Arbeit | Versand ins Ausland? Wenn ja, welche Länder und zu welchen Kosten? | nein |
+| F20 | 🟡 In Arbeit | Versand von Rechner-Aufträgen: pauschal, nach Gewicht oder individuell im Angebot? | individuell im Angebot |
 
 ## 4. E-Mail / SMTP und Benachrichtigungen 🟡
 
 E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin unter **Benachrichtigungen** als auch über das Setup-Menü (`sudo deploy/setup.sh`) möglich. Ohne SMTP werden E-Mails als `.eml` unter `/var/log/3d-mir/mail/` gespeichert (nur für Tests).
 
-| Nr. | Frage / Entscheidung |
-| --- | --- |
-| F21 | **Offen:** SMTP-Host, Port, Verschlüsselung (STARTTLS/SSL) und Postfach (z. B. `info@3d-mir.de`). |
-| F22 | **Entschieden:** Ja, es gibt eine interaktive Maske im Setup-Menü und im Admin. Zugangsdaten werden nicht im Repository gespeichert. |
-| F23 | Absender und Betreiber-Postfach sind aktuell `MAIL_FROM=3D-MIR <info@3d-mir.de>` und `MAIL_TO=info@3d-mir.de`. Bitte bestätigen oder korrigieren. |
-| F24 | **Offen:** Sollen Kunden-E-Mails (Bestellbestätigung, Angebot) zusätzlich eine Kopie an den Betreiber erhalten? Aktuell nein. |
-| F69 | **Offen:** Telegram: Bot-Token und Chat-ID unter **Admin → Benachrichtigungen** eintragen und Testnachricht senden. |
-| F70 | **Offen:** Standardkanal für Admin-Benachrichtigungen: nur E-Mail, nur Telegram oder beides? Aktuell ist „nur E-Mail“ voreingestellt. |
-| F71 | **Offen:** Für welche Ereignisse soll Telegram zusätzlich informieren? Aktuell: neue Bestellung, Kontaktanfrage, Angebotsanfrage, Zahlungseingang und Zahlung nach Stornierung. Statusänderungen an Kunden laufen weiterhin nur per E-Mail. |
+| Nr. | Status | Frage / Entscheidung |
+| --- | --- | --- |
+| F21 | 🟡 In Arbeit | SMTP-Host, Port, Verschlüsselung (STARTTLS/SSL) und Postfach (z. B. `info@3d-mir.de`). Die Maske ist vorhanden; Zugangsdaten fehlen. |
+| F22 | ✅ Erledigt | **Entschieden:** Ja, es gibt eine interaktive Maske im Setup-Menü und im Admin. Zugangsdaten werden nicht im Repository gespeichert. Nachweis: Commit `a1234d2`.<br>*(13.11.2026)* |
+| F23 | 🟡 In Arbeit | Absender und Betreiber-Postfach sind aktuell `MAIL_FROM=3D-MIR <info@3d-mir.de>` und `MAIL_TO=info@3d-mir.de`. Bitte bestätigen oder korrigieren. |
+| F24 | 🔴 Offen | Sollen Kunden-E-Mails (Bestellbestätigung, Angebot) zusätzlich eine Kopie an den Betreiber erhalten? Aktuell nein. |
+| F69 | 🟡 In Arbeit | **Telegram:** Bot-Token und Chat-ID unter **Admin → Benachrichtigungen** eintragen und Testnachricht senden. Die Integration ist vorhanden; Zugangsdaten fehlen. |
+| F70 | 🔴 Offen | **Standardkanal** für Admin-Benachrichtigungen: nur E-Mail, nur Telegram oder beides? Aktuell ist „nur E-Mail“ voreingestellt. |
+| F71 | 🔴 Offen | **Ereignisse für Telegram:** Aktuell neue Bestellung, Kontaktanfrage, Angebotsanfrage, Zahlungseingang und Zahlung nach Stornierung. Statusänderungen an Kunden laufen weiterhin nur per E-Mail. Soll das erweitert werden? |
 
 ## 5. GitHub und Deployment 🟢
 
-| Nr. | Frage / Entscheidung |
-| --- | --- |
-| F25 | **Entschieden:** Repository `git@github.com:Super-AK/3d-mir.git`. |
-| F26 | **Entschieden:** SSH-Deploy-Key; Push von `main` nach `origin/main` funktioniert. |
-| F27 | **Offen:** Sichtbarkeit des Repositories (privat/öffentlich) bestätigen. Der Push funktioniert unabhängig davon. |
-| F28 | **Offen:** Ist der aktuelle Server `www3d-mir` die endgültige Produktionsmaschine? Aktuell ist die Anwendung dort installiert. |
-| F29 | **Offen:** Gibt es einen Staging-/Testserver? Aktuell nicht dokumentiert. |
+| Nr. | Status | Frage / Entscheidung |
+| --- | --- | --- |
+| F25 | ✅ Erledigt | **Entschieden:** Repository `git@github.com:Super-AK/3d-mir.git`.<br>*(13.11.2026)* |
+| F26 | ✅ Erledigt | **Entschieden:** SSH-Deploy-Key; Push von `main` nach `origin/main` funktioniert.<br>*(13.11.2026)* |
+| F27 | 🟡 In Arbeit | Sichtbarkeit des Repositories (privat/öffentlich) bestätigen. Der Push funktioniert unabhängig davon. |
+| F28 | 🔴 Offen | Ist der aktuelle Server `www3d-mir` die endgültige Produktionsmaschine? Aktuell ist die Anwendung dort installiert. |
+| F29 | 🟡 In Arbeit | Gibt es einen Staging-/Testserver? Aktuell nicht dokumentiert. |
 
-## 6. Domain, DNS und TLS 🟡
+## 6. Domain, DNS und TLS 🔴
 
-| Nr. | Frage |
-| --- | --- |
-| F30 | Wo liegen DNS und Mail? Aktuell zeigt `www.3d-mir.de` auf die alte WordPress-Installation. |
-| F31 | Auf welche IP soll `3d-mir.de`/`www.3d-mir.de` zeigen? (Bitte erst umstellen, wenn die neue Seite getestet ist – Anleitung in `docs/INSTALLATION.md`.) |
-| F32 | E-Mail-Adresse für Let's-Encrypt-Benachrichtigungen (vermutlich `info@3d-mir.de`)? |
-| F33 | Soll `3d-mir.de` auf `www.3d-mir.de` (oder umgekehrt) weiterleiten? |
+| Nr. | Status | Frage |
+| --- | --- | --- |
+| F30 | 🔴 Offen | Wo liegen DNS und Mail? Aktuell zeigt `www.3d-mir.de` auf die alte WordPress-Installation. |
+| F31 | 🔴 Offen | Auf welche IP soll `3d-mir.de`/`www.3d-mir.de` zeigen? (Bitte erst umstellen, wenn die neue Seite getestet ist – Anleitung in `docs/INSTALLATION.md`.) |
+| F32 | 🔴 Offen | E-Mail-Adresse für Let's-Encrypt-Benachrichtigungen (vermutlich `info@3d-mir.de`)? |
+| F33 | 🔴 Offen | Soll `3d-mir.de` auf `www.3d-mir.de` (oder umgekehrt) weiterleiten? |
 
 ## 7. Inhalte, Bilder und Marke 🟡
 
-| Nr. | Frage |
-| --- | --- |
-| F34 | Liegt das Logo als **Vektor** (SVG/AI/EPS) vor? Aktuell nutze ich das PNG (611 × 600) aus dem WordPress-Upload. |
-| F35 | Welche der alten Fotos sind **eigene Drucke** und dürfen weiterverwendet werden? Gibt es Freigaben für Fremdmotive? |
-| F36 | Bitte 3–6 aktuelle, gut ausgeleuchtete Fotos eigener Drucke (Querformat, mind. 1600 px) für Hero und Galerie. |
-| F37 | Gibt es Referenzkunden/Projekte, die genannt werden dürfen? |
-| F38 | Sollen die Etsy-Bewertungen verlinkt werden? Bitte direkte URL (Platzhalter `TODO-ETSY-BEWERTUNGEN-URL`). |
-| F39 | Schreibweise Etsy-Shop: `3DlMIR` (mit kleinem L) oder `3DIMIR`? Die alte URL lautet `…/shop/3DlMIR`. |
-| F40 | Gibt es Öffnungszeiten/Erreichbarkeit, die im Footer/Kontakt stehen sollen? |
+| Nr. | Status | Frage |
+| --- | --- | --- |
+| F34 | 🟡 In Arbeit | Liegt das Logo als **Vektor** (SVG/AI/EPS) vor? Aktuell wird das PNG (611 × 600) aus dem WordPress-Upload genutzt. |
+| F35 | 🟡 In Arbeit | Welche der alten Fotos sind **eigene Drucke** und dürfen weiterverwendet werden? Gibt es Freigaben für Fremdmotive? |
+| F36 | 🟡 In Arbeit | Bitte 3–6 aktuelle, gut ausgeleuchtete Fotos eigener Drucke (Querformat, mind. 1600 px) für Hero und Galerie. |
+| F37 | 🟡 In Arbeit | Gibt es Referenzkunden/Projekte, die genannt werden dürfen? |
+| F38 | 🟡 In Arbeit | Sollen die Etsy-Bewertungen verlinkt werden? Bitte direkte URL (Platzhalter `TODO-ETSY-BEWERTUNGEN-URL`). |
+| F39 | 🟡 In Arbeit | Schreibweise Etsy-Shop: `3DlMIR` (mit kleinem L) oder `3DIMIR`? Die alte URL lautet `…/shop/3DlMIR`. |
+| F40 | 🟡 In Arbeit | Gibt es Öffnungszeiten/Erreichbarkeit, die im Footer/Kontakt stehen sollen? |
 
 ## 8. Drucker und Materialien 🟡
 
-| Nr. | Frage | Annahme |
-| --- | --- | --- |
-| F41 | Bauraum Bambu Lab X1C? | 256 × 256 × 256 mm |
-| F42 | Bauraum Anycubic i3 Mega S? | 210 × 210 × 205 mm |
-| F43 | Welche Materialien laufen auf welchem Drucker? | X1C: alle; i3: PLA, PLA Tough, PETG |
-| F44 | Steht AMS/Mehrfarbdruck zur Verfügung? | nein (TODO) |
-| F45 | Welche Farben sind je Material tatsächlich vorrätig? | Standardfarben aus Altprodukt |
-| F46 | Gibt es Mindestwandstärken/Designregeln, die wir Kunden nennen sollen? | noch keine |
-| F47 | „Coating“ auf der Altseite: Was genau wird angeboten (Glätten, Lackieren, Versiegeln)? | Schleifen/Lackieren als Platzhalter |
-| F66 | Sind die Kalkulationswerte realistisch: Wandstärke 1,2 mm, Materialdurchsatz 15 cm³/h (Override), Verschnitt 5 %, Rüstkosten 3,50 € + 0,75 € je weiterem Teil, Mindestauftrag 6,00 € (Override), Rundung 0,10 €? Bitte in `config/pricing.json` bzw. im Admin bestätigen oder korrigieren (siehe `docs/KALKULATION.md`). | Platzhalter |
+| Nr. | Status | Frage | Annahme |
+| --- | --- | --- | --- |
+| F41 | 🟡 In Arbeit | Bauraum Bambu Lab X1C? | 256 × 256 × 256 mm |
+| F42 | 🟡 In Arbeit | Bauraum Anycubic i3 Mega S? | 210 × 210 × 205 mm |
+| F43 | 🟡 In Arbeit | Welche Materialien laufen auf welchem Drucker? | X1C: alle; i3: PLA, PLA Tough, PETG |
+| F44 | 🟡 In Arbeit | Steht AMS/Mehrfarbdruck zur Verfügung? | nein (TODO) |
+| F45 | 🟡 In Arbeit | Welche Farben sind je Material tatsächlich vorrätig? | Standardfarben aus Altprodukt |
+| F46 | 🟡 In Arbeit | Gibt es Mindestwandstärken/Designregeln, die wir Kunden nennen sollen? | noch keine |
+| F47 | 🟡 In Arbeit | „Coating“ auf der Altseite: Was genau wird angeboten (Glätten, Lackieren, Versiegeln)? | Schleifen/Lackieren als Platzhalter |
+| F66 | 🔴 Offen | Sind die Kalkulationswerte realistisch: Wandstärke 1,2 mm, Materialdurchsatz 15 cm³/h (Override), Verschnitt 5 %, Rüstkosten 3,50 € + 0,75 € je weiterem Teil, Mindestauftrag 6,00 € (Override), Rundung 0,10 €? Bitte in `config/pricing.json` bzw. im Admin bestätigen oder korrigieren (siehe `docs/KALKULATION.md`). | Platzhalter |
 
 ## 9. Shop und Produkte 🟡
 
-| Nr. | Frage |
-| --- | --- |
-| F48 | Das Altprodukt „Recycling-Box“ kostet 11,00–12,50 € je nach Farbe. Welche Farben kosten welchen Preis? |
-| F49 | Gewicht wird auf der Altseite mit „0,70 g“ angegeben – ist das ein Tippfehler (70 g)? |
-| F50 | Lagerbestand: Wird auf Bestellung gedruckt (kein Bestand) oder sollen Stückzahlen gepflegt werden? |
-| F51 | Sind weitere Produkte geplant? Bitte Name, Beschreibung, Preis, Varianten, Fotos. |
-| F52 | Sollen Produktbewertungen möglich sein? (Erfordert Konto + Moderation.) |
-| F53 | Kundenkonto gewünscht oder nur Gastbestellungen? (Aktuell ist das Konto optional und nicht aktiv.) |
-| F67 | Soll der Shop nach Freigabe von Preisen, Versand und Recht live gehen? Checkout und Zahlung (Stripe-Testmodus) sind technisch aktiv; der Livegang erfolgt erst nach fachlicher Freigabe und Stripe-Live-Schaltung. |
+| Nr. | Status | Frage |
+| --- | --- | --- |
+| F48 | 🟡 In Arbeit | Das Altprodukt „Recycling-Box“ kostet 11,00–12,50 € je nach Farbe. Welche Farben kosten welchen Preis? |
+| F49 | 🟡 In Arbeit | Gewicht wird auf der Altseite mit „0,70 g“ angegeben – ist das ein Tippfehler (70 g)? |
+| F50 | 🟡 In Arbeit | Lagerbestand: Wird auf Bestellung gedruckt (kein Bestand) oder sollen Stückzahlen gepflegt werden? |
+| F51 | 🟡 In Arbeit | Sind weitere Produkte geplant? Bitte Name, Beschreibung, Preis, Varianten, Fotos. |
+| F52 | 🟡 In Arbeit | Sollen Produktbewertungen möglich sein? (Erfordert Konto + Moderation.) |
+| F53 | 🟡 In Arbeit | Kundenkonto gewünscht oder nur Gastbestellungen? (Aktuell ist das Konto optional und nicht aktiv.) |
+| F67 | 🔴 Offen | Soll der Shop nach Freigabe von Preisen, Versand und Recht live gehen? Checkout und Zahlung (Stripe-Testmodus) sind technisch aktiv; der Livegang erfolgt erst nach fachlicher Freigabe und Stripe-Live-Schaltung. |
 
 ## 10. Recht und Datenschutz 🔴
 
-| Nr. | Frage |
-| --- | --- |
-| F54 | Wer prüft die Rechtstexte (Anwalt/Steuerberater)? Die Texte sind als technische Entwürfe markiert und müssen vor dem Livegang freigegeben werden. |
-| F55 | Hosting: Ist dieser Server ein gemieteter Root-Server? Bitte Anbieter und Anschrift für die Datenschutzerklärung (AVV mit dem Hoster nötig). |
-| F56 | **Entschieden:** Die Abschnitte zu Google Analytics/AdSense wurden entfernt. Die neue Seite setzt kein Tracking ein. |
-| F57 | **Umgesetzt:** Die AGB wurden sprachlich an den neuen Checkout und die Zahlungsarten angepasst; die rechtliche Prüfung bleibt offen. |
-| F58 | **Offen:** Für individuell gefertigte Drucke gilt der Widerrufsausschluss (§ 312g Abs. 2 Nr. 1 BGB). Soll dieser Hinweis im Rechner/Checkout explizit ergänzt werden? |
-| F59 | **Entwurf aktualisiert:** Die Datenschutzerklärung beschreibt Rechner-Upload, E-Mail-Ablage und Zahlungsdienstleister. Offen: automatische Löschung der Uploads nach 90 Tagen technisch umsetzen und rechtlich bestätigen. |
-| F60 | **Empfehlung:** Kein Consent-Banner nötig, solange nur technisch notwendige Cookies und keine externen Skripte/Tracker eingesetzt werden. Bitte rechtlich bestätigen. |
+| Nr. | Status | Frage |
+| --- | --- | --- |
+| F54 | 🔴 Offen | Wer prüft die Rechtstexte (Anwalt/Steuerberater)? Die Texte sind als technische Entwürfe markiert und müssen vor dem Livegang freigegeben werden. |
+| F55 | 🔴 Offen | Hosting: Ist dieser Server ein gemieteter Root-Server? Bitte Anbieter und Anschrift für die Datenschutzerklärung (AVV mit dem Hoster nötig). |
+| F56 | ✅ Erledigt | **Entschieden:** Die Abschnitte zu Google Analytics/AdSense wurden entfernt. Die neue Seite setzt kein Tracking ein.<br>*(13.11.2026)* |
+| F57 | 🟡 In Arbeit | **Umgesetzt:** Die AGB wurden sprachlich an den neuen Checkout und die Zahlungsarten angepasst. Offen: rechtliche Prüfung. |
+| F58 | 🔴 Offen | Für individuell gefertigte Drucke gilt der Widerrufsausschluss (§ 312g Abs. 2 Nr. 1 BGB). Soll dieser Hinweis im Rechner/Checkout explizit ergänzt werden? |
+| F59 | 🟡 In Arbeit | **Entwurf aktualisiert:** Die Datenschutzerklärung beschreibt Rechner-Upload, E-Mail-Ablage und Zahlungsdienstleister. Offen: automatische Löschung der Uploads nach 90 Tagen technisch umsetzen und rechtlich bestätigen. |
+| F60 | 🟡 In Arbeit | **Empfehlung:** Kein Consent-Banner nötig, solange nur technisch notwendige Cookies und keine externen Skripte/Tracker eingesetzt werden. Bitte rechtlich bestätigen. |
 
 ## 11. Betrieb 🟢
 
-| Nr. | Frage |
-| --- | --- |
-| F61 | Tägliches Backup: nur lokal unter `/var/lib/3d-mir/backups` oder zusätzlich extern (z. B. Hetzner Storage Box/S3)? |
-| F62 | Aufbewahrungsdauer für Bestellungen/Rechnungen (steuerlich 10 Jahre) und für Angebotsanfragen? |
-| F63 | Soll die Admin-Anmeldung zusätzlich per TOTP-2FA abgesichert werden? Das Datenfeld ist vorbereitet, 2FA ist noch nicht aktiviert. |
-| F64 | **Erledigt:** Der Admin-Zugang des Betreibers ist eingerichtet. Offen: Sollen weitere Personen Zugang erhalten? Zugänge werden mit `npm run admin:create -- --email … --name …` angelegt; Passwörter werden nie im Repo gespeichert. |
-| F65 | Soll ein Monitoring/Alerting (z. B. Uptime-Check) eingerichtet werden? |
+| Nr. | Status | Frage |
+| --- | --- | --- |
+| F61 | 🔴 Offen | Tägliches Backup: nur lokal unter `/var/lib/3d-mir/backups` oder zusätzlich extern (z. B. Hetzner Storage Box/S3)? |
+| F62 | 🟡 In Arbeit | Aufbewahrungsdauer für Bestellungen/Rechnungen (steuerlich 10 Jahre) und für Angebotsanfragen? |
+| F63 | 🔴 Offen | Soll die Admin-Anmeldung zusätzlich per TOTP-2FA abgesichert werden? Das Datenfeld ist vorbereitet, 2FA ist noch nicht aktiviert. |
+| F64 | ✅ Erledigt | **Erledigt:** Der Admin-Zugang des Betreibers ist eingerichtet. Offen: Sollen weitere Personen Zugang erhalten? Zugänge werden mit `npm run admin:create -- --email … --name …` angelegt; Passwörter werden nie im Repo gespeichert.<br>*(13.11.2026)* |
+| F65 | 🔴 Offen | Soll ein Monitoring/Alerting (z. B. Uptime-Check) eingerichtet werden? |
 
 ---
 
@@ -151,3 +177,18 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 5. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
 6. **Betrieb absichern:** F61–F65 (externes Backup, Aufbewahrung, 2FA, Monitoring).
 7. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
+
+---
+
+## Erledigt / Archiv
+
+| Nr. | Erledigt am | Nachweis |
+| --- | --- | --- |
+| F9 | 13.11.2026 | Zahlungsarten festgelegt; Commit `c21ac49`, `764d8a7` |
+| F10 | 13.11.2026 | PayPal über Stripe; Stripe-Test |
+| F12 | 13.11.2026 | Nachnahme nicht zum Start |
+| F22 | 13.11.2026 | Admin-/Setup-Maske für Benachrichtigungen; Commit `a1234d2` |
+| F25 | 13.11.2026 | Repository eingerichtet |
+| F26 | 13.11.2026 | SSH-Push funktioniert |
+| F56 | 13.11.2026 | Tracking-Abschnitte entfernt |
+| F64 | 13.11.2026 | Admin-Zugang eingerichtet |
