@@ -86,6 +86,8 @@ Im Stripe-Dashboard den Endpunkt `https://www.3d-mir.de/zahlung/webhook/stripe/`
 
 Das dabei erzeugte `whsec_…`-Secret als `STRIPE_WEBHOOK_SECRET` hinterlegen. Ohne gültige Signatur lehnt die Anwendung Webhooks mit HTTP 400 ab.
 
+Der Button **„Hilfe zu Stripe“** im Bereich Zahlungen öffnet eine Schritt-für-Schritt-Anleitung zu Konto, Zahlungsarten, Schlüsseln, Webhook, Testzahlung und Fehlersuche.
+
 ## Produkte und Bilder
 
 Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pflegen.

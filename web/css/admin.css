@@ -304,3 +304,33 @@
 }
 .admin-fieldset legend { padding: 0 0.35rem; font-weight: 700; font-size: 1.02rem; }
 .admin-fieldset .admin-check-list { max-width: none; }
+
+/* Hilfebereich im Zahlungsformular */
+.admin-help { margin-top: 1rem; }
+.admin-help > summary {
+  display: inline-flex;
+  cursor: pointer;
+  list-style: none;
+}
+.admin-help > summary::-webkit-details-marker { display: none; }
+.admin-help[open] > summary { margin-bottom: 0.6rem; }
+.admin-help-body {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.admin-help-body h3 { margin: 1rem 0 0.35rem; font-size: 1rem; }
+.admin-help-body h3:first-child { margin-top: 0; }
+.admin-help-body ol,
+.admin-help-body ul { margin: 0.35rem 0 0.6rem; padding-left: 1.25rem; }
+.admin-help-body li { margin-bottom: 0.25rem; }
+.admin-help-body pre {
+  overflow-x: auto;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+}

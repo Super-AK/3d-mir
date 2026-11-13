@@ -110,6 +110,58 @@
         <div><dt>Webhook-URL</dt><dd><code>{{ site.baseUrl }}/zahlung/webhook/stripe/</code></dd></div>
       </dl>
       <p class="hint">Die Schlüssel <code>STRIPE_SECRET_KEY</code> und <code>STRIPE_WEBHOOK_SECRET</code> werden ausschließlich über die Serverumgebung gesetzt. Der Webhook muss im Stripe-Dashboard für die Ereignisse <code>checkout.session.completed</code>, <code>checkout.session.async_payment_succeeded</code>, <code>checkout.session.async_payment_failed</code> und <code>checkout.session.expired</code> eingetragen werden.</p>
+
+      <details class="admin-help">
+        <summary class="btn btn-secondary btn-small">Hilfe zu Stripe</summary>
+        <div class="admin-help-body">
+          <h3>1. Stripe-Konto und Zahlungsarten</h3>
+          <ol>
+            <li>Im Stripe-Dashboard ein Geschäftskonto anlegen und verifizieren.</li>
+            <li>Unter „Zahlungsarten“ Karte, PayPal, Amazon Pay, Klarna und iDEAL aktivieren.</li>
+            <li>Bis zur DNS-/TLS-Umstellung ausschließlich den Testmodus verwenden.</li>
+          </ol>
+
+          <h3>2. Schlüssel hinterlegen</h3>
+          <p>In <code>/etc/3d-mir/3d-mir.env</code> eintragen:</p>
+          <pre><code>STRIPE_MODE=test
+STRIPE_SECRET_KEY=sk_test_…
+STRIPE_WEBHOOK_SECRET=whsec_…
+PAYMENT_BASE_URL=https://www.3d-mir.de</code></pre>
+          <p>Danach den Dienst neu starten: <code>sudo systemctl restart 3d-mir.service</code></p>
+
+          <h3>3. Webhook anlegen</h3>
+          <p>Im Stripe-Dashboard einen Webhook-Endpunkt anlegen:</p>
+          <p><code>{{ site.baseUrl }}/zahlung/webhook/stripe/</code></p>
+          <p>Folgende Ereignisse abonnieren:</p>
+          <ul>
+            <li><code>checkout.session.completed</code></li>
+            <li><code>checkout.session.async_payment_succeeded</code></li>
+            <li><code>checkout.session.async_payment_failed</code></li>
+            <li><code>checkout.session.expired</code></li>
+          </ul>
+          <p>Das angezeigte Webhook-Secret als <code>STRIPE_WEBHOOK_SECRET</code> hinterlegen.</p>
+
+          <h3>4. Testzahlung</h3>
+          <ul>
+            <li>Testkarte: <code>4242 4242 4242 4242</code>, beliebiges zukünftiges Datum, beliebige CVC.</li>
+            <li>Klarna und Amazon Pay im Testmodus prüfen; eine Ablehnung durch den Anbieter ist möglich.</li>
+            <li>Nach erfolgreicher Zahlung muss die Bestellung unter <strong>Bestellungen</strong> den Zahlungsstatus „Bezahlt“ haben.</li>
+          </ul>
+
+          <h3>5. Livegang</h3>
+          <p>Erst nach DNS- und TLS-Umstellung auf Live-Schlüssel wechseln, <code>STRIPE_MODE=live</code> setzen und den Webhook auf die Live-Umgebung umstellen. Danach eine echte Testbestellung durchführen.</p>
+
+          <h3>6. Wenn etwas nicht funktioniert</h3>
+          <ul>
+            <li><strong>Zahlungsarten fehlen:</strong> Sind beide Schlüssel gesetzt und der Dienst neu gestartet?</li>
+            <li><strong>Status bleibt „offen“:</strong> Webhook-URL, Secret und Ereignisse prüfen; Logs mit <code>journalctl -u 3d-mir.service</code> ansehen.</li>
+            <li><strong>Webhook antwortet mit 400:</strong> Secret falsch oder Anfrage nicht von Stripe.</li>
+            <li><strong>Betrag weicht ab:</strong> Bestellung wird nicht automatisch bezahlt; Zahlungshinweis im Bestelldetail prüfen.</li>
+          </ul>
+
+          <p class="hint">Geheimnisse niemals im Chat oder im Repository speichern.</p>
+        </div>
+      </details>
     </section>
 
     <div class="form-actions">

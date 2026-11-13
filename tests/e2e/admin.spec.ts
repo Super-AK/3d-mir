@@ -40,6 +40,13 @@ test.describe('Admin', () => {
       await expect(page.locator('h1')).toContainText(heading);
     }
 
+    // Stripe-Hilfe auf der Zahlungsseite ist aufklappbar.
+    await page.goto('/admin/zahlungen/');
+    const stripeHelp = page.locator('summary', { hasText: 'Hilfe zu Stripe' });
+    await expect(stripeHelp).toBeVisible();
+    await stripeHelp.click();
+    await expect(page.getByRole('heading', { name: '3. Webhook anlegen' })).toBeVisible();
+
     // Katalogverwaltung und Bild-Upload sind auf den Detailseiten vorhanden.
     await page.goto('/admin/preise/');
     for (const heading of ['Materialien', 'Drucker', 'Nachbearbeitung', 'Versand', 'Mengenrabatt']) {
