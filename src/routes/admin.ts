@@ -29,6 +29,27 @@ import {
   savePricingOverrides,
   type PricingOverrides,
 } from '../lib/pricing-config.js';
+import {
+  findPaymentMethod,
+  getPublicPaymentMethods,
+  getShopSettings,
+  isBankConfigured,
+  paymentMethodLabel,
+  saveShopSettings,
+  type BankDetails,
+  type PaymentMethodSetting,
+} from '../lib/shop-settings.js';
+import { isStripeConfigured } from '../lib/payments/stripe.js';
+import {
+  markOrderPaid,
+  markOrderPaymentFailed,
+  markOrderRefunded,
+  paymentProviderLabel,
+  paymentStatusLabel,
+  paymentStatusTone,
+  releaseStock,
+  sendPaymentConfirmed,
+} from '../lib/payments/index.js';
 import { formatEuro } from '../lib/shop.js';
 
 const db = () => getDb();
@@ -54,6 +75,10 @@ const quoteStatuses = [
 type OrderStatus = (typeof orderStatuses)[number]['id'];
 type QuoteStatus = (typeof quoteStatuses)[number]['id'];
 
+const paymentStatuses = ['offen', 'in_bearbeitung', 'bezahlt', 'fehlgeschlagen', 'erstattet', 'storniert'].map(
+  (id) => ({ id, label: paymentStatusLabel(id) }),
+);
+
 type OrderRow = {
   id: number;
   order_number: string;
@@ -69,6 +94,14 @@ type OrderRow = {
   country: string;
   phone: string;
   payment_method: string;
+  payment_status: string;
+  payment_provider: string;
+  payment_reference: string;
+  payment_note: string;
+  paid_at: string | null;
+  public_token: string;
+  stock_reserved: number;
+  stock_released_at: string | null;
   shipping_method: string;
   shipping_cents: number;
   options_cents: number;
@@ -190,7 +223,7 @@ function quoteStatusLabel(status: string): string {
 }
 
 function paymentLabel(id: string): string {
-  return config.shop.payment.methods.find((method) => method.id === id)?.label ?? id;
+  return paymentMethodLabel(id);
 }
 
 function shippingLabel(id: string): string {
@@ -1440,6 +1473,13 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .reduce((sum, row) => sum + row.count, 0);
       const newQuotes = (db().prepare("SELECT COUNT(*) AS count FROM quote_requests WHERE status = 'neu'").get() as { count: number }).count;
       const openMessages = (db().prepare('SELECT COUNT(*) AS count FROM contact_messages WHERE handled = 0').get() as { count: number }).count;
+      const openPayments = (
+        db()
+          .prepare(
+            "SELECT COUNT(*) AS count FROM orders WHERE payment_status IN ('offen', 'in_bearbeitung') AND status <> 'storniert'",
+          )
+          .get() as { count: number }
+      ).count;
       const revenue = (
         db()
           .prepare(
@@ -1447,6 +1487,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           )
           .get() as { cents: number }
       ).cents;
+      const recentOrders = (
+        db()
+          .prepare('SELECT * FROM orders ORDER BY created_at DESC, id DESC LIMIT 6')
+          .all() as OrderRow[]
+      ).map((order) => ({
+        ...order,
+        paymentStatusText: paymentStatusLabel(order.payment_status),
+        paymentStatusTone: paymentStatusTone(order.payment_status),
+      }));
 
       render(
         reply,
@@ -1456,10 +1505,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           openOrders,
           newQuotes,
           openMessages,
+          openPayments,
           revenue,
-          recentOrders: db()
-            .prepare('SELECT * FROM orders ORDER BY created_at DESC, id DESC LIMIT 6')
-            .all() as OrderRow[],
+          recentOrders,
           recentQuotes: db()
             .prepare('SELECT * FROM quote_requests ORDER BY created_at DESC, id DESC LIMIT 6')
             .all() as QuoteRow[],
@@ -1474,6 +1522,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     scope.get('/admin/bestellungen/', async (request, reply) => {
       const query = queryObject(request);
       const status = orderStatuses.some((item) => item.id === query.status) ? String(query.status) : '';
+      const paymentStatus = paymentStatuses.some((item) => item.id === query.paymentStatus)
+        ? String(query.paymentStatus)
+        : '';
       const q = cleanText(query.q, 100);
       const where: string[] = [];
       const params: unknown[] = [];
@@ -1481,18 +1532,35 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         where.push('status = ?');
         params.push(status);
       }
+      if (paymentStatus) {
+        where.push('payment_status = ?');
+        params.push(paymentStatus);
+      }
       if (q) {
         where.push('(order_number LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ?)');
         const like = `%${q}%`;
         params.push(like, like, like, like);
       }
-      const orders = db()
-        .prepare(`SELECT * FROM orders ${where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY created_at DESC, id DESC LIMIT 200`)
-        .all(...params) as OrderRow[];
+      const orders = (
+        db()
+          .prepare(`SELECT * FROM orders ${where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY created_at DESC, id DESC LIMIT 200`)
+          .all(...params) as OrderRow[]
+      ).map((order) => ({
+        ...order,
+        paymentStatusText: paymentStatusLabel(order.payment_status),
+        paymentStatusTone: paymentStatusTone(order.payment_status),
+      }));
       render(
         reply,
         'admin/orders.njk',
-        adminContext(request, { orders, statuses: orderStatuses, status, q }),
+        adminContext(request, {
+          orders,
+          statuses: orderStatuses,
+          paymentStatuses,
+          status,
+          paymentStatus,
+          q,
+        }),
       );
     });
 
@@ -1516,7 +1584,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           options: selectedOptions,
           history,
           statuses: orderStatuses,
+          paymentStatuses,
           paymentLabel: paymentLabel(order.payment_method),
+          paymentStatusText: paymentStatusLabel(order.payment_status),
+          paymentStatusTone: paymentStatusTone(order.payment_status),
+          paymentProviderText: paymentProviderLabel(order.payment_provider),
           shippingLabel: shippingLabel(order.shipping_method),
         }),
       );
@@ -1534,23 +1606,74 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       }
       const adminNote = cleanText(body.adminNote, 2000);
       const notify = body.notify === '1' || body.notify === 'on';
+      const paidNow = status === 'bezahlt' && order.payment_status !== 'bezahlt';
 
-      const run = db().transaction(() => {
+      if (paidNow) {
         db()
-          .prepare("UPDATE orders SET status = ?, admin_note = ?, updated_at = datetime('now') WHERE id = ?")
-          .run(status, adminNote, id);
-        if (status !== order.status) {
+          .prepare("UPDATE orders SET admin_note = ?, updated_at = datetime('now') WHERE id = ?")
+          .run(adminNote, id);
+        const paid = markOrderPaid(id, order.payment_provider || 'manual', order.payment_reference || order.order_number);
+        if (paid.changed && paid.order) await sendPaymentConfirmed(paid.order);
+      } else {
+        const run = db().transaction(() => {
           db()
-            .prepare('INSERT INTO order_status_history (order_id, from_status, to_status, actor, note) VALUES (?, ?, ?, ?, ?)')
-            .run(id, order.status, status, request.admin?.email ?? '', adminNote);
-        }
-      });
-      run();
+            .prepare("UPDATE orders SET status = ?, admin_note = ?, updated_at = datetime('now') WHERE id = ?")
+            .run(status, adminNote, id);
+          if (status !== order.status) {
+            db()
+              .prepare('INSERT INTO order_status_history (order_id, from_status, to_status, actor, note) VALUES (?, ?, ?, ?, ?)')
+              .run(id, order.status, status, request.admin?.email ?? '', adminNote);
+          }
+        });
+        run();
+      }
+
+      if (status === 'storniert' && order.status !== 'storniert') {
+        releaseStock(id, 'Bestellung im Admin storniert', false);
+      }
       writeAudit(request.admin?.email ?? 'admin', 'order.update', { order: order.order_number, from: order.status, to: status });
 
-      if (notify && status !== order.status) {
+      if (notify && status !== order.status && !paidNow) {
         await notifyOrderStatus(request, { ...order, status }, status);
       }
+      return reply.redirect(`/admin/bestellungen/${id}/?gespeichert=1`, 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/bestellungen/:id/zahlung/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const order = Number.isInteger(id) ? (db().prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow | undefined) : undefined;
+      if (!order) return adminError(request, reply, 404, 'Diese Bestellung wurde nicht gefunden.');
+
+      const action = cleanText(bodyObject(request).action, 20);
+      if (action === 'paid') {
+        const paid = markOrderPaid(
+          id,
+          order.payment_provider || 'manual',
+          order.payment_reference || order.order_number,
+        );
+        if (paid.changed && paid.order) await sendPaymentConfirmed(paid.order);
+        writeAudit(request.admin?.email ?? 'admin', 'order.payment.paid', { order: order.order_number });
+      } else if (action === 'refunded') {
+        if (order.payment_status !== 'bezahlt') {
+          return reply.redirect(`/admin/bestellungen/${id}/?fehler=payment`, 303);
+        }
+        markOrderRefunded(id, 'Erstattung im Admin vermerkt.', request.admin?.email ?? 'admin');
+        writeAudit(request.admin?.email ?? 'admin', 'order.payment.refunded', { order: order.order_number });
+      } else if (action === 'failed') {
+        if (order.payment_status === 'bezahlt') {
+          return reply.redirect(`/admin/bestellungen/${id}/?fehler=payment`, 303);
+        }
+        markOrderPaymentFailed(
+          id,
+          order.payment_provider || 'manual',
+          order.payment_reference,
+          'Vom Betreiber als fehlgeschlagen markiert.',
+        );
+        writeAudit(request.admin?.email ?? 'admin', 'order.payment.failed', { order: order.order_number });
+      } else {
+        return reply.redirect(`/admin/bestellungen/${id}/?fehler=payment`, 303);
+      }
+
       return reply.redirect(`/admin/bestellungen/${id}/?gespeichert=1`, 303);
     });
 
@@ -2238,6 +2361,72 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
       },
     );
+
+    // Zahlungen -----------------------------------------------------------
+    scope.get('/admin/zahlungen/', async (request, reply) => {
+      const settings = getShopSettings();
+      render(reply, 'admin/payments.njk', adminContext(request, {
+        settings,
+        stripeConfigured: isStripeConfigured(),
+        stripeMode: config.stripe.mode,
+        bankConfigured: isBankConfigured(settings.bank),
+        publicMethods: getPublicPaymentMethods(),
+      }));
+    });
+
+    scope.post('/admin/zahlungen/', async (request, reply) => {
+      const body = bodyObject(request);
+      const current = getShopSettings();
+      const bank: BankDetails = {
+        accountHolder: cleanText(body.bankAccountHolder, 120),
+        iban: cleanText(body.bankIban, 40).replace(/\s+/g, '').toUpperCase(),
+        bic: cleanText(body.bankBic, 20).replace(/\s+/g, '').toUpperCase(),
+        bankName: cleanText(body.bankName, 120),
+      };
+      const methods: PaymentMethodSetting[] = current.paymentMethods.map((method) => {
+        const sortOrder = intOrNull(body[`method_${method.id}_sortOrder`]);
+        return {
+          ...method,
+          label: cleanText(body[`method_${method.id}_label`], 120) || method.label,
+          note: cleanText(body[`method_${method.id}_note`], 300),
+          enabled:
+            body[`method_${method.id}_enabled`] === '1' || body[`method_${method.id}_enabled`] === 'on',
+          sortOrder: sortOrder === null ? method.sortOrder : Math.max(-1000, Math.min(1000, sortOrder)),
+        };
+      });
+
+      const fail = (message: string) => {
+        reply.code(400);
+        return render(reply, 'admin/payments.njk', adminContext(request, {
+          settings: { bank, paymentMethods: methods },
+          stripeConfigured: isStripeConfigured(),
+          stripeMode: config.stripe.mode,
+          bankConfigured: isBankConfigured(bank),
+          publicMethods: methods.filter((method) => method.enabled),
+          error: message,
+        }));
+      };
+
+      if (bank.iban && !/^[A-Z]{2}[0-9A-Z]{13,32}$/.test(bank.iban)) {
+        return fail('Bitte geben Sie eine gültige IBAN ein.');
+      }
+      if (bank.bic && !/^[A-Z0-9]{8,11}$/.test(bank.bic)) {
+        return fail('Bitte geben Sie eine gültige BIC ein.');
+      }
+      if (bank.accountHolder && !bank.iban) {
+        return fail('Bitte geben Sie zum Kontoinhaber auch eine IBAN an.');
+      }
+      if (bank.iban && !bank.accountHolder) {
+        return fail('Bitte geben Sie zur IBAN auch den Kontoinhaber an.');
+      }
+
+      saveShopSettings({ bank, paymentMethods: methods });
+      writeAudit(request.admin?.email ?? 'admin', 'shop.payment.update', {
+        bankConfigured: isBankConfigured(bank),
+        methods: methods.map((method) => ({ id: method.id, enabled: method.enabled })),
+      });
+      return reply.redirect('/admin/zahlungen/?gespeichert=1', 303);
+    });
 
     // Preise --------------------------------------------------------------
     scope.get('/admin/preise/', async (request, reply) => {

@@ -37,7 +37,7 @@ test('Shop: Produkt in den Warenkorb legen und bestellen', async ({ page }) => {
   await page.check('input[name="consent"]');
   await page.getByRole('button', { name: 'zahlungspflichtig bestellen' }).click();
 
-  await expect(page).toHaveURL(/\/bestellung\/danke\/\?nummer=B-\d{4}-[A-Z2-9]{5}$/);
+  await expect(page).toHaveURL(/\/bestellung\/danke\/\?nummer=B-\d{4}-[A-Z2-9]{5}&token=[a-f0-9]{32}$/);
   await expect(page.locator('h1')).toContainText('Vielen Dank');
   await expect(page.locator('.summary-total')).toContainText('€');
   expect(errors).toEqual([]);

@@ -77,7 +77,7 @@ Alle Schritte sind in `docs/DEPLOYMENT.md` beschrieben. Die Abnahme-Checkliste l
 | Thema | Referenz |
 | --- | --- |
 | Preise, Kalkulation, Mindestauftragswert | F1–F8, F66 |
-| Zahlungsarten und Zahlungsanbieter | F9–F13, F67 |
+| Stripe-Konto, Live-Schlüssel, Bankverbindung | F9–F13, F67 |
 | Versandkosten, Lieferzeiten, Lieferländer | F14–F20 |
 | SMTP-Zugang | F21–F24 |
 | DNS, TLS, kanonische Domain | F30–F33 |

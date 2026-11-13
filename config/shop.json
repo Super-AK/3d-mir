@@ -1,26 +1,53 @@
 {
   "status": "PLATZHALTER",
-  "notice": "Der Shop befindet sich im Aufbau. Preise, Versandkosten und Zahlungsarten sind Platzhalter (TODO-PREISE, TODO-VERSAND, TODO-ZAHLUNG) und werden vor dem Livegang vom Auftraggeber bestätigt.",
+  "notice": "Der Shop befindet sich im Aufbau. Preise und Versandkosten sind Platzhalter (TODO-PREISE, TODO-VERSAND) und werden vor dem Livegang vom Auftraggeber bestätigt.",
   "maxQuantityPerItem": 20,
   "payment": {
-    "status": "PLATZHALTER",
-    "note": "TODO-ZAHLUNG: Die angebotenen Zahlungsarten und die Bankverbindung müssen vor dem Livegang bestätigt werden.",
+    "status": "AKTIV",
+    "note": "Die Zahlungsarten werden im Admin-Bereich verwaltet. Stripe-Zugangsdaten werden ausschließlich über die Serverumgebung gesetzt.",
     "methods": [
       {
         "id": "vorkasse",
+        "provider": "manual",
         "label": "Vorkasse per Banküberweisung",
-        "note": "Sie erhalten die Bankverbindung nach der Bestellung per E-Mail. Die Bestellung wird nach Zahlungseingang gefertigt bzw. versandt."
+        "note": "Sie erhalten die Bankverbindung nach der Bestellung. Die Bestellung wird nach Zahlungseingang gefertigt bzw. versandt.",
+        "enabled": true,
+        "sortOrder": 10
       },
       {
-        "id": "vereinbarung",
-        "label": "Zahlung nach Vereinbarung",
-        "note": "Wir melden uns nach der Bestellung mit den Zahlungsdetails."
+        "id": "karte",
+        "provider": "stripe",
+        "stripeMethod": "card",
+        "label": "Kredit-/Debitkarte",
+        "note": "Visa, Mastercard, Apple Pay und Google Pay über unseren Zahlungsdienstleister Stripe.",
+        "enabled": true,
+        "sortOrder": 20
+      },
+      {
+        "id": "paypal",
+        "provider": "stripe",
+        "stripeMethod": "paypal",
+        "label": "PayPal",
+        "note": "Sie werden zu PayPal weitergeleitet und schließen die Zahlung dort ab.",
+        "enabled": true,
+        "sortOrder": 30
+      },
+      {
+        "id": "ideal",
+        "provider": "stripe",
+        "stripeMethod": "ideal",
+        "label": "iDEAL",
+        "note": "Für Kundinnen und Kunden mit einem niederländischen Bankkonto.",
+        "enabled": true,
+        "sortOrder": 40
       }
     ]
   },
   "checkout": {
-    "acceptedCountries": ["DE"],
-    "legalNote": "Es handelt sich um einen Shop-Entwurf. Bestellungen werden erst nach Bestätigung der Preise, Versandkosten und Zahlungsart durch den Betreiber ausgeführt.",
-    "termsVersion": "2026-11-11"
+    "acceptedCountries": [
+      "DE"
+    ],
+    "legalNote": "Es handelt sich um einen Shop-Entwurf. Preise und Versandkosten werden vor dem Livegang vom Betreiber bestätigt.",
+    "termsVersion": "2026-11-13"
   }
 }

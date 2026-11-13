@@ -123,17 +123,23 @@
 
         <section class="checkout-block">
           <h2>Zahlungsart</h2>
-          <div class="radio-list">
-            {% for method in paymentMethods %}
-              <label class="radio-card radio-card-stacked">
-                <input type="radio" name="paymentMethod" value="{{ method.id }}" {% if form.paymentMethod == method.id or (not form.paymentMethod and loop.first) %}checked{% endif %}>
-                <span class="radio-card-text">
-                  <strong>{{ method.label }}</strong>
-                  <span>{{ method.note }}</span>
-                </span>
-              </label>
-            {% endfor %}
-          </div>
+          {% if paymentMethods.length > 0 %}
+            <div class="radio-list">
+              {% for method in paymentMethods %}
+                <label class="radio-card radio-card-stacked">
+                  <input type="radio" name="paymentMethod" value="{{ method.id }}" {% if form.paymentMethod == method.id or (not form.paymentMethod and loop.first) %}checked{% endif %}>
+                  <span class="radio-card-text">
+                    <strong>{{ method.label }}</strong>
+                    <span>{{ method.note }}</span>
+                  </span>
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-warning" role="status">
+              <p>Die Zahlung ist derzeit nicht möglich. Bitte kontaktieren Sie uns über das <a href="/kontakt/">Kontaktformular</a>.</p>
+            </div>
+          {% endif %}
         </section>
 
         <section class="checkout-block">
@@ -158,7 +164,7 @@
         <p class="text-muted"><small>{{ shopConfig.checkout.legalNote }}</small></p>
 
         <div class="form-actions">
-          <button class="btn btn-block" type="submit">zahlungspflichtig bestellen</button>
+          <button class="btn btn-block" type="submit" {% if paymentMethods.length == 0 %}disabled{% endif %}>zahlungspflichtig bestellen</button>
         </div>
         <p class="text-muted"><small>Pflichtfelder sind mit * markiert. Es fallen keine Kosten für die Nutzung dieser Seite an.</small></p>
       </form>

@@ -20,6 +20,11 @@
       <strong>{{ openOrders }}</strong>
       <span class="admin-stat-note">{{ counts.neu or 0 }} neu · {{ counts.bezahlt or 0 }} bezahlt · {{ counts.in_druck or 0 }} im Druck</span>
     </a>
+    <a class="admin-stat card card-hover" href="/admin/bestellungen/?paymentStatus=offen">
+      <span class="admin-stat-label">Offene Zahlungen</span>
+      <strong>{{ openPayments }}</strong>
+      <span class="admin-stat-note">Vorkasse oder Online-Zahlung ausstehend</span>
+    </a>
     <a class="admin-stat card card-hover" href="/admin/anfragen/?status=neu">
       <span class="admin-stat-label">Neue Anfragen</span>
       <strong>{{ newQuotes }}</strong>
@@ -52,7 +57,7 @@
                 <tr>
                   <td><a href="/admin/bestellungen/{{ order.id }}/">{{ order.order_number }}</a><br><small class="text-muted">{{ order.created_at | date }}</small></td>
                   <td>{{ order.first_name }} {{ order.last_name }}</td>
-                  <td><span class="badge badge-neutral">{{ order.status }}</span></td>
+                  <td><span class="badge badge-neutral">{{ order.status }}</span><br><span class="badge badge-{{ order.paymentStatusTone }}">{{ order.paymentStatusText }}</span></td>
                   <td>{{ order.total_cents | price }}</td>
                 </tr>
               {% endfor %}

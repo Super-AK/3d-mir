@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import crypto from 'node:crypto';
 import { z } from 'zod';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
@@ -8,6 +9,28 @@ import { cleanText, createReference, isSameOrigin } from '../lib/http.js';
 import { clearCart, readCart, writeCart, type Cart } from '../lib/cart.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
 import type { PricingConfig } from '../config.js';
+import {
+  findCheckoutPaymentMethod,
+  findPaymentMethod,
+  getPublicPaymentMethods,
+  isBankConfigured,
+  type BankDetails,
+} from '../lib/shop-settings.js';
+import {
+  createPaymentForOrder,
+  getBankDetails,
+  getOrderItems,
+  getOrderOptions,
+  getPaymentOrderByAccess,
+  getPaymentOrderById,
+  markOrderPaymentFailed,
+  paymentStatusLabel,
+  paymentStatusTone,
+  publicOrderUrl,
+  reconcileStripeSession,
+  releaseStock,
+  type PaymentOrder,
+} from '../lib/payments/index.js';
 import {
   formatEuro,
   orderTotals,
@@ -339,7 +362,7 @@ function checkoutContext(form: Partial<CheckoutForm>, lines: CartLine[]) {
     selectedAddonIds: selectedAddons.map((addon) => addon.id),
     optionsCents: extras,
     totalCents: subtotal + (selected?.cents ?? 0) + extras,
-    paymentMethods: config.shop.payment.methods,
+    paymentMethods: getPublicPaymentMethods(),
     countries: config.shop.checkout.acceptedCountries,
   };
 }
@@ -360,8 +383,10 @@ function orderMailText(
   lines: CartLine[],
   totals: ReturnType<typeof orderTotals>,
   paymentLabel: string,
+  paymentProvider: string,
   shippingLabel: string,
   addons: ShippingAddon[],
+  orderUrl: string,
 ): string {
   return [
     `Bestellung ${number}`,
@@ -388,13 +413,102 @@ function orderMailText(
     `Gesamt: ${formatEuro(totals.totalCents)}`,
     '',
     `Zahlungsart: ${paymentLabel}`,
+    `Zahlungsanbieter: ${paymentProvider}`,
+    `Zahlungsstatus: offen`,
     `Versandart: ${shippingLabel}`,
     form.customerNote ? `Anmerkung: ${form.customerNote}` : '',
+    '',
+    `Bestellübersicht: ${orderUrl}`,
     '',
     config.site.business.vatNote,
   ]
     .filter((line) => line !== '')
     .join('\n');
+}
+
+function customerOrderMailText(
+  number: string,
+  form: CheckoutForm,
+  lines: CartLine[],
+  totals: ReturnType<typeof orderTotals>,
+  paymentProvider: string,
+  paymentLabel: string,
+  shippingLabel: string,
+  addons: ShippingAddon[],
+  bank: BankDetails,
+  bankConfigured: boolean,
+  orderUrl: string,
+): string {
+  const paymentLines =
+    paymentProvider === 'manual'
+      ? [
+          bankConfigured
+            ? `Bitte überweisen Sie ${formatEuro(totals.totalCents)} auf folgendes Konto:`
+            : `Bitte überweisen Sie ${formatEuro(totals.totalCents)} auf unsere Bankverbindung. Die Bankverbindung wird Ihnen in einer separaten E-Mail mitgeteilt.`,
+          ...(bankConfigured
+            ? [
+                `Kontoinhaber: ${bank.accountHolder}`,
+                `IBAN: ${bank.iban}`,
+                ...(bank.bic ? [`BIC: ${bank.bic}`] : []),
+                ...(bank.bankName ? [`Bank: ${bank.bankName}`] : []),
+                `Verwendungszweck: ${number}`,
+              ]
+            : []),
+          '',
+          'Die Bestellung wird nach Zahlungseingang gefertigt bzw. versandt.',
+        ]
+      : [
+          'Die Zahlung wird über unseren Zahlungsdienstleister Stripe abgewickelt.',
+          'Sie werden nach der Bestellung zur Zahlung weitergeleitet.',
+          '',
+          'Falls die Zahlung nicht abgeschlossen wurde, können Sie sie über die Bestellübersicht erneut starten:',
+          orderUrl,
+        ];
+
+  return [
+    `Hallo ${form.firstName},`,
+    '',
+    'vielen Dank für Ihre Bestellung. Wir haben folgende Angaben erhalten:',
+    '',
+    `Bestellnummer: ${number}`,
+    ...lines.map(
+      (line) =>
+        `- ${line.quantity} × ${line.productName} (${line.variantLabel}) = ${formatEuro(line.lineTotalCents)}`,
+    ),
+    '',
+    `Zwischensumme: ${formatEuro(totals.subtotalCents)}`,
+    `Versand: ${totals.shippingCents === 0 ? 'kostenlos' : formatEuro(totals.shippingCents)}`,
+    ...(addons.length > 0
+      ? addons.map((addon) => `Option: ${addon.label} (+ ${formatEuro(Math.round(addon.price * 100))})`)
+      : []),
+    `Gesamt: ${formatEuro(totals.totalCents)}`,
+    '',
+    `Zahlungsart: ${paymentLabel}`,
+    `Versandart: ${shippingLabel}`,
+    '',
+    ...paymentLines,
+    '',
+    `Bestellübersicht: ${orderUrl}`,
+    '',
+    'Viele Grüße',
+    '3D-MIR 3D-Druck Service',
+  ].join('\n');
+}
+
+function orderAccess(query: Record<string, unknown>): { number: string; token: string } | null {
+  const number = typeof query.nummer === 'string' ? query.nummer : '';
+  const token = typeof query.token === 'string' ? query.token : '';
+  if (!/^B-\d{4}-[A-Z2-9]{5}$/.test(number)) return null;
+  if (!/^[a-f0-9]{32}$/.test(token)) return null;
+  return { number, token };
+}
+
+function localOrderUrl(order: Pick<PaymentOrder, 'order_number' | 'public_token'>): string {
+  return `/bestellung/danke/?nummer=${encodeURIComponent(order.order_number)}&token=${order.public_token}`;
+}
+
+function localRetryUrl(order: Pick<PaymentOrder, 'order_number' | 'public_token'>): string {
+  return `/bestellung/zahlung/?nummer=${encodeURIComponent(order.order_number)}&token=${order.public_token}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -550,7 +664,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       const allowedMethods = availableShippingMethods(pricing.shipping, lines);
       const shippingMethod = allowedMethods.find((method) => method.id === data.shippingMethod) ?? null;
       if (!shippingMethod) return fail('Bitte wählen Sie eine für diese Produkte verfügbare Versandart.');
-      const paymentMethod = config.shop.payment.methods.find((method) => method.id === data.paymentMethod);
+      const paymentMethod = findCheckoutPaymentMethod(data.paymentMethod);
       if (!paymentMethod) return fail('Bitte wählen Sie eine gültige Zahlungsart.');
 
       const allowedAddons = availableShippingAddons(pricing.shipping, lines);
@@ -571,6 +685,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       }
 
       let number: string;
+      let orderId = 0;
+      const publicToken = crypto.randomBytes(16).toString('hex');
+      const stockReserved = lines.some((line) => line.stock != null) ? 1 : 0;
       try {
         number = orderNumber();
         const createOrder = db().transaction(() => {
@@ -578,8 +695,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
             .prepare(
               `INSERT INTO orders
                 (order_number, status, email, first_name, last_name, company, street, address_extra, zip, city,
-                 country, phone, payment_method, shipping_method, shipping_cents, options_cents, subtotal_cents, total_cents, customer_note)
-               VALUES (?, 'neu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                 country, phone, payment_method, shipping_method, shipping_cents, options_cents, subtotal_cents,
+                 total_cents, customer_note, payment_status, payment_provider, public_token, stock_reserved)
+               VALUES (?, 'neu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'offen', ?, ?, ?)`,
             )
             .run(
               number,
@@ -600,22 +718,27 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               totals.subtotalCents,
               totals.totalCents,
               data.customerNote,
+              paymentMethod.provider,
+              publicToken,
+              stockReserved,
             );
-          const orderId = Number(result.lastInsertRowid);
+          const createdId = Number(result.lastInsertRowid);
           const insertOption = db().prepare(
             'INSERT INTO order_options (order_id, option_id, label, price_cents) VALUES (?, ?, ?, ?)',
           );
           for (const addon of selectedAddons) {
-            insertOption.run(orderId, addon.id, addon.label, Math.round(addon.price * 100));
+            insertOption.run(createdId, addon.id, addon.label, Math.round(addon.price * 100));
           }
           const insertItem = db().prepare(
-            `INSERT INTO order_items (order_id, product_id, name, variant, unit_price_cents, quantity, line_total_cents)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO order_items
+               (order_id, product_id, variant_id, name, variant, unit_price_cents, quantity, line_total_cents)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           );
           for (const line of lines) {
             insertItem.run(
-              orderId,
+              createdId,
               line.productId,
+              line.variantId,
               line.productName,
               line.variantLabel,
               line.unitPriceCents,
@@ -623,96 +746,209 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               line.lineTotalCents,
             );
             if (line.stock != null) {
-              db()
+              const reserved = db()
                 .prepare('UPDATE product_variants SET stock = stock - ? WHERE id = ? AND stock >= ?')
                 .run(line.quantity, line.variantId, line.quantity);
+              if (reserved.changes === 0) {
+                throw new Error(`Bestand für ${line.productName} reicht nicht aus.`);
+              }
             }
           }
+          return createdId;
         });
-        createOrder();
+        orderId = createOrder();
       } catch (error) {
         request.log.error({ err: error }, 'Bestellung konnte nicht gespeichert werden');
         return fail('Die Bestellung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns.');
       }
 
-      clearCart(reply);
-
-      try {
-        await sendMail({
-          subject: `[Bestellung ${number}] ${lines.length} Position(en), ${formatEuro(totals.totalCents)}`,
-          text: orderMailText(number, data, lines, totals, paymentMethod.label, shippingMethod.label, selectedAddons),
-          replyTo: data.email,
-        });
-        await sendMail({
-          to: data.email,
-          subject: `Ihre Bestellung ${number} bei 3D-MIR`,
-          text: [
-            `Hallo ${data.firstName},`,
-            '',
-            'vielen Dank für Ihre Bestellung. Wir haben folgende Angaben erhalten:',
-            '',
-            `Bestellnummer: ${number}`,
-            ...lines.map(
-              (line) =>
-                `- ${line.quantity} × ${line.productName} (${line.variantLabel}) = ${formatEuro(line.lineTotalCents)}`,
-            ),
-            '',
-            `Zwischensumme: ${formatEuro(totals.subtotalCents)}`,
-            `Versand: ${totals.shippingCents === 0 ? 'kostenlos' : formatEuro(totals.shippingCents)}`,
-            ...(selectedAddons.length > 0
-              ? selectedAddons.map((addon) => `Option: ${addon.label} (+ ${formatEuro(Math.round(addon.price * 100))})`)
-              : []),
-            `Gesamt: ${formatEuro(totals.totalCents)}`,
-            '',
-            `Zahlungsart: ${paymentMethod.label}`,
-            paymentMethod.note,
-            '',
-            'Wir prüfen Ihre Bestellung und melden uns mit den nächsten Schritten.',
-            '',
-            'Viele Grüße',
-            '3D-MIR 3D-Druck Service',
-          ].join('\n'),
-          replyTo: config.mail.to,
-        });
-      } catch (error) {
-        request.log.error({ err: error, number }, 'Bestellung gespeichert, aber E-Mail-Versand fehlgeschlagen');
+      const order = getPaymentOrderById(orderId);
+      if (!order) {
+        return fail('Die Bestellung konnte nicht geladen werden. Bitte versuchen Sie es erneut.');
       }
 
-      request.log.info({ number, totalCents: totals.totalCents }, 'Bestellung angelegt');
-      return reply.redirect(`/bestellung/danke/?nummer=${encodeURIComponent(number)}`, 303);
+      const bank = getBankDetails();
+      const bankReady = isBankConfigured(bank);
+      const orderUrl = publicOrderUrl(order);
+
+      const sendOrderMails = async (): Promise<void> => {
+        try {
+          await sendMail({
+            subject: `[Bestellung ${number}] ${lines.length} Position(en), ${formatEuro(totals.totalCents)}`,
+            text: orderMailText(
+              number,
+              data,
+              lines,
+              totals,
+              paymentMethod.label,
+              paymentMethod.provider,
+              shippingMethod.label,
+              selectedAddons,
+              orderUrl,
+            ),
+            replyTo: data.email,
+          });
+          await sendMail({
+            to: data.email,
+            subject: `Ihre Bestellung ${number} bei 3D-MIR`,
+            text: customerOrderMailText(
+              number,
+              data,
+              lines,
+              totals,
+              paymentMethod.provider,
+              paymentMethod.label,
+              shippingMethod.label,
+              selectedAddons,
+              bank,
+              bankReady,
+              orderUrl,
+            ),
+            replyTo: config.mail.to,
+          });
+        } catch (error) {
+          request.log.error({ err: error, number }, 'Bestellung gespeichert, aber E-Mail-Versand fehlgeschlagen');
+        }
+      };
+
+      if (paymentMethod.provider === 'stripe') {
+        try {
+          const payment = await createPaymentForOrder(order);
+          clearCart(reply);
+          await sendOrderMails();
+          request.log.info(
+            { number, totalCents: totals.totalCents, provider: 'stripe' },
+            'Bestellung angelegt und Zahlung gestartet',
+          );
+          if (!payment.redirectUrl) throw new Error('Stripe hat keine Zahlungs-URL geliefert.');
+          return reply.redirect(payment.redirectUrl, 303);
+        } catch (error) {
+          request.log.error({ err: error, number }, 'Online-Zahlung konnte nicht gestartet werden');
+          markOrderPaymentFailed(order.id, 'stripe', '', 'Die Online-Zahlung konnte nicht gestartet werden.');
+          releaseStock(order.id, 'Online-Zahlung konnte nicht gestartet werden');
+          return fail(
+            'Die Online-Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut oder wählen Sie die Zahlung per Vorkasse.',
+          );
+        }
+      }
+
+      clearCart(reply);
+      await sendOrderMails();
+      request.log.info(
+        { number, totalCents: totals.totalCents, provider: paymentMethod.provider },
+        'Bestellung angelegt',
+      );
+      return reply.redirect(
+        `/bestellung/danke/?nummer=${encodeURIComponent(number)}&token=${publicToken}`,
+        303,
+      );
     },
   );
 
   app.get('/bestellung/danke/', async (request, reply) => {
     const query = request.query as Record<string, unknown>;
-    const raw = typeof query.nummer === 'string' ? query.nummer : '';
-    const number = /^B-\d{4}-[A-Z2-9]{5}$/.test(raw) ? raw : null;
-    let order: {
-      order_number: string;
-      total_cents: number;
-      shipping_cents: number;
-      options_cents: number;
-      subtotal_cents: number;
-    } | null = null;
-    let items: { name: string; variant: string; quantity: number; line_total_cents: number }[] = [];
-    let options: { label: string; price_cents: number }[] = [];
-    if (number) {
-      order =
-        (db()
-          .prepare(
-            'SELECT order_number, total_cents, shipping_cents, options_cents, subtotal_cents FROM orders WHERE order_number = ?',
-          )
-          .get(number) as typeof order) ?? null;
-      if (order) {
-        const orderId = (db().prepare('SELECT id FROM orders WHERE order_number = ?').get(number) as { id: number }).id;
-        items = db()
-          .prepare('SELECT name, variant, quantity, line_total_cents FROM order_items WHERE order_id = ? ORDER BY id')
-          .all(orderId) as typeof items;
-        options = db()
-          .prepare('SELECT label, price_cents FROM order_options WHERE order_id = ? ORDER BY id')
-          .all(orderId) as typeof options;
+    const access = orderAccess(query);
+    let order = access ? getPaymentOrderByAccess(access.number, access.token) : null;
+
+    const sessionId = typeof query.session_id === 'string' ? query.session_id : '';
+    if (
+      order &&
+      sessionId &&
+      /^cs_[A-Za-z0-9_]{10,200}$/.test(sessionId) &&
+      order.payment_provider === 'stripe' &&
+      order.payment_status !== 'bezahlt'
+    ) {
+      try {
+        await reconcileStripeSession(sessionId);
+        order = getPaymentOrderByAccess(access!.number, access!.token);
+      } catch (error) {
+        request.log.warn({ err: error, order: access?.number }, 'Stripe-Rückleitung konnte nicht geprüft werden');
       }
     }
-    render(reply, 'pages/bestellung-danke.njk', { number: order ? number : null, order, items, options });
+
+    const items = order ? getOrderItems(order.id) : [];
+    const options = order ? getOrderOptions(order.id) : [];
+    const paymentMethod = order ? findPaymentMethod(order.payment_method) : null;
+    const bank = getBankDetails();
+
+    render(reply, 'pages/bestellung-danke.njk', {
+      number: order ? order.order_number : null,
+      order,
+      items,
+      options,
+      paymentMethod,
+      paymentStatusText: order ? paymentStatusLabel(order.payment_status) : '',
+      paymentStatusTone: order ? paymentStatusTone(order.payment_status) : 'neutral',
+      bank,
+      bankConfigured: isBankConfigured(bank),
+      token: order?.public_token ?? '',
+      retryUrl: order ? localRetryUrl(order) : '',
+    });
   });
+
+  app.get('/bestellung/zahlung/', async (request, reply) => {
+    const query = request.query as Record<string, unknown>;
+    const access = orderAccess(query);
+    const order = access ? getPaymentOrderByAccess(access.number, access.token) : null;
+    if (!order) return shopError(reply, 404, 'Diese Bestellung wurde nicht gefunden.');
+
+    if (order.payment_status === 'bezahlt') {
+      return reply.redirect(localOrderUrl(order), 303);
+    }
+    if (order.status === 'storniert' || order.stock_released_at) {
+      return shopError(reply, 409, 'Diese Bestellung ist nicht mehr aktiv. Bitte legen Sie die Artikel erneut in den Warenkorb.');
+    }
+
+    const paymentMethod = findPaymentMethod(order.payment_method);
+    if (!paymentMethod || paymentMethod.provider === 'manual') {
+      return reply.redirect(localOrderUrl(order), 303);
+    }
+
+    render(reply, 'pages/bestellung-zahlung.njk', {
+      order,
+      paymentMethod,
+      token: order.public_token,
+      error: null,
+    });
+  });
+
+  app.post(
+    '/bestellung/zahlung/',
+    { config: { rateLimit: { max: 10, timeWindow: '1 hour' } } },
+    async (request, reply) => {
+      if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
+      const body = (request.body ?? {}) as Record<string, unknown>;
+      const access = orderAccess(body);
+      const order = access ? getPaymentOrderByAccess(access.number, access.token) : null;
+      if (!order) return shopError(reply, 404, 'Diese Bestellung wurde nicht gefunden.');
+
+      if (order.payment_status === 'bezahlt') {
+        return reply.redirect(localOrderUrl(order), 303);
+      }
+      if (order.status === 'storniert' || order.stock_released_at) {
+        return shopError(reply, 409, 'Diese Bestellung ist nicht mehr aktiv. Bitte legen Sie die Artikel erneut in den Warenkorb.');
+      }
+
+      const paymentMethod = findPaymentMethod(order.payment_method);
+      if (!paymentMethod || paymentMethod.provider === 'manual') {
+        return reply.redirect(localOrderUrl(order), 303);
+      }
+
+      try {
+        const payment = await createPaymentForOrder(order);
+        if (!payment.redirectUrl) throw new Error('Stripe hat keine Zahlungs-URL geliefert.');
+        return reply.redirect(payment.redirectUrl, 303);
+      } catch (error) {
+        request.log.error({ err: error, order: order.order_number }, 'Zahlung konnte nicht erneut gestartet werden');
+        reply.code(400);
+        return render(reply, 'pages/bestellung-zahlung.njk', {
+          order,
+          paymentMethod,
+          token: order.public_token,
+          error: 'Die Zahlung konnte nicht erneut gestartet werden. Bitte versuchen Sie es später noch einmal oder wählen Sie Vorkasse.',
+        });
+      }
+    },
+  );
+
 }

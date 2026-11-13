@@ -41,6 +41,49 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 - Gelöschte Versandarten in alten Bestellungen werden ebenfalls als ID angezeigt.
 - Die Materialauswahl eines Druckers steuert, für welche Materialien er im Rechner angeboten wird. Ohne Auswahl gilt der Drucker für alle Materialien.
 
+## Zahlungen
+
+Unter **Admin → Zahlungen** werden Bankverbindung und Zahlungsarten verwaltet.
+
+### Bankverbindung (Vorkasse)
+
+Kontoinhaber, IBAN, BIC und Bankname eintragen. Diese Daten erscheinen auf der Bestellübersicht und in der Bestätigungs-E-Mail. Sie werden in der Datenbank (`settings`, Schlüssel `shop.settings`) gespeichert und nicht ins Repository geschrieben.
+
+Solange keine Bankverbindung hinterlegt ist, zeigt die Bestellübersicht den Hinweis, dass die Bankverbindung separat mitgeteilt wird. Vor dem Livegang sollten die Daten vollständig sein.
+
+### Zahlungsarten
+
+Die Zahlungsarten sind im Code vorbereitet und werden im Admin nur aktiviert/deaktiviert sowie mit Bezeichnung, Hinweis und Reihenfolge gepflegt:
+
+| Zahlungsart | Anbieter | Voraussetzung |
+| --- | --- | --- |
+| Vorkasse per Banküberweisung | manuell | Bankverbindung im Admin |
+| Kredit-/Debitkarte | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
+| PayPal | Stripe | wie Karte; PayPal im Stripe-Dashboard freischalten |
+| iDEAL | Stripe | wie Karte; iDEAL im Stripe-Dashboard freischalten |
+
+Stripe-Methoden erscheinen im Checkout erst, wenn beide Stripe-Geheimnisse in `/etc/3d-mir/3d-mir.env` gesetzt sind. Die Schlüssel werden nie im Repository oder in der Datenbank gespeichert.
+
+### Zahlungsstatus und Bestellungen
+
+- Jede Bestellung hat zusätzlich zum Fulfillment-Status einen **Zahlungsstatus**: offen, in Bearbeitung, bezahlt, fehlgeschlagen, erstattet oder storniert.
+- Bei **Vorkasse** bestätigt der Betreiber den Zahlungseingang im Bestelldetail über „Zahlungseingang bestätigen“.
+- Bei **Stripe** wird der Status über den Webhook automatisch gesetzt. Die Rückleitungsseite prüft die Zahlung zusätzlich, falls der Webhook verzögert eintrifft.
+- Bei fehlgeschlagener oder abgebrochener Zahlung kann der Kunde die Zahlung über die Bestellübersicht erneut starten.
+- „Erstattung vermerken“ setzt den Zahlungsstatus auf „erstattet“. Die eigentliche Erstattung erfolgt im Stripe-Dashboard bzw. per Überweisung.
+- Die Bestellliste lässt sich nach Zahlungsstatus filtern.
+
+### Stripe-Webhook
+
+Im Stripe-Dashboard den Endpunkt `https://www.3d-mir.de/zahlung/webhook/stripe/` anlegen und diese Ereignisse abonnieren:
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
+
+Das dabei erzeugte `whsec_…`-Secret als `STRIPE_WEBHOOK_SECRET` hinterlegen. Ohne gültige Signatur lehnt die Anwendung Webhooks mit HTTP 400 ab.
+
 ## Produkte und Bilder
 
 Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pflegen.

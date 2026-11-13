@@ -313,3 +313,23 @@
 - Bestellung mit Geschenkverpackung: Zwischensumme 11,00 € + Versand 4,99 € + Option 2,00 € = 17,99 €; Option in DB, Danke-Seite und Admin-Bestellung sichtbar.
 - Testoptionen, Testbestellung und Produktzuordnung anschließend entfernt.
 - Typecheck, Build, Unit-Tests und E2E-Tests erfolgreich.
+
+## Nachtrag – Zahlungsarten und Stripe
+
+**Fertig**
+- Zahlungsstatus getrennt vom Fulfillment-Status: `offen`, `in_bearbeitung`, `bezahlt`, `fehlgeschlagen`, `erstattet`, `storniert`.
+- Migration `007_payments.sql` mit Zahlungsfeldern, `order_payments`, `payment_events` (Idempotenz), sicheren Bestelllinks (`public_token`), Bestandsreservierung und `variant_id` in Bestellpositionen.
+- Vorkasse: Bankverbindung im Admin pflegbar; Anzeige auf Danke-Seite und in der Bestätigungs-E-Mail; manuelle Bestätigung des Zahlungseingangs; Zahlungsbestätigung per E-Mail.
+- Stripe Checkout für Karte, PayPal und iDEAL: gehostete Weiterleitung, keine Zahlungsdaten auf dem eigenen Server, Erfolgs-/Abbruch-URLs, Webhook mit Signaturprüfung und Idempotenz, Rückleitungs-Fallback, Betragsprüfung, erneuter Zahlungsversuch.
+- Admin: neue Seite „Zahlungen“ mit Bankdaten, Zahlungsarten, Stripe-Status und Webhook-URL; Bestellliste mit Zahlungsstatus-Filter; Bestelldetail mit Zahlungsstatus, Referenz, Zahlungseingang und Aktionen „Zahlungseingang bestätigen“, „Als fehlgeschlagen markieren“, „Erstattung vermerken“.
+- Öffentliche Seite `/zahlung/` wird aus den aktiven Zahlungsarten erzeugt; AGB, Datenschutz, Widerruf und Cookie-Tabelle angepasst.
+- Stripe-Methoden erscheinen erst, wenn `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` gesetzt sind. Vorkasse funktioniert unabhängig davon.
+- Betriebsprüfung `deploy/verify.sh` prüft `/zahlung/` und die Ablehnung unsignierter Webhooks.
+- Dokumentation in `docs/ADMIN.md`, `docs/DEPLOYMENT.md` und `docs/OFFENE-FRAGEN.md`.
+
+**Getestet**
+- Vorkasse-Bestellung inkl. Bestellübersicht, Bankdaten, Admin-Bestätigung, Statuswechsel und Zahlungsbestätigung per E-Mail.
+- Stripe-Test mit Mock-API: Checkout-Weiterleitung, signierter Webhook, Statuswechsel auf „bezahlt“, doppelter Webhook ohne Doppelbuchung, Betragsabweichung mit manueller Prüfnotiz, erneuter Zahlungsversuch, Rückleitung ohne Webhook.
+- Unsignierter Webhook wird mit HTTP 400 abgelehnt.
+- 25 Unit-Tests, 8 E2E-Tests (inkl. Admin) und Betriebsprüfung erfolgreich.
+- Noch nicht getestet: echter Stripe-Testmodus mit Stripe-Konto, echte PayPal-/iDEAL-Zahlung und Live-Schlüssel. Dafür sind Konto, Schlüssel und öffentliche HTTPS-Erreichbarkeit nötig.

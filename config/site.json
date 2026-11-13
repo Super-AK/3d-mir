@@ -40,11 +40,11 @@
     "shop": true,
     "customerAccounts": false,
     "calculator": true,
-    "paypal": false,
+    "paypal": true,
     "totp": false
   },
   "legal": {
-    "lastUpdated": "2026-11-11",
+    "lastUpdated": "2026-11-13",
     "reviewNotice": "Dieser Text wurde aus der bisherigen Website übernommen bzw. als technischer Entwurf erstellt. Er ist vor der Veröffentlichung rechtlich zu prüfen (Betreiber/Anwalt) und an die tatsächlich eingesetzten Dienste anzupassen.",
     "showDraftNotice": true
   }

@@ -31,6 +31,13 @@ const envSchema = z.object({
   MAIL_FROM: z.string().default('3D-MIR <info@3d-mir.de>'),
   MAIL_TO: z.string().default('info@3d-mir.de'),
   MAX_UPLOAD_MB: z.coerce.number().int().positive().default(50),
+  // Stripe: Geheimnisse ausschließlich über die Umgebung, nie im Repository.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_MODE: z.enum(['test', 'live']).default('test'),
+  STRIPE_API_BASE: z.string().url().default('https://api.stripe.com'),
+  // Öffentliche Basis-URL für Rückleitungen aus dem Zahlungsanbieter.
+  PAYMENT_BASE_URL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -39,11 +46,16 @@ if (!parsed.success) {
   process.exit(1);
 }
 const env = parsed.data;
+const site = readJson<SiteConfig>('config/site.json');
+const pricing = readJson<PricingConfig>('config/pricing.json');
+const shop = readJson<ShopConfig>('config/shop.json');
 
 if (env.NODE_ENV === 'production' && !env.SESSION_SECRET) {
   console.error('FEHLER: SESSION_SECRET muss in Produktion gesetzt sein (siehe .env.example).');
   process.exit(1);
 }
+
+const paymentBaseUrl = (env.PAYMENT_BASE_URL?.trim() || site.baseUrl).replace(/\/+$/, '');
 
 export const config = {
   env: env.NODE_ENV,
@@ -68,9 +80,18 @@ export const config = {
     from: env.MAIL_FROM,
     to: env.MAIL_TO,
   },
-  site: readJson<SiteConfig>('config/site.json'),
-  pricing: readJson<PricingConfig>('config/pricing.json'),
-  shop: readJson<ShopConfig>('config/shop.json'),
+  payment: {
+    baseUrl: paymentBaseUrl,
+  },
+  stripe: {
+    secretKey: env.STRIPE_SECRET_KEY ?? '',
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET ?? '',
+    mode: env.STRIPE_MODE,
+    apiBase: env.STRIPE_API_BASE.replace(/\/+$/, ''),
+  },
+  site,
+  pricing,
+  shop,
 } as const;
 
 export type SiteConfig = {
@@ -166,7 +187,15 @@ export type ShopConfig = {
   payment: {
     status: string;
     note: string;
-    methods: { id: string; label: string; note: string }[];
+    methods: {
+      id: string;
+      provider?: 'manual' | 'stripe';
+      stripeMethod?: string;
+      label: string;
+      note: string;
+      enabled?: boolean;
+      sortOrder?: number;
+    }[];
   };
   checkout: {
     acceptedCountries: string[];

@@ -12,6 +12,7 @@ import { render } from './lib/render.js';
 import { publicRoutes } from './routes/public.js';
 import { calculatorRoutes } from './routes/calculator.js';
 import { shopRoutes } from './routes/shop.js';
+import { paymentRoutes } from './routes/payments.js';
 import { adminRoutes } from './routes/admin.js';
 import { migrate } from './db/migrate.js';
 
@@ -38,6 +39,16 @@ export async function buildApp() {
 
   await app.register(cookie, { secret: config.sessionSecret });
   await app.register(formbody);
+  // Rohbody für die Stripe-Signaturprüfung aufbewahren; JSON wird weiterhin normal geparst.
+  app.addContentTypeParser('application/json', { parseAs: 'buffer' }, (request, body, done) => {
+    const raw = Buffer.isBuffer(body) ? body : Buffer.from(String(body));
+    request.rawBody = raw;
+    try {
+      done(null, raw.length > 0 ? JSON.parse(raw.toString('utf8')) : {});
+    } catch (error) {
+      done(error as Error, undefined);
+    }
+  });
   // Standardmäßig kein globales Limit; nur sensible Routen (z. B. Kontaktformular) begrenzen sich selbst.
   await app.register(rateLimit, { global: false });
   await app.register(multipart, {
@@ -90,6 +101,7 @@ export async function buildApp() {
   await app.register(publicRoutes);
   await app.register(calculatorRoutes);
   await app.register(shopRoutes);
+  await app.register(paymentRoutes);
   await app.register(adminRoutes);
 
   app.setNotFoundHandler((request, reply) => {

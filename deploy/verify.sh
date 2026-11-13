@@ -33,12 +33,14 @@ if nginx -t >/dev/null 2>&1; then ok "NGINX-Konfiguration gültig"; else bad "NG
 systemctl is-active --quiet nginx && ok "NGINX aktiv" || bad "NGINX nicht aktiv"
 
 head "HTTP"
-for path in / /leistungen/ /3d-druck-rechner/ /shop/ /kontakt/ /impressum/ /datenschutz/ /robots.txt /sitemap.xml; do
+for path in / /leistungen/ /3d-druck-rechner/ /shop/ /zahlung/ /kontakt/ /impressum/ /datenschutz/ /robots.txt /sitemap.xml; do
   code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Host: $DOMAIN" "$BASE_URL$path" 2>/dev/null || echo 000)"
   [[ "$code" == "200" ]] && ok "$path → 200" || bad "$path → $code"
 done
 health="$(curl -fsS -H "Host: $DOMAIN" "$BASE_URL/api/health" 2>/dev/null || true)"
 [[ "$health" == *'"status":"ok"'* ]] && ok "Health-Endpunkt meldet ok" || bad "Health-Endpunkt fehlerhaft: $health"
+webhook_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Host: $DOMAIN" -H 'Content-Type: application/json' --data '{}' "$BASE_URL/zahlung/webhook/stripe/" 2>/dev/null || echo 000)"
+[[ "$webhook_code" == "400" ]] && ok "Stripe-Webhook lehnt unsignierte Anfrage ab (400)" || bad "Stripe-Webhook antwortet unerwartet: $webhook_code"
 
 headers="$(curl -sS -D- -o /dev/null -H "Host: $DOMAIN" "$BASE_URL/" 2>/dev/null || true)"
 for header in 'content-security-policy' 'x-content-type-options' 'referrer-policy' 'permissions-policy'; do

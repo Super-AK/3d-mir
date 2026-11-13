@@ -12,11 +12,20 @@
 
   <form class="admin-filter card" method="get" action="/admin/bestellungen/">
     <div class="field">
-      <label for="status">Status</label>
+      <label for="status">Bestellstatus</label>
       <select id="status" name="status">
         <option value="">Alle Status</option>
         {% for item in statuses %}
           <option value="{{ item.id }}" {% if status == item.id %}selected{% endif %}>{{ item.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="paymentStatus">Zahlungsstatus</label>
+      <select id="paymentStatus" name="paymentStatus">
+        <option value="">Alle Zahlungsstatus</option>
+        {% for item in paymentStatuses %}
+          <option value="{{ item.id }}" {% if paymentStatus == item.id %}selected{% endif %}>{{ item.label }}</option>
         {% endfor %}
       </select>
     </div>
@@ -57,7 +66,7 @@
                 {% elif order.status == 'abgeschlossen' %}<span class="badge badge-success">Abgeschlossen</span>
                 {% else %}<span class="badge badge-danger">Storniert</span>{% endif %}
               </td>
-              <td><small>{{ order.payment_method }}<br>{{ order.shipping_method }}</small></td>
+              <td><small>{{ order.payment_method }}<br>{{ order.shipping_method }}</small><br><span class="badge badge-{{ order.paymentStatusTone }}">{{ order.paymentStatusText }}</span></td>
               <td class="text-right">{{ order.total_cents | price }}</td>
             </tr>
           {% endfor %}

@@ -1,0 +1,120 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Zahlungen – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Zahlungen</h1>
+      <p>Bankverbindung, Zahlungsarten und Stripe-Status verwalten.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-secondary btn-small" href="/zahlung/" target="_blank" rel="noopener">Zahlungsseite ansehen</a>
+    </div>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
+  {% endif %}
+
+  {% if not stripeConfigured %}
+    <div class="alert alert-warning" role="status">
+      <p><strong>Stripe ist noch nicht konfiguriert.</strong> Karte, PayPal und iDEAL werden im Checkout erst angeboten, wenn <code>STRIPE_SECRET_KEY</code> und <code>STRIPE_WEBHOOK_SECRET</code> in <code>/etc/3d-mir/3d-mir.env</code> gesetzt sind. Vorkasse funktioniert unabhängig davon.</p>
+    </div>
+  {% endif %}
+
+  {% if not bankConfigured %}
+    <div class="alert alert-warning" role="status">
+      <p><strong>Bankverbindung fehlt.</strong> Bei Vorkasse wird derzeit nur der Hinweis angezeigt, dass die Bankverbindung separat mitgeteilt wird. Bitte tragen Sie die Kontodaten unten ein, bevor der Shop live geht.</p>
+    </div>
+  {% endif %}
+
+  <form class="form" method="post" action="/admin/zahlungen/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <section class="card admin-panel">
+      <h2>Bankverbindung für Vorkasse</h2>
+      <p class="text-muted">Diese Angaben erscheinen auf der Bestellübersicht und in der Bestätigungs-E-Mail. Sie werden nicht im Repository gespeichert.</p>
+      <div class="form-row">
+        <div class="field">
+          <label for="bankAccountHolder">Kontoinhaber</label>
+          <input id="bankAccountHolder" name="bankAccountHolder" type="text" maxlength="120" value="{{ settings.bank.accountHolder }}" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="bankName">Bank</label>
+          <input id="bankName" name="bankName" type="text" maxlength="120" value="{{ settings.bank.bankName }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="bankIban">IBAN</label>
+          <input id="bankIban" name="bankIban" type="text" maxlength="40" value="{{ settings.bank.iban }}" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="bankBic">BIC <span class="hint">(optional)</span></label>
+          <input id="bankBic" name="bankBic" type="text" maxlength="20" value="{{ settings.bank.bic }}" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Zahlungsarten</h2>
+      <p class="text-muted">Aktive Zahlungsarten erscheinen im Checkout und auf <a href="/zahlung/" target="_blank" rel="noopener">/zahlung/</a>. Stripe-Methoden werden nur angeboten, wenn die Server-Schlüssel gesetzt sind.</p>
+      <div class="table-wrap">
+        <table class="admin-edit-table">
+          <thead>
+            <tr>
+              <th>Bezeichnung</th>
+              <th>Hinweis im Checkout</th>
+              <th>Anbieter</th>
+              <th>Reihenfolge</th>
+              <th>Aktiv</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for method in settings.paymentMethods %}
+              <tr>
+                <td>
+                  <input name="method_{{ method.id }}_label" type="text" maxlength="120" value="{{ method.label }}" required>
+                  <small class="text-muted">{{ method.id }}</small>
+                </td>
+                <td><input name="method_{{ method.id }}_note" type="text" maxlength="300" value="{{ method.note }}"></td>
+                <td>
+                  {% if method.provider == 'stripe' %}
+                    <span class="badge badge-info">Stripe · {{ method.stripeMethod }}</span>
+                    {% if not stripeConfigured %}<br><small class="text-muted">nicht konfiguriert</small>{% endif %}
+                  {% else %}
+                    <span class="badge badge-neutral">Manuell</span>
+                    {% if not bankConfigured %}<br><small class="text-muted">Bankdaten fehlen</small>{% endif %}
+                  {% endif %}
+                </td>
+                <td><input name="method_{{ method.id }}_sortOrder" type="number" min="-1000" max="1000" step="1" value="{{ method.sortOrder }}"></td>
+                <td>
+                  <label class="admin-check admin-check-inline">
+                    <input type="checkbox" name="method_{{ method.id }}_enabled" value="1" {% if method.enabled %}checked{% endif %}>
+                    <span>aktiv</span>
+                  </label>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Stripe</h2>
+      <dl class="admin-dl">
+        <div><dt>Status</dt><dd>{% if stripeConfigured %}<span class="badge badge-success">konfiguriert</span>{% else %}<span class="badge badge-warning">nicht konfiguriert</span>{% endif %}</dd></div>
+        <div><dt>Modus</dt><dd>{{ stripeMode }}</dd></div>
+        <div><dt>Webhook-URL</dt><dd><code>{{ site.baseUrl }}/zahlung/webhook/stripe/</code></dd></div>
+      </dl>
+      <p class="hint">Die Schlüssel <code>STRIPE_SECRET_KEY</code> und <code>STRIPE_WEBHOOK_SECRET</code> werden ausschließlich über die Serverumgebung gesetzt. Der Webhook muss im Stripe-Dashboard für die Ereignisse <code>checkout.session.completed</code>, <code>checkout.session.async_payment_succeeded</code>, <code>checkout.session.async_payment_failed</code> und <code>checkout.session.expired</code> eingetragen werden.</p>
+    </section>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Speichern</button>
+      <a class="btn btn-secondary" href="/admin/">Zurück</a>
+    </div>
+  </form>
+{% endblock %}

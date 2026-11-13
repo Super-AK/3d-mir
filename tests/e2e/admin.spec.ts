@@ -33,6 +33,7 @@ test.describe('Admin', () => {
       ['/admin/nachrichten/', 'Nachrichten'],
       ['/admin/produkte/', 'Produkte'],
       ['/admin/preise/', 'Preise und Kalkulation'],
+      ['/admin/zahlungen/', 'Zahlungen'],
     ] as const) {
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);

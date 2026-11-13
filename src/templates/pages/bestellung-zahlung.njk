@@ -1,0 +1,53 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Zahlung – 3D-MIR{% endblock %}
+{% block description %}Zahlung für Ihre Bestellung bei 3D-MIR.{% endblock %}
+{% block robots %}noindex,nofollow{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li><a href="/shop/">Shop</a></li><li aria-current="page">Zahlung</li></ol>
+    </nav>
+    <h1>Zahlung für Bestellung {{ order.order_number }}</h1>
+    <p>Die Zahlung wurde noch nicht abgeschlossen. Sie können sie hier erneut starten.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container order-layout">
+    <div class="card order-card">
+      {% if error %}
+        <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
+      {% endif %}
+
+      <h2>Zahlungsart</h2>
+      <p><strong>{{ paymentMethod.label }}</strong></p>
+      <p class="text-muted">{{ paymentMethod.note }}</p>
+
+      <p>Gesamtbetrag: <strong>{{ order.total_cents | price }}</strong></p>
+
+      <form method="post" action="/bestellung/zahlung/">
+        <input type="hidden" name="nummer" value="{{ order.order_number }}">
+        <input type="hidden" name="token" value="{{ token }}">
+        <div class="form-actions">
+          <button class="btn" type="submit">Zahlung erneut starten</button>
+          <a class="btn btn-secondary" href="/kontakt/">Kontakt aufnehmen</a>
+        </div>
+      </form>
+    </div>
+
+    <aside class="cart-summary card">
+      <h2>Ihre Bestellung</h2>
+      <dl class="summary-list">
+        <div><dt>Bestellnummer</dt><dd>{{ order.order_number }}</dd></div>
+        <div><dt>Zahlungsstatus</dt><dd>Offen</dd></div>
+        <div><dt>Versand</dt><dd>{{ order.shipping_cents | price }}</dd></div>
+      </dl>
+      <p class="summary-total"><span>Gesamt</span><strong>{{ order.total_cents | price }}</strong></p>
+      <p class="text-muted"><small>{{ site.business.vatNote }}</small></p>
+    </aside>
+  </div>
+</section>
+{% endblock %}

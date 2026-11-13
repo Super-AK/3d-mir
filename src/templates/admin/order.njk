@@ -19,6 +19,7 @@
       {% elif order.status == 'versandt' %}<span class="badge badge-success">Versandt</span>
       {% elif order.status == 'abgeschlossen' %}<span class="badge badge-success">Abgeschlossen</span>
       {% else %}<span class="badge badge-danger">Storniert</span>{% endif %}
+      <span class="badge badge-{{ paymentStatusTone }}">{{ paymentStatusText }}</span>
     </div>
   </div>
 
@@ -60,6 +61,11 @@
 
       <dl class="admin-dl">
         <div><dt>Zahlungsart</dt><dd>{{ paymentLabel }}</dd></div>
+        <div><dt>Zahlungsstatus</dt><dd><span class="badge badge-{{ paymentStatusTone }}">{{ paymentStatusText }}</span></dd></div>
+        <div><dt>Zahlungsanbieter</dt><dd>{{ paymentProviderText }}</dd></div>
+        {% if order.payment_reference %}<div><dt>Referenz</dt><dd><code>{{ order.payment_reference }}</code></dd></div>{% endif %}
+        {% if order.paid_at %}<div><dt>Zahlung eingegangen</dt><dd>{{ order.paid_at | date }}</dd></div>{% endif %}
+        {% if order.payment_note %}<div><dt>Zahlungshinweis</dt><dd>{{ order.payment_note }}</dd></div>{% endif %}
         <div><dt>Versandart</dt><dd>{{ shippingLabel }}</dd></div>
         <div><dt>Kundenanmerkung</dt><dd>{{ order.customer_note or '–' }}</dd></div>
       </dl>
@@ -91,6 +97,31 @@
           <a class="btn btn-secondary" href="/admin/bestellungen/">Zurück</a>
         </div>
       </form>
+
+      <h2 class="mt-2">Zahlung</h2>
+      {% if order.payment_status == 'bezahlt' %}
+        <p><span class="badge badge-success">Zahlung eingegangen</span>{% if order.paid_at %} am {{ order.paid_at | date }}{% endif %}</p>
+        <form method="post" action="/admin/bestellungen/{{ order.id }}/zahlung/">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <input type="hidden" name="action" value="refunded">
+          <button class="btn btn-secondary btn-small" type="submit">Erstattung vermerken</button>
+        </form>
+        <p class="hint">Die eigentliche Erstattung erfolgt im Stripe-Dashboard bzw. per Überweisung. Hier wird nur der Status vermerkt.</p>
+      {% else %}
+        <div class="admin-page-actions">
+          <form method="post" action="/admin/bestellungen/{{ order.id }}/zahlung/">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="action" value="paid">
+            <button class="btn btn-small" type="submit">Zahlungseingang bestätigen</button>
+          </form>
+          <form method="post" action="/admin/bestellungen/{{ order.id }}/zahlung/">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="action" value="failed">
+            <button class="btn btn-secondary btn-small" type="submit">Als fehlgeschlagen markieren</button>
+          </form>
+        </div>
+        <p class="hint">Bei Vorkasse bestätigt dies den Geldeingang. Bei Stripe wird der Status normalerweise automatisch gesetzt.</p>
+      {% endif %}
 
       <h2 class="mt-2">Statusverlauf</h2>
       {% if history.length > 0 %}

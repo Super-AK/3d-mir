@@ -1,6 +1,6 @@
 {% extends "layouts/base.njk" %}
 
-{% block title %}Bestellung eingegangen – 3D-MIR{% endblock %}
+{% block title %}Bestellung – 3D-MIR{% endblock %}
 {% block description %}Ihre Bestellung bei 3D-MIR.{% endblock %}
 {% block robots %}noindex,nofollow{% endblock %}
 
@@ -10,29 +10,85 @@
     <nav class="breadcrumb" aria-label="Brotkrumen">
       <ol><li><a href="/">Start</a></li><li><a href="/shop/">Shop</a></li><li aria-current="page">Bestellung</li></ol>
     </nav>
-    <h1>Vielen Dank für Ihre Bestellung</h1>
-    {% if number %}
-      <p>Ihre Bestellung <strong>{{ number }}</strong> ist bei uns eingegangen.</p>
+    {% if not number %}
+      <h1>Bestellung</h1>
+      <p>Die Bestellung konnte nicht gefunden werden. Bitte prüfen Sie den Link aus Ihrer Bestätigungs-E-Mail.</p>
+    {% elif order and order.payment_status == 'bezahlt' %}
+      <h1>Zahlung eingegangen</h1>
+      <p>Ihre Bestellung <strong>{{ number }}</strong> ist bezahlt. Vielen Dank!</p>
+    {% elif order and order.payment_status == 'fehlgeschlagen' %}
+      <h1>Zahlung nicht abgeschlossen</h1>
+      <p>Ihre Bestellung <strong>{{ number }}</strong> ist gespeichert, die Zahlung wurde aber nicht abgeschlossen.</p>
+    {% elif order and order.payment_status == 'in_bearbeitung' %}
+      <h1>Zahlung wird bearbeitet</h1>
+      <p>Ihre Bestellung <strong>{{ number }}</strong> ist bei uns eingegangen. Wir warten auf die Zahlungsbestätigung.</p>
     {% else %}
-      <p>Ihre Anfrage ist bei uns eingegangen.</p>
+      <h1>Vielen Dank für Ihre Bestellung</h1>
+      <p>Ihre Bestellung <strong>{{ number }}</strong> ist bei uns eingegangen.</p>
     {% endif %}
   </div>
 </section>
 
 <section class="section">
   <div class="container order-layout">
-    <div class="card order-card">
-      <h2>Wie geht es weiter?</h2>
-      <ol class="order-steps">
-        <li><strong>Prüfung:</strong> Wir prüfen Ihre Angaben und die Verfügbarkeit der gewünschten Farbe.</li>
-        <li><strong>Zahlung:</strong> Sie erhalten von uns eine E-Mail mit den Zahlungsdetails.</li>
-        <li><strong>Fertigung:</strong> Nach Zahlungseingang drucken und verpacken wir Ihre Bestellung.</li>
-        <li><strong>Versand:</strong> Sie erhalten eine Nachricht, sobald das Paket unterwegs ist.</li>
-      </ol>
-      <p>Bei Fragen antworten Sie einfach auf die Bestätigungs-E-Mail oder nutzen Sie unser <a href="/kontakt/">Kontaktformular</a>.</p>
-    </div>
-
     {% if order %}
+      <div class="card order-card">
+        <p><span class="badge badge-{{ paymentStatusTone }}">{{ paymentStatusText }}</span></p>
+
+        {% if order.payment_status == 'bezahlt' %}
+          <h2>Wie geht es weiter?</h2>
+          <ol class="order-steps">
+            <li><strong>Zahlung:</strong> Ihre Zahlung ist bei uns eingegangen.</li>
+            <li><strong>Fertigung:</strong> Wir drucken und verpacken Ihre Bestellung.</li>
+            <li><strong>Versand:</strong> Sie erhalten eine Nachricht, sobald das Paket unterwegs ist.</li>
+          </ol>
+
+        {% elif order.payment_status == 'fehlgeschlagen' %}
+          <h2>Zahlung erneut starten</h2>
+          <p>Die Zahlung wurde nicht abgeschlossen. Ihre Bestellung bleibt gespeichert. Sie können die Zahlung erneut starten oder uns kontaktieren.</p>
+          {% if order.status == 'storniert' or order.stock_released_at %}
+            <p class="text-muted">Diese Bestellung ist nicht mehr aktiv. Bitte legen Sie die Artikel erneut in den Warenkorb.</p>
+          {% elif retryUrl %}
+            <p><a class="btn" href="{{ retryUrl }}">Zahlung erneut starten</a></p>
+          {% endif %}
+
+        {% elif order.payment_status == 'in_bearbeitung' %}
+          <h2>Zahlung wird geprüft</h2>
+          <p>Wir warten auf die Bestätigung unseres Zahlungsdienstleisters. Bei PayPal oder iDEAL kann das einen Moment dauern.</p>
+          {% if retryUrl %}
+            <p class="text-muted"><small>Falls sich der Status nicht ändert, können Sie die Zahlung erneut starten: <a href="{{ retryUrl }}">Zahlung erneut starten</a>.</small></p>
+          {% endif %}
+          <p><a class="btn btn-secondary" href="{{ currentPath }}">Status aktualisieren</a></p>
+
+        {% elif paymentMethod and paymentMethod.provider == 'manual' %}
+          <h2>Zahlung per Vorkasse</h2>
+          <p>Bitte überweisen Sie den Gesamtbetrag von <strong>{{ order.total_cents | price }}</strong> auf unser Konto.</p>
+          {% if bankConfigured %}
+            <dl class="summary-list">
+              <div><dt>Kontoinhaber</dt><dd>{{ bank.accountHolder }}</dd></div>
+              <div><dt>IBAN</dt><dd>{{ bank.iban }}</dd></div>
+              {% if bank.bic %}<div><dt>BIC</dt><dd>{{ bank.bic }}</dd></div>{% endif %}
+              {% if bank.bankName %}<div><dt>Bank</dt><dd>{{ bank.bankName }}</dd></div>{% endif %}
+              <div><dt>Verwendungszweck</dt><dd>{{ order.order_number }}</dd></div>
+            </dl>
+          {% else %}
+            <p class="text-muted">Die Bankverbindung wird Ihnen in einer separaten E-Mail mitgeteilt.</p>
+          {% endif %}
+          <p>Die Bestellung wird nach Zahlungseingang gefertigt bzw. versandt.</p>
+
+        {% else %}
+          <h2>Wie geht es weiter?</h2>
+          <ol class="order-steps">
+            <li><strong>Prüfung:</strong> Wir prüfen Ihre Angaben und die Verfügbarkeit der gewünschten Farbe.</li>
+            <li><strong>Zahlung:</strong> Sie erhalten von uns eine E-Mail mit den Zahlungsdetails.</li>
+            <li><strong>Fertigung:</strong> Nach Zahlungseingang drucken und verpacken wir Ihre Bestellung.</li>
+            <li><strong>Versand:</strong> Sie erhalten eine Nachricht, sobald das Paket unterwegs ist.</li>
+          </ol>
+        {% endif %}
+
+        <p class="mt-2">Bei Fragen antworten Sie einfach auf die Bestätigungs-E-Mail oder nutzen Sie unser <a href="/kontakt/">Kontaktformular</a>.</p>
+      </div>
+
       <aside class="cart-summary card">
         <h2>Ihre Positionen</h2>
         <ul class="summary-items">
@@ -49,6 +105,7 @@
           {% for option in options %}
             <div><dt>{{ option.label }}</dt><dd>{{ option.price_cents | price }}</dd></div>
           {% endfor %}
+          <div><dt>Zahlungsart</dt><dd>{{ paymentMethod.label if paymentMethod else order.payment_method }}</dd></div>
         </dl>
         <p class="summary-total"><span>Gesamt</span><strong>{{ order.total_cents | price }}</strong></p>
         <p class="text-muted"><small>{{ site.business.vatNote }}</small></p>

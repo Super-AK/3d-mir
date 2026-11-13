@@ -140,6 +140,12 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=
 SMTP_PASS=
+
+# Stripe (leer = Karte, PayPal und iDEAL werden nicht angeboten)
+STRIPE_MODE=test
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+PAYMENT_BASE_URL=
 EOF
   chmod 0600 "$ENV_FILE"
   chown root:root "$ENV_FILE"

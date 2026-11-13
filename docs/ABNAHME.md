@@ -30,7 +30,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Sitemap/robots.txt | 200, Sitemap gültiges XML, alle aktiven Produkte enthalten | E2E-Test |
 | Datenbank/Backup | Integrität `ok`, Backup und Restore beschrieben | `deploy/backup.sh`, `deploy/verify.sh` |
 | Rechtstexte | inhaltlich aus Altbestand übernommen, Prüfhinweis sichtbar | Seiten `/impressum/`, `/datenschutz/`, `/agb/`, `/widerruf/` |
-| Preise/Versand/Zahlung | technisch aktiv, aber als Platzhalter gekennzeichnet | `config/*.json`, Shop- und Rechnerhinweise |
+| Preise/Versand/Zahlung | Zahlung technisch umgesetzt (Vorkasse + Stripe); Preise/Versand weiterhin Platzhalter | `config/*.json`, `settings`, Stripe-Env |
 
 ## Abnahmekriterien
 
@@ -41,7 +41,8 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Keine externen CDNs, Fonts, Tracker | ✅ | Schriften und Skripte lokal; CSP ohne externe Quellen |
 | Nur technisch notwendige Cookies | ✅ | Warenkorb und Admin-Sitzung |
 | Rechtstexte unverändert übernommen, Prüfhinweis | ✅ | redaktionelle Prüfung durch Auftraggeber offen |
-| Preise, Versand, Zahlung bestätigt | ⬜ | F1–F20, F66, F67 |
+| Preise und Versand bestätigt | ⬜ | F1–F20, F66, F67 |
+| Zahlung technisch umgesetzt | ✅ | Vorkasse + Stripe Checkout, Webhook, Admin; Stripe-Konto/Schlüssel offen |
 | SMTP-Zugang hinterlegt | ⬜ | F21–F24; aktuell `.eml`-Fallback |
 | Admin-Zugang für Betreiber eingerichtet | ⬜ | F64; per `npm run admin:create` |
 | DNS-Umstellung und TLS | ⬜ | F30–F33; Skripte und Checkliste vorbereitet |
@@ -50,13 +51,14 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 
 ## Offene Punkte vor dem Livegang
 
-1. Preise, Kalkulationswerte, Versandkosten und Zahlungsarten bestätigen (F1–F20, F66, F67).
-2. SMTP-Zugangsdaten hinterlegen (F21–F24).
-3. Admin-Zugang anlegen und TOTP-Entscheidung treffen (F63, F64).
-4. DNS auf den neuen Server umstellen, TLS per certbot aktivieren, kanonische `www`-Variante bestätigen (F30–F33).
-5. Rechtstexte durch Betreiber/Anwalt prüfen lassen (F54–F59).
-6. Backup-Ziel und Aufbewahrung final festlegen (F61, F62).
-7. Test auf einer frischen VM mit der Checkliste in `docs/DEPLOYMENT.md` durchführen.
+1. Preise, Kalkulationswerte und Versandkosten bestätigen (F1–F20, F66, F67).
+2. Stripe-Konto anlegen, Schlüssel/Webhook-Secret hinterlegen und Bankverbindung im Admin eintragen (F9–F13).
+3. SMTP-Zugangsdaten hinterlegen (F21–F24).
+4. Admin-Zugang anlegen und TOTP-Entscheidung treffen (F63, F64).
+5. DNS auf den neuen Server umstellen, TLS per certbot aktivieren, kanonische `www`-Variante bestätigen (F30–F33).
+6. Rechtstexte durch Betreiber/Anwalt prüfen lassen (F54–F59).
+7. Backup-Ziel und Aufbewahrung final festlegen (F61, F62).
+8. Test auf einer frischen VM mit der Checkliste in `docs/DEPLOYMENT.md` durchführen.
 
 ## Abnahmeerklärung
 

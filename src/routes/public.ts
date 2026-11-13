@@ -6,6 +6,8 @@ import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
 import { cleanText, escapeHtml, isSameOrigin } from '../lib/http.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
+import { getPublicPaymentMethods, getShopSettings, isBankConfigured } from '../lib/shop-settings.js';
+import { isStripeConfigured } from '../lib/payments/stripe.js';
 
 /** Liest alle Inhaltsblöcke als Schlüssel-Wert-Paare. */
 export function getContent(): Record<string, string> {
@@ -365,7 +367,17 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
   app.get('/agb/', async (_request, reply) => render(reply, 'pages/legal/agb.njk'));
   app.get('/widerruf/', async (_request, reply) => render(reply, 'pages/legal/widerruf.njk'));
   app.get('/versand/', async (_request, reply) => render(reply, 'pages/legal/versand.njk'));
-  app.get('/zahlung/', async (_request, reply) => render(reply, 'pages/legal/zahlung.njk'));
+  app.get('/zahlung/', async (_request, reply) => {
+    const settings = getShopSettings();
+    const paymentMethods = getPublicPaymentMethods();
+    render(reply, 'pages/legal/zahlung.njk', {
+      paymentMethods,
+      hasStripeMethods: paymentMethods.some((method) => method.provider === 'stripe'),
+      bank: settings.bank,
+      bankConfigured: isBankConfigured(settings.bank),
+      stripeConfigured: isStripeConfigured(),
+    });
+  });
   app.get('/cookie-hinweis/', async (_request, reply) => render(reply, 'pages/legal/cookies.njk'));
 
   app.get(

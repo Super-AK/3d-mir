@@ -21,17 +21,18 @@ Alle Werte stehen aktuell als **Platzhalter** in `config/pricing.json` und sind 
 | F7 | Sollen Druckzeit und Materialverbrauch pauschal oder modellgenau geschätzt werden? (Die Berechnung nutzt Volumen × Füllung + Wandstärken; eine exakte Slicer-Zeit ist ohne Slicer nicht möglich.) | modellgenaue Schätzung |
 | F8 | Sollen Preise inkl. oder zzgl. der gesetzlichen USt. gedacht sein? (Kleinunternehmer: kein USt.-Ausweis) | Brutto, kein USt.-Ausweis |
 
-## 2. Zahlungsarten 🔴
+## 2. Zahlungsarten 🟡
 
-Die Altseite nennt Kreditkarte, Überweisung, Nachnahme, PayPal, iDEAL und Klarna (WooPayments/PayPal-Plugins).
+Die Altseite nennt Kreditkarte, Überweisung, Nachnahme, PayPal, iDEAL und Klarna (WooPayments/PayPal-Plugins). Technisch umgesetzt sind Vorkasse, Karte, PayPal und iDEAL über Stripe. Offen sind Konto, Schlüssel und Bankdaten.
 
-| Nr. | Frage |
+| Nr. | Entscheidung / offener Punkt |
 | --- | --- |
-| F9 | Welche Zahlungsarten sollen **zum Start** wirklich angeboten werden? Empfehlung: Vorkasse/Überweisung (sofort umsetzbar) und optional PayPal. |
-| F10 | Falls PayPal: PayPal-Business-Konto vorhanden? Client-ID/Secret werden ausschließlich in `/etc/3d-mir/3d-mir.env` hinterlegt (nicht im Repo). Soll die PayPal-Integration (Smart Buttons) umgesetzt werden? |
-| F11 | Falls Kreditkarte/Klarna/iDEAL: Welcher Zahlungsdienstleister (Stripe, Mollie, WooPayments-Äquivalent)? Das ist ein eigener Integrationsaufwand und benötigt einen Auftragsverarbeitungsvertrag. |
-| F12 | Nachnahme: soll die Zahlungsgebühr (Altseite: 1,00 € + 8,99 € Übermittlungsentgelt) übernommen werden? |
-| F13 | Bankverbindung für Rechnung/Vorkasse (IBAN, BIC, Kontoinhaber) – bitte **nicht** per E-Mail im Klartext, sondern später direkt in die Admin-Maske eintragen. |
+| F9 | **Entschieden:** Vorkasse, Kredit-/Debitkarte, PayPal und iDEAL zum Start. Klarna, SEPA-Lastschrift, Nachnahme und Rechnung später. |
+| F10 | **Entschieden:** PayPal läuft über Stripe. Das bestehende PayPal-Business-Konto wird für diese Shop-Zahlungen nicht genutzt; direkte PayPal-Anbindung bleibt Option für später. |
+| F11 | **Entschieden:** Stripe Checkout für Karte, PayPal und iDEAL. Stripe-Konto, Verifizierung und Freischaltung der Zahlungsarten sind noch anzulegen. |
+| F12 | **Entschieden:** Nachnahme zum Start nicht. Die alte Gebühr (1,00 € + 8,99 €) wird nicht übernommen. |
+| F13 | **Offen:** Bankverbindung (IBAN, BIC, Kontoinhaber) unter **Admin → Zahlungen** eintragen – nicht per E-Mail oder ins Repository. |
+| F68 | **Offen:** Stripe-Konto anlegen, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` und `PAYMENT_BASE_URL` in `/etc/3d-mir/3d-mir.env` hinterlegen. |
 
 ## 3. Versand 🔴
 
