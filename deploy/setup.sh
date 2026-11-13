@@ -161,8 +161,10 @@ action_prerequisites() {
     else
       echo "frei"
     fi
-    printf '%-34s' "Port $PORT:"
-    if ss -ltn 2>/dev/null | grep -Eq ":${PORT}[[:space:]]"; then
+    local app_port
+    app_port="$(get_env PORT)"; app_port="${app_port:-$PORT}"
+    printf '%-34s' "Port $app_port:"
+    if ss -ltn 2>/dev/null | grep -Eq ":${app_port}[[:space:]]"; then
       echo "belegt"
     else
       echo "frei"
@@ -180,17 +182,27 @@ action_prerequisites() {
 
 action_systemcheck() {
   require_app || return 0
-  local out
+  local out app_port
+  app_port="$(get_env PORT)"; app_port="${app_port:-$PORT}"
   out="$(mktemp)"
   {
     echo "3D-MIR – Systemcheck"
     echo "===================="
     echo
-    echo "--- Dienst ---"
-    systemctl status "$SERVICE" --no-pager 2>&1 | sed -n '1,14p' || true
+    echo "--- Dienststatus ---"
+    echo "is-active: $(systemctl is-active "$SERVICE" 2>&1 || true)"
+    if systemctl is-failed --quiet "$SERVICE" 2>/dev/null; then
+      echo "is-failed: ja"
+    else
+      echo "is-failed: nein"
+    fi
+    systemctl status "$SERVICE" --no-pager 2>&1 | sed -n '1,20p' || true
     echo
-    echo "--- Health ---"
-    curl -fsS "http://127.0.0.1/api/health" 2>&1 || echo "Health-Endpunkt nicht erreichbar."
+    echo "--- Health (direkt auf Port $app_port) ---"
+    curl -fsS "http://127.0.0.1:${app_port}/api/health" 2>&1 || echo "Health-Endpunkt nicht erreichbar."
+    echo
+    echo "--- Health (über NGINX) ---"
+    curl -fsS -H "Host: $DOMAIN" "http://127.0.0.1/api/health" 2>&1 || echo "Health über NGINX nicht erreichbar (erwartet bei HTTP→HTTPS-Redirect)."
     echo
     echo "--- Ports ---"
     ss -ltnp 2>/dev/null | sed -n '1,20p' || true
@@ -211,6 +223,9 @@ action_systemcheck() {
     echo
     echo "--- Letzte Fehler im Journal ---"
     journalctl -u "$SERVICE" -p err -n 20 --no-pager 2>&1 || true
+    echo
+    echo "--- Letzte Logzeilen (Startfehler sichtbar) ---"
+    journalctl -u "$SERVICE" -n 50 --no-pager 2>&1 || true
   } > "$out" 2>&1
   show_text "Systemcheck" "$out"
   rm -f "$out"
@@ -404,7 +419,9 @@ action_config() {
     echo "ENV_FILE:   $ENV_FILE"
     echo "DB_PATH:    $DB_PATH"
     echo "DOMAIN:     $DOMAIN"
-    echo "PORT:       $PORT"
+    local env_port
+    env_port="$(get_env PORT)"
+    echo "PORT:       ${env_port:-$PORT}"
     echo
     echo "Umgebungsvariablen (Geheimnisse maskiert):"
     if [[ -f "$ENV_FILE" ]]; then
