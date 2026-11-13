@@ -19,7 +19,7 @@
 
   {% if not stripeConfigured %}
     <div class="alert alert-warning" role="status">
-      <p><strong>Stripe ist noch nicht konfiguriert.</strong> Karte, PayPal und iDEAL werden im Checkout erst angeboten, wenn <code>STRIPE_SECRET_KEY</code> und <code>STRIPE_WEBHOOK_SECRET</code> in <code>/etc/3d-mir/3d-mir.env</code> gesetzt sind. Vorkasse funktioniert unabhängig davon.</p>
+      <p><strong>Stripe ist noch nicht konfiguriert.</strong> Karte, PayPal, Amazon Pay, Klarna und iDEAL werden im Checkout erst angeboten, wenn <code>STRIPE_SECRET_KEY</code> und <code>STRIPE_WEBHOOK_SECRET</code> in <code>/etc/3d-mir/3d-mir.env</code> gesetzt sind. Vorkasse funktioniert unabhängig davon.</p>
     </div>
   {% endif %}
 

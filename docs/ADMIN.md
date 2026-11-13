@@ -60,6 +60,8 @@ Die Zahlungsarten sind im Code vorbereitet und werden im Admin nur aktiviert/dea
 | Vorkasse per Banküberweisung | manuell | Bankverbindung im Admin |
 | Kredit-/Debitkarte | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
 | PayPal | Stripe | wie Karte; PayPal im Stripe-Dashboard freischalten |
+| Amazon Pay | Stripe | wie Karte; Amazon Pay im Stripe-Dashboard freischalten |
+| Klarna | Stripe | wie Karte; Klarna im Stripe-Dashboard freischalten |
 | iDEAL | Stripe | wie Karte; iDEAL im Stripe-Dashboard freischalten |
 
 Stripe-Methoden erscheinen im Checkout erst, wenn beide Stripe-Geheimnisse in `/etc/3d-mir/3d-mir.env` gesetzt sind. Die Schlüssel werden nie im Repository oder in der Datenbank gespeichert.

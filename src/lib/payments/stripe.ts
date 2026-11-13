@@ -125,6 +125,8 @@ export async function createCheckoutSession(input: CreateCheckoutSessionInput): 
     params.set(`line_items[${index}][price_data][currency]`, 'eur');
     params.set(`line_items[${index}][price_data][product_data][name]`, item.name.slice(0, 250));
     params.set(`line_items[${index}][price_data][unit_amount]`, String(item.amountCents));
+    // Preise sind Endpreise (Kleinunternehmer nach § 19 UStG).
+    params.set(`line_items[${index}][price_data][tax_behavior]`, 'inclusive');
     params.set(`line_items[${index}][quantity]`, String(item.quantity));
   });
 

@@ -33,13 +33,31 @@
         "sortOrder": 30
       },
       {
+        "id": "amazon-pay",
+        "provider": "stripe",
+        "stripeMethod": "amazon_pay",
+        "label": "Amazon Pay",
+        "note": "Sie werden zu Amazon Pay weitergeleitet und schließen die Zahlung dort ab. Die Abwicklung erfolgt über Stripe.",
+        "enabled": true,
+        "sortOrder": 40
+      },
+      {
+        "id": "klarna",
+        "provider": "stripe",
+        "stripeMethod": "klarna",
+        "label": "Klarna",
+        "note": "Rechnung oder Ratenkauf über Klarna. Die Zahlungsabwicklung erfolgt über Stripe; die Freigabe hängt von der Prüfung durch Klarna ab.",
+        "enabled": true,
+        "sortOrder": 50
+      },
+      {
         "id": "ideal",
         "provider": "stripe",
         "stripeMethod": "ideal",
         "label": "iDEAL",
         "note": "Für Kundinnen und Kunden mit einem niederländischen Bankkonto.",
         "enabled": true,
-        "sortOrder": 40
+        "sortOrder": 60
       }
     ]
   },

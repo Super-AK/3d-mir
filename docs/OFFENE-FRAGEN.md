@@ -23,13 +23,13 @@ Alle Werte stehen aktuell als **Platzhalter** in `config/pricing.json` und sind 
 
 ## 2. Zahlungsarten 🟡
 
-Die Altseite nennt Kreditkarte, Überweisung, Nachnahme, PayPal, iDEAL und Klarna (WooPayments/PayPal-Plugins). Technisch umgesetzt sind Vorkasse, Karte, PayPal und iDEAL über Stripe. Offen sind Konto, Schlüssel und Bankdaten.
+Die Altseite nennt Kreditkarte, Überweisung, Nachnahme, PayPal, iDEAL und Klarna (WooPayments/PayPal-Plugins). Technisch umgesetzt sind Vorkasse, Karte, PayPal, Amazon Pay, Klarna und iDEAL über Stripe. Offen sind Konto, Schlüssel und Bankdaten.
 
 | Nr. | Entscheidung / offener Punkt |
 | --- | --- |
-| F9 | **Entschieden:** Vorkasse, Kredit-/Debitkarte, PayPal und iDEAL zum Start. Klarna, SEPA-Lastschrift, Nachnahme und Rechnung später. |
+| F9 | **Entschieden:** Vorkasse, Kredit-/Debitkarte, PayPal, Amazon Pay, Klarna und iDEAL zum Start. SEPA-Lastschrift, Nachnahme und Rechnung später. |
 | F10 | **Entschieden:** PayPal läuft über Stripe. Das bestehende PayPal-Business-Konto wird für diese Shop-Zahlungen nicht genutzt; direkte PayPal-Anbindung bleibt Option für später. |
-| F11 | **Entschieden:** Stripe Checkout für Karte, PayPal und iDEAL. Stripe-Konto, Verifizierung und Freischaltung der Zahlungsarten sind noch anzulegen. |
+| F11 | **Entschieden:** Stripe Checkout für Karte, PayPal, Amazon Pay, Klarna und iDEAL. Stripe-Konto, Verifizierung und Freischaltung der Zahlungsarten sind noch anzulegen. |
 | F12 | **Entschieden:** Nachnahme zum Start nicht. Die alte Gebühr (1,00 € + 8,99 €) wird nicht übernommen. |
 | F13 | **Offen:** Bankverbindung (IBAN, BIC, Kontoinhaber) unter **Admin → Zahlungen** eintragen – nicht per E-Mail oder ins Repository. |
 | F68 | **Offen:** Stripe-Konto anlegen, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` und `PAYMENT_BASE_URL` in `/etc/3d-mir/3d-mir.env` hinterlegen. |

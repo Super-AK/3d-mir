@@ -30,7 +30,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Sitemap/robots.txt | 200, Sitemap gültiges XML, alle aktiven Produkte enthalten | E2E-Test |
 | Datenbank/Backup | Integrität `ok`, Backup und Restore beschrieben | `deploy/backup.sh`, `deploy/verify.sh` |
 | Rechtstexte | inhaltlich aus Altbestand übernommen, Prüfhinweis sichtbar | Seiten `/impressum/`, `/datenschutz/`, `/agb/`, `/widerruf/` |
-| Preise/Versand/Zahlung | Zahlung technisch umgesetzt (Vorkasse + Stripe); Preise/Versand weiterhin Platzhalter | `config/*.json`, `settings`, Stripe-Env |
+| Preise/Versand/Zahlung | Zahlung technisch umgesetzt (Vorkasse + Stripe mit Karte, PayPal, Amazon Pay, Klarna und iDEAL); Preise/Versand weiterhin Platzhalter | `config/*.json`, `settings`, Stripe-Env |
 
 ## Abnahmekriterien
 

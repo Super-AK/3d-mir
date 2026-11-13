@@ -63,7 +63,7 @@ Der Installer ist idempotent: Vorhandene `.env`-Dateien und NGINX-Konfiguratione
 
 ## Zahlungen mit Stripe
 
-Die Anwendung unterstützt Vorkasse, Kredit-/Debitkarte, PayPal und iDEAL. Karte, PayPal und iDEAL laufen über Stripe Checkout (Weiterleitung, keine Zahlungsdaten auf dem eigenen Server).
+Die Anwendung unterstützt Vorkasse, Kredit-/Debitkarte, PayPal, Amazon Pay, Klarna und iDEAL. Karte, PayPal, Amazon Pay, Klarna und iDEAL laufen über Stripe Checkout (Weiterleitung, keine Zahlungsdaten auf dem eigenen Server).
 
 ### Umgebungsvariablen
 
@@ -77,14 +77,14 @@ PAYMENT_BASE_URL=https://www.3d-mir.de
 ```
 
 - `STRIPE_MODE` dient nur der Anzeige im Admin (`test`/`live`).
-- `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` sind Pflicht, damit Karte, PayPal und iDEAL im Checkout erscheinen.
+- `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` sind Pflicht, damit Karte, PayPal, Amazon Pay, Klarna und iDEAL im Checkout erscheinen.
 - `PAYMENT_BASE_URL` ist die öffentliche Basis für Erfolgs-/Abbruch-URLs. Für lokale Tests z. B. `http://127.0.0.1:3000`; produktiv `https://www.3d-mir.de`.
 - Nach Änderungen: `sudo systemctl restart 3d-mir.service`.
 
 ### Stripe-Dashboard
 
 1. Geschäftskonto bei Stripe anlegen und verifizieren.
-2. Im Dashboard **Karte**, **PayPal** und **iDEAL** aktivieren.
+2. Im Dashboard **Karte**, **PayPal**, **Amazon Pay**, **Klarna** und **iDEAL** aktivieren.
 3. Webhook-Endpunkt `https://www.3d-mir.de/zahlung/webhook/stripe/` anlegen und diese Ereignisse abonnieren:
    - `checkout.session.completed`
    - `checkout.session.async_payment_succeeded`
@@ -98,7 +98,7 @@ PAYMENT_BASE_URL=https://www.3d-mir.de
 - Zuerst mit `sk_test_…` und Testkarten arbeiten; Live-Schlüssel erst nach DNS-/TLS-Umstellung eintragen.
 - Der Webhook muss öffentlich über HTTPS erreichbar sein. Bis die Domain auf den neuen Server zeigt, kann er z. B. mit der Stripe CLI weitergeleitet werden.
 - Prüfung: `sudo deploy/verify.sh` (unsignierte Webhook-Anfrage muss mit HTTP 400 abgelehnt werden).
-- Testbestellung mit Karte, PayPal und iDEAL; anschließend Status im Admin und in der Datenbank prüfen.
+- Testbestellung mit Karte, PayPal, Amazon Pay, Klarna und iDEAL; anschließend Status im Admin und in der Datenbank prüfen.
 - Bei Zahlungsausfall oder Abbruch muss die Bestellung auf „fehlgeschlagen“ stehen und über die Bestellübersicht erneut zahlbar sein.
 
 ### Wichtige Hinweise
@@ -191,7 +191,7 @@ Der Installer wurde auf dem vorhandenen Ubuntu-26.04-System als idempotenter Re-
 - [ ] `curl http://<server>/sitemap.xml` liefert gültiges XML.
 - [ ] Admin-Login unter `/admin/` funktioniert, Passwortänderung möglich.
 - [ ] Testbestellung im Shop und Angebotsanfrage im Rechner funktionieren.
-- [ ] Stripe-Testmodus: Karte, PayPal und iDEAL getestet; Webhook-Signatur und Zahlungsstatus geprüft.
+- [ ] Stripe-Testmodus: Karte, PayPal, Amazon Pay, Klarna und iDEAL getestet; Webhook-Signatur und Zahlungsstatus geprüft.
 - [ ] Bankverbindung unter **Admin → Zahlungen** hinterlegt und auf `/zahlung/` sichtbar.
 - [ ] `sudo deploy/backup.sh` erzeugt ein Archiv; `deploy/restore.sh` spielt es erfolgreich zurück.
 - [ ] Nach DNS-Umstellung: `certbot --nginx …`, HTTPS erzwingen, `verify.sh` prüft Zertifikat.
