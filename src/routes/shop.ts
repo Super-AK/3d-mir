@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
+import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, createReference, isSameOrigin } from '../lib/http.js';
 import { clearCart, readCart, writeCart, type Cart } from '../lib/cart.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
@@ -773,7 +774,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
 
       const sendOrderMails = async (): Promise<void> => {
         try {
-          await sendMail({
+          await notifyAdmin({
             subject: `[Bestellung ${number}] ${lines.length} Position(en), ${formatEuro(totals.totalCents)}`,
             text: orderMailText(
               number,

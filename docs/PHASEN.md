@@ -334,3 +334,19 @@
 - Zusätzlich Amazon Pay und Klarna als Stripe-Zahlungsarten im Checkout geprüft (Weiterleitung, `payment_method_types`, `tax_behavior=inclusive`).
 - 25 Unit-Tests, 8 E2E-Tests (inkl. Admin) und Betriebsprüfung erfolgreich.
 - Noch nicht getestet: echter Stripe-Testmodus mit Stripe-Konto, echte PayPal-/Amazon-Pay-/Klarna-/iDEAL-Zahlung und Live-Schlüssel. Dafür sind Konto, Schlüssel und öffentliche HTTPS-Erreichbarkeit nötig.
+
+## Nachtrag – Interaktives Setup und Benachrichtigungen
+
+**Fertig**
+- Neues Menü `deploy/setup.sh` (auch über `deploy/install.sh --menu`): Installation/Reparatur, Voraussetzungen, Systemcheck, Mail-Setup, Benachrichtigungs-Hilfe, SSL/TLS, Backup/Restore, GitHub-Update, Admin-Zugang, Dienst-Neustart, Logs, Konfiguration und Menü-Neuladen.
+- Admin-Seite **Benachrichtigungen**: Kanalwahl Nur E-Mail / Nur Telegram / Beides; SMTP-Konfiguration inkl. Test-E-Mail; Telegram-Bot-Token und Chat-ID inkl. Testnachricht.
+- Admin-Benachrichtigungen für Bestellungen, Kontaktanfragen, Angebotsanfragen und Zahlungseingänge laufen über den gewählten Kanal. Kunden-E-Mails bleiben unabhängig davon E-Mail.
+- SMTP-Transport wird bei Änderungen im Admin automatisch neu aufgebaut; ohne SMTP weiterhin `.eml`-Fallback.
+- Telegram Bot API mit Token-Formatprüfung, Timeout und Fehlerbehandlung.
+- Neue Umgebungsvariablen `NOTIFICATION_CHANNEL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` als Fallback; Admin-Einstellungen haben Vorrang.
+- Dokumentation in `docs/ADMIN.md`, `docs/INSTALLATION.md`, `docs/DEPLOYMENT.md` und README.
+
+**Getestet**
+- Admin-Seite speichert Kanal, SMTP- und Telegram-Werte; Test-E-Mail erzeugt ohne SMTP eine `.eml`; fehlendes Telegram wird verständlich gemeldet.
+- Unit-Tests für Telegram-Versand, API-Fehler, fehlende Konfiguration und ungültigen Token.
+- Typecheck, Unit-Tests und Admin-E2E-Tests erfolgreich.

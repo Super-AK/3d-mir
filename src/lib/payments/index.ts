@@ -2,6 +2,7 @@ import { config } from '../../config.js';
 import { getDb } from '../../db/index.js';
 import { getLogger } from '../logger.js';
 import { sendMail } from '../mailer.js';
+import { notifyAdmin } from '../notifications.js';
 import { formatEuro } from '../shop.js';
 import { findPaymentMethod, getShopSettings, type BankDetails } from '../shop-settings.js';
 import {
@@ -531,7 +532,7 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
   const methodLabel = method?.label ?? order.payment_method;
   if (order.status === 'storniert') {
     try {
-      await sendMail({
+      await notifyAdmin({
         subject: `[Zahlung nach Stornierung] Bestellung ${order.order_number} – ${formatEuro(order.total_cents)}`,
         text: [
           `Für die bereits stornierte Bestellung ${order.order_number} ist eine Zahlung eingegangen.`,
@@ -576,7 +577,7 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
       text,
       replyTo: config.mail.to,
     });
-    await sendMail({
+    await notifyAdmin({
       subject: `[Zahlung] Bestellung ${order.order_number} – ${formatEuro(order.total_cents)}`,
       text: [
         `Zahlung eingegangen für Bestellung ${order.order_number}.`,

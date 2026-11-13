@@ -43,6 +43,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Rechtstexte unverändert übernommen, Prüfhinweis | ✅ | redaktionelle Prüfung durch Auftraggeber offen |
 | Preise und Versand bestätigt | ⬜ | F1–F20, F66, F67 |
 | Zahlung technisch umgesetzt | ✅ | Vorkasse + Stripe Checkout, Webhook, Admin; Stripe-Konto/Schlüssel offen |
+| Benachrichtigungen | ✅ | E-Mail/Telegram im Admin wählbar; SMTP-/Telegram-Test |
 | SMTP-Zugang hinterlegt | ⬜ | F21–F24; aktuell `.eml`-Fallback |
 | Admin-Zugang für Betreiber eingerichtet | ⬜ | F64; per `npm run admin:create` |
 | DNS-Umstellung und TLS | ⬜ | F30–F33; Skripte und Checkliste vorbereitet |

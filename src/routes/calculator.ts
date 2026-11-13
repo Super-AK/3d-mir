@@ -7,6 +7,7 @@ import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
+import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, createReference, escapeHtml, isSameOrigin } from '../lib/http.js';
 import { MeshError, parseMesh, type MeshFormat } from '../lib/mesh.js';
 import { calculatePrice, choosePrinter, type PriceMetrics, type PriceOptions } from '../lib/pricing.js';
@@ -335,7 +336,7 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
       ];
 
       try {
-        await sendMail({
+        await notifyAdmin({
           subject: `[Anfrage ${reference}] ${material.label} · ${input.quantity} Teile`,
           text: summaryLines.join('\n'),
           replyTo: input.email,

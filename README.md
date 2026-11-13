@@ -15,6 +15,7 @@ Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, So
 | Frontend | Vanilla TypeScript + eigenes CSS, gebündelt mit Vite |
 | 3D-Vorschau | three.js (lokal gebündelt, kein CDN) |
 | Prozess | systemd-Dienst `3d-mir.service`, Benutzer `mir3d` |
+| Benachrichtigungen | E-Mail (SMTP) und Telegram, Kanal im Admin wählbar |
 | Tests | Vitest (Unit), Playwright (E2E) |
 
 **Grundsätze:** keine externen CDNs, keine Google Fonts, kein Tracking, keine Social-Media-Einbettungen. Schriften und Skripte werden lokal ausgeliefert. Es werden nur technisch notwendige Cookies gesetzt (Session/Warenkorb).
@@ -66,6 +67,7 @@ Bilder werden mit `node scripts/prepare-images.mjs` aus `web/static/img/` erzeug
 ## Produktion
 
 ```bash
+sudo deploy/setup.sh          # interaktives Setup- und Verwaltungsmenü
 sudo deploy/install.sh        # geführte Installation (whiptail)
 sudo deploy/update.sh         # Update mit Rollback
 sudo deploy/backup.sh         # Backup von DB und Uploads

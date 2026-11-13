@@ -1,0 +1,174 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Benachrichtigungen – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Benachrichtigungen</h1>
+      <p>E-Mail-Versand und Telegram für Benachrichtigungen an den Betreiber einrichten.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-secondary btn-small" href="/admin/">Zurück</a>
+    </div>
+  </div>
+
+  {% if test == 'mail-ok' %}
+    <div class="alert alert-success" role="status"><p>Die Test-E-Mail wurde versendet.</p></div>
+  {% elif test == 'mail-file' %}
+    <div class="alert alert-warning" role="status"><p>Kein SMTP konfiguriert. Die Test-E-Mail wurde als <code>.eml</code> unter <code>/var/log/3d-mir/mail/</code> gespeichert.</p></div>
+  {% elif test == 'telegram-ok' %}
+    <div class="alert alert-success" role="status"><p>Die Testnachricht wurde an Telegram gesendet.</p></div>
+  {% endif %}
+
+  {% if settings.channel == 'mail' or settings.channel == 'both' %}
+    {% if not smtpConfigured %}
+      <div class="alert alert-warning" role="status"><p><strong>E-Mail ist noch nicht konfiguriert.</strong> Benachrichtigungen werden als <code>.eml</code> gespeichert, bis ein SMTP-Server eingetragen ist.</p></div>
+    {% endif %}
+  {% endif %}
+  {% if settings.channel == 'telegram' or settings.channel == 'both' %}
+    {% if not telegramConfigured %}
+      <div class="alert alert-warning" role="status"><p><strong>Telegram ist noch nicht vollständig konfiguriert.</strong> Bitte Bot-Token und Chat-ID eintragen.</p></div>
+    {% endif %}
+  {% endif %}
+
+  <form class="form" method="post" action="/admin/benachrichtigungen/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <section class="card admin-panel">
+      <h2>Benachrichtigungskanal</h2>
+      <p class="text-muted">Die Auswahl gilt für Benachrichtigungen an den Betreiber, z. B. neue Bestellungen, Kontaktanfragen und Zahlungseingänge. Kunden erhalten ihre Bestellbestätigungen weiterhin per E-Mail.</p>
+      <div class="radio-list">
+        <label class="radio-card radio-card-stacked">
+          <input type="radio" name="channel" value="mail" {% if settings.channel == 'mail' %}checked{% endif %}>
+          <span class="radio-card-text">
+            <strong>Nur E-Mail</strong>
+            <span>Benachrichtigungen ausschließlich an das Betreiber-Postfach.</span>
+          </span>
+        </label>
+        <label class="radio-card radio-card-stacked">
+          <input type="radio" name="channel" value="telegram" {% if settings.channel == 'telegram' %}checked{% endif %}>
+          <span class="radio-card-text">
+            <strong>Nur Telegram</strong>
+            <span>Benachrichtigungen ausschließlich per Telegram.</span>
+          </span>
+        </label>
+        <label class="radio-card radio-card-stacked">
+          <input type="radio" name="channel" value="both" {% if settings.channel == 'both' %}checked{% endif %}>
+          <span class="radio-card-text">
+            <strong>E-Mail und Telegram</strong>
+            <span>Benachrichtigungen werden über beide Kanäle versendet.</span>
+          </span>
+        </label>
+      </div>
+      <p class="hint">Aktuell aktiv: <strong>{{ channelLabel }}</strong></p>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>E-Mail-Versand (SMTP)</h2>
+      <p>
+        {% if smtpConfigured %}<span class="badge badge-success">konfiguriert</span>{% else %}<span class="badge badge-warning">nicht konfiguriert</span>{% endif %}
+        {% if smtpFromEnv %}<span class="badge badge-neutral">Werte aus Umgebungsvariablen</span>{% endif %}
+      </p>
+      <p class="text-muted">Diese Zugangsdaten gelten für alle ausgehenden E-Mails, auch für Kundenbestätigungen. Ohne SMTP werden E-Mails als <code>.eml</code> unter <code>/var/log/3d-mir/mail/</code> abgelegt.</p>
+      <div class="form-row">
+        <div class="field">
+          <label for="smtpHost">SMTP-Server</label>
+          <input id="smtpHost" name="smtpHost" type="text" maxlength="200" value="{{ settings.smtp.host }}" placeholder="z. B. mail.example.de" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="smtpPort">Port</label>
+          <input id="smtpPort" name="smtpPort" type="number" min="1" max="65535" step="1" value="{{ settings.smtp.port }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="smtpUser">Benutzername</label>
+          <input id="smtpUser" name="smtpUser" type="text" maxlength="200" value="{{ settings.smtp.user }}" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="smtpPass">Passwort</label>
+          <input id="smtpPass" name="smtpPass" type="password" maxlength="500" value="" autocomplete="new-password" placeholder="{% if smtpPassSet %}•••••••• (gespeichert){% else %}kein Passwort gespeichert{% endif %}">
+          <span class="hint">Leer lassen, um das gespeicherte Passwort zu behalten.</span>
+        </div>
+      </div>
+      <label class="admin-check">
+        <input type="checkbox" name="smtpSecure" value="1" {% if settings.smtp.secure %}checked{% endif %}>
+        <span>SSL/TLS direkt ab Verbindungsaufbau (meist Port 465; für Port 587 nicht aktivieren)</span>
+      </label>
+      <div class="form-row">
+        <div class="field">
+          <label for="smtpFrom">Absender</label>
+          <input id="smtpFrom" name="smtpFrom" type="text" maxlength="300" value="{{ settings.smtp.from }}" placeholder="3D-MIR <info@3d-mir.de>">
+        </div>
+        <div class="field">
+          <label for="smtpTo">Betreiber-Postfach</label>
+          <input id="smtpTo" name="smtpTo" type="text" maxlength="300" value="{{ settings.smtp.to }}" placeholder="info@3d-mir.de">
+        </div>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Telegram</h2>
+      <p>
+        {% if telegramConfigured %}<span class="badge badge-success">konfiguriert</span>{% else %}<span class="badge badge-warning">nicht konfiguriert</span>{% endif %}
+        {% if telegramFromEnv %}<span class="badge badge-neutral">Werte aus Umgebungsvariablen</span>{% endif %}
+      </p>
+      <p class="text-muted">Benachrichtigungen werden als Textnachricht über einen Telegram-Bot gesendet. Der Bot-Token wird in der Datenbank gespeichert und nicht im Repository.</p>
+      <div class="form-row">
+        <div class="field">
+          <label for="telegramToken">Bot-Token</label>
+          <input id="telegramToken" name="telegramToken" type="password" maxlength="300" value="" autocomplete="new-password" placeholder="{% if telegramTokenSet %}•••••••• (gespeichert){% else %}Token von @BotFather{% endif %}">
+          <span class="hint">Leer lassen, um den gespeicherten Token zu behalten.</span>
+        </div>
+        <div class="field">
+          <label for="telegramChatId">Chat-ID</label>
+          <input id="telegramChatId" name="telegramChatId" type="text" maxlength="100" value="{{ settings.telegram.chatId }}" placeholder="z. B. 123456789 oder -1001234567890">
+        </div>
+      </div>
+
+      <details class="admin-help">
+        <summary class="btn btn-secondary btn-small">Hilfe zu Telegram</summary>
+        <div class="admin-help-body">
+          <h3>Bot anlegen</h3>
+          <ol>
+            <li>In Telegram den Kontakt <strong>@BotFather</strong> öffnen.</li>
+            <li>Mit <code>/newbot</code> einen Bot anlegen und den Anweisungen folgen.</li>
+            <li>Den angezeigten Bot-Token kopieren und oben eintragen.</li>
+          </ol>
+          <h3>Chat-ID ermitteln</h3>
+          <ol>
+            <li>Den eigenen Bot in Telegram anschreiben (z. B. „Hallo“).</li>
+            <li>Im Browser aufrufen: <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code></li>
+            <li>In der Antwort die <code>chat.id</code> suchen und oben eintragen.</li>
+            <li>Für Gruppen beginnt die Chat-ID meist mit <code>-100…</code>; der Bot muss Mitglied der Gruppe sein.</li>
+          </ol>
+          <h3>Test</h3>
+          <p>Nach dem Speichern den Button <strong>„Test-Telegram senden“</strong> verwenden.</p>
+          <p class="hint">Bot-Token und Chat-ID sind Geheimnisse. Nicht im Repository oder in Chats veröffentlichen.</p>
+        </div>
+      </details>
+    </section>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Speichern</button>
+      <a class="btn btn-secondary" href="/admin/">Zurück</a>
+    </div>
+  </form>
+
+  <section class="card admin-panel">
+    <h2>Testnachrichten</h2>
+    <p class="text-muted">Die Testnachrichten verwenden die aktuell gespeicherten Einstellungen.</p>
+    <div class="admin-page-actions">
+      <form method="post" action="/admin/benachrichtigungen/test-mail/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-secondary btn-small" type="submit">Test-E-Mail senden</button>
+      </form>
+      <form method="post" action="/admin/benachrichtigungen/test-telegram/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-secondary btn-small" type="submit">Test-Telegram senden</button>
+      </form>
+    </div>
+    <p class="hint">Bei fehlender SMTP-Konfiguration wird die E-Mail als <code>.eml</code> gespeichert. Telegram benötigt Bot-Token und Chat-ID.</p>
+  </section>
+{% endblock %}

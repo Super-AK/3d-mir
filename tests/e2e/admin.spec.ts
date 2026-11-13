@@ -34,6 +34,7 @@ test.describe('Admin', () => {
       ['/admin/produkte/', 'Produkte'],
       ['/admin/preise/', 'Preise und Kalkulation'],
       ['/admin/zahlungen/', 'Zahlungen'],
+      ['/admin/benachrichtigungen/', 'Benachrichtigungen'],
     ] as const) {
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);
@@ -46,6 +47,12 @@ test.describe('Admin', () => {
     await expect(stripeHelp).toBeVisible();
     await stripeHelp.click();
     await expect(page.getByRole('heading', { name: '3. Webhook anlegen' })).toBeVisible();
+
+    // Benachrichtigungen: Kanalwahl und Testaktionen.
+    await page.goto('/admin/benachrichtigungen/');
+    await expect(page.locator('input[name="channel"]')).toHaveCount(3);
+    await expect(page.getByRole('button', { name: 'Test-E-Mail senden' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Test-Telegram senden' })).toBeVisible();
 
     // Katalogverwaltung und Bild-Upload sind auf den Detailseiten vorhanden.
     await page.goto('/admin/preise/');

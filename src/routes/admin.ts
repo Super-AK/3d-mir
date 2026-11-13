@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { config, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render, imagePreview } from '../lib/render.js';
-import { sendMail } from '../lib/mailer.js';
+import { resetMailTransporter, sendMail } from '../lib/mailer.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
 import {
   clearSessionCookie,
@@ -50,6 +50,17 @@ import {
   releaseStock,
   sendPaymentConfirmed,
 } from '../lib/payments/index.js';
+import {
+  getNotificationOverrides,
+  getNotificationSettings,
+  isSmtpConfigured,
+  isTelegramConfigured,
+  notificationChannelLabel,
+  saveNotificationSettings,
+  type NotificationChannel,
+  type NotificationSettings,
+} from '../lib/notification-settings.js';
+import { sendTelegramMessage } from '../lib/telegram.js';
 import { formatEuro } from '../lib/shop.js';
 
 const db = () => getDb();
@@ -2426,6 +2437,110 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         methods: methods.map((method) => ({ id: method.id, enabled: method.enabled })),
       });
       return reply.redirect('/admin/zahlungen/?gespeichert=1', 303);
+    });
+
+    // Benachrichtigungen --------------------------------------------------
+    scope.get('/admin/benachrichtigungen/', async (request, reply) => {
+      const settings = getNotificationSettings();
+      const overrides = getNotificationOverrides();
+      const query = queryObject(request);
+      render(reply, 'admin/notifications.njk', adminContext(request, {
+        settings,
+        channelLabel: notificationChannelLabel(settings.channel),
+        smtpConfigured: isSmtpConfigured(settings),
+        telegramConfigured: isTelegramConfigured(settings),
+        smtpFromEnv: !overrides.smtp?.host && Boolean(config.mail.host),
+        telegramFromEnv:
+          !overrides.telegram?.botToken && Boolean(config.notifications.telegramBotToken),
+        smtpPassSet: Boolean(settings.smtp.pass),
+        telegramTokenSet: Boolean(settings.telegram.botToken),
+        test: typeof query.test === 'string' ? query.test : '',
+      }));
+    });
+
+    scope.post('/admin/benachrichtigungen/', async (request, reply) => {
+      const body = bodyObject(request);
+      const overrides = getNotificationOverrides();
+      const selected = cleanText(body.channel, 20);
+      const channel: NotificationChannel =
+        selected === 'telegram' || selected === 'both' ? selected : 'mail';
+      const port = Number(body.smtpPort);
+      const smtpPassInput = typeof body.smtpPass === 'string' ? body.smtpPass.slice(0, 500) : '';
+      const telegramTokenInput =
+        typeof body.telegramToken === 'string' ? body.telegramToken.slice(0, 300) : '';
+
+      const settings: NotificationSettings = {
+        channel,
+        smtp: {
+          host: cleanText(body.smtpHost, 200),
+          port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 587,
+          secure: body.smtpSecure === '1' || body.smtpSecure === 'on',
+          user: cleanText(body.smtpUser, 200),
+          pass: smtpPassInput || (overrides.smtp?.pass ?? ''),
+          from: cleanText(body.smtpFrom, 300),
+          to: cleanText(body.smtpTo, 300),
+        },
+        telegram: {
+          botToken: telegramTokenInput || (overrides.telegram?.botToken ?? ''),
+          chatId: cleanText(body.telegramChatId, 100),
+        },
+      };
+
+      saveNotificationSettings(settings);
+      resetMailTransporter();
+      writeAudit(request.admin?.email ?? 'admin', 'notifications.update', {
+        channel: settings.channel,
+        smtpConfigured: Boolean(settings.smtp.host),
+        telegramConfigured: Boolean(settings.telegram.botToken && settings.telegram.chatId),
+      });
+      return reply.redirect('/admin/benachrichtigungen/?gespeichert=1', 303);
+    });
+
+    scope.post('/admin/benachrichtigungen/test-mail/', async (request, reply) => {
+      try {
+        const result = await sendMail({
+          subject: `[Test] Benachrichtigung von 3D-MIR`,
+          text: [
+            'Dies ist eine Testnachricht aus dem Admin-Bereich.',
+            '',
+            `Zeitpunkt: ${new Date().toLocaleString('de-DE')}`,
+            '',
+            'Wenn Sie diese Nachricht erhalten, ist der E-Mail-Versand eingerichtet.',
+          ].join('\n'),
+        });
+        return reply.redirect(
+          `/admin/benachrichtigungen/?test=${result.delivered ? 'mail-ok' : 'mail-file'}`,
+          303,
+        );
+      } catch (error) {
+        request.log.warn({ err: error }, 'Test-E-Mail fehlgeschlagen');
+        const message = error instanceof Error ? error.message : 'Unbekannter Fehler';
+        return reply.redirect(
+          `/admin/benachrichtigungen/?fehler=${encodeURIComponent(`Test-E-Mail fehlgeschlagen: ${message}`)}`,
+          303,
+        );
+      }
+    });
+
+    scope.post('/admin/benachrichtigungen/test-telegram/', async (request, reply) => {
+      try {
+        await sendTelegramMessage(
+          [
+            '3D-MIR Testnachricht',
+            '',
+            'Wenn Sie diese Nachricht sehen, ist Telegram korrekt eingerichtet.',
+            `Zeitpunkt: ${new Date().toLocaleString('de-DE')}`,
+          ].join('\n'),
+        );
+        return reply.redirect('/admin/benachrichtigungen/?test=telegram-ok', 303);
+      } catch (error) {
+        request.log.warn({ err: error }, 'Test-Telegram fehlgeschlagen');
+        const message = error instanceof Error ? error.message : 'Unbekannter Fehler';
+        return reply.redirect(
+          `/admin/benachrichtigungen/?fehler=${encodeURIComponent(`Test-Telegram fehlgeschlagen: ${message}`)}`,
+          303,
+        );
+      }
     });
 
     // Preise --------------------------------------------------------------

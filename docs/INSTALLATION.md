@@ -10,6 +10,8 @@ Diese Anleitung beschreibt die Installation der 3D-MIR-Webseite auf einem **neue
 > # Node.js 22 über NodeSource installieren (siehe Abschnitt 3.2)
 > sudo git clone git@github.com:Super-AK/3d-mir.git /var/www/3d-mir.de
 > cd /var/www/3d-mir.de
+> sudo deploy/setup.sh          # interaktives Menü
+> # oder direkt:
 > sudo DOMAIN=3d-mir.de CERTBOT_EMAIL=admin@example.de deploy/install.sh
 > sudo deploy/verify.sh
 > ```
@@ -297,6 +299,41 @@ https://3d-mir.de/admin/
 6. **Rechtstexte**: Impressum, Datenschutz, AGB und Widerruf rechtlich prüfen lassen.
 7. **Backup**: Cron einrichten (Abschnitt 8).
 
+### 3.10 Interaktives Setup-Menü
+
+Für wiederkehrende Aufgaben gibt es ein geführtes Menü:
+
+```bash
+cd /var/www/3d-mir.de
+sudo deploy/setup.sh
+```
+
+Alternativ:
+
+```bash
+sudo deploy/install.sh --menu
+```
+
+Das Menü bietet:
+
+- Installation / Reparatur starten
+- Voraussetzungen prüfen
+- Systemcheck ausführen
+- Mail-Setup (SMTP)
+- Benachrichtigungen (Mail/Telegram) – Verweis auf den Admin-Bereich
+- SSL/TLS einrichten oder erneuern
+- Backup erstellen
+- Backup wiederherstellen
+- Update von GitHub installieren
+- Admin-Zugang einrichten
+- Dienste neu starten
+- Logs anzeigen
+- Konfiguration anzeigen
+- Menü neu laden
+- Beenden
+
+Nach jeder Aktion erscheint das Menü erneut. Mit „Menü neu laden“ wird die Ansicht frisch aufgebaut.
+
 ---
 
 ## 4. Variante B – Vorhandener Server
@@ -517,6 +554,10 @@ STRIPE_MODE=test
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 PAYMENT_BASE_URL=https://www.3d-mir.de
+
+NOTIFICATION_CHANNEL=mail
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 EOF
 sudo chmod 600 /etc/3d-mir/3d-mir.env
 sudo chown root:root /etc/3d-mir/3d-mir.env
@@ -592,6 +633,9 @@ Datei: `/etc/3d-mir/3d-mir.env`, Rechte `600`, Eigentümer `root`.
 | `STRIPE_SECRET_KEY` | für Stripe | `sk_test_…` bzw. `sk_live_…` |
 | `STRIPE_WEBHOOK_SECRET` | für Stripe | `whsec_…` |
 | `PAYMENT_BASE_URL` | nein | öffentliche Basis-URL, Standard `site.baseUrl` |
+| `NOTIFICATION_CHANNEL` | nein | `mail`, `telegram` oder `both` (Admin hat Vorrang) |
+| `TELEGRAM_BOT_TOKEN` | nein | Telegram-Bot-Token (Admin hat Vorrang) |
+| `TELEGRAM_CHAT_ID` | nein | Telegram-Chat-ID (Admin hat Vorrang) |
 
 Nach Änderungen:
 
@@ -622,6 +666,8 @@ Nach dem Login unter `/admin/`:
 
 ### 7.4 SMTP
 
+Der E-Mail-Versand kann im Admin unter **Benachrichtigungen** eingerichtet werden. Alternativ über die Umgebungsvariablen:
+
 ```bash
 sudo nano /etc/3d-mir/3d-mir.env
 ```
@@ -646,7 +692,28 @@ sudo systemctl restart 3d-mir.service
 
 Ohne SMTP werden E-Mails als `.eml` unter `/var/log/3d-mir/mail/` abgelegt. Das ist für Tests brauchbar, aber kein Ersatz für den Livebetrieb.
 
-### 7.5 Stripe
+### 7.5 Benachrichtigungen (E-Mail und Telegram)
+
+Unter **Admin → Benachrichtigungen** wird der Kanal gewählt:
+
+- **Nur E-Mail**
+- **Nur Telegram**
+- **E-Mail und Telegram**
+
+Die Auswahl gilt nur für Benachrichtigungen an den Betreiber. Kunden-E-Mails gehen immer per E-Mail heraus.
+
+**Telegram einrichten:**
+
+1. Bei **@BotFather** einen Bot anlegen (`/newbot`).
+2. Bot-Token kopieren.
+3. Den Bot in Telegram anschreiben.
+4. Chat-ID über `https://api.telegram.org/bot<TOKEN>/getUpdates` ermitteln (`chat.id`).
+5. Bot-Token und Chat-ID im Admin eintragen.
+6. **„Test-Telegram senden“** ausführen.
+
+Bot-Token und SMTP-Passwort werden in der SQLite-Datenbank gespeichert und sind in Backups enthalten. Backups entsprechend schützen.
+
+### 7.6 Stripe
 
 1. Stripe-Konto anlegen und verifizieren.
 2. Im Dashboard **Karte, PayPal, Amazon Pay, Klarna und iDEAL** aktivieren.

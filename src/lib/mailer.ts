@@ -3,6 +3,11 @@ import path from 'node:path';
 import nodemailer, { type Transporter } from 'nodemailer';
 import { config } from '../config.js';
 import { getLogger } from './logger.js';
+import {
+  getNotificationSettings,
+  isSmtpConfigured,
+  type SmtpSettings,
+} from './notification-settings.js';
 
 export type MailOptions = {
   to?: string;
@@ -12,36 +17,61 @@ export type MailOptions = {
   replyTo?: string;
 };
 
-let transporter: Transporter | null = null;
-let usingStream = false;
+type TransportState = {
+  transporter: Transporter;
+  usingStream: boolean;
+  key: string;
+};
 
-function getTransporter(): Transporter {
-  if (transporter) return transporter;
-  if (config.mail.host) {
-    transporter = nodemailer.createTransport({
-      host: config.mail.host,
-      port: config.mail.port,
-      secure: config.mail.secure,
-      auth: config.mail.user ? { user: config.mail.user, pass: config.mail.pass } : undefined,
+let state: TransportState | null = null;
+
+function smtpKey(smtp: SmtpSettings): string {
+  return JSON.stringify({
+    host: smtp.host,
+    port: smtp.port,
+    secure: smtp.secure,
+    user: smtp.user,
+    pass: smtp.pass,
+  });
+}
+
+function getTransporter(smtp: SmtpSettings): TransportState {
+  const key = smtpKey(smtp);
+  if (state && state.key === key) return state;
+
+  if (smtp.host) {
+    const transporter = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: smtp.user ? { user: smtp.user, pass: smtp.pass } : undefined,
     });
-    usingStream = false;
+    state = { transporter, usingStream: false, key };
   } else {
     // Kein SMTP konfiguriert: Nachricht als .eml ablegen, damit Abläufe testbar bleiben.
-    transporter = nodemailer.createTransport({ streamTransport: true, buffer: true, newline: 'unix' });
-    usingStream = true;
+    const transporter = nodemailer.createTransport({ streamTransport: true, buffer: true, newline: 'unix' });
+    state = { transporter, usingStream: true, key };
   }
-  return transporter;
+  return state;
+}
+
+/** Setzt den gecachten SMTP-Transport zurück, z. B. nach Änderungen im Admin. */
+export function resetMailTransporter(): void {
+  state = null;
 }
 
 /**
- * Versendet eine E-Mail. Ohne SMTP-Konfiguration wird die Nachricht als .eml
- * unter /var/log/3d-mir/mail/ gespeichert (kein Versand nach außen).
+ * Versendet eine E-Mail über die im Admin oder per Umgebung konfigurierte SMTP-Verbindung.
+ * Ohne SMTP-Konfiguration wird die Nachricht als .eml unter /var/log/3d-mir/mail/ gespeichert.
  */
 export async function sendMail(options: MailOptions): Promise<{ delivered: boolean; savedTo?: string }> {
   const logger = getLogger();
-  const to = options.to ?? config.mail.to;
+  const settings = getNotificationSettings();
+  const smtp = settings.smtp;
+  const to = options.to ?? smtp.to;
+  const { transporter, usingStream } = getTransporter(smtp);
   const message = {
-    from: config.mail.from,
+    from: smtp.from,
     to,
     subject: options.subject,
     text: options.text,
@@ -49,7 +79,7 @@ export async function sendMail(options: MailOptions): Promise<{ delivered: boole
     replyTo: options.replyTo,
   };
 
-  const info = await getTransporter().sendMail(message);
+  const info = await transporter.sendMail(message);
 
   if (usingStream) {
     const dir = path.join(config.logDir, 'mail');
@@ -71,7 +101,7 @@ export async function sendMail(options: MailOptions): Promise<{ delivered: boole
   return { delivered: true };
 }
 
-/** Prüft, ob ein echtes SMTP-Postfach konfiguriert ist. */
+/** Prüft, ob eine echte SMTP-Verbindung konfiguriert ist. */
 export function isMailConfigured(): boolean {
-  return Boolean(config.mail.host);
+  return isSmtpConfigured();
 }

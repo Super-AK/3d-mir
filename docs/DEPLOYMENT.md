@@ -110,6 +110,33 @@ PAYMENT_BASE_URL=https://www.3d-mir.de
 - Zahlungsdaten (Kartennummern) werden nie auf dem eigenen Server gespeichert.
 - Stripe- und PayPal-Gebühren sind in die Preise einkalkuliert; Aufschläge für Karte/PayPal/SEPA sind nach PSD2 unzulässig.
 
+## Benachrichtigungen (E-Mail und Telegram)
+
+Unter **Admin → Benachrichtigungen** wird eingestellt, wie der Betreiber informiert wird:
+
+- **Nur E-Mail**
+- **Nur Telegram**
+- **E-Mail und Telegram**
+
+Die Kanalwahl betrifft nur Admin-Benachrichtigungen (neue Bestellung, Kontaktanfrage, Angebotsanfrage, Zahlungseingang). Kunden-E-Mails werden immer per E-Mail versendet.
+
+### E-Mail
+
+SMTP-Server, Port, Benutzername, Passwort, Absender und Betreiber-Postfach können im Admin gepflegt werden. Alternativ gelten die Umgebungsvariablen `SMTP_*`, `MAIL_FROM` und `MAIL_TO`. Admin-Einstellungen haben Vorrang.
+
+Ohne SMTP werden E-Mails als `.eml` unter `/var/log/3d-mir/mail/` gespeichert.
+
+### Telegram
+
+1. Bot bei **@BotFather** anlegen.
+2. Bot-Token kopieren.
+3. Bot in Telegram anschreiben.
+4. Chat-ID über `https://api.telegram.org/bot<TOKEN>/getUpdates` ermitteln.
+5. Bot-Token und Chat-ID im Admin eintragen.
+6. Testnachricht senden.
+
+Bot-Token und SMTP-Passwort liegen in der Datenbank und sind in Backups enthalten. Backups entsprechend schützen.
+
 ## Update und Rollback
 
 ```bash
@@ -215,6 +242,7 @@ sqlite3 /var/lib/3d-mir/db/3d-mir.sqlite 'PRAGMA integrity_check;'
 | Health-Check rot, DB-Fehler | Rechte auf `/var/lib/3d-mir` prüfen; Dienst läuft als `mir3d`. |
 | Kein TLS | DNS noch nicht umgestellt oder Port 80 blockiert; `certbot` erneut ausführen. |
 | E-Mails fehlen | Ohne SMTP werden `.eml`-Dateien unter `/var/log/3d-mir/mail/` abgelegt. |
+| Telegram-Nachrichten fehlen | Im Admin ist der Kanal „Nur Telegram“ oder „E-Mail und Telegram“ gewählt? Bot-Token/Chat-ID korrekt, Bot wurde angeschrieben, Testnachricht senden. |
 | Zahlung bleibt „offen“ | Stripe-Webhook prüfen: URL, Secret, Ereignisse; `journalctl -u 3d-mir` nach `Stripe-Webhook` durchsuchen. |
 | Stripe-Methoden fehlen | `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` setzen und Dienst neu starten. |
 | Login gesperrt | Rate-Limit (5 Versuche/15 Min.) abwarten oder Sitzungen in der DB löschen. |

@@ -88,6 +88,55 @@ Das dabei erzeugte `whsec_…`-Secret als `STRIPE_WEBHOOK_SECRET` hinterlegen. O
 
 Der Button **„Hilfe zu Stripe“** im Bereich Zahlungen öffnet eine Schritt-für-Schritt-Anleitung zu Konto, Zahlungsarten, Schlüsseln, Webhook, Testzahlung und Fehlersuche.
 
+## Benachrichtigungen
+
+Unter **Admin → Benachrichtigungen** wird festgelegt, wie der Betreiber über neue Bestellungen, Kontaktanfragen, Angebotsanfragen und Zahlungseingänge informiert wird.
+
+### Kanal wählen
+
+| Kanal | Bedeutung |
+| --- | --- |
+| Nur E-Mail | Benachrichtigungen gehen ausschließlich an das Betreiber-Postfach. |
+| Nur Telegram | Benachrichtigungen gehen ausschließlich per Telegram. |
+| E-Mail und Telegram | Benachrichtigungen werden über beide Kanäle versendet. |
+
+Kunden-E-Mails (Bestellbestätigung, Zahlungsbestätigung, Statusmeldungen) gehen **immer per E-Mail** heraus, unabhängig von der Kanalwahl. Die Kanalwahl betrifft nur Benachrichtigungen an den Betreiber.
+
+### E-Mail-Versand (SMTP)
+
+Folgende Felder werden gepflegt:
+
+- SMTP-Server und Port
+- Benutzername und Passwort
+- SSL/TLS direkt ab Verbindungsaufbau (meist Port 465; für Port 587 nicht aktivieren)
+- Absender und Betreiber-Postfach
+
+Das Passwort wird nicht im Klartext angezeigt. Leer lassen, um das gespeicherte Passwort zu behalten.
+
+Ohne SMTP-Konfiguration werden E-Mails als `.eml` unter `/var/log/3d-mir/mail/` gespeichert. Die Werte können auch über die Umgebungsvariablen `SMTP_*`, `MAIL_FROM` und `MAIL_TO` gesetzt werden; Admin-Einstellungen haben Vorrang.
+
+### Telegram
+
+1. In Telegram **@BotFather** öffnen und mit `/newbot` einen Bot anlegen.
+2. Den angezeigten Bot-Token kopieren.
+3. Den Bot in Telegram anschreiben.
+4. Die Chat-ID über `https://api.telegram.org/bot<TOKEN>/getUpdates` ermitteln (`chat.id`).
+5. Bot-Token und Chat-ID unter **Admin → Benachrichtigungen** eintragen und speichern.
+6. **„Test-Telegram senden“** anklicken.
+
+Für Gruppen beginnt die Chat-ID meist mit `-100…`; der Bot muss Mitglied der Gruppe sein.
+
+### Testnachrichten
+
+- **Test-E-Mail senden:** verwendet die gespeicherte SMTP-Konfiguration.
+- **Test-Telegram senden:** verwendet Bot-Token und Chat-ID.
+
+Fehler werden im Admin angezeigt und im Anwendungslog protokolliert.
+
+### Sicherheit
+
+Bot-Token und SMTP-Passwort sind Geheimnisse. Sie werden in der SQLite-Datenbank gespeichert und sind in Backups enthalten. Backups müssen entsprechend geschützt und extern verschlüsselt aufbewahrt werden. Die Werte niemals im Repository oder in Chats veröffentlichen.
+
 ## Produkte und Bilder
 
 Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pflegen.

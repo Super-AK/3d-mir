@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
-import { sendMail } from '../lib/mailer.js';
+import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, escapeHtml, isSameOrigin } from '../lib/http.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
 import { getPublicPaymentMethods, getShopSettings, isBankConfigured } from '../lib/shop-settings.js';
@@ -342,7 +342,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         .run(data.name, data.email, data.phone, data.subject, data.message);
 
       try {
-        await sendMail({
+        await notifyAdmin({
           subject: `[Kontakt] ${data.subject} – ${data.name}`,
           text: contactMailText(data),
           html: contactMailHtml(data),

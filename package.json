@@ -20,7 +20,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "orders:cleanup": "tsx scripts/cleanup-orders.ts"
+    "orders:cleanup": "tsx scripts/cleanup-orders.ts",
+    "mail:test": "tsx scripts/test-mail.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

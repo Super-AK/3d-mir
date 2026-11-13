@@ -38,6 +38,10 @@ const envSchema = z.object({
   STRIPE_API_BASE: z.string().url().default('https://api.stripe.com'),
   // Öffentliche Basis-URL für Rückleitungen aus dem Zahlungsanbieter.
   PAYMENT_BASE_URL: z.string().optional(),
+  // Admin-Benachrichtigungen: Mail, Telegram oder beides.
+  NOTIFICATION_CHANNEL: z.enum(['mail', 'telegram', 'both']).default('mail'),
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_CHAT_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -88,6 +92,11 @@ export const config = {
     webhookSecret: env.STRIPE_WEBHOOK_SECRET ?? '',
     mode: env.STRIPE_MODE,
     apiBase: env.STRIPE_API_BASE.replace(/\/+$/, ''),
+  },
+  notifications: {
+    channel: env.NOTIFICATION_CHANNEL,
+    telegramBotToken: env.TELEGRAM_BOT_TOKEN ?? '',
+    telegramChatId: env.TELEGRAM_CHAT_ID ?? '',
   },
   site,
   pricing,

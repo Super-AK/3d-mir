@@ -3,6 +3,7 @@
 #
 # Aufruf:
 #   sudo deploy/install.sh
+#   sudo deploy/install.sh --menu
 #   sudo DOMAIN=3d-mir.de CERTBOT_EMAIL=admin@example.de deploy/install.sh --non-interactive
 #
 # Das Skript richtet ein: Systempakete, Dienstbenutzer, Verzeichnisse, .env,
@@ -33,6 +34,7 @@ SKIP_FIREWALL="${SKIP_FIREWALL:-0}"
 for arg in "$@"; do
   case "$arg" in
     --non-interactive) NON_INTERACTIVE=1 ;;
+    --menu) exec "$SCRIPT_DIR/setup.sh" ;;
     --skip-tls) SKIP_TLS=1 ;;
     --skip-firewall) SKIP_FIREWALL=1 ;;
     -h|--help)
@@ -83,7 +85,7 @@ confirm() {
 log "Systempakete installieren"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq nginx sqlite3 curl ca-certificates openssl ufw rsync certbot python3-certbot-nginx
+apt-get install -y -qq nginx sqlite3 curl ca-certificates openssl ufw rsync certbot python3-certbot-nginx whiptail
 
 NODE_BIN=/usr/bin/node
 NODE_MAJOR=0
@@ -153,6 +155,11 @@ STRIPE_MODE=test
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 PAYMENT_BASE_URL=
+
+# Admin-Benachrichtigungen (können auch im Admin gepflegt werden)
+NOTIFICATION_CHANNEL=mail
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 EOF
   chmod 0600 "$ENV_FILE"
   chown root:root "$ENV_FILE"
