@@ -70,7 +70,7 @@ Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtste
 - Prüfung: `sudo deploy/verify.sh`
 - Admin-Zugang: `sudo -u mir3d npm run admin:create -- --email … --name …`
 
-Alle Schritte sind in `docs/DEPLOYMENT.md` beschrieben. Die Abnahme-Checkliste liegt in `docs/ABNAHME.md`, die offenen Fragen in `docs/OFFENE-FRAGEN.md`.
+Alle Schritte sind in `docs/INSTALLATION.md` (Neuinstallation/Umzug) und `docs/DEPLOYMENT.md` (Betrieb) beschrieben. Die Abnahme-Checkliste liegt in `docs/ABNAHME.md`, die offenen Fragen in `docs/OFFENE-FRAGEN.md`.
 
 ## 8. Offene Punkte
 
@@ -84,7 +84,7 @@ Alle Schritte sind in `docs/DEPLOYMENT.md` beschrieben. Die Abnahme-Checkliste l
 | Admin-Zugang und TOTP-2FA | F63, F64 |
 | Rechtliche Prüfung der Texte | F54–F59 |
 | Backup-Ziel und Aufbewahrung | F61, F62 |
-| Test auf frischer VM | Checkliste in `docs/DEPLOYMENT.md` |
+| Test auf frischer VM | Checkliste in `docs/INSTALLATION.md` |
 
 ## 9. Risiken und Hinweise
 

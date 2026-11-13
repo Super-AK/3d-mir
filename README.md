@@ -71,7 +71,9 @@ sudo deploy/update.sh         # Update mit Rollback
 sudo deploy/backup.sh         # Backup von DB und Uploads
 ```
 
-Details: `docs/DEPLOYMENT.md`.
+**Neuinstallation auf einem frischen oder vorhandenen Server:** vollständige Schritt-für-Schritt-Anleitung in [`docs/INSTALLATION.md`](docs/INSTALLATION.md) – inklusive Node.js 22, DNS/TLS, bestehender NGINX-Sites, WordPress-Umzug, Stripe und Abnahme-Checkliste.
+
+Betrieb, Update, Backup und Fehlersuche: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Dokumentation
 
@@ -80,7 +82,8 @@ Details: `docs/DEPLOYMENT.md`.
 - `docs/ADMIN.md` – Preise, Katalog und Produktbilder im Admin-Bereich
 - `docs/KALKULATION.md` – Preisformel und Platzhalter des Rechners
 - `docs/REDIRECTS.md` – 301-Weiterleitungen der alten URLs
-- `docs/DEPLOYMENT.md` – Installation, Update, Backup, Umzug
+- `docs/INSTALLATION.md` – Installation auf neuem/vorhandenem Server, DNS/TLS, Abnahme
+- `docs/DEPLOYMENT.md` – Betrieb, Update, Backup, Umzug
 - `docs/ABNAHME.md` – Abnahmeprotokoll
 - `docs/ABSCHLUSSBERICHT.md` – Zusammenfassung und Übergabe
 

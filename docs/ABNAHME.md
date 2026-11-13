@@ -46,7 +46,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | SMTP-Zugang hinterlegt | ⬜ | F21–F24; aktuell `.eml`-Fallback |
 | Admin-Zugang für Betreiber eingerichtet | ⬜ | F64; per `npm run admin:create` |
 | DNS-Umstellung und TLS | ⬜ | F30–F33; Skripte und Checkliste vorbereitet |
-| Test auf frischer VM | ⬜ | Checkliste in `docs/DEPLOYMENT.md`; Re-Run auf Produktionssystem bestanden |
+| Test auf frischer VM | ⬜ | Checkliste in `docs/INSTALLATION.md`; Re-Run auf Produktionssystem bestanden |
 | Rechtliche Freigabe | ⬜ | F54–F59 |
 
 ## Offene Punkte vor dem Livegang
@@ -58,7 +58,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 5. DNS auf den neuen Server umstellen, TLS per certbot aktivieren, kanonische `www`-Variante bestätigen (F30–F33).
 6. Rechtstexte durch Betreiber/Anwalt prüfen lassen (F54–F59).
 7. Backup-Ziel und Aufbewahrung final festlegen (F61, F62).
-8. Test auf einer frischen VM mit der Checkliste in `docs/DEPLOYMENT.md` durchführen.
+8. Test auf einer frischen VM mit der Checkliste in `docs/INSTALLATION.md` durchführen.
 
 ## Abnahmeerklärung
 

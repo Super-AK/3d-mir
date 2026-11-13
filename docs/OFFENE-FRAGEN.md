@@ -72,7 +72,7 @@ Ohne SMTP-Zugang werden E-Mails derzeit **nicht versendet**, sondern als `.eml`-
 | Nr. | Frage |
 | --- | --- |
 | F30 | Wo liegen DNS und Mail? Aktuell zeigt `www.3d-mir.de` auf die alte WordPress-Installation. |
-| F31 | Auf welche IP soll `3d-mir.de`/`www.3d-mir.de` zeigen? (Bitte erst umstellen, wenn die neue Seite getestet ist – Anleitung in `docs/DEPLOYMENT.md`.) |
+| F31 | Auf welche IP soll `3d-mir.de`/`www.3d-mir.de` zeigen? (Bitte erst umstellen, wenn die neue Seite getestet ist – Anleitung in `docs/INSTALLATION.md`.) |
 | F32 | E-Mail-Adresse für Let's-Encrypt-Benachrichtigungen (vermutlich `info@3d-mir.de`)? |
 | F33 | Soll `3d-mir.de` auf `www.3d-mir.de` (oder umgekehrt) weiterleiten? |
 

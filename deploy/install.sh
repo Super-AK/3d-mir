@@ -36,7 +36,7 @@ for arg in "$@"; do
     --skip-tls) SKIP_TLS=1 ;;
     --skip-firewall) SKIP_FIREWALL=1 ;;
     -h|--help)
-      sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *) echo "Unbekannte Option: $arg" >&2; exit 2 ;;
@@ -83,13 +83,20 @@ confirm() {
 log "Systempakete installieren"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq nginx sqlite3 curl ca-certificates ufw rsync certbot python3-certbot-nginx
+apt-get install -y -qq nginx sqlite3 curl ca-certificates openssl ufw rsync certbot python3-certbot-nginx
 
-if ! command -v node >/dev/null; then
-  apt-get install -y -qq nodejs npm
+NODE_BIN=/usr/bin/node
+NODE_MAJOR=0
+if [[ -x "$NODE_BIN" ]]; then
+  NODE_MAJOR="$("$NODE_BIN" -p 'process.versions.node.split(".")[0]')"
 fi
-NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
-[[ "$NODE_MAJOR" -ge 22 ]] || die "Node.js ${NODE_MAJOR} gefunden, benötigt wird 22 LTS. Bitte Node 22 installieren und erneut ausführen."
+if [[ "$NODE_MAJOR" -lt 22 ]]; then
+  log "Node.js 22 wird über NodeSource installiert (gefunden: ${NODE_MAJOR:-keins})"
+  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+  apt-get install -y -qq nodejs
+  NODE_MAJOR="$("$NODE_BIN" -p 'process.versions.node.split(".")[0]')"
+fi
+[[ "$NODE_MAJOR" -ge 22 ]] || die "Node.js 22 konnte nicht installiert werden. Bitte manuell unter /usr/bin/node installieren und erneut ausführen."
 
 if [[ $NON_INTERACTIVE -eq 0 ]]; then
   ask DOMAIN "Domain ohne www (z. B. 3d-mir.de):" "$DOMAIN"
@@ -201,16 +208,17 @@ fi
 log "Admin-Zugang"
 if [[ -n "$ADMIN_EMAIL" ]]; then
   if [[ -n "$ADMIN_PASSWORD" ]]; then
-    sudo -u "$SERVICE_USER" -H env ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+    sudo -u "$SERVICE_USER" -H env DATA_DIR="$DATA_DIR" DB_PATH="$DATA_DIR/db/3d-mir.sqlite" ADMIN_PASSWORD="$ADMIN_PASSWORD" \
       npm run admin:create -- --email "$ADMIN_EMAIL" --name "$ADMIN_NAME"
   elif [[ -t 0 ]]; then
-    sudo -u "$SERVICE_USER" -H npm run admin:create -- --email "$ADMIN_EMAIL" --name "$ADMIN_NAME"
+    sudo -u "$SERVICE_USER" -H env DATA_DIR="$DATA_DIR" DB_PATH="$DATA_DIR/db/3d-mir.sqlite" \
+      npm run admin:create -- --email "$ADMIN_EMAIL" --name "$ADMIN_NAME"
   else
     warn "Kein Terminal für die Passworteingabe. Bitte später ausführen:"
-    echo "  sudo -u $SERVICE_USER npm run admin:create -- --email $ADMIN_EMAIL --name \"$ADMIN_NAME\""
+    echo "  sudo -u $SERVICE_USER env DATA_DIR=$DATA_DIR DB_PATH=$DATA_DIR/db/3d-mir.sqlite npm run admin:create -- --email $ADMIN_EMAIL --name \"$ADMIN_NAME\""
   fi
 else
-  warn "Kein Admin angelegt. Später: sudo -u $SERVICE_USER npm run admin:create -- --email … --name …"
+  warn "Kein Admin angelegt. Später: sudo -u $SERVICE_USER env DATA_DIR=$DATA_DIR DB_PATH=$DATA_DIR/db/3d-mir.sqlite npm run admin:create -- --email … --name …"
 fi
 
 log "TLS (Let's Encrypt)"

@@ -1,6 +1,8 @@
 # Deployment und Betrieb
 
-Diese Anleitung beschreibt Installation, Update, Backup und Wiederherstellung auf einem frischen Ubuntu-Server (24.04 LTS oder 26.04 LTS, arm64 oder x86_64).
+Diese Anleitung beschreibt **Betrieb, Update, Backup und Wiederherstellung** auf einem Ubuntu-Server (24.04 LTS oder 26.04 LTS, arm64 oder x86_64).
+
+> **Neuinstallation oder Umzug auf einen anderen Server?** Die vollständige Schritt-für-Schritt-Anleitung inklusive Node.js 22, DNS/TLS, bestehender NGINX-Sites und WordPress-Umzug steht in [`docs/INSTALLATION.md`](INSTALLATION.md). Dieses Dokument setzt eine installierte Anwendung voraus.
 
 ## Voraussetzungen
 
