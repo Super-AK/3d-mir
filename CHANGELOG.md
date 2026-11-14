@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.11] – 2026-11-14
+
+### Behoben
+
+- Der Versand-Platzhalter auf `/versand/` blieb sichtbar, wenn im Admin
+  zuvor Veröffentlichungseinstellungen gespeichert worden waren: Der
+  Datenbank-Override `shippingStatus = PLATZHALTER` überlagerte die neue
+  Grundeinstellung. Migration `010_publication_shipping_final.sql` setzt
+  diesen Wert einmalig auf `FINAL`.
+
 ## [1.0.0-rc.10] – 2026-11-14
 
 ### Geändert
@@ -205,6 +215,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.11]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.11
 [1.0.0-rc.10]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.10
 [1.0.0-rc.9]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.9
 [1.0.0-rc.8]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.8

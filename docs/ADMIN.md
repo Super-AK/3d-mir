@@ -74,7 +74,7 @@ Unter **Admin → Veröffentlichung** lassen sich die Hinweise nach fachlicher P
 | Versandkosten und Lieferzeiten sind bestätigt | Entfernt den Hinweis auf `/versand/`. |
 | Entwurfshinweis anzeigen | Steuert den Prüfhinweis auf Impressum, AGB, Datenschutz, Widerruf, Versand und Zahlung. |
 
-Die Einstellungen werden in der Datenbank (`settings`, Schlüssel `publication.settings`) gespeichert und überlagern die Statuswerte aus `config/shop.json`, `config/pricing.json` und `config/site.json`. Ein Neustart ist nicht nötig.
+Die Einstellungen werden in der Datenbank (`settings`, Schlüssel `publication.settings`) gespeichert und überlagern die Statuswerte aus `config/shop.json`, `config/pricing.json` und `config/site.json`. Ein Neustart ist nicht nötig. Falls nach einer Bestätigung noch ein alter Override aktiv ist, setzt die Migration `010_publication_shipping_final.sql` den Versandstatus einmalig auf `FINAL`.
 
 Rechtstexte sollten erst nach rechtlicher Prüfung freigegeben werden. Die TODO-Marker in den Texten (z. B. `TODO-VERSAND` in der Datenschutzerklärung) werden durch den Schalter nicht ersetzt – sie müssen im Text selbst entfernt werden.
 

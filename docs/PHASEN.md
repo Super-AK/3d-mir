@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.11 – 14. November 2026
+
+Migration `010_publication_shipping_final.sql` sorgt dafür, dass ein älterer
+Admin-Override `shippingStatus = PLATZHALTER` die bestätigten Versandkosten
+nicht mehr überlagert.
+
 ## Release 1.0.0-rc.10 – 14. November 2026
 
 Versandkosten und Lieferzeiten bestätigt; `shipping.status` steht auf `FINAL`,
