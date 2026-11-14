@@ -22,6 +22,11 @@
       <p>{% if result.ok %}Import abgeschlossen.{% else %}Import mit Fehlern beendet.{% endif %}</p>
     </div>
     <pre class="admin-import-log">{{ result.output }}</pre>
+  {% elif importJob and importJob.output %}
+    <div class="alert {% if importJob.running %}alert-info{% elif importJob.ok %}alert-success{% else %}alert-danger{% endif %}" role="status" data-etsy-import data-status-url="/admin/produkte/etsy/status/">
+      <p>{% if importJob.running %}Import läuft … Die Ausgabe wird automatisch aktualisiert.{% elif importJob.ok %}Import abgeschlossen.{% else %}Import mit Fehlern beendet.{% endif %}</p>
+    </div>
+    <pre class="admin-import-log" id="etsy-import-log">{{ importJob.output }}</pre>
   {% endif %}
 
   <div class="admin-etsy-grid">

@@ -214,7 +214,7 @@ Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `p
 
 ### Produkte aus Etsy übernehmen
 
-Der Import ist direkt im Admin unter **Produkte → „Aus Etsy importieren“** verfügbar – entweder als CSV-Upload oder über die Etsy-API (Keystring und Shared Secret). Ein Testlauf ist standardmäßig aktiv.
+Der Import ist direkt im Admin unter **Produkte → „Aus Etsy importieren“** verfügbar – entweder als CSV-Upload oder über die Etsy-API (Keystring und Shared Secret). Ein Testlauf ist standardmäßig aktiv. Der Import läuft im Hintergrund und kann wegen der Bilder mehrere Minuten dauern; die Seite zeigt die Ausgabe automatisch an. Es läuft immer nur ein Import gleichzeitig.
 
 Alternativ per Kommandozeile. Etsy stellt im Shop Manager einen CSV-Export der aktiven Listings bereit:
 

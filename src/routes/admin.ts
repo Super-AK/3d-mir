@@ -107,35 +107,95 @@ const db = () => getDb();
  * Der Import lädt viele Bilder und kann einige Minuten dauern; ein eigener
  * Prozess hält die Webserver-Schleife frei. Es läuft immer nur ein Import.
  */
-let etsyImportRunning = false;
+type EtsyImportJob = {
+  running: boolean;
+  ok: boolean;
+  output: string;
+  startedAt: number;
+  finishedAt: number | null;
+};
 
-function runEtsyImport(args: string[], extraEnv: Record<string, string> = {}): Promise<{ ok: boolean; output: string }> {
-  return new Promise((resolve) => {
-    const binary = path.join(config.root, 'node_modules', '.bin', 'tsx');
-    const script = path.join(config.root, 'scripts', 'import-etsy.ts');
-    const child = spawn(binary, [script, ...args], {
+let etsyImportJob: EtsyImportJob = { running: false, ok: false, output: '', startedAt: 0, finishedAt: null };
+
+/**
+ * Startet den Import im Hintergrund und aktualisiert den Job-Status.
+ *
+ * Der Import dauert wegen der Bilder mehrere Minuten; ein synchroner Request
+ * würde am Proxy-Timeout (NGINX) scheitern. Die Admin-Seite fragt den Status
+ * deshalb regelmäßig ab.
+ */
+function startEtsyImport(args: string[], extraEnv: Record<string, string> = {}, cleanupPath = ''): void {
+  const binary = path.join(config.root, 'node_modules', '.bin', 'tsx');
+  const script = path.join(config.root, 'scripts', 'import-etsy.ts');
+  etsyImportJob = {
+    running: true,
+    ok: false,
+    output: 'Import gestartet …\n',
+    startedAt: Date.now(),
+    finishedAt: null,
+  };
+
+  let child: ReturnType<typeof spawn>;
+  const cleanup = (): void => {
+    if (cleanupPath) {
+      try {
+        fs.rmSync(cleanupPath, { recursive: true, force: true });
+      } catch {
+        // Temporäre Dateien sind nicht kritisch.
+      }
+    }
+  };
+
+  try {
+    child = spawn(binary, [script, ...args], {
       cwd: config.root,
       env: { ...process.env, ...extraEnv },
     });
-    let output = '';
-    const append = (chunk: Buffer): void => {
-      output += chunk.toString();
-      if (output.length > 50_000) output = output.slice(-50_000);
+  } catch (error) {
+    etsyImportJob = {
+      ...etsyImportJob,
+      running: false,
+      ok: false,
+      output: `${etsyImportJob.output}${error instanceof Error ? error.message : String(error)}`,
+      finishedAt: Date.now(),
     };
-    child.stdout.on('data', append);
-    child.stderr.on('data', append);
-    const timer = setTimeout(() => {
-      append(Buffer.from('\nZeitüberschreitung: Import wurde abgebrochen.\n'));
-      child.kill('SIGKILL');
-    }, 15 * 60 * 1000);
-    child.on('error', (error) => {
-      clearTimeout(timer);
-      resolve({ ok: false, output: `${output}\n${error.message}` });
-    });
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      resolve({ ok: code === 0, output });
-    });
+    cleanup();
+    return;
+  }
+
+  const append = (chunk: Buffer): void => {
+    etsyImportJob.output += chunk.toString();
+    if (etsyImportJob.output.length > 50_000) etsyImportJob.output = etsyImportJob.output.slice(-50_000);
+  };
+  child.stdout?.on('data', append);
+  child.stderr?.on('data', append);
+
+  const timer = setTimeout(() => {
+    append(Buffer.from('\nZeitüberschreitung: Import wurde abgebrochen.\n'));
+    child.kill('SIGKILL');
+  }, 15 * 60 * 1000);
+
+  child.on('error', (error) => {
+    clearTimeout(timer);
+    etsyImportJob = {
+      ...etsyImportJob,
+      running: false,
+      ok: false,
+      output: `${etsyImportJob.output}\n${error.message}`,
+      finishedAt: Date.now(),
+    };
+    cleanup();
+  });
+
+  child.on('close', (code) => {
+    clearTimeout(timer);
+    etsyImportJob = {
+      ...etsyImportJob,
+      running: false,
+      ok: code === 0,
+      finishedAt: Date.now(),
+    };
+    cleanup();
   });
 }
 
@@ -2284,15 +2344,19 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     // Etsy-Import ---------------------------------------------------------
     scope.get('/admin/produkte/etsy/', async (request, reply) => {
-      render(reply, 'admin/etsy-import.njk', adminContext(request, {}));
+      render(reply, 'admin/etsy-import.njk', adminContext(request, {
+        importJob: etsyImportJob,
+      }));
+    });
+
+    scope.get('/admin/produkte/etsy/status/', async (_request, reply) => {
+      reply.header('cache-control', 'no-store');
+      return reply.send(etsyImportJob);
     });
 
     scope.post('/admin/produkte/etsy/', async (request, reply) => {
-      if (etsyImportRunning) {
-        reply.code(409);
-        return render(reply, 'admin/etsy-import.njk', adminContext(request, {
-          result: { ok: false, output: 'Es läuft bereits ein Import. Bitte warten Sie, bis dieser abgeschlossen ist.' },
-        }));
+      if (etsyImportJob.running) {
+        return reply.redirect('/admin/produkte/etsy/?laeuft=1', 303);
       }
 
       const contentType = String(request.headers['content-type'] ?? '');
@@ -2310,6 +2374,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           if (!session) {
             reply.code(403);
             return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+              importJob: etsyImportJob,
               result: { ok: false, output: 'Die Sitzung ist abgelaufen. Bitte erneut anmelden.' },
             }));
           }
@@ -2326,6 +2391,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           if (!verifyCsrfToken(session, fields._csrf)) {
             reply.code(403);
             return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+              importJob: etsyImportJob,
               result: { ok: false, output: 'Das Formular ist abgelaufen. Bitte die Seite neu laden.' },
             }));
           }
@@ -2355,46 +2421,26 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         if (error) {
           reply.code(400);
           return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+            importJob: etsyImportJob,
             result: { ok: false, output: error },
           }));
         }
 
-        etsyImportRunning = true;
-        const args =
-          mode === 'api'
-            ? ['--api', '--shop', shop]
-            : ['--file', filePath];
+        const args = mode === 'api' ? ['--api', '--shop', shop] : ['--file', filePath];
         if (dryRun) args.push('--dry-run');
-
-        const result = await runEtsyImport(args, mode === 'api' ? { ETSY_API_KEY: apiKey } : {});
-        writeAudit(request.admin?.email ?? 'admin', 'products.etsy.import', {
-          mode,
-          dryRun,
-          ok: result.ok,
-          output: result.output.slice(0, 1000),
-        });
-        if (!result.ok) reply.code(400);
-        return render(reply, 'admin/etsy-import.njk', adminContext(request, {
-          result: { ok: result.ok, output: result.output },
-        }));
+        startEtsyImport(args, mode === 'api' ? { ETSY_API_KEY: apiKey } : {}, tempDir);
+        writeAudit(request.admin?.email ?? 'admin', 'products.etsy.import', { mode, dryRun, started: true });
+        return reply.redirect('/admin/produkte/etsy/?import=1', 303);
       } catch (importError) {
-        request.log.error({ err: importError }, 'Etsy-Import fehlgeschlagen');
+        request.log.error({ err: importError }, 'Etsy-Import konnte nicht gestartet werden');
         reply.code(500);
         return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+          importJob: etsyImportJob,
           result: {
             ok: false,
-            output: `Import fehlgeschlagen: ${importError instanceof Error ? importError.message : String(importError)}`,
+            output: `Import konnte nicht gestartet werden: ${importError instanceof Error ? importError.message : String(importError)}`,
           },
         }));
-      } finally {
-        etsyImportRunning = false;
-        if (tempDir) {
-          try {
-            fs.rmSync(tempDir, { recursive: true, force: true });
-          } catch {
-            // Temporäre Dateien sind nicht kritisch.
-          }
-        }
       }
     });
 

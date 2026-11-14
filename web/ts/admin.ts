@@ -134,3 +134,39 @@ document.querySelectorAll<HTMLButtonElement>('[data-add-row]').forEach((button) 
     target.querySelector<HTMLInputElement>(`[data-row-index="${index}"] input`)?.focus();
   });
 });
+
+// Etsy-Import: Status abfragen, bis der Hintergrundprozess fertig ist.
+const etsyImport = document.querySelector<HTMLElement>('[data-etsy-import]');
+if (etsyImport) {
+  const statusUrl = etsyImport.dataset.statusUrl;
+  const log = document.getElementById('etsy-import-log');
+  if (statusUrl) {
+    const poll = async (): Promise<void> => {
+      try {
+        const response = await fetch(statusUrl, {
+          headers: { accept: 'application/json' },
+          cache: 'no-store',
+        });
+        if (!response.ok) {
+          window.setTimeout(poll, 4000);
+          return;
+        }
+        const data = (await response.json()) as { running: boolean; ok: boolean; output: string };
+        if (log) log.textContent = data.output;
+        if (!data.running) {
+          etsyImport.classList.remove('alert-info');
+          etsyImport.classList.add(data.ok ? 'alert-success' : 'alert-danger');
+          const paragraph = etsyImport.querySelector('p');
+          if (paragraph) {
+            paragraph.textContent = data.ok ? 'Import abgeschlossen.' : 'Import mit Fehlern beendet.';
+          }
+          return;
+        }
+        window.setTimeout(poll, 2000);
+      } catch {
+        window.setTimeout(poll, 4000);
+      }
+    };
+    window.setTimeout(poll, 800);
+  }
+}

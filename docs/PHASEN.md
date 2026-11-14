@@ -401,7 +401,7 @@
 - **Zahlungsarten im Shop:** Shop- und Produktseite verwenden jetzt die im Admin aktivierten Zahlungsarten statt der statischen Liste aus `config/shop.json`.
 - **Kategorien:** Migration `009_categories.sql` mit `product_categories` und `product_category_links`, Startkategorien und Namenszuordnung. Admin-Seite zum Anlegen/Bearbeiten/Löschen, Mehrfachzuordnung im Produkt, Filterleiste im Shop und Kategorie im Produktkopf.
 - **Versand ab 0 €:** Abholung (0 €) wird bei „Versand ab …“ berücksichtigt.
-- **Etsy-Import im Admin:** CSV-Upload und API-Import direkt unter **Produkte → Aus Etsy importieren**, inklusive Testlauf, Fortschrittsausgabe und Sperre gegen parallele Importe.
+- **Etsy-Import im Admin:** CSV-Upload und API-Import direkt unter **Produkte → Aus Etsy importieren**, inklusive Testlauf, Fortschrittsausgabe und Sperre gegen parallele Importe. Der Import läuft als Hintergrundprozess; die Admin-Seite fragt den Status ab und umgeht so das Proxy-Timeout.
 
 **Getestet**
 - Shop zeigt 14 Produkte, Kategorie „Bad“ filtert auf 3 Produkte, lange Produkt-URL liefert 200.
