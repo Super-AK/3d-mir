@@ -265,7 +265,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(dbOk ? 200 : 503).send({
       status: dbOk ? 'ok' : 'degraded',
       database: dbOk ? 'ok' : 'error',
-      version: process.env.npm_package_version ?? '0.1.0',
+      version: config.version,
       time: new Date().toISOString(),
     });
   });

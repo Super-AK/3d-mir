@@ -57,6 +57,7 @@ const env = parsed.data;
 const site = readJson<SiteConfig>('config/site.json');
 const pricing = readJson<PricingConfig>('config/pricing.json');
 const shop = readJson<ShopConfig>('config/shop.json');
+const packageJson = readJson<{ version?: string }>('package.json');
 
 if (env.NODE_ENV === 'production' && !env.SESSION_SECRET) {
   console.error('FEHLER: SESSION_SECRET muss in Produktion gesetzt sein (siehe .env.example).');
@@ -66,6 +67,7 @@ if (env.NODE_ENV === 'production' && !env.SESSION_SECRET) {
 const paymentBaseUrl = (env.PAYMENT_BASE_URL?.trim() || site.baseUrl).replace(/\/+$/, '');
 
 export const config = {
+  version: packageJson.version ?? '0.0.0',
   env: env.NODE_ENV,
   isProduction: env.NODE_ENV === 'production',
   isTest: env.NODE_ENV === 'test',

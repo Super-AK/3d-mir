@@ -1,6 +1,6 @@
 # Offene Fragen an den Auftraggeber
 
-**Stand:** 14.11.2026 · **Version:** 2.3 · **Zuletzt geprüft:** 14.11.2026
+**Stand:** 14.11.2026 · **Version:** 2.4 · **Zuletzt geprüft:** 14.11.2026
 
 Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; Einzelfragen sind mit `[F1]` usw. nummeriert. Erledigte Punkte bleiben mit Datum und Nachweis dokumentiert, damit Verweise und die Historie erhalten bleiben.
 
@@ -13,7 +13,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | ✅ Erledigt | umgesetzt und geprüft; Datum und Nachweis sind angegeben |
 | 🟢 Später | wichtig, aber nicht für den Start erforderlich |
 
-**Kurzstand:** Zahlung, Benachrichtigungen, Kontakt-Spam-Schutz, Setup-Menü und Installationsanleitung sind technisch umgesetzt. Offen sind vor allem fachliche Freigaben (Preise, Versand, Recht), Zugangsdaten (Bank, SMTP, Telegram, Stripe live), die Bestätigung der Länder-Allowlist und DNS/TLS.
+**Kurzstand:** Version 1.0.0-rc.1: Zahlung, Benachrichtigungen, Kontakt-Spam-Schutz, Kategorien, Etsy-Import, Veröffentlichungsschalter, Setup-Menü und Installationsanleitung sind technisch umgesetzt. Offen sind vor allem fachliche Freigaben (Preise, Versand, Recht), Zugangsdaten (Bank, SMTP, Telegram, Stripe live), die Bestätigung der Länder-Allowlist, die Etsy-API-Freigabe und DNS/TLS.
 
 ---
 
@@ -24,6 +24,9 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | Zahlungsarten | 🟡 In Arbeit | Testmodus und alle Methoden geprüft; Bankdaten und Live-Schaltung offen |
 | Kontakt/Spam-Schutz | 🟡 In Arbeit | Antworten und IP-basierte Länderprüfung umgesetzt; Allowlist bestätigen |
 | Benachrichtigungen | 🟡 In Arbeit | Admin/Setup vorhanden; SMTP- und Telegram-Daten offen |
+| Kategorien | ✅ Erledigt | Verwaltung, Mehrfachzuordnung und Shop-Filter umgesetzt |
+| Veröffentlichung | ✅ Erledigt | Platzhalter-Hinweise im Admin schaltbar |
+| Etsy-Import | 🟡 In Arbeit | CSV-Import umgesetzt und 13 Produkte übernommen; API wartet auf Etsy-Freigabe |
 | Installation/Deployment | ✅ Erledigt | Installationsanleitung und interaktives Setup-Menü vorhanden |
 | Preise/Kalkulation | 🔴 Offen | Platzhalter und Overrides müssen bestätigt werden |
 | Versand | 🟡 In Arbeit | Technik vorhanden; Preise/Lieferzeiten unbestätigt |
@@ -182,6 +185,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F76 | 🟡 In Arbeit | **Länder-Allowlist bestätigen:** Das Land wird serverseitig aus der IP-Adresse ermittelt (lokale GeoIP-Datenbank, kein Besucherfeld). Aktuell ist nur Deutschland (`DE`) freigegeben; andere Länder werden zur Prüfung gespeichert. Sollen weitere Länder (z. B. AT, CH, NL) zugelassen werden? Einstellung unter **Admin → Nachrichten**. |
 | F77 | ✅ Erledigt | **Umgesetzt:** Länder-Header von Proxy/CDN (`CF-IPCountry` usw.) werden nur ausgewertet, wenn sie über `COUNTRY_HEADER` ausdrücklich konfiguriert sind und die Verbindung von einem in `TRUST_PROXY` eingetragenen Proxy stammt. Standardmäßig entscheidet ausschließlich die lokale GeoIP-Datenbank; damit sind gefälschte Header ausgeschlossen. Nachweis: Test mit `X-Forwarded-For` (DE/US) und ohne ermittelbares Land.<br>*(14.11.2026)* |
 | F78 | 🟢 Später | **Externer Captcha-Dienst:** Bewusst nicht eingebaut, um keine externen Skripte und Tracking einzubinden. Soll später ein datenschutzfreundlicher Captcha ergänzt werden? |
+| F79 | 🟡 In Arbeit | **Etsy-API-Freigabe:** Die Etsy-App steht auf „Pending Personal Approval“. Der CSV-Import ist erfolgt (13 Produkte); nach der Freigabe werden die exakten Variationspreise und Bestände per API nachgezogen. |
 
 ## 13. Nächste Schritte bis zum Livegang
 

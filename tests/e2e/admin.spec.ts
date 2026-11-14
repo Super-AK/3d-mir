@@ -32,9 +32,12 @@ test.describe('Admin', () => {
       ['/admin/anfragen/', 'Anfragen'],
       ['/admin/nachrichten/', 'Nachrichten'],
       ['/admin/produkte/', 'Produkte'],
+      ['/admin/kategorien/', 'Kategorien'],
       ['/admin/preise/', 'Preise und Kalkulation'],
       ['/admin/zahlungen/', 'Zahlungen'],
+      ['/admin/veroeffentlichung/', 'Veröffentlichung'],
       ['/admin/benachrichtigungen/', 'Benachrichtigungen'],
+      ['/admin/produkte/etsy/', 'Produkte aus Etsy importieren'],
     ] as const) {
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);

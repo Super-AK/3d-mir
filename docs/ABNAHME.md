@@ -1,6 +1,6 @@
 # Abnahme
 
-Stand: 12. November 2026
+Stand: 14. November 2026 · Version 1.0.0-rc.1
 
 Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage für die Abnahme durch den Auftraggeber. Sie ersetzt keine rechtliche Prüfung der Texte und keine Freigabe der Preise.
 
@@ -8,9 +8,12 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 
 - Statische Seiten: Start, Leistungen, Kontakt, Impressum, Datenschutz, AGB, Widerruf, Versand, Zahlung.
 - 3D-Druck-Rechner mit Modell-Upload (STL/OBJ/3MF), Analyse, Preis-Schätzung, 3D-Vorschau und Angebotsanfrage.
-- Shop mit Produktseite, Farbvarianten, Warenkorb, Kasse, Bestellbestätigung und E-Mail-Benachrichtigungen.
-- Admin-Bereich: Anmeldung, Dashboard, Bestellungen, Anfragen, Kontaktnachrichten, Produkte, Preise, Passwort.
-- Betrieb: NGINX, systemd, SQLite (WAL), Backups, Update/Rollback, Deployment-Skripte, Dokumentation.
+- Shop mit Produktseite, Farbvarianten, Kategorien und Filter, Warenkorb, Kasse, Bestellbestätigung und E-Mail-Benachrichtigungen.
+- Zahlungen: Vorkasse, Karte, PayPal, Amazon Pay, Klarna und iDEAL über Stripe Checkout; Zahlungsstatus, Webhook und Bestätigungen.
+- Kontakt: Formular mit IP-basierter Länderprüfung, Spam-Schutz, Prüfmodus und Direktantwort im Admin.
+- Admin-Bereich: Anmeldung, Dashboard, Bestellungen, Anfragen, Kontaktnachrichten, Produkte, Kategorien, Preise, Zahlungen, Benachrichtigungen, Veröffentlichung, Etsy-Import, Passwort.
+- Etsy-Import: CSV und API, Bildübernahme, Varianten, Testlauf.
+- Betrieb: NGINX, systemd, SQLite (WAL), Backups, Update/Rollback, GeoIP-Aktualisierung, Setup-Menü (TUI), Deployment-Skripte, Dokumentation.
 - SEO: Sitemap, robots.txt, Canonicals, JSON-LD, 301-Weiterleitungen der Alt-URLs.
 - Sicherheit: CSP, Security-Header, CSRF-Schutz, Argon2id, Rate-Limits, gehärteter systemd-Dienst, UFW.
 
@@ -19,9 +22,9 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Kriterium | Ergebnis | Nachweis |
 | --- | --- | --- |
 | Build und TypeScript | bestanden | `npm run typecheck`, `npm run build` |
-| Unit-Tests | 19/19 bestanden | `npm test` |
-| E2E-Tests | 7/7 ausführbar bestanden (Admin-Test optional, benötigt Zugangsdaten) | `npm run test:e2e` |
-| Betriebsprüfung | 26/26 bestanden | `sudo deploy/verify.sh` |
+| Unit-Tests | 48/48 bestanden | `npm test` |
+| E2E-Tests | 7/7 ausführbare Tests bestanden, Admin-Test optional übersprungen (benötigt Zugangsdaten) | `npm run test:e2e` |
+| Betriebsprüfung | 28/28 bestanden | `sudo deploy/verify.sh` |
 | Lighthouse mobil – Startseite | Performance 100, Accessibility 100, Best Practices 100, SEO 100 | Lighthouse 12, gedrosselt |
 | Lighthouse mobil – Shop | 99 / 100 / 100 / 100 | Lighthouse 12 |
 | Lighthouse mobil – Rechner | 97 / 100 / 100 / 100 | Lighthouse 12 |
@@ -31,6 +34,10 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Datenbank/Backup | Integrität `ok`, Backup und Restore beschrieben | `deploy/backup.sh`, `deploy/verify.sh` |
 | Rechtstexte | inhaltlich aus Altbestand übernommen, Prüfhinweis sichtbar | Seiten `/impressum/`, `/datenschutz/`, `/agb/`, `/widerruf/` |
 | Preise/Versand/Zahlung | Zahlung technisch umgesetzt (Vorkasse + Stripe mit Karte, PayPal, Amazon Pay, Klarna und iDEAL); Preise/Versand weiterhin Platzhalter | `config/*.json`, `settings`, Stripe-Env |
+| Kontakt/Spam-Schutz | Länderprüfung aus IP, Prüfmodus, Direktantwort und Freigabe im Admin | `/kontakt/`, Admin → Nachrichten |
+| Kategorien | Verwaltung, Mehrfachzuordnung und Shop-Filter | Admin → Kategorien, `/shop/?kategorie=…` |
+| Etsy-Import | CSV und API, Testlauf, Bildübernahme, Hintergrundprozess | Admin → Produkte → Aus Etsy importieren |
+| Veröffentlichung | Platzhalter-Hinweise im Admin schaltbar | Admin → Veröffentlichung |
 
 ## Abnahmekriterien
 
@@ -53,17 +60,20 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 ## Offene Punkte vor dem Livegang
 
 1. Preise, Kalkulationswerte und Versandkosten bestätigen (F1–F20, F66, F67).
-2. Stripe-Konto anlegen, Schlüssel/Webhook-Secret hinterlegen und Bankverbindung im Admin eintragen (F9–F13).
-3. SMTP-Zugangsdaten hinterlegen (F21–F24).
+2. Stripe-Konto anlegen, Live-Schlüssel/Webhook-Secret hinterlegen und Bankverbindung im Admin eintragen (F9–F13, F68).
+3. SMTP- und Telegram-Zugangsdaten hinterlegen und Testnachrichten versenden (F21–F24, F69–F71).
 4. Admin-Zugang anlegen und TOTP-Entscheidung treffen (F63, F64).
 5. DNS auf den neuen Server umstellen, TLS per certbot aktivieren, kanonische `www`-Variante bestätigen (F30–F33).
 6. Rechtstexte durch Betreiber/Anwalt prüfen lassen (F54–F59).
 7. Backup-Ziel und Aufbewahrung final festlegen (F61, F62).
-8. Test auf einer frischen VM mit der Checkliste in `docs/INSTALLATION.md` durchführen.
+8. Länder-Allowlist bestätigen und GeoIP-Datenbank monatlich aktualisieren (F76).
+9. Etsy-App-Freigabe abwarten, danach API-Import für exakte Variationen ausführen.
+10. Portkonflikt auf `kap-srv` beheben und Installation dort abschließen (F72).
+11. Test auf einer frischen VM mit der Checkliste in `docs/INSTALLATION.md` durchführen.
 
 ## Abnahmeerklärung
 
-Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
+Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.1 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
 
 | | Auftraggeber | Auftragnehmer |
 | --- | --- | --- |

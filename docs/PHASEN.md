@@ -410,3 +410,14 @@
 - Admin: Veröffentlichung schaltet den Shop-Hinweis sofort aus, Kategorie anlegen funktioniert, Produktformular zeigt Kategorie-Checkboxen.
 - Etsy-Import im Admin (CSV, Testlauf) erkennt 13 Produkte und endet ohne Fehler.
 - Typecheck, Build und 48 Unit-Tests erfolgreich.
+
+## Release 1.0.0-rc.1 – 14. November 2026
+
+Erster Release-Kandidat. Alle geplanten Funktionen sind umgesetzt; die
+Versionshistorie und die offenen Livegang-Punkte stehen in `CHANGELOG.md`.
+
+- Version in `package.json`: `1.0.0-rc.1`.
+- Unit-Tests: 48/48; E2E: 7/7 ausführbare Tests (Admin-Test optional).
+- Betriebsprüfung: 28/28.
+- Verbleibend: fachliche Freigaben, Zugangsdaten (SMTP, Telegram, Bank,
+  Stripe live), DNS/TLS, Etsy-API-Freigabe, Portkonflikt `kap-srv`.

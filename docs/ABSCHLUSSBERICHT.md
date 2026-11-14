@@ -1,8 +1,8 @@
 # Abschlussbericht
 
 **Projekt:** Neuaufbau der Website 3D-MIR (3D-Druck Service, Schömberg)
-**Stand:** 12. November 2026
-**Technischer Status:** Phasen 1–8 abgeschlossen, Abnahme durch den Auftraggeber offen
+**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.1
+**Technischer Status:** Release-Kandidat, alle geplanten Funktionen umgesetzt; Abnahme und Livegang offen
 
 ## 1. Ausgangslage und Ziel
 
@@ -17,10 +17,10 @@ Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtste
 | Startseite | Leistungsversprechen, Ablauf, Materialien, Galerie, Preishinweis, Handlungsaufrufe |
 | Leistungen | FDM-Druck, Materialien, Drucker, typische Anwendungen |
 | Rechner | Upload von STL/OBJ/3MF, serverseitige Analyse, Preis-Schätzung, three.js-Vorschau im Browser, Angebotsanfrage |
-| Shop | Recycling-Box mit 14 Farbvarianten, Warenkorb, Kasse, Bestellbestätigung |
+| Shop | Produkte (inkl. 13 Etsy-Importe), Kategorien und Filter, Farbvarianten, Warenkorb, Kasse, Bestellbestätigung |
 | Recht | Impressum, Datenschutz, AGB, Widerruf, Versand, Zahlung – mit Prüfhinweis |
-| Kontakt | Formular mit Honeypot, Origin-Prüfung, Rate-Limit, E-Mail-Fallback |
-| Admin | Login, Dashboard, Bestellungen, Anfragen, Nachrichten, Produkte, Preise, Passwort |
+| Kontakt | Formular mit IP-basierter Länderprüfung, Zeit-Token, Honeypot, Rate-Limit und Direktantwort im Admin |
+| Admin | Login, Dashboard, Bestellungen, Anfragen, Nachrichten, Produkte, Kategorien, Preise, Zahlungen, Benachrichtigungen, Veröffentlichung, Etsy-Import, Passwort |
 | SEO | Sitemap, robots.txt, Canonicals, JSON-LD, 301-Weiterleitungen, sprechende URLs |
 | Betrieb | NGINX, systemd, SQLite WAL, Backups, Update/Rollback, Verify-Skript, Dokumentation |
 
@@ -48,8 +48,8 @@ Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtste
 ## 5. Qualität und Messungen
 
 - **Lighthouse mobil:** Start 100/100/100/100, Shop 99/100/100/100, Rechner 97/100/100/100, Kontakt 99/100/100/100 (Performance/Accessibility/Best Practices/SEO).
-- **Tests:** 19 Unit-Tests, 7 ausführbare E2E-Tests; Admin-E2E optional mit Zugangsdaten.
-- **Betriebsprüfung:** 26/26 Prüfungen bestanden (`deploy/verify.sh`).
+- **Tests:** 48 Unit-Tests, 7 ausführbare E2E-Tests; Admin-E2E optional mit Zugangsdaten.
+- **Betriebsprüfung:** 28/28 Prüfungen bestanden (`deploy/verify.sh`).
 - **Sicherheit:** CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, HSTS bei HTTPS; Admin mit `noindex`.
 - **Barrierefreiheit:** Kontraste, Fokus-Stile, Skip-Link, semantische Struktur, Tastaturbedienbarkeit; Lighthouse Accessibility 100.
 
@@ -79,7 +79,10 @@ Alle Schritte sind in `docs/INSTALLATION.md` (Neuinstallation/Umzug) und `docs/D
 | Preise, Kalkulation, Mindestauftragswert | F1–F8, F66 |
 | Stripe-Konto, Live-Schlüssel, Bankverbindung | F9–F13, F67 |
 | Versandkosten, Lieferzeiten, Lieferländer | F14–F20 |
-| SMTP-Zugang | F21–F24 |
+| SMTP-/Telegram-Zugang | F21–F24, F69–F71 |
+| Länder-Allowlist und GeoIP-Aktualisierung | F76 |
+| Etsy-API-Freigabe (Variationen) | F79 |
+| Portkonflikt auf `kap-srv` | F72 |
 | DNS, TLS, kanonische Domain | F30–F33 |
 | Admin-Zugang und TOTP-2FA | F63, F64 |
 | Rechtliche Prüfung der Texte | F54–F59 |
