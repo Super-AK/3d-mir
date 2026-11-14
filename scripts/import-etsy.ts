@@ -123,7 +123,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   description: ['description', 'beschreibung', 'artikelbeschreibung'],
   price: ['price', 'preis', 'artikelpreis'],
   currency: ['currency code', 'currency', 'waehrungscode', 'waehrung', 'wahrung', 'wahrungscode'],
-  quantity: ['quantity', 'menge', 'bestand', 'verfugbare menge', 'verfuegbare menge'],
+  quantity: ['quantity', 'menge', 'bestand', 'stueckzahl', 'stuckzahl', 'verfugbare menge', 'verfuegbare menge'],
   sku: ['sku', 'sku numbers', 'sku nummer', 'artikelnummer'],
   images: ['image urls', 'image url', 'images', 'image', 'bild urls', 'bilder', 'bild url', 'bilder urls'],
   tags: ['tags', 'schlagworter', 'schlagwoerter'],
@@ -226,18 +226,32 @@ function readCsvItems(path: string): ImportItem[] {
     throw new Error(`Titel- oder Preisspalte nicht gefunden. Gefundene Spalten: ${headers.join(', ')}`);
   }
 
-  const variantColumns = headers.filter((header) => header.includes('variation'));
-  if (variantColumns.length > 0) {
-    console.warn(
-      `Hinweis: Variationsspalten gefunden (${variantColumns.join(', ')}). Der CSV-Import übernimmt sie nicht; nutze für Variationen den API-Import (--api).`,
-    );
-  }
+  // Bilder liegen je nach Export in einer Sammelspalte oder in BILD1…BILD10.
+  const imageColumns = headers
+    .map((header, index) => ({ header, index }))
+    .filter(({ header }) => /^(bild|image)\s*\d+$/.test(header))
+    .map(({ index }) => index);
+  if (columns.images >= 0) imageColumns.unshift(columns.images);
+
+  const variations = [1, 2, 3, 4, 5]
+    .map((number) => ({
+      name: headers.indexOf(`variationsname ${number}`),
+      values: headers.indexOf(`variationswert ${number}`),
+      type: headers.indexOf(`variationstyp ${number}`),
+      englishName: headers.indexOf(`variation name ${number}`),
+      englishValues: headers.indexOf(`variation value ${number}`),
+    }))
+    .map((entry) => ({
+      name: entry.name >= 0 ? entry.name : entry.englishName,
+      values: entry.values >= 0 ? entry.values : entry.englishValues,
+    }))
+    .filter((entry) => entry.name >= 0 && entry.values >= 0);
 
   const dataRows = rows.slice(1).filter((row) => row.some((cell) => cell.trim() !== ''));
-  const items: ImportItem[] = [];
+  const items = new Map<string, ImportItem>();
+
   for (const [position, cells] of dataRows.entries()) {
-    const row: Record<string, string> = Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? '']));
-    const value = (index: number): string => (index >= 0 ? (row[headers[index] ?? ''] ?? '') : '');
+    const value = (index: number): string => (index >= 0 ? (cells[index] ?? '') : '');
     const title = cleanText(value(columns.title), 200);
     const priceCents = parsePriceCents(value(columns.price));
     const currency = cleanText(value(columns.currency), 10).toUpperCase() || 'EUR';
@@ -253,21 +267,55 @@ function readCsvItems(path: string): ImportItem[] {
 
     const quantity = Number.parseInt(cleanText(value(columns.quantity), 20), 10);
     const stock = Number.isFinite(quantity) && quantity >= 0 && quantity < 999 ? quantity : null;
+    const images = [
+      ...imageUrls(value(columns.images)),
+      ...imageColumns.map((index) => cells[index] ?? ''),
+    ].flatMap((entry) => imageUrls(entry));
 
-    items.push({
+    const variationLines = variations
+      .map((entry) => {
+        const name = cleanText(value(entry.name), 80);
+        const values = cleanText(value(entry.values), 500);
+        return name && values ? `- ${name}: ${values}` : '';
+      })
+      .filter(Boolean);
+
+    let description = cleanText(value(columns.description), 20_000);
+    if (variationLines.length > 0) {
+      description = `${description}\n\nVerfügbare Varianten:\n${variationLines.join('\n')}`.trim();
+    }
+
+    const existing = items.get(title);
+    if (existing) {
+      // Etsy exportiert manche Listings mehrfach (z. B. mit anderem Titelbild).
+      existing.images = [...new Set([...existing.images, ...images])].slice(0, MAX_PRODUCT_IMAGES);
+      if (existing.priceCents !== priceCents) {
+        console.warn(`„${title}“: abweichender Preis in einer weiteren Zeile – erster Preis bleibt erhalten.`);
+      }
+      continue;
+    }
+
+    items.set(title, {
       title,
-      description: cleanText(value(columns.description), 20_000),
+      description,
       priceCents,
       priceToCents: null,
       sku: cleanText(value(columns.sku), 60),
       stock,
       tags: cleanText(value(columns.tags), 500),
       materials: cleanText(value(columns.materials), 500),
-      images: imageUrls(value(columns.images)),
+      images: [...new Set(images)].slice(0, MAX_PRODUCT_IMAGES),
       variants: [{ label: 'Standard', priceCents, stock }],
     });
   }
-  return limit > 0 ? items.slice(0, limit) : items;
+
+  const result = [...items.values()];
+  if (variations.length > 0) {
+    console.warn(
+      'Hinweis: Der CSV-Export enthält keine Preise je Variationskombination. Die Varianten stehen deshalb in der Beschreibung; exakte Varianten liefert der API-Import (--api), sobald die Etsy-App freigegeben ist.',
+    );
+  }
+  return limit > 0 ? result.slice(0, limit) : result;
 }
 
 // ---------------------------------------------------------------------------

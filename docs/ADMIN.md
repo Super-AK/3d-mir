@@ -215,9 +215,9 @@ sudo -u mir3d npm run etsy:import -- --file /tmp/etsy-listings.csv --dry-run
 sudo -u mir3d npm run etsy:import -- --file /tmp/etsy-listings.csv
 ```
 
-Der Import übernimmt Titel, Beschreibung, Preis, Bestand, SKU, Materialien, Schlagwörter und alle Bild-URLs (bis zu 12 Bilder je Produkt). Bilder werden heruntergeladen und lokal in AVIF/WebP/JPEG umgewandelt. Pro Produkt wird eine Standardvariante mit dem Listenpreis angelegt. Der Import ist idempotent: vorhandene Produkte mit gleicher SKU oder gleichem Slug werden übersprungen.
+Der Import übernimmt Titel, Beschreibung, Preis, Bestand, SKU, Materialien, Schlagwörter und alle Bild-URLs (Sammelspalte oder `BILD1`…`BILD10`, bis zu 12 Bilder je Produkt). Bilder werden heruntergeladen und lokal in AVIF/WebP/JPEG umgewandelt. Pro Produkt wird eine Standardvariante mit dem Listenpreis angelegt. Der Import ist idempotent: vorhandene Produkte mit gleicher SKU oder gleichem Slug werden übersprungen; mehrfach exportierte Listings werden zusammengeführt.
 
-Der CSV-Export enthält **keine Variationsdaten**. Farben, Größen oder Ausführungen werden nach dem Import im Admin unter **Produkte → Varianten** ergänzt. Die Währung muss `EUR` sein; andere Währungen werden übersprungen, um keine erfundenen Wechselkurse zu verwenden.
+Der CSV-Export enthält **Variationsnamen und -werte, aber keine Preise je Kombination**. Der Import übernimmt die Optionen deshalb als Text in der Beschreibung und legt eine Standardvariante an. Exakte Varianten mit eigenem Preis und Bestand liefert erst der API-Import (siehe unten). Die Währung muss `EUR` sein; andere Währungen werden übersprungen, um keine erfundenen Wechselkurse zu verwenden.
 
 #### Import über die Etsy-API (inkl. Variationen)
 
