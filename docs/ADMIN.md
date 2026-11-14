@@ -219,6 +219,19 @@ Der Import übernimmt Titel, Beschreibung, Preis, Bestand, SKU, Materialien, Sch
 
 Der CSV-Export enthält **keine Variationsdaten**. Farben, Größen oder Ausführungen werden nach dem Import im Admin unter **Produkte → Varianten** ergänzt. Die Währung muss `EUR` sein; andere Währungen werden übersprungen, um keine erfundenen Wechselkurse zu verwenden.
 
+#### Import über die Etsy-API (inkl. Variationen)
+
+Mit einem Etsy-Entwicklerzugang lassen sich alle aktiven Listings inklusive Variationen direkt abrufen. Benötigt werden **Keystring und Shared Secret** derselben App von [etsy.com/developers/your-apps](https://www.etsy.com/developers/your-apps):
+
+```bash
+sudo -u mir3d env ETSY_API_KEY='keystring:shared_secret' \
+  npm run etsy:import -- --api --shop 3DlMIR --dry-run
+sudo -u mir3d env ETSY_API_KEY='keystring:shared_secret' \
+  npm run etsy:import -- --api --shop 3DlMIR
+```
+
+Der Schlüssel wird nur für den Importprozess übergeben und nicht im Repository gespeichert. Die API liefert zusätzlich die Variationen (z. B. Farbe/Größe) mit eigenen Preisen und Beständen. Schlägt der Inventory-Abruf fehl, wird pro Produkt eine Standardvariante angelegt.
+
 ### Produktdaten
 
 Name, Slug, Kurz- und Langbeschreibung, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.
