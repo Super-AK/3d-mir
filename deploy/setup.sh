@@ -21,13 +21,59 @@ NGINX_SITE_NAME="${NGINX_SITE_NAME:-${DOMAIN}.conf}"
 PORT="${PORT:-3000}"
 DB_PATH="${DB_PATH:-$DATA_DIR/db/3d-mir.sqlite}"
 
-log()  { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
+log() {
+  if [[ -t 0 && -t 1 ]] && command -v whiptail >/dev/null 2>&1; then
+    whiptail --backtitle "3D-MIR Serververwaltung" --title "3D-MIR" --infobox "$*" 8 78
+  else
+    printf '\n\033[1;34m==>\033[0m %s\n' "$*"
+  fi
+}
 warn() { printf '\033[1;33mWarnung:\033[0m %s\n' "$*" >&2; }
-die()  { printf '\033[1;31mFehler:\033[0m %s\n' "$*" >&2; exit 1; }
+die() {
+  if [[ -t 0 && -t 1 ]] && command -v whiptail >/dev/null 2>&1; then
+    whiptail --backtitle "3D-MIR Serververwaltung" --title "Fehler" --msgbox "$*" 10 78 || true
+  fi
+  printf '\033[1;31mFehler:\033[0m %s\n' "$*" >&2
+  exit 1
+}
 
 [[ ${EUID} -eq 0 ]] || die "Bitte mit sudo ausführen: sudo deploy/setup.sh"
 
 has_whiptail() { [[ -t 0 && -t 1 ]] && command -v whiptail >/dev/null 2>&1; }
+
+# Einheitliche Hinweisbox (TUI) mit Text-Fallback.
+message() {
+  local title="$1" text="$2" height="${3:-12}" width="${4:-78}"
+  if has_whiptail; then
+    whiptail --backtitle "3D-MIR Serververwaltung" --title "$title" --msgbox "$text" "$height" "$width" || true
+  else
+    printf '\n===== %s =====\n%s\n' "$title" "$text" >&2
+    read -r -p "Weiter mit Enter …" _ || true
+  fi
+}
+
+# Fortschrittsanzeige für längere, nicht interaktive Schritte.
+progress() {
+  local title="$1" text="$2"
+  if has_whiptail; then
+    whiptail --backtitle "3D-MIR Serververwaltung" --title "$title" --infobox "$text" 8 78
+  else
+    log "$text"
+  fi
+}
+
+# Dateiauswahl (TUI) mit Text-Fallback.
+choose_file() {
+  # choose_file <variable> <frage> <startpfad>
+  local __var="$1" __question="$2" __start="${3:-}" __answer=""
+  if has_whiptail; then
+    __answer="$(whiptail --backtitle "3D-MIR Serververwaltung" --title "Datei wählen" --fselect "$__start" 20 90 3>&1 1>&2 2>&3)" || return 1
+  else
+    read -r -p "$__question [$__start]: " __answer || return 1
+    __answer="${__answer:-$__start}"
+  fi
+  printf -v "$__var" '%s' "$__answer"
+}
 
 pause() {
   if has_whiptail; then
@@ -94,11 +140,11 @@ find_free_port() {
 
 require_app() {
   if [[ ! -f "$APP_DIR/package.json" ]]; then
-    whiptail --title "Nicht installiert" --msgbox "Die Anwendung wurde unter $APP_DIR nicht gefunden.\n\nBitte zuerst „Installation / Reparatur starten“ ausführen." 12 70 2>/dev/null || true
+    message "Nicht installiert" "Die Anwendung wurde unter $APP_DIR nicht gefunden.\n\nBitte zuerst „Installation / Reparatur starten“ ausführen." 12 76
     return 1
   fi
   if [[ ! -f "$ENV_FILE" ]]; then
-    whiptail --title "Umgebung fehlt" --msgbox "$ENV_FILE fehlt.\n\nBitte zuerst die Installation ausführen." 10 70 2>/dev/null || true
+    message "Umgebung fehlt" "$ENV_FILE fehlt.\n\nBitte zuerst die Installation ausführen." 10 76
     return 1
   fi
   return 0
@@ -147,7 +193,7 @@ action_install() {
   if ! confirm "Jetzt die geführte Installation starten?\n\nBestehende Konfigurationen werden gesichert. Bei einer vorhandenen Installation werden NGINX-Vhost und Dienst aktualisiert."; then
     return 0
   fi
-  "$SCRIPT_DIR/install.sh" || warn "Installation mit Fehler beendet. Bitte Ausgabe prüfen."
+  "$SCRIPT_DIR/install.sh" || message "Installation fehlgeschlagen" "Die Installation wurde mit einem Fehler beendet. Bitte die Ausgabe im Terminal prüfen." 10 76
 }
 
 action_prerequisites() {
@@ -274,7 +320,7 @@ action_systemcheck() {
 action_mail_setup() {
   require_app || return 0
   if sqlite3 "$DB_PATH" "SELECT 1 FROM settings WHERE key='notifications';" 2>/dev/null | grep -q 1; then
-    warn "Im Admin sind bereits Benachrichtigungseinstellungen gespeichert. Diese haben Vorrang vor den Umgebungsvariablen."
+    message "Hinweis" "Im Admin sind bereits Benachrichtigungseinstellungen gespeichert. Diese haben Vorrang vor den Umgebungsvariablen." 10 76
     if ! confirm "Trotzdem die SMTP-Werte in $ENV_FILE ändern?"; then
       return 0
     fi
@@ -308,8 +354,8 @@ action_mail_setup() {
   set_env MAIL_FROM "$from"
   set_env MAIL_TO "$to"
 
-  log "SMTP-Konfiguration gespeichert; Dienst wird neu gestartet"
-  systemctl restart "$SERVICE" || warn "Dienst konnte nicht neu gestartet werden."
+  progress "SMTP" "SMTP-Konfiguration wird gespeichert, Dienst neu gestartet und eine Test-E-Mail ausgelöst …"
+  systemctl restart "$SERVICE" || message "Dienst" "Der Dienst konnte nicht neu gestartet werden. Bitte die Ausgabe prüfen." 10 76
   sleep 1
 
   local out
@@ -317,7 +363,7 @@ action_mail_setup() {
   if (cd "$APP_DIR" && ENV_FILE="$ENV_FILE" DATA_DIR="$DATA_DIR" DB_PATH="$DB_PATH" npx tsx scripts/test-mail.ts) >"$out" 2>&1; then
     log "Test-E-Mail ausgelöst"
   else
-    warn "Test-E-Mail fehlgeschlagen"
+    message "Test-E-Mail" "Die Test-E-Mail ist fehlgeschlagen. Details stehen in der folgenden Ausgabe." 10 76
   fi
   show_text "Test-E-Mail" "$out"
   rm -f "$out"
@@ -329,16 +375,20 @@ action_ssl_setup() {
   domain="$DOMAIN"
   ask domain "Domain ohne www:" "$domain" || return 0
   ask email "E-Mail für Let's Encrypt:" "$email" || return 0
-  [[ -n "$email" ]] || { warn "E-Mail fehlt."; return 0; }
+  if [[ -z "$email" ]]; then
+    message "E-Mail fehlt" "Für Let's Encrypt wird eine gültige E-Mail-Adresse benötigt." 9 70
+    return 0
+  fi
 
   if ! confirm "Jetzt TLS für $domain und www.$domain einrichten/erneuern?"; then return 0; fi
   local out
   out="$(mktemp)"
+  progress "TLS" "Zertifikat für $domain und www.$domain wird eingerichtet …"
   if certbot --nginx -d "$domain" -d "www.$domain" --redirect --agree-tos -m "$email" >"$out" 2>&1; then
     log "TLS eingerichtet"
     certbot renew --dry-run >>"$out" 2>&1 || true
   else
-    warn "certbot ist fehlgeschlagen"
+    message "TLS" "certbot ist fehlgeschlagen. Details stehen in der folgenden Ausgabe." 10 76
   fi
   show_text "TLS-Einrichtung" "$out"
   rm -f "$out"
@@ -348,10 +398,11 @@ action_backup() {
   require_app || return 0
   local out
   out="$(mktemp)"
+  progress "Backup" "Datenbank, Uploads und Konfiguration werden gesichert …"
   if "$APP_DIR/deploy/backup.sh" >"$out" 2>&1; then
     log "Backup erstellt"
   else
-    warn "Backup fehlgeschlagen"
+    message "Backup" "Das Backup ist fehlgeschlagen. Details stehen in der folgenden Ausgabe." 10 76
   fi
   show_text "Backup" "$out"
   rm -f "$out"
@@ -368,15 +419,21 @@ action_restore() {
   } > "$listing"
   show_text "Backups" "$listing"
   rm -f "$listing"
-  ask archive "Pfad zum Backup-Archiv:" "" || return 0
-  [[ -f "$archive" ]] || { warn "Archiv nicht gefunden: $archive"; return 0; }
+  local first_backup
+  first_backup="$(ls -1t "$DATA_DIR/backups"/*.tar.gz 2>/dev/null | head -1 || true)"
+  choose_file archive "Backup-Archiv wählen:" "${first_backup:-$DATA_DIR/backups/}" || return 0
+  if [[ ! -f "$archive" ]]; then
+    message "Archiv nicht gefunden" "Die Datei wurde nicht gefunden:\n\n$archive" 10 76
+    return 0
+  fi
   if ! confirm "Backup wirklich zurückspielen?\n\n$archive\n\nDer aktuelle Zustand wird vorher gesichert."; then return 0; fi
   local out
   out="$(mktemp)"
+  progress "Wiederherstellung" "Backup wird eingespielt …"
   if "$APP_DIR/deploy/restore.sh" "$archive" >"$out" 2>&1; then
     log "Wiederherstellung abgeschlossen"
   else
-    warn "Wiederherstellung fehlgeschlagen"
+    message "Wiederherstellung" "Die Wiederherstellung ist fehlgeschlagen. Details stehen in der folgenden Ausgabe." 10 76
   fi
   show_text "Wiederherstellung" "$out"
   rm -f "$out"
@@ -396,10 +453,11 @@ action_update() {
   [[ "$pull" -eq 0 ]] && args+=(--no-pull)
   local out
   out="$(mktemp)"
+  progress "Update" "Backup, Git-Pull, Build und Neustart laufen …"
   if "$APP_DIR/deploy/update.sh" "${args[@]}" >"$out" 2>&1; then
     log "Update erfolgreich"
   else
-    warn "Update fehlgeschlagen – bitte Ausgabe und Logs prüfen"
+    message "Update" "Das Update ist fehlgeschlagen. Details stehen in der folgenden Ausgabe und in den Logs." 10 76
   fi
   show_text "Update" "$out"
   rm -f "$out"
@@ -407,29 +465,48 @@ action_update() {
 
 action_admin_setup() {
   require_app || return 0
-  local email name
+  local email name pass pass2 out
   ask email "E-Mail-Adresse des Admin-Zugangs:" "" || return 0
   ask name "Name des Betreibers:" "Betreiber" || return 0
-  [[ -n "$email" ]] || { warn "E-Mail fehlt."; return 0; }
+  if [[ -z "$email" ]]; then
+    message "E-Mail fehlt" "Bitte eine E-Mail-Adresse für den Admin-Zugang angeben." 9 70
+    return 0
+  fi
 
-  log "Admin-Zugang einrichten (Passwort wird interaktiv abgefragt)"
+  ask_password pass "Passwort für den Admin-Zugang (mindestens 12 Zeichen):" || return 0
+  ask_password pass2 "Passwort wiederholen:" || return 0
+  if (( ${#pass} < 12 )); then
+    message "Passwort zu kurz" "Das Passwort muss mindestens 12 Zeichen lang sein." 9 70
+    return 0
+  fi
+  if [[ "$pass" != "$pass2" ]]; then
+    message "Passwörter unterschiedlich" "Die beiden Passwörter stimmen nicht überein." 9 70
+    return 0
+  fi
+
+  progress "Admin-Zugang" "Admin-Zugang wird eingerichtet …"
+  out="$(mktemp)"
   if (cd "$APP_DIR" && sudo -u "$SERVICE_USER" -H env DATA_DIR="$DATA_DIR" DB_PATH="$DB_PATH" \
-      npm run admin:create -- --email "$email" --name "$name"); then
+      ADMIN_PASSWORD="$pass" npm run admin:create -- --email "$email" --name "$name") >"$out" 2>&1; then
     log "Admin-Zugang eingerichtet"
   else
-    warn "Admin-Zugang konnte nicht eingerichtet werden"
+    message "Admin-Zugang" "Der Admin-Zugang konnte nicht eingerichtet werden. Details stehen in der folgenden Ausgabe." 10 76
   fi
+  pass=""
+  pass2=""
+  show_text "Admin-Zugang" "$out"
+  rm -f "$out"
 }
 
 action_geoip_setup() {
   require_app || return 0
-  log "GeoIP-Datenbank für die Länderprüfung aktualisieren"
   local out
   out="$(mktemp)"
+  progress "GeoIP-Datenbank" "Datenbank wird geladen und installiert …"
   if "$APP_DIR/deploy/update-geoip.sh" >"$out" 2>&1; then
     log "GeoIP-Datenbank aktualisiert"
   else
-    warn "GeoIP-Datenbank konnte nicht aktualisiert werden – bitte Ausgabe prüfen"
+    message "GeoIP-Datenbank" "Die Datenbank konnte nicht aktualisiert werden. Details stehen in der folgenden Ausgabe." 10 76
   fi
   show_text "GeoIP-Datenbank" "$out"
   rm -f "$out"
@@ -442,19 +519,22 @@ action_port_setup() {
   suggested="$(find_free_port 3000 3099 || true)"
 
   if port_in_use "$current" && ! port_owned_by_service "$current"; then
-    warn "Port $current ist bereits durch einen anderen Prozess belegt."
+    message "Port belegt" "Port $current ist bereits durch einen anderen Prozess belegt.\n\nVorschlag: ${suggested:-kein freier Port gefunden}" 10 76
     default_port="${suggested:-$current}"
   else
     default_port="$current"
   fi
 
   ask new_port "Anwendungsport (Vorschlag: ${suggested:-$current}):" "$default_port" || return 0
-  [[ "$new_port" =~ ^[0-9]+$ ]] && (( new_port >= 1024 && new_port <= 65535 )) || {
-    warn "Ungültiger Port: $new_port. Bitte einen Wert zwischen 1024 und 65535 angeben."
+  if ! [[ "$new_port" =~ ^[0-9]+$ ]] || (( new_port < 1024 || new_port > 65535 )); then
+    message "Ungültiger Port" "Der eingegebene Port ist ungültig: $new_port\n\nBitte einen Wert zwischen 1024 und 65535 angeben." 10 76
     return 0
-  }
+  fi
   if [[ "$new_port" != "$current" ]] && port_in_use "$new_port" && ! port_owned_by_service "$new_port"; then
-    warn "Port $new_port ist belegt. Bitte einen freien Port wählen."
+    message "Port belegt" "Port $new_port ist bereits durch einen anderen Prozess belegt.\n\nVorschlag: ${suggested:-kein freier Port gefunden}" 10 76
+    return 0
+  fi
+  if ! confirm "Port auf $new_port ändern?\n\n.env und NGINX-Konfiguration werden angepasst, der Dienst wird neu gestartet."; then
     return 0
   fi
 
@@ -465,10 +545,11 @@ action_port_setup() {
     sed -i "s/127.0.0.1:${current}/127.0.0.1:${new_port}/g" "$site"
     log "NGINX-Konfiguration angepasst: $site"
   else
-    warn "$site nicht gefunden. Bitte proxy_pass manuell auf 127.0.0.1:$new_port ändern."
+    message "NGINX-Konfiguration fehlt" "$site wurde nicht gefunden.\n\nBitte proxy_pass manuell auf 127.0.0.1:$new_port ändern." 10 76
   fi
 
   out="$(mktemp)"
+  progress "Port $new_port" "Dienst und NGINX werden neu gestartet …"
   {
     systemctl restart "$SERVICE" 2>&1 || true
     nginx -t 2>&1 || true
@@ -484,9 +565,9 @@ action_port_setup() {
 }
 
 action_restart_services() {
-  log "Dienste neu starten"
   local out
   out="$(mktemp)"
+  progress "Dienste" "3d-mir.service und NGINX werden neu gestartet …"
   {
     systemctl restart "$SERVICE" 2>&1 || true
     nginx -t 2>&1 || true
@@ -670,7 +751,7 @@ while true; do
     15) action_port_setup ;;
     16) action_geoip_setup ;;
     0) exit 0 ;;
-    *) warn "Unbekannte Auswahl: $choice" ;;
+    *) message "Unbekannte Auswahl" "Die Auswahl „$choice“ ist nicht bekannt." 9 70 ;;
   esac
 
   pause

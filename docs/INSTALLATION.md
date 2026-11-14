@@ -353,7 +353,7 @@ Das Menü bietet:
 - GeoIP-Datenbank aktualisieren
 - Beenden
 
-Nach jeder Aktion erscheint das Menü erneut. Mit „Menü neu laden“ wird die Ansicht frisch aufgebaut.
+Alle Eingaben, Bestätigungen, Hinweise und Ergebnisanzeigen laufen über `whiptail` (TUI). Das gilt auch für das Admin-Passwort, die Backup-Auswahl und Fehlermeldungen. Nach jeder Aktion erscheint das Menü erneut. Mit „Menü neu laden“ wird die Ansicht frisch aufgebaut.
 
 Wenn `whiptail` fehlt oder die Sitzung kein interaktives Terminal ist, erscheint automatisch ein numerisches Textmenü. Für die grafische Variante:
 
