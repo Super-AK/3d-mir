@@ -134,7 +134,9 @@
             <div><dt>Bauraum</dt><dd>{{ printer.buildVolume.x }} × {{ printer.buildVolume.y }} × {{ printer.buildVolume.z }} mm</dd></div>
             <div><dt>Materialien</dt><dd>{{ printer.materialLabels | join(', ') }}</dd></div>
           </dl>
-          <p class="text-muted mt-1"><small>Bauraum-Angaben sind Richtwerte und werden vom Betreiber bestätigt (TODO-BESTÄTIGEN).</small></p>
+          {% if publication.pricingStatus != 'FINAL' %}
+            <p class="text-muted mt-1"><small>Bauraum-Angaben sind Richtwerte und werden vom Betreiber bestätigt (TODO-BESTÄTIGEN).</small></p>
+          {% endif %}
         </article>
       {% endfor %}
     </div>

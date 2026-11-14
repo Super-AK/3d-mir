@@ -113,9 +113,11 @@
           <li><strong>Material:</strong> PLA, in Wunschfarbe</li>
         </ul>
 
-        <div class="alert alert-info">
-          <p><strong>Preishinweis:</strong> Die Farbzuordnung der Preise ist noch nicht bestätigt. Im Warenkorb wird der niedrigste Preis angesetzt; der verbindliche Preis wird vor der Fertigung geprüft. <a href="/kontakt/">Fragen?</a></p>
-        </div>
+        {% if publication.pricingStatus != 'FINAL' %}
+          <div class="alert alert-info">
+            <p><strong>Preishinweis:</strong> Die Farbzuordnung der Preise ist noch nicht bestätigt. Im Warenkorb wird der niedrigste Preis angesetzt; der verbindliche Preis wird vor der Fertigung geprüft. <a href="/kontakt/">Fragen?</a></p>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -140,7 +142,6 @@
         <div><dt>Artikelnummer</dt><dd>{{ product.sku or '–' }}</dd></div>
         <div><dt>Herstellung</dt><dd>Deutschland</dd></div>
       </dl>
-      <p class="text-muted"><small>Hinweis: Das Gewicht aus der alten Produktseite („0,70 g“) ist offensichtlich fehlerhaft und wird hier bewusst nicht angegeben.</small></p>
     </aside>
   </div>
 </section>
