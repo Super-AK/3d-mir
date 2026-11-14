@@ -113,7 +113,7 @@
       </div>
     </div>
     <div>
-      {{ image('colors', { sizes: '(max-width: 860px) 100vw, 45vw', alt: 'Übersicht der verfügbaren Filamentfarben' }) | safe }}
+      {{ image(site.images.materials or 'colors', { sizes: '(max-width: 860px) 100vw, 45vw', alt: 'Übersicht der verfügbaren Filamentfarben' }) | safe }}
     </div>
   </div>
 </section>

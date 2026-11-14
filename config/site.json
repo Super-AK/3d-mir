@@ -40,7 +40,9 @@
     "logo": "",
     "hero": "",
     "service": "",
-    "gallery": null
+    "gallery": null,
+    "materials": "",
+    "calculator": ""
   },
   "features": {
     "shop": true,

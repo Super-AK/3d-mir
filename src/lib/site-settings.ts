@@ -64,6 +64,8 @@ export function applySiteSettings(): void {
       logo: overrides.images.logo ?? merged.images.logo,
       hero: overrides.images.hero ?? merged.images.hero,
       service: overrides.images.service ?? merged.images.service,
+      materials: overrides.images.materials ?? merged.images.materials,
+      calculator: overrides.images.calculator ?? merged.images.calculator,
       gallery: Object.prototype.hasOwnProperty.call(overrides.images, 'gallery')
         ? Array.isArray(overrides.images.gallery)
           ? overrides.images.gallery
@@ -166,6 +168,8 @@ export function saveSiteImages(images: SiteConfig['images']): void {
       logo: clean(images.logo, 300),
       hero: clean(images.hero, 300),
       service: clean(images.service, 300),
+      materials: clean(images.materials, 300),
+      calculator: clean(images.calculator, 300),
       gallery: images.gallery === null
         ? null
         : images.gallery.map((entry) => clean(entry, 300)).filter(Boolean).slice(0, 8),

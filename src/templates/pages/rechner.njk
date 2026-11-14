@@ -205,7 +205,7 @@
       </div>
 
       <div class="calc-image">
-        {{ image('calculator', { sizes: '(max-width: 900px) 100vw, 28vw', alt: '3D-Drucker mit Modell im Bauraum' }) | safe }}
+        {{ image(site.images.calculator or 'calculator', { sizes: '(max-width: 900px) 100vw, 28vw', alt: '3D-Drucker mit Modell im Bauraum' }) | safe }}
       </div>
     </aside>
   </div>

@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.14] – 2026-11-14
+
+### Hinzugefügt
+
+- **Admin → Stammdaten:** Material-Bild der Leistungsseite und Rechner-Bild
+  separat hochladbar, ersetzbar und zurücksetzbar.
+- Beide Bilder erscheinen ohne eigene Datei weiterhin als mitgelieferte
+  Standardmotive.
+
 ## [1.0.0-rc.13] – 2026-11-14
 
 ### Geändert
@@ -247,6 +256,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.14]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.14
 [1.0.0-rc.13]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.13
 [1.0.0-rc.12]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.12
 [1.0.0-rc.11]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.11

@@ -137,7 +137,7 @@ export type SiteConfig = {
   };
   contact: { responseTime: string; appointmentNote: string };
   seo: { siteName: string; defaultTitle: string; defaultDescription: string };
-  images: { logo: string; hero: string; service: string; gallery: string[] | null };
+  images: { logo: string; hero: string; service: string; materials: string; calculator: string; gallery: string[] | null };
   features: { shop: boolean; customerAccounts: boolean; calculator: boolean; paypal: boolean; totp: boolean };
   legal: { lastUpdated: string; reviewNotice: string; showDraftNotice: boolean };
 };

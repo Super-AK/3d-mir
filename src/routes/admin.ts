@@ -2138,6 +2138,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         logoUrl: settings.images.logo || '/assets/img/gen/logo-96.png',
         heroPreview: imagePreview(settings.images.hero || 'hero', 480),
         servicePreview: imagePreview(settings.images.service || 'service', 480),
+        materialsPreview: imagePreview(settings.images.materials || 'colors', 480),
+        calculatorPreview: imagePreview(settings.images.calculator || 'calculator', 480),
         galleryIsDefault: galleryKeys === null,
         galleryItems: (galleryKeys ?? []).map((key) => ({ key, preview: imagePreview(key, 320) })),
       }));
@@ -2210,7 +2212,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           limits: { files: 10, fileSize: 12 * 1024 * 1024, fields: 10 },
         })) {
           if (part.type === 'file') {
-            if (['logo', 'hero', 'service', 'gallery'].includes(part.fieldname)) {
+            if (['logo', 'hero', 'service', 'materials', 'calculator', 'gallery'].includes(part.fieldname)) {
               const buffer = await part.toBuffer();
               // Leere Dateifelder werden von manchen Browsern trotzdem übertragen.
               if (buffer.length > 0) {
@@ -2258,7 +2260,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
             images.logo = storeSiteLogo(file.buffer, file.mimetype);
             if (previous) deleteSiteLogo(previous);
           } else {
-            const slot = file.field as 'hero' | 'service';
+            const slot = file.field as 'hero' | 'service' | 'materials' | 'calculator';
             const previous = images[slot];
             images[slot] = await storeSiteImage(slot, {
               buffer: file.buffer,
@@ -2327,7 +2329,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       if (slot === 'logo') {
         if (images.logo) deleteSiteLogo(images.logo);
         images.logo = '';
-      } else if (slot === 'hero' || slot === 'service') {
+      } else if (slot === 'hero' || slot === 'service' || slot === 'materials' || slot === 'calculator') {
         if (images[slot]) deleteProductImageFiles(images[slot]);
         images[slot] = '';
       } else if (slot === 'gallery') {
