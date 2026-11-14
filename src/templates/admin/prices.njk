@@ -18,9 +18,11 @@
     {% endif %}
   </div>
 
-  <div class="alert alert-warning" role="status">
-    <p><strong>Platzhalter:</strong> Alle Werte sind technische Annahmen und müssen vor dem Livegang vom Betreiber bestätigt werden. Die Grundeinstellung steht in <code>config/pricing.json</code>; Änderungen hier werden in der Datenbank gespeichert und überlagern diese Werte.</p>
-  </div>
+  {% if pricing.meta.status == 'PLATZHALTER' %}
+    <div class="alert alert-warning" role="status">
+      <p><strong>Platzhalter:</strong> Alle Werte sind technische Annahmen und müssen vor dem Livegang vom Betreiber bestätigt werden. Die Grundeinstellung steht in <code>config/pricing.json</code>; Änderungen hier werden in der Datenbank gespeichert und überlagern diese Werte.</p>
+    </div>
+  {% endif %}
   <div class="alert alert-info" role="status">
     <p><strong>Aktiv:</strong> Nur aktive Materialien, Drucker, Nachbearbeitungen und Versandarten werden im Rechner, Shop und auf der Versandseite angezeigt. Inaktive Einträge bleiben zur Bearbeitung erhalten.</p>
   </div>

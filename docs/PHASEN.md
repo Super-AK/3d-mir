@@ -379,6 +379,9 @@
 - Auffällige Nachrichten werden im Prüfmodus gespeichert, aber nicht automatisch an den Betreiber weitergeleitet; stattdessen gibt es einen Prüfhinweis mit Link in den Admin.
 - Preis-Admin: Add-Buttons in allen Kategorien; mehrere neue Materialien, Drucker, Nachbearbeitungen, Versandarten, Versandoptionen und Rabattstaffeln pro Speichervorgang.
 - Bankdaten aus der öffentlichen Seite „Zahlungsarten“ und der Bestell-Danke-Seite entfernt; sie stehen nur in der Vorkasse-Bestätigungsmail.
+- Setup-Menü: „Beenden“ ist jetzt Punkt 0.
+- Etsy-CSV-Import (`npm run etsy:import`): Titel, Beschreibung, Preis, Bestand, SKU, Materialien, Tags und Bilder; idempotent über SKU/Slug, Testlauf mit `--dry-run`.
+- Produktbild-Verarbeitung in `src/lib/product-images.ts` ausgelagert, damit Admin und Import-Skript dieselbe Logik nutzen.
 - Dokumentation in `docs/ADMIN.md` und `docs/OFFENE-FRAGEN.md`.
 
 **Getestet**

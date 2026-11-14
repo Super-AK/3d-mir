@@ -26,6 +26,21 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 
 **Neu anlegen:** Die Zeile „Neues …“ am Ende jeder Tabelle ausfüllen. Über die Schaltfläche **„+ Weiteres …“** lassen sich beliebig viele weitere Neu-Zeilen einfügen und in einem Speichervorgang anlegen. Eine leere Zeile wird ignoriert. Die ID wird aus der Bezeichnung erzeugt (`PLA Tough` → `pla-tough`) und bei Bedarf durchnummeriert. Ohne JavaScript bleibt die erste Neu-Zeile je Tabelle nutzbar.
 
+### Platzhalter-Hinweise abschalten
+
+Die Hinweise im Shop und auf den Rechtsseiten sind an Statuswerte in den Konfigurationsdateien gebunden. Sie verschwinden erst, wenn der Betreiber die Werte fachlich bestätigt hat:
+
+| Hinweis | Datei und Schlüssel | Ausblenden mit |
+| --- | --- | --- |
+| Shop, Produktseite, Warenkorb, Kasse | `config/shop.json` → `status` | `"AKTIV"` |
+| Versandkosten/Lieferzeiten auf `/versand/` | `config/pricing.json` → `shipping.status` | `"FINAL"` |
+| Platzhalter-Warnung im Admin unter „Preise“ | `config/pricing.json` → `meta.status` | `"FINAL"` |
+| Entwurfshinweis auf Impressum, AGB, Datenschutz, Widerruf, Versand, Zahlung | `config/site.json` → `legal.showDraftNotice` | `false` |
+
+Nach Änderungen `npm run build` und `systemctl restart 3d-mir.service` ausführen (oder `sudo deploy/update.sh`). Die Rechtstexte sollten erst nach rechtlicher Prüfung freigegeben werden; die übrigen TODO-Marker in den Texten (z. B. `TODO-VERSAND` in der Datenschutzerklärung) werden dabei ebenfalls entfernt.
+
+Die Hinweise auf `/leistungen/` („Bauraum-Angaben sind Richtwerte …“) und der Schätzhinweis im Rechner sind keine Platzhalter, sondern dauerhafte fachliche Hinweise.
+
 **Löschen:** Mindestens ein Material, ein Drucker, eine Nachbearbeitung und eine Versandart müssen bestehen bleiben. Mengenrabattstaffeln dürfen vollständig entfernt werden. Wird ein Material gelöscht, entfernen sich seine Verknüpfungen zu Druckern automatisch.
 
 **Aktiv:** Materialien, Drucker, Nachbearbeitung und Versandarten haben eine Checkbox „Aktiv“. Inaktive Einträge bleiben im Admin erhalten, werden aber im Rechner, im Shop, im Checkout und auf der Seite „Versandarten und Kosten“ nicht angezeigt. Mindestens ein Eintrag je Bereich muss aktiv bleiben.
