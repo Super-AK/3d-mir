@@ -152,104 +152,45 @@
 
   <section class="card admin-panel">
     <h2>Bilder</h2>
-    <p class="text-muted">Logo (PNG/JPG/WebP, max. 5 MB), Hero-, Service-, Material- und Rechnerbild sowie bis zu acht Galeriebilder. Ohne eigene Bilder werden die mitgelieferten Motive verwendet.</p>
+    <p class="text-muted">Logo (PNG/JPG/WebP, max. 5 MB), Hero-, Service-, Material- und Rechnerbild sowie bis zu acht Galeriebilder. Über das Stiftsymbol lässt sich jedes Bild in einem Fenster auswählen oder hineinziehen. Ohne eigene Bilder werden die mitgelieferten Motive verwendet.</p>
+
+    {% set imageSlots = [
+      { slot: 'logo', label: 'Logo', preview: logoUrl, accept: 'image/png,image/jpeg,image/webp', max: 5, typeLabel: 'PNG, JPG oder WebP', resetLabel: 'Logo entfernen' },
+      { slot: 'hero', label: 'Hero-Bild', preview: heroPreview, accept: 'image/jpeg,image/png,image/webp,image/avif', max: 12, typeLabel: 'JPG, PNG, WebP oder AVIF', resetLabel: 'Auf Standard zurücksetzen' },
+      { slot: 'service', label: 'Service-Bild', preview: servicePreview, accept: 'image/jpeg,image/png,image/webp,image/avif', max: 12, typeLabel: 'JPG, PNG, WebP oder AVIF', resetLabel: 'Auf Standard zurücksetzen' },
+      { slot: 'materials', label: 'Material-Bild (Leistungen)', preview: materialsPreview, accept: 'image/jpeg,image/png,image/webp,image/avif', max: 12, typeLabel: 'JPG, PNG, WebP oder AVIF', resetLabel: 'Auf Standard zurücksetzen' },
+      { slot: 'calculator', label: 'Rechner-Bild', preview: calculatorPreview, accept: 'image/jpeg,image/png,image/webp,image/avif', max: 12, typeLabel: 'JPG, PNG, WebP oder AVIF', resetLabel: 'Auf Standard zurücksetzen' }
+    ] %}
 
     <div class="admin-image-grid">
-      <figure class="admin-image-card">
-        <figcaption><strong>Logo</strong></figcaption>
-        <img src="{{ logoUrl }}" alt="Aktuelles Logo" style="max-height: 90px; width: auto;">
-        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
-          <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <input type="hidden" name="slot" value="logo">
-          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.logo %}disabled{% endif %}>Logo entfernen</button>
-        </form>
-      </figure>
-      <figure class="admin-image-card">
-        <figcaption><strong>Hero-Bild</strong></figcaption>
-        {% if heroPreview %}<img src="{{ heroPreview }}" alt="Hero-Bild">{% endif %}
-        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
-          <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <input type="hidden" name="slot" value="hero">
-          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.hero %}disabled{% endif %}>Auf Standard zurücksetzen</button>
-        </form>
-      </figure>
-      <figure class="admin-image-card">
-        <figcaption><strong>Service-Bild</strong></figcaption>
-        {% if servicePreview %}<img src="{{ servicePreview }}" alt="Service-Bild">{% endif %}
-        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
-          <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <input type="hidden" name="slot" value="service">
-          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.service %}disabled{% endif %}>Auf Standard zurücksetzen</button>
-        </form>
-      </figure>
-      <figure class="admin-image-card">
-        <figcaption><strong>Material-Bild (Leistungen)</strong></figcaption>
-        {% if materialsPreview %}<img src="{{ materialsPreview }}" alt="Material-Bild auf der Leistungsseite">{% endif %}
-        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
-          <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <input type="hidden" name="slot" value="materials">
-          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.materials %}disabled{% endif %}>Auf Standard zurücksetzen</button>
-        </form>
-      </figure>
-      <figure class="admin-image-card">
-        <figcaption><strong>Rechner-Bild</strong></figcaption>
-        {% if calculatorPreview %}<img src="{{ calculatorPreview }}" alt="Bild auf der Rechnerseite">{% endif %}
-        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
-          <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <input type="hidden" name="slot" value="calculator">
-          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.calculator %}disabled{% endif %}>Auf Standard zurücksetzen</button>
-        </form>
-      </figure>
+      {% for item in imageSlots %}
+        <figure class="admin-image-card" data-image-card data-slot="{{ item.slot }}" data-label="{{ item.label }}" data-accept="{{ item.accept }}" data-max-size="{{ item.max }}" data-type-label="{{ item.typeLabel }}">
+          <figcaption><strong>{{ item.label }}</strong></figcaption>
+          <button type="button" class="admin-image-edit" data-image-edit aria-label="{{ item.label }} bearbeiten" title="Bild bearbeiten">
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 16h3l8.5-8.5a1.8 1.8 0 0 0-2.5-2.5L4.5 13.5V16Z"/></svg>
+          </button>
+          {% if item.preview %}<img src="{{ item.preview }}" alt="{{ item.label }}">{% endif %}
+          <form method="post" action="/admin/stammdaten/bilder/entfernen/">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="slot" value="{{ item.slot }}">
+            <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images[item.slot] %}disabled{% endif %}>{{ item.resetLabel }}</button>
+          </form>
+        </figure>
+      {% endfor %}
     </div>
 
-    <form class="form" method="post" action="/admin/stammdaten/bilder/" enctype="multipart/form-data">
-      <input type="hidden" name="_csrf" value="{{ csrf }}">
-      <div class="form-row">
-        <div class="field">
-          <label for="logoUpload">Logo ersetzen</label>
-          <input id="logoUpload" name="logo" type="file" accept="image/png,image/jpeg,image/webp">
-        </div>
-        <div class="field">
-          <label for="heroUpload">Hero-Bild ersetzen</label>
-          <input id="heroUpload" name="hero" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
-        </div>
-        <div class="field">
-          <label for="serviceUpload">Service-Bild ersetzen</label>
-          <input id="serviceUpload" name="service" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="field">
-          <label for="materialsUpload">Material-Bild (Leistungen) ersetzen</label>
-          <input id="materialsUpload" name="materials" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
-        </div>
-        <div class="field">
-          <label for="calculatorUpload">Rechner-Bild ersetzen</label>
-          <input id="calculatorUpload" name="calculator" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
-        </div>
-      </div>
-      <div class="field">
-        <label for="galleryUpload">Galeriebilder ergänzen (max. 8 insgesamt)</label>
-        <input id="galleryUpload" name="gallery" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
-        <span class="hint">Hochgeladene Bilder werden an die vorhandene eigene Galerie angehängt.</span>
-      </div>
-      <label class="checkbox">
-        <input type="checkbox" name="replaceGallery" value="1">
-        <span>Vorhandene eigene Galerie vor dem Hochladen entfernen</span>
-      </label>
-      <label class="checkbox">
-        <input type="checkbox" name="resetGallery" value="1">
-        <span>Galerie auf die mitgelieferten Bilder zurücksetzen (ohne neue Uploads)</span>
-      </label>
-      <div class="form-actions">
-        <button class="btn" type="submit">Bilder speichern</button>
-      </div>
-    </form>
+    <h3 class="admin-section-head">
+      <span>Galerie</span>
+      <button type="button" class="btn btn-secondary btn-small" data-gallery-edit data-gallery-remaining="{{ galleryRemaining }}" aria-label="Galeriebilder bearbeiten">
+        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 16h3l8.5-8.5a1.8 1.8 0 0 0-2.5-2.5L4.5 13.5V16Z"/></svg>
+        Galeriebilder bearbeiten
+      </button>
+    </h3>
 
-    <h3>Galerie</h3>
     {% if galleryIsDefault %}
-      <p class="text-muted">Aktuell wird die mitgelieferte Standardgalerie mit acht Bildern verwendet. Eigene Bilder werden über das Formular oben hochgeladen und ersetzen die Standardgalerie.</p>
+      <p class="text-muted">Aktuell wird die mitgelieferte Standardgalerie mit acht Bildern verwendet. Eigene Bilder ersetzen die Standardgalerie.</p>
     {% elif galleryItems.length > 0 %}
+      <p class="text-muted">{{ galleryItems.length }} von 8 eigenen Galeriebildern hinterlegt.</p>
       <div class="admin-image-grid">
         {% for item in galleryItems %}
           <figure class="admin-image-card">
@@ -278,6 +219,117 @@
         <button class="btn btn-secondary btn-small" type="submit">Standardgalerie wiederherstellen</button>
       </form>
     {% endif %}
+
+    <noscript>
+      <div class="alert alert-info">
+        <p>JavaScript ist deaktiviert. Bitte nutzen Sie das folgende Formular zum Hochladen der Bilder.</p>
+      </div>
+      <form class="form" method="post" action="/admin/stammdaten/bilder/" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <div class="form-row">
+          <div class="field">
+            <label for="logoUpload">Logo ersetzen</label>
+            <input id="logoUpload" name="logo" type="file" accept="image/png,image/jpeg,image/webp">
+          </div>
+          <div class="field">
+            <label for="heroUpload">Hero-Bild ersetzen</label>
+            <input id="heroUpload" name="hero" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+          </div>
+          <div class="field">
+            <label for="serviceUpload">Service-Bild ersetzen</label>
+            <input id="serviceUpload" name="service" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="materialsUpload">Material-Bild (Leistungen) ersetzen</label>
+            <input id="materialsUpload" name="materials" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+          </div>
+          <div class="field">
+            <label for="calculatorUpload">Rechner-Bild ersetzen</label>
+            <input id="calculatorUpload" name="calculator" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+          </div>
+        </div>
+        <div class="field">
+          <label for="galleryUpload">Galeriebilder ergänzen (max. 8 insgesamt)</label>
+          <input id="galleryUpload" name="gallery" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+          <span class="hint">Hochgeladene Bilder werden an die vorhandene eigene Galerie angehängt.</span>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" name="replaceGallery" value="1">
+          <span>Vorhandene eigene Galerie vor dem Hochladen entfernen</span>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" name="resetGallery" value="1">
+          <span>Galerie auf die mitgelieferten Bilder zurücksetzen (ohne neue Uploads)</span>
+        </label>
+        <div class="form-actions">
+          <button class="btn" type="submit">Bilder speichern</button>
+        </div>
+      </form>
+    </noscript>
+
+    <dialog class="admin-modal" data-image-modal aria-labelledby="image-modal-title">
+      <form method="post" action="/admin/stammdaten/bilder/" enctype="multipart/form-data" class="admin-modal-form" data-image-modal-form>
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="slot" value="" data-image-slot>
+        <div class="admin-modal-head">
+          <h2 id="image-modal-title" data-image-modal-title>Bild bearbeiten</h2>
+          <button type="button" class="admin-modal-close" data-modal-close aria-label="Schließen">&times;</button>
+        </div>
+        <div class="admin-dropzone" data-dropzone tabindex="0" role="button">
+          <input type="file" data-file-input accept="image/*" hidden>
+          <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 5m-4-5-4 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <p data-drop-text>Bild hierher ziehen oder klicken zum Auswählen</p>
+          <p class="hint"><span data-accept-label>JPG, PNG, WebP oder AVIF</span> &middot; max. <span data-max-label>12 MB</span></p>
+        </div>
+        <div class="admin-selection" data-selection hidden></div>
+        <div class="alert alert-danger" data-modal-error hidden role="alert"><p></p></div>
+        <div class="upload-progress" data-upload-progress hidden>
+          <progress max="100" value="0" data-upload-bar></progress>
+          <p class="upload-status" data-upload-status aria-live="polite"></p>
+        </div>
+        <div class="admin-modal-actions">
+          <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+          <button type="submit" class="btn" data-modal-save>Speichern</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="admin-modal" data-gallery-modal aria-labelledby="gallery-modal-title">
+      <form method="post" action="/admin/stammdaten/bilder/" enctype="multipart/form-data" class="admin-modal-form" data-gallery-form>
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="slot" value="gallery">
+        <div class="admin-modal-head">
+          <h2 id="gallery-modal-title">Galeriebilder bearbeiten</h2>
+          <button type="button" class="admin-modal-close" data-modal-close aria-label="Schließen">&times;</button>
+        </div>
+        <div class="admin-dropzone" data-gallery-dropzone tabindex="0" role="button">
+          <input type="file" data-gallery-input accept="image/jpeg,image/png,image/webp,image/avif" multiple hidden>
+          <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 5m-4-5-4 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <p>Mehrere Bilder hierher ziehen oder klicken zum Auswählen</p>
+          <p class="hint">JPG, PNG, WebP oder AVIF &middot; max. 12 MB pro Bild</p>
+        </div>
+        <div class="admin-selection-head" data-selection-head hidden>
+          <p class="text-muted" data-selection-count></p>
+          <button type="button" class="btn btn-secondary btn-small" data-clear-selection>Alle entfernen</button>
+        </div>
+        <div class="admin-selection admin-selection-grid" data-gallery-selection hidden></div>
+        <label class="checkbox" data-replace-wrapper>
+          <input type="checkbox" name="replaceGallery" value="1" data-replace-gallery>
+          <span>Vorhandene eigene Galerie vor dem Hochladen entfernen</span>
+        </label>
+        <div class="alert alert-danger" data-modal-error hidden role="alert"><p></p></div>
+        <div class="upload-progress" data-upload-progress hidden>
+          <progress max="100" value="0" data-upload-bar></progress>
+          <p class="upload-status" data-upload-status aria-live="polite"></p>
+        </div>
+        <div class="admin-modal-actions">
+          <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+          <button type="submit" class="btn" data-modal-save>Speichern</button>
+        </div>
+      </form>
+    </dialog>
   </section>
 
   <form class="form card admin-panel" method="post" action="/admin/stammdaten/texte/">

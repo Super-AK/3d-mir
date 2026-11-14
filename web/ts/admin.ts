@@ -1,5 +1,6 @@
 import '../css/main.css';
 import '../css/admin.css';
+import './admin-images';
 
 /**
  * Admin-Navigation: Auf kleinen Bildschirmen als ausklappbares Menü.

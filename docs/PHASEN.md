@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.16 – 14. November 2026
+
+Bilder der Stammdaten werden über Modalfenster mit Klick- oder Drag-&-Drop-
+Auswahl, Vorschau und Upload-Fortschritt ersetzt. Die Galerie nimmt mehrere
+Bilder in einem Fenster entgegen.
+
 ## Release 1.0.0-rc.15 – 14. November 2026
 
 Admin-Navigation als gruppierte, beim Scrollen sichtbare Seitenleiste;

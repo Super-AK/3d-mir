@@ -3,6 +3,21 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.16] – 2026-11-14
+
+### Hinzugefügt
+
+- **Bildbearbeitung per Modalfenster:** Logo, Hero-, Service-, Material- und
+  Rechnerbild tragen ein Stiftsymbol. Das Fenster erlaubt Auswahl per Klick
+  oder Drag & Drop, zeigt eine Vorschau und lädt erst mit **Speichern** hoch.
+- **Galerie-Upload in einem Fenster:** mehrere Bilder gleichzeitig auswählen
+  oder hineinziehen, Vorschau der Auswahl, einzelne Bilder entfernen,
+  „Alle entfernen“ und optional die vorhandene Galerie ersetzen.
+- **Upload-Fortschritt** als Balken mit Prozentanzeige und Statusmeldung.
+- Serverseitige JSON-Antworten für die Bild-Uploads, damit Fehler ohne
+  Seitenwechsel im Fenster erscheinen.
+- Ohne JavaScript bleibt das klassische Upload-Formular verfügbar.
+
 ## [1.0.0-rc.15] – 2026-11-14
 
 ### Geändert
@@ -269,6 +284,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.16]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.16
 [1.0.0-rc.15]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.15
 [1.0.0-rc.14]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.14
 [1.0.0-rc.13]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.13

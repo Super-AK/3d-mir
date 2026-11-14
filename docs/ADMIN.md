@@ -36,6 +36,8 @@ Unter **Admin → Stammdaten** werden die öffentlichen Geschäftsangaben und Bi
 
 Hochgeladene Logos liegen unter `/var/lib/3d-mir/uploads/site/` und werden über `/site-media/…` ausgeliefert. Hero-, Service-, Material-, Rechner- und Galeriebilder werden wie Produktbilder in AVIF/WebP/JPEG umgewandelt und unter `/media/site/…` bereitgestellt.
 
+Jedes Bild trägt ein Stiftsymbol. Es öffnet ein Modalfenster, in dem die Datei per Klick ausgewählt oder hineingezogen wird. Hochgeladen wird erst mit **Speichern**; während der Übertragung erscheint ein Fortschrittsbalken. Für die Galerie lassen sich mehrere Bilder gleichzeitig auswählen. Die Auswahl wird mit Vorschaubildern angezeigt und kann vor dem Upload einzeln oder komplett geleert werden. **Vorhandene eigene Galerie ersetzen** tauscht die bisherigen Bilder aus. Ist JavaScript deaktiviert, steht ein klassisches Formular im `<noscript>`-Bereich bereit.
+
 Für die Galerie gibt es drei Zustände:
 
 - **Standardgalerie:** es sind keine eigenen Bilder gespeichert; die acht mitgelieferten Motive werden verwendet.

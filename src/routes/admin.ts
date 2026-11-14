@@ -2141,6 +2141,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         materialsPreview: imagePreview(settings.images.materials || 'colors', 480),
         calculatorPreview: imagePreview(settings.images.calculator || 'calculator', 480),
         galleryIsDefault: galleryKeys === null,
+        galleryRemaining: Math.max(0, 8 - (galleryKeys?.length ?? 0)),
         galleryItems: (galleryKeys ?? []).map((key) => ({ key, preview: imagePreview(key, 320) })),
       }));
     });
@@ -2203,7 +2204,17 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     scope.post('/admin/stammdaten/bilder/', async (request, reply) => {
       const session = request.adminSession;
-      if (!session) return adminError(request, reply, 403, 'Die Sitzung ist abgelaufen.');
+      const wantsJson =
+        String(request.headers.accept ?? '').includes('application/json') ||
+        request.headers['x-requested-with'] === 'XMLHttpRequest';
+      const fail = (message: string, status = 400) => {
+        if (wantsJson) return reply.code(status).send({ ok: false, error: message });
+        return reply.redirect(`/admin/stammdaten/?fehler=${encodeURIComponent(message)}`, 303);
+      };
+      if (!session) {
+        if (wantsJson) return reply.code(403).send({ ok: false, error: 'Die Sitzung ist abgelaufen.' });
+        return adminError(request, reply, 403, 'Die Sitzung ist abgelaufen.');
+      }
 
       const fields: Record<string, string> = {};
       const files: { field: string; buffer: Buffer; mimetype: string }[] = [];
@@ -2227,14 +2238,17 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         }
       } catch (error) {
         request.log.warn({ err: error }, 'Stammdaten-Bilder konnten nicht gelesen werden');
-        return reply.redirect(
-          `/admin/stammdaten/?fehler=${encodeURIComponent('Der Upload war zu groß oder unvollständig.')}`,
-          303,
-        );
+        return fail('Der Upload war zu groß oder unvollständig.');
       }
 
       if (!verifyCsrfToken(session, fields._csrf)) {
+        if (wantsJson) {
+          return reply.code(403).send({ ok: false, error: 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu.' });
+        }
         return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte die Seite neu laden.');
+      }
+      if (files.length === 0 && fields.resetGallery !== '1') {
+        return fail('Bitte wählen Sie mindestens eine Bilddatei aus.');
       }
 
       const current = getSiteSettings().images;
@@ -2314,6 +2328,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const target = errors.length > 0
         ? `/admin/stammdaten/?fehler=${encodeURIComponent(errors[0]!)}`
         : '/admin/stammdaten/?gespeichert=1';
+      if (wantsJson) return reply.send({ ok: true, redirect: target });
       return reply.redirect(target, 303);
     });
 
