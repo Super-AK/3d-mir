@@ -6,7 +6,7 @@
 #   sudo deploy/install.sh --menu
 #
 # Das Menü bündelt Installation, Voraussetzungsprüfung, Systemcheck, Mail-Setup,
-# TLS, Backup/Restore, Update, Admin-Zugang und Dienst-Neustart.
+# TLS, Backup/Restore, Update, Admin-Zugang, GeoIP-Datenbank und Dienst-Neustart.
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -421,6 +421,20 @@ action_admin_setup() {
   fi
 }
 
+action_geoip_setup() {
+  require_app || return 0
+  log "GeoIP-Datenbank für die Länderprüfung aktualisieren"
+  local out
+  out="$(mktemp)"
+  if "$APP_DIR/deploy/update-geoip.sh" >"$out" 2>&1; then
+    log "GeoIP-Datenbank aktualisiert"
+  else
+    warn "GeoIP-Datenbank konnte nicht aktualisiert werden – bitte Ausgabe prüfen"
+  fi
+  show_text "GeoIP-Datenbank" "$out"
+  rm -f "$out"
+}
+
 action_port_setup() {
   require_app || return 0
   local current suggested default_port new_port site out
@@ -560,7 +574,7 @@ main_menu() {
   if has_whiptail; then
     whiptail --backtitle "3D-MIR Serververwaltung" \
       --title "3D-MIR Setup" \
-      --menu "Bitte eine Aktion wählen:" 26 96 15 \
+      --menu "Bitte eine Aktion wählen:" 27 96 16 \
       1 "Installation / Reparatur starten" \
       2 "Voraussetzungen prüfen" \
       3 "Systemcheck ausführen" \
@@ -576,7 +590,8 @@ main_menu() {
       13 "Konfiguration anzeigen" \
       14 "Menü neu laden" \
       15 "Port prüfen / freien Port setzen" \
-      16 "Beenden" \
+      16 "GeoIP-Datenbank aktualisieren" \
+      17 "Beenden" \
       3>&1 1>&2 2>&3
     return
   fi
@@ -599,7 +614,8 @@ main_menu() {
 13) Konfiguration anzeigen
 14) Menü neu laden
 15) Port prüfen / freien Port setzen
-16) Beenden
+16) GeoIP-Datenbank aktualisieren
+17) Beenden
 EOF
   local choice
   read -r -p "Auswahl: " choice || return 1
@@ -625,6 +641,7 @@ if [[ -n "${SETUP_ACTION:-}" ]]; then
     config) action_config ;;
     notifications) action_notification_help ;;
     port) action_port_setup ;;
+    geoip) action_geoip_setup ;;
     *) die "Unbekannte SETUP_ACTION: $SETUP_ACTION" ;;
   esac
   exit 0
@@ -651,7 +668,8 @@ while true; do
     13) action_config ;;
     14) clear ;;
     15) action_port_setup ;;
-    16) exit 0 ;;
+    16) action_geoip_setup ;;
+    17) exit 0 ;;
     *) warn "Unbekannte Auswahl: $choice" ;;
   esac
 

@@ -34,6 +34,20 @@
   <details class="admin-help admin-contact-settings">
     <summary class="btn btn-secondary btn-small">Spam-Schutz und Länderprüfung</summary>
     <div class="admin-help-body">
+      {% if geoip.available and not geoip.error %}
+        <div class="alert alert-info" role="status">
+          <p><strong>Ländererkennung aktiv:</strong> Das Land wird anhand der IP-Adresse aus der lokalen Datenbank <code>{{ geoip.path }}</code> ermittelt. Es werden keine externen Dienste aufgerufen.</p>
+        </div>
+      {% elif geoip.available %}
+        <div class="alert alert-warning" role="status">
+          <p><strong>GeoIP-Datenbank nicht lesbar:</strong> <code>{{ geoip.path }}</code> – {{ geoip.error }}. Bitte <code>sudo deploy/update-geoip.sh</code> ausführen. Bis dahin greift die Einstellung „Land nicht ermittelbar“.</p>
+        </div>
+      {% else %}
+        <div class="alert alert-warning" role="status">
+          <p><strong>Keine GeoIP-Datenbank gefunden.</strong> Ohne Datenbank kann das Land nur über einen vertrauenswürdigen Proxy-Header (z. B. <code>CF-IPCountry</code>) ermittelt werden. Andernfalls greift die Einstellung „Land nicht ermittelbar“. Installation: <code>sudo deploy/update-geoip.sh</code>.</p>
+        </div>
+      {% endif %}
+
       <form class="form" method="post" action="/admin/nachrichten/einstellungen/">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
 
@@ -44,7 +58,16 @@
               <option value="review" {% if contactSettings.mode != 'block' %}selected{% endif %}>Zur Prüfung speichern (empfohlen)</option>
               <option value="block" {% if contactSettings.mode == 'block' %}selected{% endif %}>Anfrage direkt ablehnen</option>
             </select>
-            <span class="hint">Im Prüfmodus wird die Nachricht gespeichert, aber nicht an den Betreiber weitergeleitet. Sie entscheiden dann manuell.</span>
+            <span class="hint">Gilt für bekannte, aber nicht erlaubte Länder sowie für die Zeit- und Inhaltsprüfung. Im Prüfmodus wird die Nachricht gespeichert, aber nicht an den Betreiber weitergeleitet.</span>
+          </div>
+          <div class="field">
+            <label for="unknownCountry">Land nicht ermittelbar</label>
+            <select id="unknownCountry" name="unknownCountry">
+              <option value="review" {% if contactSettings.unknownCountry != 'block' and contactSettings.unknownCountry != 'allow' %}selected{% endif %}>Zur Prüfung speichern (empfohlen)</option>
+              <option value="block" {% if contactSettings.unknownCountry == 'block' %}selected{% endif %}>Anfrage direkt ablehnen</option>
+              <option value="allow" {% if contactSettings.unknownCountry == 'allow' %}selected{% endif %}>Ohne Länderprüfung zulassen</option>
+            </select>
+            <span class="hint">Gilt, wenn weder Datenbank noch Proxy-Header ein Land liefern.</span>
           </div>
         </div>
 
@@ -63,7 +86,7 @@
               </label>
             {% endfor %}
           </div>
-          <span class="hint">Mehrfachauswahl möglich. Standard ist Deutschland. Liefert ein vorgeschalteter Proxy ein Länderkürzel (z. B. <code>CF-IPCountry</code>), wird zusätzlich dieses geprüft.</span>
+          <span class="hint">Mehrfachauswahl möglich. Das Land wird ausschließlich serverseitig aus der IP-Adresse ermittelt; der Besucher gibt es nicht selbst an. Standard ist Deutschland.</span>
         </div>
 
         <label class="checkbox">

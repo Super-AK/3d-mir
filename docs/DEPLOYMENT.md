@@ -154,6 +154,17 @@ Ablauf:
 
 Migrationen laufen beim Start der Anwendung und sind idempotent.
 
+## GeoIP-Datenbank aktualisieren
+
+Die Länderprüfung des Kontaktformulars nutzt eine lokale Datenbank. Sie sollte monatlich erneuert werden:
+
+```bash
+sudo deploy/update-geoip.sh              # Download, Prüfung, Installation, Neustart
+sudo deploy/update-geoip.sh --no-restart # ohne Neustart (z. B. im Wartungsfenster)
+```
+
+Quelle ist DB-IP Lite (Lizenz CC BY 4.0). Die vorherige Datei bleibt als `.bak` erhalten. Alternativ steht der Menüpunkt **„GeoIP-Datenbank aktualisieren“** im Setup-Menü (`sudo deploy/setup.sh`) zur Verfügung.
+
 ## Backup
 
 ```bash

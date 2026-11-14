@@ -8,9 +8,13 @@ import { cleanText, isSameOrigin } from '../lib/http.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
 import { getPublicPaymentMethods } from '../lib/shop-settings.js';
 import { isStripeConfigured } from '../lib/payments/stripe.js';
-import { countries, normalizeCountry } from '../lib/countries.js';
 import { getContactSettings } from '../lib/contact-settings.js';
-import { assessContact, createContactToken, headerCountry } from '../lib/contact-protection.js';
+import {
+  assessContact,
+  createContactToken,
+  isTrustedProxyPeer,
+  resolveContactCountry,
+} from '../lib/contact-protection.js';
 import { contactMailHtml, contactMailText, contactReviewMailHtml, contactReviewMailText } from '../lib/contact-mail.js';
 
 /** Liest alle Inhaltsblöcke als Schlüssel-Wert-Paare. */
@@ -108,10 +112,6 @@ const contactSchema = z.object({
   name: z.string().min(2, 'Bitte geben Sie Ihren Namen an.').max(120),
   email: z.string().email('Bitte geben Sie eine gültige E-Mail-Adresse an.').max(200),
   phone: z.string().max(60),
-  country: z
-    .string()
-    .regex(/^[A-Z]{2}$/, 'Bitte wählen Sie Ihr Land aus.')
-    .refine((code) => countries.some((country) => country.code === code), 'Bitte wählen Sie ein gültiges Land aus.'),
   subject: z.enum(contactSubjects),
   message: z
     .string()
@@ -126,7 +126,6 @@ type ContactForm = {
   name: string;
   email: string;
   phone: string;
-  country: string;
   subject: string;
   message: string;
   consent: string;
@@ -139,7 +138,6 @@ function readContactForm(request: FastifyRequest): ContactForm {
     name: cleanText(body.name, 120),
     email: cleanText(body.email, 200),
     phone: cleanText(body.phone, 60),
-    country: normalizeCountry(body.country) || 'DE',
     subject: (contactSubjects as readonly string[]).includes(subject) ? subject : contactSubjects[0],
     message: cleanText(body.message, 5000),
     consent: body.consent === '1' || body.consent === 'on' ? '1' : '',
@@ -283,7 +281,6 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
   ) =>
     render(reply, 'pages/kontakt.njk', {
       subjects: contactSubjects,
-      countries,
       contactToken: createContactToken(),
       form,
       ...extra,
@@ -323,16 +320,21 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
 
       const data = parsed.data;
       const settings = getContactSettings();
+      const detected = await resolveContactCountry({
+        ip: request.ip,
+        headers: request.headers as Record<string, unknown>,
+        trustedProxy: isTrustedProxyPeer(request.raw.socket.remoteAddress),
+      });
       const assessment = assessContact({
         settings,
-        formCountry: data.country,
-        headerCountry: headerCountry(request.headers as Record<string, unknown>),
+        ipCountry: detected.country,
         token: body.formToken,
         name: data.name,
         email: data.email,
         subject: data.subject,
         message: data.message,
       });
+      const mailData = { ...data, country: assessment.country };
 
       if (assessment.decision === 'block') {
         request.log.warn(
@@ -373,8 +375,8 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         try {
           await notifyAdmin({
             subject: `[Kontakt] Prüfung erforderlich – ${data.subject}`,
-            text: contactReviewMailText(data, assessment.reasons, adminUrl),
-            html: contactReviewMailHtml(data, assessment.reasons, adminUrl),
+            text: contactReviewMailText(mailData, assessment.reasons, adminUrl),
+            html: contactReviewMailHtml(mailData, assessment.reasons, adminUrl),
             telegramText: [
               'Kontaktanfrage zur Prüfung',
               `Land: ${assessment.country || 'unbekannt'}`,
@@ -391,8 +393,8 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
       try {
         await notifyAdmin({
           subject: `[Kontakt] ${data.subject} – ${data.name}`,
-          text: contactMailText(data),
-          html: contactMailHtml(data),
+          text: contactMailText(mailData),
+          html: contactMailHtml(mailData),
           replyTo: data.email,
         });
       } catch (error) {

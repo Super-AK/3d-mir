@@ -1,6 +1,6 @@
 # Offene Fragen an den Auftraggeber
 
-**Stand:** 14.11.2026 · **Version:** 2.2 · **Zuletzt geprüft:** 14.11.2026
+**Stand:** 14.11.2026 · **Version:** 2.3 · **Zuletzt geprüft:** 14.11.2026
 
 Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; Einzelfragen sind mit `[F1]` usw. nummeriert. Erledigte Punkte bleiben mit Datum und Nachweis dokumentiert, damit Verweise und die Historie erhalten bleiben.
 
@@ -22,7 +22,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | Bereich | Status | Kurzbemerkung |
 | --- | --- | --- |
 | Zahlungsarten | 🟡 In Arbeit | Testmodus und alle Methoden geprüft; Bankdaten und Live-Schaltung offen |
-| Kontakt/Spam-Schutz | 🟡 In Arbeit | Antworten, Länderprüfung und Prüfmodus umgesetzt; Allowlist bestätigen |
+| Kontakt/Spam-Schutz | 🟡 In Arbeit | Antworten und IP-basierte Länderprüfung umgesetzt; Allowlist bestätigen |
 | Benachrichtigungen | 🟡 In Arbeit | Admin/Setup vorhanden; SMTP- und Telegram-Daten offen |
 | Installation/Deployment | ✅ Erledigt | Installationsanleitung und interaktives Setup-Menü vorhanden |
 | Preise/Kalkulation | 🔴 Offen | Platzhalter und Overrides müssen bestätigt werden |
@@ -179,8 +179,8 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F73 | ✅ Erledigt | **Umgesetzt:** Direkte Antwort auf Kontaktnachrichten aus dem Admin inklusive Speicherung des Antworttexts und `.eml`-Fallback ohne SMTP. Nachweis: Antwortversand im Test.<br>*(14.11.2026)* |
 | F74 | ✅ Erledigt | **Umgesetzt:** Add-Buttons in allen Preis-Kategorien; mehrere neue Materialien, Drucker, Nachbearbeitungen, Versandarten, Versandoptionen und Rabattstaffeln können in einem Speichervorgang angelegt werden.<br>*(14.11.2026)* |
 | F75 | ✅ Erledigt | **Umgesetzt:** Bankdaten erscheinen nicht mehr auf der öffentlichen Seite „Zahlungsarten“ und nicht auf der Bestell-Danke-Seite. Kunden erhalten sie ausschließlich in der Bestellbestätigung per E-Mail bei Auswahl „Vorkasse“.<br>*(14.11.2026)* |
-| F76 | 🟡 In Arbeit | **Länder-Allowlist bestätigen:** Aktuell ist nur Deutschland (`DE`) freigegeben; Auffälligkeiten werden zur Prüfung gespeichert. Sollen weitere Länder (z. B. AT, CH, NL) zugelassen werden? Einstellung unter **Admin → Nachrichten**. |
-| F77 | 🟢 Später | **Proxy-Länderkopf:** Die Anwendung wertet `CF-IPCountry` bzw. vergleichbare Header aus, falls ein Proxy/CDN sie liefert. Soll ein solcher Header produktiv genutzt werden? |
+| F76 | 🟡 In Arbeit | **Länder-Allowlist bestätigen:** Das Land wird serverseitig aus der IP-Adresse ermittelt (lokale GeoIP-Datenbank, kein Besucherfeld). Aktuell ist nur Deutschland (`DE`) freigegeben; andere Länder werden zur Prüfung gespeichert. Sollen weitere Länder (z. B. AT, CH, NL) zugelassen werden? Einstellung unter **Admin → Nachrichten**. |
+| F77 | ✅ Erledigt | **Umgesetzt:** Länder-Header von Proxy/CDN (`CF-IPCountry` usw.) werden nur akzeptiert, wenn die Verbindung von einem in `TRUST_PROXY` eingetragenen Proxy stammt; sonst entscheidet die lokale GeoIP-Datenbank. Nachweis: Test mit `X-Forwarded-For` (DE/US) und ohne ermittelbares Land.<br>*(14.11.2026)* |
 | F78 | 🟢 Später | **Externer Captcha-Dienst:** Bewusst nicht eingebaut, um keine externen Skripte und Tracking einzubinden. Soll später ein datenschutzfreundlicher Captcha ergänzt werden? |
 
 ## 13. Nächste Schritte bis zum Livegang
@@ -188,7 +188,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 1. **Preise und Versand bestätigen:** F1–F8, F14–F20 und F66 in `config/pricing.json` bzw. im Admin korrigieren.
 2. **Zahlung live schalten:** F13 (Bankverbindung) und F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test).
 3. **Benachrichtigungen einrichten:** F21–F24, F69–F71 (SMTP, Telegram, Kanal und Ereignisse).
-4. **Kontakt-Spam-Schutz bestätigen:** F76 (erlaubte Länder) und F77 (Proxy-Länderkopf) prüfen; Antworten und Prüfmodus im Admin testen.
+4. **Kontakt-Spam-Schutz bestätigen:** F76 (erlaubte Länder) prüfen; GeoIP-Datenbank mit `deploy/update-geoip.sh` installieren und monatlich aktualisieren; Antworten und Prüfmodus im Admin testen.
 5. **DNS, TLS und Port:** F30–F33 (Domain, certbot, kanonische www-Variante) und F72 (reservierter Port auf dem Shared Server).
 6. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
 7. **Betrieb absichern:** F61–F65 (externes Backup, Aufbewahrung, 2FA, Monitoring).
@@ -211,3 +211,4 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F73 | 14.11.2026 | Direktantwort aus dem Admin inkl. `.eml`-Fallback |
 | F74 | 14.11.2026 | Add-Buttons und mehrere Neu-Zeilen im Preis-Admin |
 | F75 | 14.11.2026 | Bankdaten nur noch in der Vorkasse-Bestätigungsmail |
+| F77 | 14.11.2026 | Länder-Header nur von vertrauenswürdigem Proxy; sonst lokale GeoIP-Datenbank |

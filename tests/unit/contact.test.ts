@@ -2,21 +2,25 @@ import { describe, expect, it } from 'vitest';
 import {
   assessContact,
   createContactToken,
+  headerCountry,
+  isTrustedProxyPeer,
   verifyContactToken,
 } from '../../src/lib/contact-protection.js';
+import { countryFromIp, isPrivateAddress } from '../../src/lib/geoip.js';
 import type { ContactSettings } from '../../src/lib/contact-settings.js';
 
 const baseSettings: ContactSettings = {
   countryCheck: true,
   allowedCountries: ['DE'],
   mode: 'review',
+  unknownCountry: 'review',
   timeCheck: false,
   contentCheck: false,
 };
 
 const baseInput = {
   settings: baseSettings,
-  formCountry: 'DE',
+  ipCountry: 'DE',
   token: '',
   name: 'Erika Beispiel',
   email: 'erika@example.de',
@@ -33,7 +37,7 @@ describe('Kontakt-Spam-Schutz', () => {
   });
 
   it('stuft eine Anfrage aus einem nicht freigegebenen Land zur Prüfung ein', () => {
-    const result = assessContact({ ...baseInput, formCountry: 'US', now: Date.now() });
+    const result = assessContact({ ...baseInput, ipCountry: 'US', now: Date.now() });
     expect(result.decision).toBe('review');
     expect(result.reasons.join(' ')).toContain('US');
   });
@@ -42,21 +46,36 @@ describe('Kontakt-Spam-Schutz', () => {
     const result = assessContact({
       ...baseInput,
       settings: { ...baseSettings, mode: 'block' },
-      formCountry: 'US',
+      ipCountry: 'US',
       now: Date.now(),
     });
     expect(result.decision).toBe('block');
   });
 
-  it('prüft das Land aus einem Proxy-Header, wenn vorhanden', () => {
+  it('speichert Anfragen ohne ermittelbares Land zur Prüfung', () => {
+    const result = assessContact({ ...baseInput, ipCountry: '', now: Date.now() });
+    expect(result.decision).toBe('review');
+    expect(result.reasons.join(' ')).toContain('nicht ermittelt');
+  });
+
+  it('lehnt Anfragen ohne ermittelbares Land ab, wenn so eingestellt', () => {
     const result = assessContact({
       ...baseInput,
-      formCountry: 'DE',
-      headerCountry: 'FR',
+      settings: { ...baseSettings, unknownCountry: 'block' },
+      ipCountry: '',
       now: Date.now(),
     });
-    expect(result.decision).toBe('review');
-    expect(result.country).toBe('FR');
+    expect(result.decision).toBe('block');
+  });
+
+  it('lässt Anfragen ohne ermittelbares Land durch, wenn die Länderprüfung aus ist', () => {
+    const result = assessContact({
+      ...baseInput,
+      settings: { ...baseSettings, countryCheck: false },
+      ipCountry: '',
+      now: Date.now(),
+    });
+    expect(result.decision).toBe('ok');
   });
 
   it('erkennt typische Spam-Begriffe', () => {
@@ -111,5 +130,36 @@ describe('Kontakt-Formular-Token', () => {
 
   it('lehnt ein fehlendes Token ab', () => {
     expect(verifyContactToken(undefined).ok).toBe(false);
+  });
+});
+
+describe('IP-basierte Ländererkennung', () => {
+  it('erkennt private und lokale Adressen', () => {
+    for (const address of ['127.0.0.1', '::1', '10.1.2.3', '192.168.0.5', '172.20.1.1', '::ffff:127.0.0.1']) {
+      expect(isPrivateAddress(address)).toBe(true);
+    }
+  });
+
+  it('behandelt öffentliche Adressen nicht als privat', () => {
+    for (const address of ['1.1.1.1', '80.187.100.20', '2001:4860:4860::8888']) {
+      expect(isPrivateAddress(address)).toBe(false);
+    }
+  });
+
+  it('liest ein Länderkürzel aus Proxy-Headern', () => {
+    expect(headerCountry({ 'cf-ipcountry': 'AT' })).toBe('AT');
+    expect(headerCountry({ 'x-country-code': 'ch' })).toBe('CH');
+    expect(headerCountry({})).toBe('');
+  });
+
+  it('akzeptiert Länder-Header nur von konfigurierten Proxies', () => {
+    expect(isTrustedProxyPeer('127.0.0.1')).toBe(true);
+    expect(isTrustedProxyPeer('::ffff:127.0.0.1')).toBe(true);
+    expect(isTrustedProxyPeer('203.0.113.5')).toBe(false);
+    expect(isTrustedProxyPeer(undefined)).toBe(false);
+  });
+
+  it('liefert für ungültige Adressen kein Land', async () => {
+    expect(await countryFromIp('keine-ip')).toBe('');
   });
 });

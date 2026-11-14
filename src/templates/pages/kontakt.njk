@@ -40,15 +40,6 @@
             <label for="phone">Telefon <span class="hint">(optional)</span></label>
             <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="60" value="{{ form.phone }}">
           </div>
-          <div class="field">
-            <label for="country">Land <span aria-hidden="true">*</span></label>
-            <select id="country" name="country" required autocomplete="country">
-              {% for country in countries %}
-                <option value="{{ country.code }}" {% if form.country == country.code or (not form.country and country.code == 'DE') %}selected{% endif %}>{{ country.name }}</option>
-              {% endfor %}
-            </select>
-            <span class="hint">Wir prüfen Anfragen anhand des angegebenen Landes.</span>
-          </div>
         </div>
         <div class="field">
           <label for="subject">Anliegen</label>
@@ -75,6 +66,8 @@
           <input type="checkbox" name="consent" value="1" required {% if form.consent %}checked{% endif %}>
           <span>Ich habe die <a href="/datenschutz/">Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Angaben zur Bearbeitung der Anfrage einverstanden. <span aria-hidden="true">*</span></span>
         </label>
+
+        <p class="hint">Zum Schutz vor Spam ermitteln wir das Land Ihres Seitenaufrufs anhand Ihrer IP-Adresse. Es findet keine Weitergabe an Dritte statt.</p>
 
         <div class="form-actions">
           <button class="btn" type="submit">Nachricht senden</button>

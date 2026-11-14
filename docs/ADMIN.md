@@ -103,12 +103,21 @@ Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfu
 | Einstellung | Bedeutung |
 | --- | --- |
 | Länderprüfung | Nur Anfragen aus den ausgewählten Ländern zulassen. Standard: nur Deutschland (`DE`). |
-| Erlaubte Länder | Mehrfachauswahl aus einer festen ISO-3166-Liste. |
-| Verhalten bei Auffälligkeiten | **Zur Prüfung speichern** (empfohlen) oder **Anfrage direkt ablehnen**. |
+| Erlaubte Länder | Mehrfachauswahl aus einer festen ISO-3166-Liste. Der Besucher gibt sein Land nicht selbst an. |
+| Verhalten bei Auffälligkeiten | **Zur Prüfung speichern** (empfohlen) oder **Anfrage direkt ablehnen** – gilt für bekannte, aber nicht erlaubte Länder sowie Zeit- und Inhaltsprüfung. |
+| Land nicht ermittelbar | **Zur Prüfung speichern** (empfohlen), **Anfrage direkt ablehnen** oder **ohne Länderprüfung zulassen**. |
 | Zeitprüfung | Das Formular muss mindestens 3 Sekunden geöffnet gewesen sein. |
 | Inhaltsprüfung | Erkennt viele Links, typische Spam-Begriffe und überwiegende Großschreibung. |
 
-Zusätzlich schützen ein Honeypot-Feld, ein Rate-Limit und ein signiertes Zeit-Token (HMAC mit `SESSION_SECRET`, 24 Stunden gültig) vor automatisierten Anfragen. Liefert ein vorgeschalteter Proxy oder ein CDN ein Länderkürzel (z. B. `CF-IPCountry`), wird dieses zusätzlich zum Formularfeld geprüft.
+**Woher kommt das Land?** Ausschließlich serverseitig, nie aus einer Besuchereingabe:
+
+1. Liefert ein vertrauenswürdiger Proxy oder ein CDN ein Länderkürzel (z. B. `CF-IPCountry`), wird dieses verwendet. Der Header wird nur akzeptiert, wenn die direkte Gegenstelle in `TRUST_PROXY` eingetragen ist (Standard: `127.0.0.1`, also der lokale NGINX).
+2. Andernfalls wird die IP-Adresse des Besuchers gegen eine lokale GeoIP-Datenbank im MaxMind-Format geprüft (Standardpfad `/var/lib/3d-mir/geoip/dbip-country-lite.mmdb`).
+3. Ist beides nicht möglich, greift die Einstellung **„Land nicht ermittelbar“**.
+
+Die Datenbank wird mit `sudo deploy/update-geoip.sh` installiert bzw. aktualisiert (Quelle: DB-IP Lite, CC BY 4.0) und sollte monatlich erneuert werden. Im Admin-Bereich zeigt ein Hinweis, ob die Datenbank gefunden wurde und welcher Pfad verwendet wird. Es werden keine IP-Adressen an externe Dienste übermittelt.
+
+Zusätzlich schützen ein Honeypot-Feld, ein Rate-Limit und ein signiertes Zeit-Token (HMAC mit `SESSION_SECRET`, 24 Stunden gültig) vor automatisierten Anfragen.
 
 Im Prüfmodus wird eine auffällige Nachricht gespeichert, aber **nicht** automatisch an den Betreiber weitergeleitet. Stattdessen erhält der Betreiber einen kurzen Prüfhinweis. Im Admin kann die Nachricht anschließend **freigegeben** (dann wird die normale Benachrichtigung nachgeholt) oder **als Spam markiert** werden. Als Spam markierte Nachrichten bleiben zur Nachvollziehbarkeit erhalten und werden aus der offenen Zählung herausgenommen.
 

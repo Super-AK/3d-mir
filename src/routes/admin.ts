@@ -69,8 +69,10 @@ import {
   saveContactSettings,
   type ContactReviewMode,
   type ContactSettings,
+  type UnknownCountryBehavior,
 } from '../lib/contact-settings.js';
 import { contactMailHtml, contactMailText } from '../lib/contact-mail.js';
+import { geoipStatus } from '../lib/geoip.js';
 
 const db = () => getDb();
 
@@ -1896,6 +1898,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         contactSettings: getContactSettings(),
         countries,
         countryLabels: Object.fromEntries(countries.map((country) => [country.code, country.name])),
+        geoip: geoipStatus(),
         reviewCount,
         spamCount,
       }));
@@ -1919,10 +1922,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         );
       }
       const mode: ContactReviewMode = body.mode === 'block' ? 'block' : 'review';
+      const unknownCountry: UnknownCountryBehavior =
+        body.unknownCountry === 'block' || body.unknownCountry === 'allow'
+          ? body.unknownCountry
+          : 'review';
       const settings: ContactSettings = {
         countryCheck,
         allowedCountries,
         mode,
+        unknownCountry,
         timeCheck: body.timeCheck === '1' || body.timeCheck === 'on',
         contentCheck: body.contentCheck === '1' || body.contentCheck === 'on',
       };
@@ -1931,6 +1939,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         countryCheck,
         allowedCountries,
         mode,
+        unknownCountry,
       });
       return reply.redirect('/admin/nachrichten/?gespeichert=1', 303);
     });

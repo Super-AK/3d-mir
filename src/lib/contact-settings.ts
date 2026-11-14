@@ -10,6 +10,9 @@ import { isKnownCountry } from './countries.js';
  */
 export type ContactReviewMode = 'review' | 'block';
 
+/** Verhalten, wenn sich das Land der IP-Adresse nicht ermitteln lässt. */
+export type UnknownCountryBehavior = 'review' | 'block' | 'allow';
+
 export type ContactSettings = {
   /** Länderprüfung aktiv. */
   countryCheck: boolean;
@@ -17,6 +20,8 @@ export type ContactSettings = {
   allowedCountries: string[];
   /** Verhalten bei Auffälligkeiten: zur Prüfung speichern oder direkt ablehnen. */
   mode: ContactReviewMode;
+  /** Verhalten, wenn das Land nicht ermittelt werden kann. */
+  unknownCountry: UnknownCountryBehavior;
   /** Zeitprüfung: Formular muss einige Sekunden offen gewesen sein. */
   timeCheck: boolean;
   /** Inhaltsprüfung: Links, Spam-Begriffe und Großschreibung. */
@@ -27,6 +32,7 @@ export const defaultContactSettings: ContactSettings = {
   countryCheck: true,
   allowedCountries: ['DE'],
   mode: 'review',
+  unknownCountry: 'review',
   timeCheck: true,
   contentCheck: true,
 };
@@ -65,9 +71,14 @@ export function getContactSettings(): ContactSettings {
     countryCheck: bool(parsed.countryCheck, defaultContactSettings.countryCheck),
     allowedCountries: allowed.length > 0 ? allowed : [...defaultContactSettings.allowedCountries],
     mode: parsed.mode === 'block' ? 'block' : 'review',
+    unknownCountry: readUnknownCountry(parsed.unknownCountry),
     timeCheck: bool(parsed.timeCheck, defaultContactSettings.timeCheck),
     contentCheck: bool(parsed.contentCheck, defaultContactSettings.contentCheck),
   };
+}
+
+function readUnknownCountry(value: unknown): UnknownCountryBehavior {
+  return value === 'block' || value === 'allow' ? value : 'review';
 }
 
 /** Speichert die Einstellungen für den Kontakt-Spam-Schutz. */
@@ -76,6 +87,7 @@ export function saveContactSettings(settings: ContactSettings): void {
     countryCheck: settings.countryCheck,
     allowedCountries: countryList(settings.allowedCountries),
     mode: settings.mode === 'block' ? 'block' : 'review',
+    unknownCountry: readUnknownCountry(settings.unknownCountry),
     timeCheck: settings.timeCheck,
     contentCheck: settings.contentCheck,
   });

@@ -296,10 +296,27 @@ https://3d-mir.de/admin/
 1. **Admin → Zahlungen**: Bankverbindung für Vorkasse eintragen.
 2. **Stripe**: Konto anlegen, Zahlungsarten aktivieren, Schlüssel und Webhook hinterlegen (siehe `docs/ADMIN.md` und `docs/DEPLOYMENT.md`).
 3. **SMTP**: Zugangsdaten in `/etc/3d-mir/3d-mir.env` eintragen und Dienst neu starten.
-4. **Preise und Versand**: unter **Admin → Preise** prüfen und bestätigen.
-5. **Produkte und Bilder**: unter **Admin → Produkte** pflegen.
-6. **Rechtstexte**: Impressum, Datenschutz, AGB und Widerruf rechtlich prüfen lassen.
-7. **Backup**: Cron einrichten (Abschnitt 8).
+4. **GeoIP-Datenbank**: `sudo deploy/update-geoip.sh` ausführen (siehe unten). Ohne Datenbank kann die Länderprüfung im Kontaktformular nur über einen Proxy-Header arbeiten.
+5. **Preise und Versand**: unter **Admin → Preise** prüfen und bestätigen.
+6. **Produkte und Bilder**: unter **Admin → Produkte** pflegen.
+7. **Rechtstexte**: Impressum, Datenschutz, AGB und Widerruf rechtlich prüfen lassen.
+8. **Backup**: Cron einrichten (Abschnitt 8).
+
+#### GeoIP-Datenbank für die Länderprüfung
+
+Das Kontaktformular ermittelt das Land des Besuchers serverseitig aus der IP-Adresse. Dafür wird eine lokale Datenbank im MaxMind-Format benötigt. Der Befehl lädt die freie **DB-IP Lite**-Datenbank (Lizenz CC BY 4.0) und legt sie unter `/var/lib/3d-mir/geoip/dbip-country-lite.mmdb` ab:
+
+```bash
+sudo deploy/update-geoip.sh
+```
+
+Die Datenbank sollte monatlich aktualisiert werden, z. B. per Cron:
+
+```cron
+17 4 3 * * root /var/www/3d-mir.de/deploy/update-geoip.sh >/var/log/3d-mir/geoip-update.log 2>&1
+```
+
+Es werden keine IP-Adressen an Dritte übermittelt; die Auswertung erfolgt ausschließlich lokal. Ein anderer Pfad lässt sich über `GEOIP_DB_PATH` in `/etc/3d-mir/3d-mir.env` setzen.
 
 ### 3.10 Interaktives Setup-Menü
 
@@ -333,6 +350,7 @@ Das Menü bietet:
 - Konfiguration anzeigen
 - Menü neu laden
 - Port prüfen / freien Port setzen
+- GeoIP-Datenbank aktualisieren
 - Beenden
 
 Nach jeder Aktion erscheint das Menü erneut. Mit „Menü neu laden“ wird die Ansicht frisch aufgebaut.
@@ -633,7 +651,8 @@ Datei: `/etc/3d-mir/3d-mir.env`, Rechte `600`, Eigentümer `root`.
 | `DB_PATH` | nein | Standard `$DATA_DIR/db/3d-mir.sqlite` |
 | `UPLOAD_DIR` | nein | Standard `$DATA_DIR/uploads` |
 | `SESSION_SECRET` | ja | mindestens 32 zufällige Zeichen, z. B. `openssl rand -base64 48` |
-| `TRUST_PROXY` | ja | `127.0.0.1` bei lokalem NGINX |
+| `TRUST_PROXY` | ja | `127.0.0.1` bei lokalem NGINX; nur von hier werden `X-Forwarded-For` und Länder-Header akzeptiert |
+| `GEOIP_DB_PATH` | nein | Standard `$DATA_DIR/geoip/dbip-country-lite.mmdb` |
 | `MAIL_FROM` | ja | Absender, z. B. `3D-MIR <info@3d-mir.de>` |
 | `MAIL_TO` | ja | Betreiber-Postfach |
 | `SMTP_HOST` | nein | leer = `.eml`-Fallback unter `$LOG_DIR/mail/` |

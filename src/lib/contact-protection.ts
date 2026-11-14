@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { config } from '../config.js';
 import type { ContactSettings } from './contact-settings.js';
 import { normalizeCountry } from './countries.js';
+import { countryFromIp } from './geoip.js';
 
 /**
  * Spam-Schutz für das Kontaktformular.
@@ -20,15 +21,22 @@ export type ContactAssessment = {
 
 export type ContactAssessmentInput = {
   settings: ContactSettings;
-  formCountry: unknown;
+  /** Anhand der IP-Adresse ermitteltes Land; leer, wenn nicht ermittelbar. */
+  ipCountry: unknown;
   token: unknown;
   name: string;
   email: string;
   subject: string;
   message: string;
-  /** Länderkürzel aus einem vertrauenswürdigen Proxy-Header, falls vorhanden. */
-  headerCountry?: string;
   now?: number;
+};
+
+/** Herkunft der Länderangabe – nur für Protokoll und Diagnose. */
+export type ContactCountrySource = 'header' | 'geoip' | 'none';
+
+export type ContactCountry = {
+  country: string;
+  source: ContactCountrySource;
 };
 
 const TOKEN_MIN_AGE_MS = 3_000;
@@ -90,6 +98,51 @@ export function headerCountry(headers: Record<string, unknown>): string {
   return '';
 }
 
+function normalizeAddress(address: string): string {
+  return address.trim().toLowerCase().replace(/^::ffff:/, '');
+}
+
+/**
+ * Prüft, ob die direkte Gegenstelle ein vertrauenswürdiger Proxy ist.
+ *
+ * Länder-Header werden nur ausgewertet, wenn die Verbindung von einem in
+ * `TRUST_PROXY` eingetragenen Proxy stammt. So kann ein Besucher das Land
+ * nicht über einen selbst gesetzten Header fälschen.
+ */
+export function isTrustedProxyPeer(remoteAddress: string | undefined): boolean {
+  const address = normalizeAddress(remoteAddress ?? '');
+  const configured = String(config.trustProxy ?? '').trim().toLowerCase();
+  if (configured === 'true') return true;
+  if (configured === 'false' || configured === '') return false;
+  return configured
+    .split(',')
+    .map((entry) => normalizeAddress(entry))
+    .some((entry) => entry === address);
+}
+
+/**
+ * Ermittelt das Land eines Besuchers anhand der IP-Adresse.
+ *
+ * Vorrang hat ein vertrauenswürdiger Proxy-Header (z. B. von Cloudflare),
+ * danach folgt die lokale GeoIP-Datenbank. Der Besucher selbst gibt kein
+ * Land an.
+ */
+export async function resolveContactCountry(input: {
+  ip: string;
+  headers: Record<string, unknown>;
+  trustedProxy: boolean;
+}): Promise<ContactCountry> {
+  if (input.trustedProxy) {
+    const fromHeader = headerCountry(input.headers);
+    if (fromHeader) return { country: fromHeader, source: 'header' };
+  }
+
+  const fromIp = await countryFromIp(input.ip);
+  if (fromIp) return { country: fromIp, source: 'geoip' };
+
+  return { country: '', source: 'none' };
+}
+
 function contentReasons(name: string, email: string, subject: string, message: string): string[] {
   const reasons: string[] = [];
   const text = `${name}\n${email}\n${subject}\n${message}`;
@@ -120,14 +173,15 @@ function contentReasons(name: string, email: string, subject: string, message: s
 /** Bewertet eine Kontaktanfrage anhand der Admin-Einstellungen. */
 export function assessContact(input: ContactAssessmentInput): ContactAssessment {
   const now = input.now ?? Date.now();
-  const formCountry = normalizeCountry(input.formCountry);
-  const proxyCountry = normalizeCountry(input.headerCountry);
-  const country = proxyCountry || formCountry;
+  const country = normalizeCountry(input.ipCountry);
   const reasons: string[] = [];
+  const countryUnknown = input.settings.countryCheck && !country;
 
   if (input.settings.countryCheck) {
     if (!country) {
-      reasons.push('Land konnte nicht ermittelt werden.');
+      if (input.settings.unknownCountry !== 'allow') {
+        reasons.push('Land konnte nicht ermittelt werden.');
+      }
     } else if (!input.settings.allowedCountries.includes(country)) {
       reasons.push(`Land ${country} ist nicht für Kontaktanfragen freigegeben.`);
     }
@@ -142,10 +196,13 @@ export function assessContact(input: ContactAssessmentInput): ContactAssessment 
     reasons.push(...contentReasons(input.name, input.email, input.subject, input.message));
   }
 
-  if (reasons.length === 0) return { decision: 'ok', country, reasons };
-  return {
-    decision: input.settings.mode === 'block' ? 'block' : 'review',
-    country,
-    reasons: [...new Set(reasons)],
-  };
+  let decision: ContactDecision = reasons.length === 0 ? 'ok' : input.settings.mode === 'block' ? 'block' : 'review';
+
+  // Ein unbekanntes Land wird unabhängig vom allgemeinen Modus behandelt.
+  if (countryUnknown) {
+    if (input.settings.unknownCountry === 'block') decision = 'block';
+    else if (input.settings.unknownCountry === 'review' && decision !== 'block') decision = 'review';
+  }
+
+  return { decision, country, reasons: [...new Set(reasons)] };
 }
