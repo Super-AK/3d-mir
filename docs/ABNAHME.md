@@ -1,6 +1,6 @@
 # Abnahme
 
-Stand: 13. November 2026 · Version 1.0.0-rc.14
+Stand: 13. November 2026 · Version 1.0.0-rc.15
 
 Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage für die Abnahme durch den Auftraggeber. Sie ersetzt keine rechtliche Prüfung der Texte und keine Freigabe der Preise.
 
@@ -75,7 +75,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 
 ## Abnahmeerklärung
 
-Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.14 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
+Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.15 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
 
 | | Auftraggeber | Auftragnehmer |
 | --- | --- | --- |

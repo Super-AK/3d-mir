@@ -17,20 +17,6 @@
         <img src="{{ site.images.logo or '/assets/img/gen/logo-96.png' }}" alt="" width="32" height="31" decoding="async">
         <span><strong>3D-MIR</strong><span>Admin</span></span>
       </a>
-      <nav class="admin-nav" aria-label="Admin-Navigation">
-        <a href="/admin/" {% if currentPath == '/admin/' %}aria-current="page"{% endif %}>Dashboard</a>
-        <a href="/admin/stammdaten/" {% if currentPath.startsWith('/admin/stammdaten') %}aria-current="page"{% endif %}>Stammdaten</a>
-        <a href="/admin/bestellungen/" {% if currentPath.startsWith('/admin/bestellungen') %}aria-current="page"{% endif %}>Bestellungen</a>
-        <a href="/admin/anfragen/" {% if currentPath.startsWith('/admin/anfragen') %}aria-current="page"{% endif %}>Anfragen</a>
-        <a href="/admin/nachrichten/" {% if currentPath.startsWith('/admin/nachrichten') %}aria-current="page"{% endif %}>Nachrichten</a>
-        <a href="/admin/produkte/" {% if currentPath.startsWith('/admin/produkte') %}aria-current="page"{% endif %}>Produkte</a>
-        <a href="/admin/kategorien/" {% if currentPath.startsWith('/admin/kategorien') %}aria-current="page"{% endif %}>Kategorien</a>
-        <a href="/admin/preise/" {% if currentPath.startsWith('/admin/preise') %}aria-current="page"{% endif %}>Preise</a>
-        <a href="/admin/zahlungen/" {% if currentPath.startsWith('/admin/zahlungen') %}aria-current="page"{% endif %}>Zahlungen</a>
-        <a href="/admin/veroeffentlichung/" {% if currentPath.startsWith('/admin/veroeffentlichung') %}aria-current="page"{% endif %}>Veröffentlichung</a>
-        <a href="/admin/rechtstexte/" {% if currentPath.startsWith('/admin/rechtstexte') %}aria-current="page"{% endif %}>Rechtstexte</a>
-        <a href="/admin/benachrichtigungen/" {% if currentPath.startsWith('/admin/benachrichtigungen') %}aria-current="page"{% endif %}>Benachrichtigungen</a>
-      </nav>
       <div class="admin-user">
         <a href="/" class="admin-user-link" target="_blank" rel="noopener">Website</a>
         <a href="/admin/passwort/" {% if currentPath == '/admin/passwort/' %}aria-current="page"{% endif %}>{{ admin.name or admin.email }}</a>
@@ -39,12 +25,43 @@
           <button class="btn btn-secondary btn-small" type="submit">Abmelden</button>
         </form>
       </div>
+      <button class="admin-nav-toggle" type="button" data-admin-nav-toggle aria-controls="admin-sidebar" aria-expanded="false">
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 5h14M3 10h14M3 15h14"/></svg>
+        Menü
+      </button>
     </div>
   </header>
-  <main id="admin-inhalt" class="admin-main" tabindex="-1">
-    {% include "admin/partials/flash.njk" %}
-    {% block content %}{% endblock %}
-  </main>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar" data-admin-sidebar>
+      <nav class="admin-nav" aria-label="Admin-Navigation">
+        <p class="admin-nav-title">Übersicht</p>
+        <a href="/admin/" {% if currentPath == '/admin/' %}aria-current="page"{% endif %}>Dashboard</a>
+
+        <p class="admin-nav-title">Verkauf</p>
+        <a href="/admin/bestellungen/" {% if currentPath.startsWith('/admin/bestellungen') %}aria-current="page"{% endif %}>Bestellungen</a>
+        <a href="/admin/anfragen/" {% if currentPath.startsWith('/admin/anfragen') %}aria-current="page"{% endif %}>Anfragen</a>
+        <a href="/admin/nachrichten/" {% if currentPath.startsWith('/admin/nachrichten') %}aria-current="page"{% endif %}>Nachrichten</a>
+
+        <p class="admin-nav-title">Katalog</p>
+        <a href="/admin/produkte/" {% if currentPath.startsWith('/admin/produkte') %}aria-current="page"{% endif %}>Produkte</a>
+        <a href="/admin/kategorien/" {% if currentPath.startsWith('/admin/kategorien') %}aria-current="page"{% endif %}>Kategorien</a>
+        <a href="/admin/preise/" {% if currentPath.startsWith('/admin/preise') %}aria-current="page"{% endif %}>Preise</a>
+
+        <p class="admin-nav-title">Website</p>
+        <a href="/admin/stammdaten/" {% if currentPath.startsWith('/admin/stammdaten') %}aria-current="page"{% endif %}>Stammdaten</a>
+        <a href="/admin/rechtstexte/" {% if currentPath.startsWith('/admin/rechtstexte') %}aria-current="page"{% endif %}>Rechtstexte</a>
+        <a href="/admin/veroeffentlichung/" {% if currentPath.startsWith('/admin/veroeffentlichung') %}aria-current="page"{% endif %}>Veröffentlichung</a>
+
+        <p class="admin-nav-title">Einstellungen</p>
+        <a href="/admin/zahlungen/" {% if currentPath.startsWith('/admin/zahlungen') %}aria-current="page"{% endif %}>Zahlungen</a>
+        <a href="/admin/benachrichtigungen/" {% if currentPath.startsWith('/admin/benachrichtigungen') %}aria-current="page"{% endif %}>Benachrichtigungen</a>
+      </nav>
+    </aside>
+    <main id="admin-inhalt" class="admin-main" tabindex="-1">
+      {% include "admin/partials/flash.njk" %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
   <script type="module" src="{{ asset('ts/admin.ts') }}"></script>
 </body>
 </html>

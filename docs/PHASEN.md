@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.15 – 14. November 2026
+
+Admin-Navigation als gruppierte, beim Scrollen sichtbare Seitenleiste;
+auf kleinen Bildschirmen einklappbar. Bestell- und Anfragenfilter wieder
+in voller Breite.
+
 ## Release 1.0.0-rc.14 – 14. November 2026
 
 Material-Bild der Leistungsseite und Rechner-Bild sind jetzt unter

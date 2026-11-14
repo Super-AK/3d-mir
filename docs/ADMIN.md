@@ -8,6 +8,18 @@ sudo -u mir3d npm run admin:create -- --email admin@example.de --name "Betreiber
 
 Das Passwort wird interaktiv gesetzt oder einmalig über `ADMIN_PASSWORD` übergeben. Es wird nicht im Repository gespeichert.
 
+## Navigation
+
+Die Verwaltung nutzt eine feste Seitenleiste, die nach Aufgaben gruppiert ist:
+
+- **Übersicht:** Dashboard
+- **Verkauf:** Bestellungen, Anfragen, Nachrichten
+- **Katalog:** Produkte, Kategorien, Preise
+- **Website:** Stammdaten, Rechtstexte, Veröffentlichung
+- **Einstellungen:** Zahlungen, Benachrichtigungen
+
+Auf Bildschirmen unter 1000 px wird die Seitenleiste über die Schaltfläche **Menü** im Kopfbereich ein- und ausgeklappt; nach dem Öffnen einer Seite schließt sie sich automatisch. Ohne JavaScript bleibt die Navigation geöffnet und vollständig nutzbar.
+
 ## Stammdaten
 
 Unter **Admin → Stammdaten** werden die öffentlichen Geschäftsangaben und Bilder gepflegt:

@@ -2,6 +2,32 @@ import '../css/main.css';
 import '../css/admin.css';
 
 /**
+ * Admin-Navigation: Auf kleinen Bildschirmen als ausklappbares Menü.
+ * Ohne JavaScript bleibt die Navigation geöffnet und ist per CSS sichtbar;
+ * der Umschalter erscheint deshalb erst, wenn dieses Skript geladen ist.
+ */
+document.documentElement.classList.add('js');
+
+const navToggle = document.querySelector<HTMLButtonElement>('[data-admin-nav-toggle]');
+const navSidebar = document.querySelector<HTMLElement>('[data-admin-sidebar]');
+if (navToggle && navSidebar) {
+  const mobile = window.matchMedia('(max-width: 999px)');
+  const setOpen = (open: boolean): void => {
+    navSidebar.classList.toggle('is-open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+  };
+
+  setOpen(!mobile.matches);
+  navToggle.addEventListener('click', () => {
+    setOpen(!navSidebar.classList.contains('is-open'));
+  });
+  mobile.addEventListener('change', (event) => setOpen(!event.matches));
+  navSidebar.addEventListener('click', (event) => {
+    if (mobile.matches && (event.target as HTMLElement).closest('a')) setOpen(false);
+  });
+}
+
+/**
  * Admin-Bereich: Komfortfunktionen. Alle Formulare funktionieren auch ohne JavaScript.
  * Der Bild-Upload zeigt mit XMLHttpRequest einen echten Übertragungsfortschritt an
  * und fällt bei Fehlern auf die normale Formularübermittlung zurück.

@@ -3,6 +3,19 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.15] – 2026-11-14
+
+### Geändert
+
+- **Admin-Navigation als gruppierte Seitenleiste:** Übersicht, Verkauf,
+  Katalog, Website und Einstellungen statt einer langen waagerechten Leiste.
+  Die Seitenleiste bleibt beim Scrollen sichtbar.
+- Auf kleinen Bildschirmen klappt die Schaltfläche **Menü** die Navigation ein
+  und aus; nach dem Öffnen einer Seite schließt sie sich automatisch. Ohne
+  JavaScript bleibt die Navigation sichtbar.
+- Abmelden-Schaltfläche im dunklen Kopfbereich besser lesbar.
+- Bestell- und Anfragenfilter nutzen wieder die volle Breite.
+
 ## [1.0.0-rc.14] – 2026-11-14
 
 ### Hinzugefügt
@@ -256,6 +269,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.15]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.15
 [1.0.0-rc.14]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.14
 [1.0.0-rc.13]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.13
 [1.0.0-rc.12]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.12
