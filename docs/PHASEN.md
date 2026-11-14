@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.5 – 14. November 2026
+
+Galerie-Upload korrigiert: Neue Bilder werden an die eigene Galerie angehängt
+statt sie zu ersetzen; eine Checkbox erlaubt weiterhin das bewusste Ersetzen.
+
 ## Release 1.0.0-rc.4 – 14. November 2026
 
 Galerie-Verwaltung korrigiert: Entfernte Bilder bleiben nicht mehr als

@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.5] – 2026-11-14
+
+### Behoben
+
+- **Galerie-Upload ergänzt jetzt:** Ein neu hochgeladenes Bild entfernt nicht
+  mehr die übrigen Galeriebilder. Es wird an die eigene Galerie angehängt
+  (maximal 8). Zum vollständigen Ersetzen gibt es die Checkbox „Vorhandene
+  eigene Galerie vor dem Hochladen entfernen“.
+- „Standardgalerie wiederherstellen“ setzt weiterhin nur ohne neue Uploads
+  auf die mitgelieferten Bilder zurück.
+
 ## [1.0.0-rc.4] – 2026-11-14
 
 ### Behoben
@@ -132,6 +143,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.5]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.5
 [1.0.0-rc.4]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.4
 [1.0.0-rc.3]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.3
 [1.0.0-rc.2]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.2

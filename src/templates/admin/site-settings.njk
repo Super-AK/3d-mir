@@ -201,12 +201,17 @@
         </div>
       </div>
       <div class="field">
-        <label for="galleryUpload">Galeriebilder (ersetzt die vorhandene Galerie, max. 8)</label>
+        <label for="galleryUpload">Galeriebilder ergänzen (max. 8 insgesamt)</label>
         <input id="galleryUpload" name="gallery" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+        <span class="hint">Hochgeladene Bilder werden an die vorhandene eigene Galerie angehängt.</span>
       </div>
       <label class="checkbox">
+        <input type="checkbox" name="replaceGallery" value="1">
+        <span>Vorhandene eigene Galerie vor dem Hochladen entfernen</span>
+      </label>
+      <label class="checkbox">
         <input type="checkbox" name="resetGallery" value="1">
-        <span>Galerie auf die mitgelieferten Bilder zurücksetzen</span>
+        <span>Galerie auf die mitgelieferten Bilder zurücksetzen (ohne neue Uploads)</span>
       </label>
       <div class="form-actions">
         <button class="btn" type="submit">Bilder speichern</button>

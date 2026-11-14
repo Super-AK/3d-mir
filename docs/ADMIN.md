@@ -27,7 +27,7 @@ Hochgeladene Logos liegen unter `/var/lib/3d-mir/uploads/site/` und werden über
 Für die Galerie gibt es drei Zustände:
 
 - **Standardgalerie:** es sind keine eigenen Bilder gespeichert; die acht mitgelieferten Motive werden verwendet.
-- **Eigene Galerie:** ein oder mehrere hochgeladene Bilder ersetzen die Standardgalerie.
+- **Eigene Galerie:** hochgeladene Bilder werden an die eigene Galerie angehängt (maximal 8). Die Checkbox „Vorhandene eigene Galerie vor dem Hochladen entfernen“ ersetzt die bisherigen Bilder; die erste Upload-Serie ersetzt die Standardgalerie.
 - **Keine Galerie:** alle eigenen Bilder wurden entfernt; der Referenzbereich wird auf der Startseite ausgeblendet. Über **„Standardgalerie wiederherstellen“** lassen sich die mitgelieferten Bilder zurückholen.
 
 ## Preise und Katalog

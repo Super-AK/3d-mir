@@ -2237,7 +2237,10 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       };
       const errors: string[] = [];
 
-      if (fields.resetGallery === '1') {
+      const galleryFiles = files.filter((file) => file.field === 'gallery');
+
+      // „Standardgalerie wiederherstellen“ ohne neue Uploads.
+      if (fields.resetGallery === '1' && galleryFiles.length === 0) {
         for (const key of images.gallery ?? []) deleteProductImageFiles(key);
         images.gallery = null;
       }
@@ -2264,13 +2267,20 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         }
       }
 
-      // Galerie erst ersetzen, wenn mindestens ein neues Bild gespeichert wurde.
-      const galleryFiles = files.filter((file) => file.field === 'gallery');
+      // Hochgeladene Galeriebilder werden standardmäßig ergänzt. Nur mit
+      // „Vorhandene Galerie ersetzen“ (oder Reset) wird die alte Liste geleert.
       if (galleryFiles.length > 0) {
-        const newGallery: string[] = [];
-        for (const file of galleryFiles.slice(0, 8)) {
+        const replace = fields.replaceGallery === '1' || fields.resetGallery === '1';
+        let gallery = current.gallery === null ? [] : [...current.gallery];
+        if (replace) {
+          for (const key of gallery) deleteProductImageFiles(key);
+          gallery = [];
+        }
+        const remaining = Math.max(0, 8 - gallery.length);
+        const selected = galleryFiles.slice(0, remaining);
+        for (const file of selected) {
           try {
-            newGallery.push(
+            gallery.push(
               await storeSiteImage('gallery', {
                 buffer: file.buffer,
                 filename: 'galerie.jpg',
@@ -2281,11 +2291,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
             errors.push(`gallery: ${error instanceof Error ? error.message : 'unbekannter Fehler'}`);
           }
         }
-        if (newGallery.length > 0) {
-          for (const key of images.gallery ?? []) deleteProductImageFiles(key);
-          images.gallery = newGallery;
-        }
-        if (galleryFiles.length > 8) {
+        images.gallery = gallery;
+        if (galleryFiles.length > selected.length) {
           errors.push('Es sind maximal 8 Galeriebilder möglich.');
         }
       }
