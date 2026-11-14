@@ -3,6 +3,21 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.8] – 2026-11-14
+
+### Behoben
+
+- **Stripe-Zahlung startet jetzt zuverlässig:** Die CSP-Regel `form-action`
+  erlaubte nur die eigene Domain und blockierte im Browser die
+  Weiterleitung zur Stripe-Checkout-Seite. `checkout.stripe.com` und
+  `pay.stripe.com` sind jetzt ausdrücklich erlaubt.
+- **„Status aktualisieren“** auf der Bestellseite verliert nicht mehr die
+  Bestellnummer und das Token; der Link enthält wieder beide Parameter.
+- Offene Stripe-Zahlungen zeigen auf der Bestellseite einen klaren Button
+  **„Jetzt bezahlen“** statt nur eines kleinen Textlinks.
+- Die Bestellbestätigung enthält zusätzlich einen direkten Link zum erneuten
+  Start der Zahlung.
+
 ## [1.0.0-rc.7] – 2026-11-14
 
 ### Behoben
@@ -164,6 +179,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.8]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.8
 [1.0.0-rc.7]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.7
 [1.0.0-rc.6]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.6
 [1.0.0-rc.5]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.5

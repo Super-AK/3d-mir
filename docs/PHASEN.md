@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.8 – 14. November 2026
+
+Stripe-Zahlung korrigiert: CSP `form-action` blockierte die Weiterleitung zu
+Stripe; Checkout-Domains sind jetzt erlaubt. Zusätzlich enthält die
+Bestellseite einen klaren „Jetzt bezahlen“-Button, und „Status aktualisieren“
+behält Nummer und Token.
+
 ## Release 1.0.0-rc.7 – 14. November 2026
 
 `deploy/verify.sh` prüft bei vorhandenem TLS-Zertifikat automatisch HTTPS.

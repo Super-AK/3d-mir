@@ -27,7 +27,8 @@ const CSP = [
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  // Stripe Checkout wird nach dem Formular-POST per 303 angesprungen.
+  "form-action 'self' https://checkout.stripe.com https://pay.stripe.com",
   "frame-ancestors 'none'",
 ].join('; ');
 

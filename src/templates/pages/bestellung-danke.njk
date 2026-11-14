@@ -53,12 +53,28 @@
           {% endif %}
 
         {% elif order.payment_status == 'in_bearbeitung' %}
-          <h2>Zahlung wird geprüft</h2>
-          <p>Wir warten auf die Bestätigung unseres Zahlungsdienstleisters. Bei PayPal oder iDEAL kann das einen Moment dauern.</p>
-          {% if retryUrl %}
-            <p class="text-muted"><small>Falls sich der Status nicht ändert, können Sie die Zahlung erneut starten: <a href="{{ retryUrl }}">Zahlung erneut starten</a>.</small></p>
+          <h2>Zahlung noch nicht abgeschlossen</h2>
+          <p>Die Zahlung wurde noch nicht bestätigt. Starten Sie die Zahlung erneut oder aktualisieren Sie den Status, wenn Sie bereits bezahlt haben.</p>
+          {% if order.status == 'storniert' or order.stock_released_at %}
+            <p class="text-muted">Diese Bestellung ist nicht mehr aktiv. Bitte legen Sie die Artikel erneut in den Warenkorb.</p>
+          {% else %}
+            <div class="form-actions">
+              {% if retryUrl %}<a class="btn" href="{{ retryUrl }}">Jetzt bezahlen</a>{% endif %}
+              <a class="btn btn-secondary" href="{{ refreshUrl }}">Status aktualisieren</a>
+            </div>
           {% endif %}
-          <p><a class="btn btn-secondary" href="{{ currentPath }}">Status aktualisieren</a></p>
+
+        {% elif paymentMethod and paymentMethod.provider == 'stripe' %}
+          <h2>Zahlung abschließen</h2>
+          <p>Ihre Bestellung ist gespeichert, die Zahlung ist aber noch offen. Sie können die Zahlung jetzt starten.</p>
+          {% if order.status == 'storniert' or order.stock_released_at %}
+            <p class="text-muted">Diese Bestellung ist nicht mehr aktiv. Bitte legen Sie die Artikel erneut in den Warenkorb.</p>
+          {% elif retryUrl %}
+            <div class="form-actions">
+              <a class="btn" href="{{ retryUrl }}">Jetzt bezahlen</a>
+              <a class="btn btn-secondary" href="{{ refreshUrl }}">Status aktualisieren</a>
+            </div>
+          {% endif %}
 
         {% elif paymentMethod and paymentMethod.provider == 'manual' %}
           <h2>Zahlung per Vorkasse</h2>

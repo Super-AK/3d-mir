@@ -451,6 +451,7 @@ function customerOrderMailText(
   bank: BankDetails,
   bankConfigured: boolean,
   orderUrl: string,
+  paymentUrl: string,
 ): string {
   const paymentLines =
     paymentProvider === 'manual'
@@ -474,7 +475,10 @@ function customerOrderMailText(
           'Die Zahlung wird über unseren Zahlungsdienstleister Stripe abgewickelt.',
           'Sie werden nach der Bestellung zur Zahlung weitergeleitet.',
           '',
-          'Falls die Zahlung nicht abgeschlossen wurde, können Sie sie über die Bestellübersicht erneut starten:',
+          'Falls die Zahlung nicht abgeschlossen wurde, können Sie sie hier erneut starten:',
+          paymentUrl,
+          '',
+          'Bestellübersicht:',
           orderUrl,
         ];
 
@@ -522,6 +526,10 @@ function localOrderUrl(order: Pick<PaymentOrder, 'order_number' | 'public_token'
 
 function localRetryUrl(order: Pick<PaymentOrder, 'order_number' | 'public_token'>): string {
   return `/bestellung/zahlung/?nummer=${encodeURIComponent(order.order_number)}&token=${order.public_token}`;
+}
+
+function publicRetryUrl(order: Pick<PaymentOrder, 'order_number' | 'public_token'>): string {
+  return `${config.payment.baseUrl}/bestellung/zahlung/?nummer=${encodeURIComponent(order.order_number)}&token=${order.public_token}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -823,6 +831,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               bank,
               bankReady,
               orderUrl,
+              paymentMethod.provider === 'stripe' ? publicRetryUrl(order) : '',
             ),
             replyTo: config.mail.to,
           });
@@ -900,6 +909,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       paymentStatusTone: order ? paymentStatusTone(order.payment_status) : 'neutral',
       token: order?.public_token ?? '',
       retryUrl: order ? localRetryUrl(order) : '',
+      refreshUrl: order ? localOrderUrl(order) : '',
     });
   });
 
