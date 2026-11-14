@@ -591,7 +591,7 @@ main_menu() {
       14 "Menü neu laden" \
       15 "Port prüfen / freien Port setzen" \
       16 "GeoIP-Datenbank aktualisieren" \
-      17 "Beenden" \
+      0 "Beenden" \
       3>&1 1>&2 2>&3
     return
   fi
@@ -615,7 +615,7 @@ main_menu() {
 14) Menü neu laden
 15) Port prüfen / freien Port setzen
 16) GeoIP-Datenbank aktualisieren
-17) Beenden
+ 0) Beenden
 EOF
   local choice
   read -r -p "Auswahl: " choice || return 1
@@ -669,7 +669,7 @@ while true; do
     14) clear ;;
     15) action_port_setup ;;
     16) action_geoip_setup ;;
-    17) exit 0 ;;
+    0) exit 0 ;;
     *) warn "Unbekannte Auswahl: $choice" ;;
   esac
 

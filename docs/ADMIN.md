@@ -186,6 +186,24 @@ Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pfle
 
 Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `products` mit Produkt-, Varianten- und Bilddaten. Ein Export kann unverändert wieder importiert werden (erzeugt dann Kopien mit neuen Slugs).
 
+### Produkte aus Etsy übernehmen
+
+Etsy stellt im Shop Manager einen CSV-Export der aktiven Listings bereit:
+
+1. Etsy → **Shop Manager → Einstellungen → Optionen → Daten herunterladen**.
+2. Unter **Currently for Sale Listings** auf **Download CSV** klicken.
+3. Die Datei auf den Server kopieren, z. B. nach `/tmp/etsy-listings.csv`.
+4. Import als Dienstbenutzer starten:
+
+```bash
+sudo -u mir3d npm run etsy:import -- --file /tmp/etsy-listings.csv --dry-run
+sudo -u mir3d npm run etsy:import -- --file /tmp/etsy-listings.csv
+```
+
+Der Import übernimmt Titel, Beschreibung, Preis, Bestand, SKU, Materialien, Schlagwörter und alle Bild-URLs (bis zu 12 Bilder je Produkt). Bilder werden heruntergeladen und lokal in AVIF/WebP/JPEG umgewandelt. Pro Produkt wird eine Standardvariante mit dem Listenpreis angelegt. Der Import ist idempotent: vorhandene Produkte mit gleicher SKU oder gleichem Slug werden übersprungen.
+
+Der CSV-Export enthält **keine Variationsdaten**. Farben, Größen oder Ausführungen werden nach dem Import im Admin unter **Produkte → Varianten** ergänzt. Die Währung muss `EUR` sein; andere Währungen werden übersprungen, um keine erfundenen Wechselkurse zu verwenden.
+
 ### Produktdaten
 
 Name, Slug, Kurz- und Langbeschreibung, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.

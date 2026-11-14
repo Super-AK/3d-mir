@@ -6,7 +6,17 @@ import sharp from 'sharp';
 import { z } from 'zod';
 import { config, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
-import { render, imagePreview } from '../lib/render.js';
+import { render, imagePreview, UPLOAD_PREFIX } from '../lib/render.js';
+import {
+  ALLOWED_IMAGE_TYPES,
+  MAX_PRODUCT_IMAGE_BYTES,
+  MAX_PRODUCT_IMAGES,
+  ProductImageError,
+  deleteProductImageFiles,
+  mediaFile,
+  storeProductImage,
+  type UploadedImage,
+} from '../lib/product-images.js';
 import { resetMailTransporter, sendMail } from '../lib/mailer.js';
 import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
@@ -635,12 +645,6 @@ function imagesFor(productId: number): ImageRow[] {
     .all(productId) as ImageRow[];
 }
 
-const UPLOAD_PREFIX = 'upload:';
-const PRODUCT_IMAGE_WIDTHS = [480, 800, 1200];
-const MAX_PRODUCT_IMAGE_BYTES = 12 * 1024 * 1024;
-const MAX_PRODUCT_IMAGES = 12;
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
-
 /** Bilder für die Admin-Maske inklusive Vorschau-URL. */
 function imageRowsFor(productId: number) {
   return imagesFor(productId).map((image) => ({
@@ -649,19 +653,6 @@ function imageRowsFor(productId: number) {
     isUpload: image.file.startsWith(UPLOAD_PREFIX),
   }));
 }
-
-function mediaRoot(): string {
-  return path.resolve(config.uploadDir, 'media');
-}
-
-function mediaFile(key: string): string | null {
-  const root = mediaRoot();
-  const file = path.resolve(root, key);
-  if (!file.startsWith(`${root}${path.sep}`)) return null;
-  return file;
-}
-
-type UploadedImage = { buffer: Buffer; filename: string; mimetype: string };
 
 async function readImageUpload(request: FastifyRequest): Promise<{
   fields: Record<string, string>;
@@ -692,93 +683,6 @@ async function readImageUpload(request: FastifyRequest): Promise<{
     }
   }
   return { fields, files };
-}
-
-/** Verkleinert ein Bild, entfernt Metadaten und legt AVIF/WebP/JPEG-Varianten ab. */
-async function storeProductImage(productId: number, upload: UploadedImage): Promise<string> {
-  if (!ALLOWED_IMAGE_TYPES.has(upload.mimetype)) {
-    throw new FormError('Bitte eine Bilddatei im Format JPG, PNG, WebP oder AVIF auswählen.');
-  }
-  if (upload.buffer.length > MAX_PRODUCT_IMAGE_BYTES) {
-    throw new FormError('Das Bild ist zu groß. Erlaubt sind bis zu 12 MB.');
-  }
-
-  let width: number;
-  let height: number;
-  try {
-    const meta = await sharp(upload.buffer, { failOn: 'error' }).metadata();
-    if (!meta.width || !meta.height) throw new Error('keine Bildmaße');
-    width = meta.width;
-    height = meta.height;
-    // Hochkant-Fotos: EXIF-Orientierung 5–8 dreht um 90 Grad.
-    if (meta.orientation && meta.orientation >= 5) {
-      [width, height] = [height, width];
-    }
-  } catch {
-    throw new FormError('Die Datei konnte nicht als Bild gelesen werden.');
-  }
-  if (width * height > 40_000_000) {
-    throw new FormError('Das Bild hat zu viele Pixel. Bitte auf maximal 40 Megapixel verkleinern.');
-  }
-
-  const base = crypto.randomBytes(12).toString('hex');
-  const key = `products/${productId}/${base}`;
-  const file = mediaFile(key);
-  if (!file) throw new FormError('Das Bild konnte nicht gespeichert werden.');
-
-  const usedWidths = PRODUCT_IMAGE_WIDTHS.filter((item) => item <= width);
-  if (usedWidths.length === 0) usedWidths.push(width);
-  const variants: { width: number; height: number }[] = [];
-
-  try {
-    fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o750 });
-    for (const variantWidth of [...new Set(usedWidths)]) {
-      const variantHeight = Math.round((height * variantWidth) / width);
-      const pipeline = () => sharp(upload.buffer).rotate().resize({ width: variantWidth, withoutEnlargement: true });
-      await Promise.all([
-        pipeline().avif({ quality: 55, effort: 4 }).toFile(`${file}-${variantWidth}.avif`),
-        pipeline().webp({ quality: 78 }).toFile(`${file}-${variantWidth}.webp`),
-        pipeline().jpeg({ quality: 82, mozjpeg: true }).toFile(`${file}-${variantWidth}.jpg`),
-      ]);
-      for (const extension of ['avif', 'webp', 'jpg']) {
-        fs.chmodSync(`${file}-${variantWidth}.${extension}`, 0o644);
-      }
-      variants.push({ width: variantWidth, height: variantHeight });
-    }
-    fs.writeFileSync(`${file}.json`, JSON.stringify({ width, height, variants }), { mode: 0o644 });
-    fs.chmodSync(`${file}.json`, 0o644);
-  } catch (error) {
-    deleteProductImageFiles(`${UPLOAD_PREFIX}${key}`);
-    throw error;
-  }
-
-  return `${UPLOAD_PREFIX}${key}`;
-}
-
-/** Entfernt alle Varianten eines hochgeladenen Produktbilds. */
-function deleteProductImageFiles(fileValue: string): void {
-  if (!fileValue.startsWith(UPLOAD_PREFIX)) return;
-  const key = fileValue.slice(UPLOAD_PREFIX.length);
-  const file = mediaFile(key);
-  if (!file) return;
-
-  try {
-    if (fs.existsSync(`${file}.json`)) {
-      const meta = JSON.parse(fs.readFileSync(`${file}.json`, 'utf8')) as {
-        variants?: { width?: number }[];
-      };
-      for (const variant of meta.variants ?? []) {
-        if (!Number.isFinite(variant.width)) continue;
-        for (const extension of ['avif', 'webp', 'jpg']) {
-          const target = `${file}-${variant.width}.${extension}`;
-          if (fs.existsSync(target)) fs.unlinkSync(target);
-        }
-      }
-    }
-    if (fs.existsSync(`${file}.json`)) fs.unlinkSync(`${file}.json`);
-  } catch {
-    // Dateien sind nicht kritisch; der Datenbankeintrag wird trotzdem entfernt.
-  }
 }
 
 class FormError extends Error {}
@@ -2506,7 +2410,10 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           writeAudit(request.admin?.email ?? 'admin', 'product.image.add', { product: id, file: stored, name: file.filename });
           added += 1;
         } catch (error) {
-          const message = error instanceof FormError ? error.message : 'Das Bild konnte nicht verarbeitet werden.';
+          const message =
+            error instanceof FormError || error instanceof ProductImageError
+              ? error.message
+              : 'Das Bild konnte nicht verarbeitet werden.';
           request.log.warn({ err: error, product: id, file: file.filename }, 'Produktbild konnte nicht gespeichert werden');
           errors.push(`${file.filename}: ${message}`);
         }
