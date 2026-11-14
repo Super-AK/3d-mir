@@ -1,0 +1,63 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Rechtstexte – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Rechtstexte</h1>
+      <p>Gelb markierte TODO-Platzhalter ausfüllen. Sobald ein Wert gespeichert ist, erscheint er anstelle des Platzhalters.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-secondary btn-small" href="/datenschutz/" target="_blank" rel="noopener">Datenschutz ansehen</a>
+    </div>
+  </div>
+
+  {% if meldung.gespeichert %}
+    <div class="alert alert-success" role="status"><p>Die Änderungen wurden gespeichert.</p></div>
+  {% endif %}
+  {% if meldung.fehler %}
+    <div class="alert alert-danger" role="alert"><p>{{ meldung.fehler }}</p></div>
+  {% endif %}
+
+  <div class="alert alert-info" role="status">
+    <p>Die gelben Markierungen sind nur so lange sichtbar, wie der jeweilige Wert leer ist. Sie verschwinden auf allen Rechtsseiten sofort nach dem Speichern. Bitte vor dem Livegang alle Platzhalter ausfüllen und die Texte rechtlich prüfen lassen.</p>
+  </div>
+
+  <form class="form" method="post" action="/admin/rechtstexte/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    {% for definition in definitions %}
+      <fieldset class="admin-fieldset">
+        <legend>
+          {{ definition.label }}
+          {% if values[definition.key] %}
+            <span class="badge badge-success">ausgefüllt</span>
+          {% else %}
+            <span class="badge badge-warning">offen</span>
+          {% endif %}
+        </legend>
+
+        <div class="field">
+          <label for="placeholder-{{ definition.key }}">{{ definition.label }}</label>
+          <input id="placeholder-{{ definition.key }}" name="placeholder_{{ definition.key }}" type="text" maxlength="500" value="{{ values[definition.key] or '' }}">
+          <span class="hint">{{ definition.hint }} Beispiel: {{ definition.example }}</span>
+        </div>
+
+        <p class="text-muted">
+          <small>Aktuelle Anzeige:
+            {% if values[definition.key] %}
+              {{ values[definition.key] }}
+            {% else %}
+              <mark class="placeholder-todo">{{ definition.fallback }}</mark>
+            {% endif %}
+          </small>
+        </p>
+      </fieldset>
+    {% endfor %}
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Platzhalter speichern</button>
+    </div>
+  </form>
+{% endblock %}

@@ -95,6 +95,11 @@ import {
   updateCategory,
 } from '../lib/categories.js';
 import { getSiteSettings, saveSiteImages, saveSiteSettings } from '../lib/site-settings.js';
+import {
+  getPlaceholderValues,
+  placeholderDefinitions,
+  savePlaceholderValues,
+} from '../lib/placeholders.js';
 import { deleteSiteLogo, storeSiteLogo } from '../lib/site-media.js';
 import {
   getPublicationSettings,
@@ -3094,6 +3099,29 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       savePublicationSettings(settings);
       writeAudit(request.admin?.email ?? 'admin', 'publication.update', settings);
       return reply.redirect('/admin/veroeffentlichung/?gespeichert=1', 303);
+    });
+
+    // Rechtstexte / Platzhalter -------------------------------------------
+    scope.get('/admin/rechtstexte/', async (request, reply) => {
+      render(reply, 'admin/legal-placeholders.njk', adminContext(request, {
+        definitions: placeholderDefinitions,
+        values: getPlaceholderValues(),
+      }));
+    });
+
+    scope.post('/admin/rechtstexte/', async (request, reply) => {
+      const body = bodyObject(request);
+      const values: Record<string, string> = {};
+      for (const definition of placeholderDefinitions) {
+        values[definition.key] = typeof body[`placeholder_${definition.key}`] === 'string'
+          ? String(body[`placeholder_${definition.key}`])
+          : '';
+      }
+      savePlaceholderValues(values);
+      writeAudit(request.admin?.email ?? 'admin', 'legal.placeholders.update', {
+        filled: Object.entries(values).filter(([, value]) => value.trim()).map(([key]) => key),
+      });
+      return reply.redirect('/admin/rechtstexte/?gespeichert=1', 303);
     });
 
     // Benachrichtigungen --------------------------------------------------

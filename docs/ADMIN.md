@@ -30,6 +30,21 @@ Für die Galerie gibt es drei Zustände:
 - **Eigene Galerie:** hochgeladene Bilder werden an die eigene Galerie angehängt (maximal 8). Die Checkbox „Vorhandene eigene Galerie vor dem Hochladen entfernen“ ersetzt die bisherigen Bilder; die erste Upload-Serie ersetzt die Standardgalerie.
 - **Keine Galerie:** alle eigenen Bilder wurden entfernt; der Referenzbereich wird auf der Startseite ausgeblendet. Über **„Standardgalerie wiederherstellen“** lassen sich die mitgelieferten Bilder zurückholen.
 
+## Rechtstexte und Platzhalter
+
+Unter **Admin → Rechtstexte** werden die ausfüllbaren Stellen in den Rechtsseiten gepflegt:
+
+| Platzhalter | Erscheint in | Beispielwert |
+| --- | --- | --- |
+| Hosting-Anbieter | Datenschutz, Abschnitt Hosting | Musterhosting GmbH, Musterstraße 1, 12345 Musterstadt (AVV liegt vor) |
+| SMTP-/E-Mail-Dienstleister | Datenschutz, Abschnitt Kontakt | Muster-Mail GmbH, Musterstadt (AVV liegt vor) |
+| Versanddienstleister | Datenschutz, Abschnitt Versand | DHL Paket GmbH, Bonn (AVV liegt vor) |
+| Löschfrist Modell-Uploads | Datenschutz, Abschnitt Rechner | 90 Tagen |
+
+Solange ein Feld leer ist, erscheint der TODO-Text auf der Seite als **gelb markierter Platzhalter**. Nach dem Speichern steht der eingegebene Wert an derselben Stelle; die gelbe Markierung verschwindet. Die Werte liegen in der Tabelle `settings` unter `legal.placeholders`.
+
+Die gelben Markierungen sind ein redaktioneller Hinweis und ersetzen keine rechtliche Prüfung. Vor dem Livegang sollten alle Felder ausgefüllt und die Texte insgesamt geprüft werden.
+
 ## Preise und Katalog
 
 Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:

@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.9 – 14. November 2026
+
+Ausfüllbare TODO-Platzhalter in den Rechtstexten: gelbe Markierung im
+Frontend, Admin-Seite **Rechtstexte** zum Hinterlegen der Werte.
+
 ## Release 1.0.0-rc.8 – 14. November 2026
 
 Stripe-Zahlung korrigiert: CSP `form-action` blockierte die Weiterleitung zu

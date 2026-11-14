@@ -1,6 +1,6 @@
 # Abnahme
 
-Stand: 14. November 2026 · Version 1.0.0-rc.8
+Stand: 14. November 2026 · Version 1.0.0-rc.9
 
 Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage für die Abnahme durch den Auftraggeber. Sie ersetzt keine rechtliche Prüfung der Texte und keine Freigabe der Preise.
 
@@ -11,7 +11,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 - Shop mit Produktseite, Farbvarianten, Kategorien und Filter, Warenkorb, Kasse, Bestellbestätigung und E-Mail-Benachrichtigungen.
 - Zahlungen: Vorkasse, Karte, PayPal, Amazon Pay, Klarna und iDEAL über Stripe Checkout; Zahlungsstatus, Webhook und Bestätigungen.
 - Kontakt: Formular mit IP-basierter Länderprüfung, Spam-Schutz, Prüfmodus und Direktantwort im Admin.
-- Admin-Bereich: Anmeldung, Dashboard, Stammdaten, Bestellungen, Anfragen, Kontaktnachrichten, Produkte, Kategorien, Preise, Zahlungen, Benachrichtigungen, Veröffentlichung, Etsy-Import, Passwort.
+- Admin-Bereich: Anmeldung, Dashboard, Stammdaten, Bestellungen, Anfragen, Kontaktnachrichten, Produkte, Kategorien, Preise, Zahlungen, Benachrichtigungen, Veröffentlichung, Rechtstexte, Etsy-Import, Passwort.
 - Etsy-Import: CSV und API, Bildübernahme, Varianten, Testlauf.
 - Betrieb: NGINX, systemd, SQLite (WAL), Backups, Update/Rollback, GeoIP-Aktualisierung, Setup-Menü (TUI), Deployment-Skripte, Dokumentation.
 - SEO: Sitemap, robots.txt, Canonicals, JSON-LD, 301-Weiterleitungen der Alt-URLs.
@@ -75,7 +75,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 
 ## Abnahmeerklärung
 
-Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.8 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
+Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.9 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
 
 | | Auftraggeber | Auftragnehmer |
 | --- | --- | --- |

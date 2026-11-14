@@ -27,7 +27,7 @@
     <p>Ein Datenschutzbeauftragter ist gesetzlich nicht bestellt.</p>
 
     <h2>2. Hosting und Server-Logfiles</h2>
-    <p>Diese Website wird bei einem technischen Dienstleister gehostet (TODO-HOSTING: Anbieter, Anschrift und AVV ergänzen). Beim Aufruf der Website verarbeitet der Webserver automatisch Informationen, die Ihr Browser übermittelt:</p>
+    <p>Diese Website wird bei einem technischen Dienstleister gehostet ({{ placeholder('hosting', 'TODO-HOSTING: Anbieter, Anschrift und AVV ergänzen') }}). Beim Aufruf der Website verarbeitet der Webserver automatisch Informationen, die Ihr Browser übermittelt:</p>
     <ul>
       <li>IP-Adresse (gekürzt bzw. nach kurzer Zeit gelöscht),</li>
       <li>Datum und Uhrzeit der Anfrage,</li>
@@ -41,11 +41,11 @@
     <p>Wenn Sie uns über das Kontaktformular oder per E-Mail schreiben, verarbeiten wir Ihren Namen, Ihre E-Mail-Adresse, optional Ihre Telefonnummer sowie Ihre Nachricht. Die Angaben werden ausschließlich zur Bearbeitung Ihrer Anfrage verwendet.</p>
     <p>Zum Schutz vor Spam ermitteln wir beim Absenden des Kontaktformulars das Land Ihres Seitenaufrufs anhand Ihrer IP-Adresse. Dafür nutzen wir eine lokal auf unserem Server gespeicherte GeoIP-Datenbank (DB-IP Lite, <a href="https://db-ip.com" rel="noopener noreferrer" target="_blank">db-ip.com</a>, Lizenz CC BY 4.0); es findet keine Übermittlung Ihrer IP-Adresse an Dritte statt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Abwehr von Spam).</p>
     <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Anbahnung eines Vertrags) bzw. Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Beantwortung). Die Daten werden gelöscht, wenn die Anfrage abschließend bearbeitet ist und keine gesetzlichen Aufbewahrungspflichten entgegenstehen, spätestens nach <strong>24 Monaten</strong>.</p>
-    <p>Der Versand der E-Mails erfolgt über einen SMTP-Dienstleister (TODO-SMTP: Anbieter und AVV ergänzen). Dabei werden die E-Mail-Inhalte und Adressen an den Anbieter übermittelt.</p>
+    <p>Der Versand der E-Mails erfolgt über einen SMTP-Dienstleister ({{ placeholder('smtp', 'TODO-SMTP: Anbieter und AVV ergänzen') }}). Dabei werden die E-Mail-Inhalte und Adressen an den Anbieter übermittelt.</p>
 
     <h2 id="rechner">4. 3D-Druck-Rechner und Modell-Uploads</h2>
     <p>Im 3D-Druck-Rechner können Sie Modelldateien (STL, 3MF, OBJ) hochladen. Die Datei wird auf unserem Server gespeichert, um Volumen, Maße und Preis zu berechnen und Ihre Anfrage zu bearbeiten. Dabei verarbeiten wir die Datei, den von Ihnen vergebenen Dateinamen, die Dateigröße sowie die von Ihnen gemachten Angaben (Material, Farbe, Stückzahl, Kontaktdaten, Nachricht).</p>
-    <p>Die Dateien werden unter einem zufälligen Namen außerhalb des öffentlich erreichbaren Verzeichnisses gespeichert. Zugriff haben nur berechtigte Personen. Die Löschung erfolgt nach Abschluss der Anfrage, spätestens nach <strong>90 Tagen</strong> (TODO-AUFBEWAHRUNG). Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO bzw. Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO, die Sie beim Absenden der Anfrage erteilen.</p>
+    <p>Die Dateien werden unter einem zufälligen Namen außerhalb des öffentlich erreichbaren Verzeichnisses gespeichert. Zugriff haben nur berechtigte Personen. Die Löschung erfolgt nach Abschluss der Anfrage, spätestens nach <strong>{{ placeholder('aufbewahrung', '90 Tagen (TODO-AUFBEWAHRUNG)') }}</strong>. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO bzw. Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO, die Sie beim Absenden der Anfrage erteilen.</p>
     <p>Bitte laden Sie keine personenbezogenen Daten in Modelldateien (z. B. in Dateinamen oder Metadaten) und keine vertraulichen Konstruktionen hoch, wenn Sie deren Verarbeitung nicht wünschen.</p>
 
     <h2 id="shop">5. Bestellungen und Kundenkonto</h2>
@@ -62,7 +62,7 @@
     </ul>
     <p>Übermittelt werden Name, E-Mail-Adresse, Rechnungs- und Lieferadresse, Bestellnummer, Betrag, Währung und Zahlungsart sowie die Transaktionskennung. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) sowie Art. 6 Abs. 1 lit. c DSGVO (gesetzliche Aufbewahrung).</p>
     <p>Stripe, PayPal, Amazon Pay und Klarna können Daten in Drittländer, insbesondere die USA, übermitteln. Die Übermittlung erfolgt auf Grundlage geeigneter Garantien (Standardvertragsklauseln bzw. Angemessenheitsbeschluss). Weitere Informationen finden Sie in den Datenschutzhinweisen der Anbieter.</p>
-    <p>Für den Versand geben wir die zur Zustellung erforderlichen Daten an den Versanddienstleister weiter (TODO-VERSAND: Anbieter, Anschrift und AVV ergänzen).</p>
+    <p>Für den Versand geben wir die zur Zustellung erforderlichen Daten an den Versanddienstleister weiter ({{ placeholder('versand', 'TODO-VERSAND: Anbieter, Anschrift und AVV ergänzen') }}).</p>
     <p>Bei einer Zahlung über PayPal, Amazon Pay oder Klarna werden Sie auf die Website des jeweiligen Anbieters weitergeleitet. Dort gelten die Datenschutzbestimmungen des Anbieters.</p>
 
     <h2 id="cookies">7. Cookies und lokale Speicherung</h2>

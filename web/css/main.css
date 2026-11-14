@@ -1607,3 +1607,14 @@ tbody tr:hover { background: var(--surface-2); }
   .product-buy-row { flex-direction: column; align-items: stretch; }
   .field-quantity { width: 100%; }
 }
+
+/* Ausfüllbare TODO-Platzhalter in Rechtstexten */
+.placeholder-todo {
+  background: #ffe066;
+  color: #5a4300;
+  padding: 0.05em 0.3em;
+  border-radius: 0.25em;
+  font-weight: 600;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}

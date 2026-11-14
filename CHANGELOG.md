@@ -3,6 +3,21 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.9] – 2026-11-14
+
+### Hinzugefügt
+
+- **Admin → Rechtstexte:** Hosting-Anbieter, SMTP-Dienstleister,
+  Versanddienstleister und Löschfrist für Modell-Uploads ausfüllen.
+- Noch offene TODO-Stellen in den Rechtstexten werden gelb hervorgehoben;
+  nach dem Speichern erscheint der eingegebene Wert an ihrer Stelle.
+
+### Geändert
+
+- Datenschutzerklärung nutzt die neuen Platzhalter statt fest eingebauter
+  TODO-Texte.
+- Hinweis und Link auf der Seite **Veröffentlichung** ergänzt.
+
 ## [1.0.0-rc.8] – 2026-11-14
 
 ### Behoben
@@ -179,6 +194,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.9]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.9
 [1.0.0-rc.8]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.8
 [1.0.0-rc.7]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.7
 [1.0.0-rc.6]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.6
