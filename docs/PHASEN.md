@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.13 – 14. November 2026
+
+AGB überarbeitet: Vertragsschluss, Preise, Versand, Zahlung, Widerruf,
+Eigentumsvorbehalt, Gewährleistung, 3D-Druck-Besonderheiten, Datenschutz,
+Streitbeilegung und Schlussbestimmungen. Veralteter ODR-Link entfernt.
+
 ## Release 1.0.0-rc.12 – 14. November 2026
 
 Widerrufsbelehrung um Sonderanfertigungs-Hinweis, Rücksendeadresse und

@@ -156,7 +156,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | F54 | 🔴 Offen | Wer prüft die Rechtstexte (Anwalt/Steuerberater)? Die Texte sind als technische Entwürfe markiert und müssen vor dem Livegang freigegeben werden. |
 | F55 | 🔴 Offen | Hosting: Ist dieser Server ein gemieteter Root-Server? Bitte Anbieter und Anschrift für die Datenschutzerklärung (AVV mit dem Hoster nötig). |
 | F56 | ✅ Erledigt | **Entschieden:** Die Abschnitte zu Google Analytics/AdSense wurden entfernt. Die neue Seite setzt kein Tracking ein.<br>*(13.11.2026)* |
-| F57 | 🟡 In Arbeit | **Umgesetzt:** Die AGB wurden sprachlich an den neuen Checkout und die Zahlungsarten angepasst. Offen: rechtliche Prüfung. |
+| F57 | 🟡 In Arbeit | **Überarbeitet:** AGB zu Vertragsschluss, Preisen, Versand, Zahlung, Widerruf, Eigentumsvorbehalt, Gewährleistung, 3D-Druck, Datenschutz und Streitbeilegung. Offen: rechtliche Prüfung. |
 | F58 | ✅ Erledigt | **Umgesetzt:** Widerrufsbelehrung enthält den Ausschluss für Sonderanfertigungen; Muster-Widerrufsformular als PDF unter `/widerruf/formular.pdf`. Die rechtliche Gesamtprüfung bleibt F54.<br>*(14.11.2026)* |
 | F59 | 🟡 In Arbeit | **Entwurf aktualisiert:** Die Datenschutzerklärung beschreibt Rechner-Upload, E-Mail-Ablage und Zahlungsdienstleister. Offen: automatische Löschung der Uploads nach 90 Tagen technisch umsetzen und rechtlich bestätigen. |
 | F60 | 🟡 In Arbeit | **Empfehlung:** Kein Consent-Banner nötig, solange nur technisch notwendige Cookies und keine externen Skripte/Tracker eingesetzt werden. Bitte rechtlich bestätigen. |

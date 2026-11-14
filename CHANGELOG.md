@@ -3,6 +3,19 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.13] – 2026-11-14
+
+### Geändert
+
+- **AGB umfassend überarbeitet:** Vertragsschluss, Korrektur von Eingaben,
+  Vertragstextspeicherung, Preise/§ 19 UStG, Versandkosten, Lieferländer,
+  Lieferzeiten, Zahlungsarten, Widerrufsrecht, Eigentumsvorbehalt,
+  Gewährleistung, 3D-Druck-Besonderheiten, Datenschutz, Streitbeilegung und
+  Schlussbestimmungen.
+- Veralteten ODR-Plattform-Link entfernt (Plattform wurde eingestellt).
+- Hinweis auf Sonderanfertigungen und das PDF-Widerrufsformular ergänzt.
+- AGB-Stand auf 14.11.2026 aktualisiert.
+
 ## [1.0.0-rc.12] – 2026-11-14
 
 ### Hinzugefügt
@@ -234,6 +247,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.13]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.13
 [1.0.0-rc.12]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.12
 [1.0.0-rc.11]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.11
 [1.0.0-rc.10]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.10
