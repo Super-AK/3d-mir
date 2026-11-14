@@ -47,4 +47,9 @@ test('Rechtsseiten sind erreichbar', async ({ page }) => {
     expect(response?.status(), path).toBe(200);
     await expect(page.locator('h1'), path).toBeVisible();
   }
+
+  // Muster-Widerrufsformular als PDF
+  const pdf = await page.request.get('/widerruf/formular.pdf');
+  expect(pdf.status()).toBe(200);
+  expect(pdf.headers()['content-type']).toContain('application/pdf');
 });

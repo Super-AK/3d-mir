@@ -506,6 +506,7 @@ function customerOrderMailText(
     ...paymentLines,
     '',
     `Bestellübersicht: ${orderUrl}`,
+    `Widerrufsformular: ${config.payment.baseUrl}/widerruf/formular.pdf`,
     '',
     'Viele Grüße',
     '3D-MIR 3D-Druck Service',

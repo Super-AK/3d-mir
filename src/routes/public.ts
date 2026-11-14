@@ -16,6 +16,7 @@ import {
   resolveContactCountry,
 } from '../lib/contact-protection.js';
 import { contactMailHtml, contactMailText, contactReviewMailHtml, contactReviewMailText } from '../lib/contact-mail.js';
+import { createWithdrawalFormPdf } from '../lib/withdrawal-form-pdf.js';
 
 /** Liest alle Inhaltsblöcke als Schlüssel-Wert-Paare. */
 export function getContent(): Record<string, string> {
@@ -418,6 +419,13 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
   app.get('/impressum/', async (_request, reply) => render(reply, 'pages/legal/impressum.njk'));
   app.get('/datenschutz/', async (_request, reply) => render(reply, 'pages/legal/datenschutz.njk'));
   app.get('/agb/', async (_request, reply) => render(reply, 'pages/legal/agb.njk'));
+  app.get('/widerruf/formular.pdf', async (_request, reply) => {
+    const pdf = await createWithdrawalFormPdf();
+    reply.header('Cache-Control', 'no-store');
+    reply.header('Content-Disposition', 'attachment; filename="widerrufsformular-3d-mir.pdf"');
+    return reply.type('application/pdf').send(pdf);
+  });
+
   app.get('/widerruf/', async (_request, reply) => render(reply, 'pages/legal/widerruf.njk'));
   app.get('/versand/', async (_request, reply) => render(reply, 'pages/legal/versand.njk'));
   app.get('/zahlung/', async (_request, reply) => {

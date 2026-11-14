@@ -3,6 +3,25 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.12] – 2026-11-14
+
+### Hinzugefügt
+
+- **Muster-Widerrufsformular als PDF** unter `/widerruf/formular.pdf`,
+  inklusive aktueller Geschäftsdaten, Bestellnummer, Datum und
+  Unterschriftenfeld. Download-Links auf der Widerrufsseite und in der
+  Bestellbestätigung.
+- Prominenter Hinweis zum Widerrufsausschluss bei Sonderanfertigungen
+  (z. B. individuell gefertigte 3D-Druckteile); für alle übrigen Produkte
+  bleibt das Widerrufsrecht bestehen.
+
+### Geändert
+
+- Widerrufsbelehrung um Rücksendeadresse, klare E-Mail-Option und
+  präzisierte Formulierung zu Sonderanfertigungen ergänzt.
+- Hinweis „Ziffern 1-2“ korrigiert; Abschnitt als „Muster-Widerrufsformular“
+  bezeichnet.
+
 ## [1.0.0-rc.11] – 2026-11-14
 
 ### Behoben
@@ -215,6 +234,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.12]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.12
 [1.0.0-rc.11]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.11
 [1.0.0-rc.10]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.10
 [1.0.0-rc.9]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.9
