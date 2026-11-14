@@ -25,6 +25,8 @@ const envSchema = z.object({
   TRUST_PROXY: z.string().default('127.0.0.1'),
   // Lokale GeoIP-Datenbank (MaxMind-Format, z. B. DB-IP Lite) für die Länderprüfung.
   GEOIP_DB_PATH: z.string().optional(),
+  // Optionaler Länder-Header eines vorgeschalteten CDN. Leer = Header werden ignoriert.
+  COUNTRY_HEADER: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().optional(),
   SMTP_SECURE: z.string().optional(),
@@ -79,6 +81,7 @@ export const config = {
   maxUploadBytes: env.MAX_UPLOAD_MB * 1024 * 1024,
   geoip: {
     dbPath: env.GEOIP_DB_PATH?.trim() || path.join(env.DATA_DIR, 'geoip', 'dbip-country-lite.mmdb'),
+    countryHeader: (env.COUNTRY_HEADER ?? '').trim().toLowerCase(),
   },
   mail: {
     host: env.SMTP_HOST,

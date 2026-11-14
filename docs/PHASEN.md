@@ -372,7 +372,7 @@
 **Fertig**
 - Migration `008_contact.sql`: Länderkürzel, Prüfstatus (`ok`/`pruefen`/`spam`), Prüfgrund, Antwortzeitpunkt und gespeicherter Antworttext.
 - Kontaktformular mit signiertem Zeit-Token (HMAC mit `SESSION_SECRET`, 24 Stunden gültig, Mindestalter 3 Sekunden), Honeypot und Rate-Limit; der Besucher gibt kein Land an.
-- IP-basierte Ländererkennung: lokale GeoIP-Datenbank im MaxMind-Format (DB-IP Lite, Standard `/var/lib/3d-mir/geoip/dbip-country-lite.mmdb`) und optional ein Länder-Header eines vertrauenswürdigen Proxys (`CF-IPCountry` usw.); Header werden nur von Adressen aus `TRUST_PROXY` akzeptiert.
+- IP-basierte Ländererkennung: lokale GeoIP-Datenbank im MaxMind-Format (DB-IP Lite, Standard `/var/lib/3d-mir/geoip/dbip-country-lite.mmdb`). Optional kann ein CDN-Länderheader über `COUNTRY_HEADER` freigeschaltet werden; er wird nur von Adressen aus `TRUST_PROXY` akzeptiert. Ohne Konfiguration werden Header ignoriert.
 - Spam-Prüfung: erlaubte Länder (Standard nur `DE`), eigenes Verhalten für nicht ermittelbares Land (`review`/`block`/`allow`), Inhaltsprüfung auf Spam-Begriffe, viele Links, Großschreibung und Zeichenwiederholungen.
 - Admin unter **Nachrichten**: Einstellungen für Länderprüfung, erlaubte Länder, Prüfmodus (`review`/`block`), Umgang mit unbekanntem Land, Zeit- und Inhaltsprüfung; Statusanzeige zur GeoIP-Datenbank; Prüfstatus je Nachricht; Freigeben/Als Spam markieren; direkte Antwort per E-Mail inkl. Speicherung und `.eml`-Fallback.
 - `deploy/update-geoip.sh` und Setup-Menüpunkt zum Installieren/Aktualisieren der GeoIP-Datenbank (Restart des Dienstes inklusive).

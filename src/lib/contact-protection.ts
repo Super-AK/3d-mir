@@ -87,9 +87,12 @@ export function verifyContactToken(
   return { ok: true };
 }
 
-/** Liest ein Länderkürzel aus bekannten Proxy-/CDN-Headern. */
-export function headerCountry(headers: Record<string, unknown>): string {
-  for (const name of ['cf-ipcountry', 'x-country-code', 'x-vercel-ip-country', 'x-geo-country']) {
+/** Liest ein Länderkürzel aus den angegebenen Proxy-/CDN-Headern. */
+export function headerCountry(
+  headers: Record<string, unknown>,
+  names: string[] = ['cf-ipcountry', 'x-country-code', 'x-vercel-ip-country', 'x-geo-country'],
+): string {
+  for (const name of names) {
     const raw = headers[name];
     const value = Array.isArray(raw) ? raw[0] : raw;
     const normalized = normalizeCountry(value);
@@ -123,17 +126,18 @@ export function isTrustedProxyPeer(remoteAddress: string | undefined): boolean {
 /**
  * Ermittelt das Land eines Besuchers anhand der IP-Adresse.
  *
- * Vorrang hat ein vertrauenswürdiger Proxy-Header (z. B. von Cloudflare),
- * danach folgt die lokale GeoIP-Datenbank. Der Besucher selbst gibt kein
- * Land an.
+ * Ein Proxy-/CDN-Header wird nur ausgewertet, wenn er in `COUNTRY_HEADER`
+ * ausdrücklich konfiguriert ist und die Verbindung von einem vertrauenswürdigen
+ * Proxy stammt. Standardmäßig entscheidet ausschließlich die lokale
+ * GeoIP-Datenbank. Der Besucher selbst gibt kein Land an.
  */
 export async function resolveContactCountry(input: {
   ip: string;
   headers: Record<string, unknown>;
   trustedProxy: boolean;
 }): Promise<ContactCountry> {
-  if (input.trustedProxy) {
-    const fromHeader = headerCountry(input.headers);
+  if (input.trustedProxy && config.geoip.countryHeader) {
+    const fromHeader = headerCountry(input.headers, [config.geoip.countryHeader]);
     if (fromHeader) return { country: fromHeader, source: 'header' };
   }
 

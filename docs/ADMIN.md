@@ -111,7 +111,7 @@ Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfu
 
 **Woher kommt das Land?** Ausschließlich serverseitig, nie aus einer Besuchereingabe:
 
-1. Liefert ein vertrauenswürdiger Proxy oder ein CDN ein Länderkürzel (z. B. `CF-IPCountry`), wird dieses verwendet. Der Header wird nur akzeptiert, wenn die direkte Gegenstelle in `TRUST_PROXY` eingetragen ist (Standard: `127.0.0.1`, also der lokale NGINX).
+1. Wurde in der Umgebungsdatei ein `COUNTRY_HEADER` (z. B. `cf-ipcountry`) ausdrücklich konfiguriert und stammt die Verbindung von einem in `TRUST_PROXY` eingetragenen Proxy, wird dieses Länderkürzel verwendet. Ohne diese Konfiguration werden Header ignoriert, damit ein Besucher das Land nicht über einen selbst gesetzten Header fälschen kann.
 2. Andernfalls wird die IP-Adresse des Besuchers gegen eine lokale GeoIP-Datenbank im MaxMind-Format geprüft (Standardpfad `/var/lib/3d-mir/geoip/dbip-country-lite.mmdb`).
 3. Ist beides nicht möglich, greift die Einstellung **„Land nicht ermittelbar“**.
 

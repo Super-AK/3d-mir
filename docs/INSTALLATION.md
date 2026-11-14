@@ -653,6 +653,7 @@ Datei: `/etc/3d-mir/3d-mir.env`, Rechte `600`, Eigentümer `root`.
 | `SESSION_SECRET` | ja | mindestens 32 zufällige Zeichen, z. B. `openssl rand -base64 48` |
 | `TRUST_PROXY` | ja | `127.0.0.1` bei lokalem NGINX; nur von hier werden `X-Forwarded-For` und Länder-Header akzeptiert |
 | `GEOIP_DB_PATH` | nein | Standard `$DATA_DIR/geoip/dbip-country-lite.mmdb` |
+| `COUNTRY_HEADER` | nein | optionaler CDN-Länderheader, z. B. `cf-ipcountry`; leer = Header werden ignoriert |
 | `MAIL_FROM` | ja | Absender, z. B. `3D-MIR <info@3d-mir.de>` |
 | `MAIL_TO` | ja | Betreiber-Postfach |
 | `SMTP_HOST` | nein | leer = `.eml`-Fallback unter `$LOG_DIR/mail/` |

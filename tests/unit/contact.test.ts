@@ -4,6 +4,7 @@ import {
   createContactToken,
   headerCountry,
   isTrustedProxyPeer,
+  resolveContactCountry,
   verifyContactToken,
 } from '../../src/lib/contact-protection.js';
 import { countryFromIp, isPrivateAddress } from '../../src/lib/geoip.js';
@@ -157,6 +158,15 @@ describe('IP-basierte Ländererkennung', () => {
     expect(isTrustedProxyPeer('::ffff:127.0.0.1')).toBe(true);
     expect(isTrustedProxyPeer('203.0.113.5')).toBe(false);
     expect(isTrustedProxyPeer(undefined)).toBe(false);
+  });
+
+  it('ignoriert Länder-Header ohne ausdrückliche Konfiguration', async () => {
+    const result = await resolveContactCountry({
+      ip: '127.0.0.1',
+      headers: { 'cf-ipcountry': 'US' },
+      trustedProxy: true,
+    });
+    expect(result).toEqual({ country: '', source: 'none' });
   });
 
   it('liefert für ungültige Adressen kein Land', async () => {
