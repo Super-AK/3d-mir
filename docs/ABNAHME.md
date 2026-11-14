@@ -1,6 +1,6 @@
 # Abnahme
 
-Stand: 14. November 2026 · Version 1.0.0-rc.9
+Stand: 13. November 2026 · Version 1.0.0-rc.10
 
 Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage für die Abnahme durch den Auftraggeber. Sie ersetzt keine rechtliche Prüfung der Texte und keine Freigabe der Preise.
 
@@ -50,7 +50,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Nur technisch notwendige Cookies | ✅ | Warenkorb und Admin-Sitzung |
 | Rechtstexte unverändert übernommen, Prüfhinweis | ✅ | redaktionelle Prüfung durch Auftraggeber offen |
 | Preise und Kalkulation bestätigt | ✅ | F1–F8, F66 (14.11.2026) |
-| Versand bestätigt | ⬜ | F14–F20, F67 |
+| Versand bestätigt | ✅ | F14–F20 (14.11.2026) |
 | Zahlung technisch umgesetzt | ✅ | Vorkasse + Stripe Checkout, Webhook, Admin; Stripe-Konto/Schlüssel offen |
 | Benachrichtigungen | ✅ | E-Mail/Telegram im Admin wählbar; SMTP-/Telegram-Test |
 | SMTP-Zugang hinterlegt | ⬜ | F21–F24; aktuell `.eml`-Fallback |
@@ -61,21 +61,20 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 
 ## Offene Punkte vor dem Livegang
 
-1. Preise, Kalkulationswerte und Versandkosten bestätigen (F1–F20, F66, F67).
-2. Stripe-Konto anlegen, Live-Schlüssel/Webhook-Secret hinterlegen und Bankverbindung im Admin eintragen (F9–F13, F68).
-3. SMTP- und Telegram-Zugangsdaten hinterlegen und Testnachrichten versenden (F21–F24, F69–F71).
-4. Admin-Zugang anlegen und TOTP-Entscheidung treffen (F63, F64).
-5. DNS auf den neuen Server umstellen, TLS per certbot aktivieren, kanonische `www`-Variante bestätigen (F30–F33).
-6. Rechtstexte durch Betreiber/Anwalt prüfen lassen (F54–F59).
-7. Backup-Ziel und Aufbewahrung final festlegen (F61, F62).
-8. Länder-Allowlist bestätigen und GeoIP-Datenbank monatlich aktualisieren (F76).
-9. Etsy-App-Freigabe abwarten, danach API-Import für exakte Variationen ausführen.
-10. Portkonflikt auf `kap-srv` beheben und Installation dort abschließen (F72).
-11. Test auf einer frischen VM mit der Checkliste in `docs/INSTALLATION.md` durchführen.
+1. Stripe-Konto anlegen, Live-Schlüssel/Webhook-Secret hinterlegen und Bankverbindung im Admin eintragen (F9–F13, F68).
+2. SMTP- und Telegram-Zugangsdaten hinterlegen und Testnachrichten versenden (F21–F24, F69–F71).
+3. Admin-Zugang anlegen und TOTP-Entscheidung treffen (F63, F64).
+4. DNS auf den neuen Server umstellen, TLS per certbot aktivieren, kanonische `www`-Variante bestätigen (F30–F33).
+5. Rechtstexte durch Betreiber/Anwalt prüfen lassen (F54–F59).
+6. Backup-Ziel und Aufbewahrung final festlegen (F61, F62).
+7. Länder-Allowlist bestätigen und GeoIP-Datenbank monatlich aktualisieren (F76).
+8. Etsy-App-Freigabe abwarten, danach API-Import für exakte Variationen ausführen.
+9. Portkonflikt auf `kap-srv` beheben und Installation dort abschließen (F72).
+10. Test auf einer frischen VM mit der Checkliste in `docs/INSTALLATION.md` durchführen.
 
 ## Abnahmeerklärung
 
-Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.9 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
+Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.10 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
 
 | | Auftraggeber | Auftragnehmer |
 | --- | --- | --- |

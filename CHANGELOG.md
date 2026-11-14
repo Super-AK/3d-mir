@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.10] – 2026-11-14
+
+### Geändert
+
+- **Versandkosten und Lieferzeiten vom Betreiber bestätigt** (14.11.2026):
+  `shipping.status` in `config/pricing.json` auf `FINAL` gesetzt.
+- Der Platzhalter-Hinweis auf `/versand/` entfällt.
+- Shop- und Kassenhinweis nennen keine offenen Versandkosten mehr; der
+  Shop-Hinweis bleibt bis zur Freigabe „Shop ist live“ aktiv.
+- Dokumentation und offene Fragen aktualisiert (F14–F20 erledigt).
+
 ## [1.0.0-rc.9] – 2026-11-14
 
 ### Hinzugefügt
@@ -194,6 +205,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.10]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.10
 [1.0.0-rc.9]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.9
 [1.0.0-rc.8]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.8
 [1.0.0-rc.7]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.7

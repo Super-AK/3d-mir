@@ -1,14 +1,14 @@
 # Abschlussbericht
 
 **Projekt:** Neuaufbau der Website 3D-MIR (3D-Druck Service, Schömberg)
-**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.9
+**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.10
 **Technischer Status:** Release-Kandidat, alle geplanten Funktionen umgesetzt; Abnahme und Livegang offen
 
 ## 1. Ausgangslage und Ziel
 
 Die bisherige WordPress-Seite wurde vollständig ausgelesen und durch eine eigene Anwendung ersetzt. Ziel war ein schneller, datenschutzfreundlicher Auftritt mit Sofort-Preisrechner, kleinerem Shop und einem Admin-Bereich, der ohne externe Dienste und ohne Tracking auskommt.
 
-Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtstexte wurden inhaltlich unverändert übernommen und als „rechtlich zu prüfen“ gekennzeichnet. Preise und Kalkulation wurden am 14.11.2026 bestätigt; Versandkosten und Zahlungsarten sind weiterhin offen.
+Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtstexte wurden inhaltlich unverändert übernommen und als „rechtlich zu prüfen“ gekennzeichnet. Preise, Kalkulation, Versandkosten und Lieferzeiten wurden am 14.11.2026 bestätigt; die Live-Schaltung der Zahlungsarten ist noch offen.
 
 ## 2. Ergebnis
 
@@ -78,7 +78,6 @@ Alle Schritte sind in `docs/INSTALLATION.md` (Neuinstallation/Umzug) und `docs/D
 | --- | --- |
 | Preise, Kalkulation, Mindestauftragswert | F1–F8, F66 |
 | Stripe-Konto, Live-Schlüssel, Bankverbindung | F9–F13, F67 |
-| Versandkosten, Lieferzeiten, Lieferländer | F14–F20 |
 | SMTP-/Telegram-Zugang | F21–F24, F69–F71 |
 | Länder-Allowlist und GeoIP-Aktualisierung | F76 |
 | Etsy-API-Freigabe (Variationen) | F79 |
@@ -93,10 +92,10 @@ Alle Schritte sind in `docs/INSTALLATION.md` (Neuinstallation/Umzug) und `docs/D
 
 - **Domain zeigt noch auf die alte Seite.** Die neue Anwendung läuft auf dem Server, ist aber erst nach DNS-Umstellung öffentlich erreichbar.
 - **TLS ist noch nicht aktiv.** HSTS wird automatisch gesetzt, sobald HTTPS genutzt wird.
-- **Preise und Versand sind Platzhalter.** Der Shop ist technisch bestellbar; vor dem Livegang müssen Konditionen bestätigt oder die Bestellfunktion deaktiviert werden.
+- **Preise und Versand sind bestätigt.** Der Shop ist technisch bestellbar; vor dem Livegang fehlen noch Stripe-Live-Schlüssel und die rechtliche Freigabe.
 - **Admin-Zugang existiert noch nicht.** Er muss bewusst durch den Betreiber angelegt werden; das Passwort nie im Repository hinterlegen.
 - **E-Mails ohne SMTP** landen als Dateien im Log-Verzeichnis und werden nicht zugestellt.
 
 ## 10. Fazit
 
-Die technische Umsetzung ist vollständig, getestet und dokumentiert. Die Anwendung ist bereit für die DNS-Umstellung und die inhaltliche Abnahme. Vor dem Livegang sind ausschließlich die fachlichen Freigaben (Preise, Recht, Zahlung, Versand, SMTP) und die DNS-/TLS-Umstellung erforderlich.
+Die technische Umsetzung ist vollständig, getestet und dokumentiert. Die Anwendung ist bereit für die DNS-Umstellung und die inhaltliche Abnahme. Vor dem Livegang sind noch die rechtliche Freigabe, Stripe live, SMTP/Telegram sowie DNS/TLS erforderlich.

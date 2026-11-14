@@ -1,6 +1,6 @@
 {
   "status": "PLATZHALTER",
-  "notice": "Der Shop befindet sich im Aufbau. Die Versandkosten sind Platzhalter (TODO-VERSAND) und werden vor dem Livegang vom Auftraggeber bestätigt.",
+  "notice": "Der Shop befindet sich im Aufbau. Wir ergänzen laufend weitere Produkte und Informationen.",
   "maxQuantityPerItem": 20,
   "payment": {
     "status": "AKTIV",
@@ -65,7 +65,7 @@
     "acceptedCountries": [
       "DE"
     ],
-    "legalNote": "Es handelt sich um einen Shop-Entwurf. Die Versandkosten werden vor dem Livegang vom Betreiber bestätigt.",
+    "legalNote": "Es handelt sich um einen Shop-Entwurf. Die Rechtstexte werden vor dem Livegang geprüft.",
     "termsVersion": "2026-11-13"
   }
 }

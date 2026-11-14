@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.10 – 14. November 2026
+
+Versandkosten und Lieferzeiten bestätigt; `shipping.status` steht auf `FINAL`,
+der Platzhalter-Hinweis auf `/versand/` entfällt.
+
 ## Release 1.0.0-rc.9 – 14. November 2026
 
 Ausfüllbare TODO-Platzhalter in den Rechtstexten: gelbe Markierung im
