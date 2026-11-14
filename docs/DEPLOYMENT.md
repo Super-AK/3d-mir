@@ -154,6 +154,74 @@ Ablauf:
 
 Migrationen laufen beim Start der Anwendung und sind idempotent.
 
+### Produktiv-Update auf einem gemeinsam genutzten Server
+
+Auf Servern wie `kap-srv`, auf denen NGINX weitere Webseiten bedient und Port
+3000 belegt sein kann, in dieser Reihenfolge vorgehen:
+
+**1. Vor dem Update prüfen**
+
+```bash
+cd /var/www/3d-mir.de
+sudo git status --short
+sudo git log --oneline -3
+```
+
+- Arbeitsbaum **sauber**: weiter mit Schritt 2.
+- Lokale Änderungen an `config/*.json`: zuerst sichern, z. B.
+  `sudo git stash push -u -m "prod-vor-update"`. Stammdaten künftig über
+  **Admin → Stammdaten** pflegen, nicht in der Datei.
+
+**2. Port prüfen (nur wenn der Dienst nicht läuft)**
+
+```bash
+sudo deploy/setup.sh
+# Menüpunkt 15: „Port prüfen / freien Port setzen“
+```
+
+Das Skript schlägt einen freien Port vor, aktualisiert `.env`,
+`/etc/nginx/sites-available/<domain>.conf` und den Dienst. Andere Vhosts
+bleiben unangetastet.
+
+**3. Code und Build aktualisieren**
+
+```bash
+# Variante A: neueste Skripte direkt aus Git holen, dann ohne erneuten Pull bauen
+sudo git fetch origin
+sudo git merge --ff-only origin/main
+sudo deploy/update.sh --no-pull
+
+# Variante B: Update-Skript erledigt Pull, Backup, Build, Neustart selbst
+sudo deploy/update.sh
+```
+
+`update.sh` erstellt vorher ein Backup, führt `npm ci` aus, baut die Anwendung,
+startet `3d-mir.service` neu und prüft `/api/health` **direkt am Anwendungsport**
+(nicht über den NGINX-Default-Vhost). Bei einem Fehler wird automatisch auf
+Commit und Build-Artefakte zurückgerollt.
+
+**4. Nacharbeiten**
+
+```bash
+sudo deploy/update-geoip.sh    # GeoIP-Datenbank für die Länderprüfung
+sudo deploy/verify.sh          # 28 Prüfungen
+sudo systemctl status 3d-mir.service --no-pager
+```
+
+**5. Im Admin prüfen**
+
+- **Veröffentlichung:** „Preise und Kalkulation sind bestätigt“ muss aktiv sein.
+- **Stammdaten:** Adresse, Telefon, Logo, Hero- und Galeriebilder.
+- **Kategorien:** sieben Startkategorien und Produktzuordnungen.
+- **Zahlungen:** nur die gewünschten Arten aktiv.
+- **Nachrichten:** Länder-Allowlist und GeoIP-Status.
+- **Produkte → Aus Etsy importieren:** CSV/API nach Bedarf.
+
+**Erstinstallation statt Update:** Wenn auf dem Server noch keine laufende
+3D-MIR-Instanz existiert, `sudo deploy/install.sh` ausführen (oder
+`sudo deploy/setup.sh` → Punkt 1). Der Installer prüft den Port und richtet
+Dienst und NGINX-Vhost ein. Danach Admin-Zugang, GeoIP und `verify.sh`.
+
 ## GeoIP-Datenbank aktualisieren
 
 Die Länderprüfung des Kontaktformulars nutzt eine lokale Datenbank. Sie sollte monatlich erneuert werden:

@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.6 – 14. November 2026
+
+Update-Skript prüft den Health-Endpunkt direkt am Anwendungsport; Anleitung
+für Produktiv-Updates auf gemeinsam genutzten Servern ergänzt.
+
 ## Release 1.0.0-rc.5 – 14. November 2026
 
 Galerie-Upload korrigiert: Neue Bilder werden an die eigene Galerie angehängt

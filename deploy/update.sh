@@ -13,7 +13,15 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${APP_DIR:-$(dirname "$SCRIPT_DIR")}"
 SERVICE="3d-mir.service"
-HEALTH_URL="http://127.0.0.1/api/health"
+ENV_FILE="${ENV_FILE:-/etc/3d-mir/3d-mir.env}"
+# Direkt gegen den Anwendungsport prüfen: Auf Shared Servern zeigt der
+# NGINX-Default-Vhost sonst auf eine andere Anwendung.
+APP_PORT="${PORT:-}"
+if [[ -z "$APP_PORT" && -f "$ENV_FILE" ]]; then
+  APP_PORT="$(grep -E '^PORT=' "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+fi
+APP_PORT="${APP_PORT:-3000}"
+HEALTH_URL="http://127.0.0.1:${APP_PORT}/api/health"
 DO_PULL=1
 
 for arg in "$@"; do

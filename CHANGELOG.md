@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.6] – 2026-11-14
+
+### Behoben
+
+- `deploy/update.sh` prüft den Health-Endpunkt jetzt direkt am
+  Anwendungsport statt über den NGINX-Default-Vhost. Dadurch schlägt das
+  Update auf gemeinsam genutzten Servern (z. B. `kap-srv`) nicht mehr
+  fälschlich fehl.
+- Produktiv-Update-Anleitung für Shared Server, Portprüfung, Nacharbeiten
+  und Rollback in `docs/DEPLOYMENT.md` ergänzt.
+
 ## [1.0.0-rc.5] – 2026-11-14
 
 ### Behoben
@@ -143,6 +154,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.6]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.6
 [1.0.0-rc.5]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.5
 [1.0.0-rc.4]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.4
 [1.0.0-rc.3]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.3
