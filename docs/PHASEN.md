@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.17 – 14. November 2026
+
+Galerie: Reihenfolge und Alternativtexte pflegbar; Bildzuschnitt im
+Upload-Modal. Kundenmails optional als BCC an den Betreiber. TOTP-2FA für
+den Admin-Zugang. Systemd-Timer für den Uptime-Check.
+
 ## Release 1.0.0-rc.16 – 14. November 2026
 
 Bilder der Stammdaten werden über Modalfenster mit Klick- oder Drag-&-Drop-

@@ -255,6 +255,16 @@ systemctl daemon-reload
 systemctl enable 3d-mir.service >/dev/null
 systemctl restart 3d-mir.service
 
+log "Uptime-Check (systemd-Timer)"
+sed -e "s|__APP_DIR__|$APP_DIR|g" \
+    -e "s|__SERVICE_USER__|$SERVICE_USER|g" \
+    -e "s|__DATA_DIR__|$DATA_DIR|g" \
+    -e "s|__LOG_DIR__|$LOG_DIR|g" \
+    "$APP_DIR/deploy/3d-mir-monitor.service.tpl" > /etc/systemd/system/3d-mir-monitor.service
+cp "$APP_DIR/deploy/3d-mir-monitor.timer.tpl" /etc/systemd/system/3d-mir-monitor.timer
+systemctl daemon-reload
+systemctl enable --now 3d-mir-monitor.timer >/dev/null
+
 log "NGINX-Vhost"
 NGINX_SITE_NAME="${NGINX_SITE_NAME:-${DOMAIN}.conf}"
 NGINX_SITE="/etc/nginx/sites-available/${NGINX_SITE_NAME}"

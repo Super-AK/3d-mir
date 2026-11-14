@@ -30,12 +30,15 @@ export type TelegramSettings = {
 
 export type NotificationSettings = {
   channel: NotificationChannel;
+  /** Kopie jeder Kunden-E-Mail an das Betreiber-Postfach. */
+  copyCustomerMails: boolean;
   smtp: SmtpSettings;
   telegram: TelegramSettings;
 };
 
 export type NotificationOverrides = {
   channel?: NotificationChannel;
+  copyCustomerMails?: boolean;
   smtp?: Partial<SmtpSettings>;
   telegram?: Partial<TelegramSettings>;
 };
@@ -64,6 +67,7 @@ function channel(value: unknown): NotificationChannel | undefined {
 function envDefaults(): NotificationSettings {
   return {
     channel: config.notifications.channel,
+    copyCustomerMails: false,
     smtp: {
       host: config.mail.host ?? '',
       port: config.mail.port,
@@ -102,6 +106,9 @@ export function getNotificationOverrides(): NotificationOverrides {
   const overrides: NotificationOverrides = {};
   const selectedChannel = channel(raw.channel);
   if (selectedChannel) overrides.channel = selectedChannel;
+  if (raw.copyCustomerMails !== undefined) {
+    overrides.copyCustomerMails = bool(raw.copyCustomerMails, false);
+  }
 
   const port = Number(smtp.port);
   const smtpOverride: Partial<SmtpSettings> = {};
@@ -131,6 +138,7 @@ export function getNotificationSettings(): NotificationSettings {
 
   return {
     channel: overrides.channel ?? env.channel,
+    copyCustomerMails: overrides.copyCustomerMails ?? env.copyCustomerMails,
     smtp: {
       host: text(smtp.host, 200) || env.smtp.host,
       port: Number.isFinite(Number(smtp.port)) ? Number(smtp.port) : env.smtp.port,

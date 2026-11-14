@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import sharp from 'sharp';
+import QRCode from 'qrcode';
 import { z } from 'zod';
 import { config, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
@@ -24,18 +25,24 @@ import { resetMailTransporter, sendMail } from '../lib/mailer.js';
 import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
 import {
+  clearPendingCookie,
   clearSessionCookie,
+  createPendingLogin,
   createSession,
   csrfToken,
   destroySession,
+  destroySessionById,
+  getPendingLogin,
   getSession,
   hashPassword,
+  setPendingCookie,
   setSessionCookie,
   verifyCsrf,
   verifyCsrfToken,
   verifyPassword,
   writeAudit,
 } from '../lib/auth.js';
+import { generateTotpSecret, totpUri, verifyTotp } from '../lib/totp.js';
 import {
   clearPricingOverrides,
   getPricingConfig,
@@ -1534,10 +1541,86 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
+      const factor = db()
+        .prepare('SELECT totp_secret, totp_enabled FROM users WHERE id = ?')
+        .get(user.id) as { totp_secret: string | null; totp_enabled: number } | undefined;
+      if (factor && Number(factor.totp_enabled) === 1 && factor.totp_secret) {
+        const pending = createPendingLogin(user.id);
+        setPendingCookie(reply, request, pending.id);
+        writeAudit(user.email, 'admin.login.password-ok', { ip: request.ip });
+        return reply.redirect(`/admin/login/2fa/?weiter=${encodeURIComponent(weiter)}`, 303);
+      }
+
       const session = createSession(user.id);
       setSessionCookie(reply, request, session.id);
       writeAudit(user.email, 'admin.login', { ip: request.ip });
       request.log.info({ email: user.email, ip: request.ip }, 'Admin angemeldet');
+      return reply.redirect(weiter, 303);
+    },
+  );
+
+  app.get('/admin/login/2fa/', async (request, reply) => {
+    if (getSession(request)) return reply.redirect('/admin/', 303);
+    const pending = getPendingLogin(request);
+    if (!pending) {
+      clearPendingCookie(reply);
+      return reply.redirect('/admin/login/', 303);
+    }
+    const query = queryObject(request);
+    render(reply, 'admin/login-2fa.njk', {
+      email: pending.user.email,
+      weiter: safeNext(query.weiter),
+    });
+  });
+
+  app.post(
+    '/admin/login/2fa/',
+    { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } },
+    async (request, reply) => {
+      if (!isSameOrigin(request)) {
+        reply.code(403);
+        return render(reply, 'admin/login-2fa.njk', {
+          email: '',
+          weiter: '/admin/',
+          error: 'Die Anfrage konnte nicht zugeordnet werden.',
+        });
+      }
+
+      const pending = getPendingLogin(request);
+      if (!pending) {
+        clearPendingCookie(reply);
+        return reply.redirect('/admin/login/', 303);
+      }
+
+      const body = bodyObject(request);
+      const code = cleanText(body.code, 20).replace(/\s+/g, '');
+      const weiter = safeNext(body.weiter);
+      const factor = db()
+        .prepare('SELECT totp_secret, totp_enabled FROM users WHERE id = ?')
+        .get(pending.user.id) as { totp_secret: string | null; totp_enabled: number } | undefined;
+
+      const ok =
+        Boolean(factor) &&
+        Number(factor!.totp_enabled) === 1 &&
+        Boolean(factor!.totp_secret) &&
+        verifyTotp(factor!.totp_secret!, code);
+      if (!ok) {
+        writeAudit(pending.user.email, 'admin.login.2fa.failed', { ip: request.ip });
+        request.log.warn({ email: pending.user.email, ip: request.ip }, '2FA-Code ungültig');
+        reply.code(401);
+        return render(reply, 'admin/login-2fa.njk', {
+          email: pending.user.email,
+          weiter,
+          error: 'Der Code ist ungültig oder abgelaufen. Bitte einen neuen Code eingeben.',
+        });
+      }
+
+      destroySessionById(pending.id);
+      clearPendingCookie(reply);
+      const session = createSession(pending.user.id);
+      setSessionCookie(reply, request, session.id);
+      writeAudit(pending.user.email, 'admin.login.2fa', { ip: request.ip });
+      request.log.info({ email: pending.user.email, ip: request.ip }, 'Admin mit 2FA angemeldet');
       return reply.redirect(weiter, 303);
     },
   );
@@ -2142,7 +2225,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         calculatorPreview: imagePreview(settings.images.calculator || 'calculator', 480),
         galleryIsDefault: galleryKeys === null,
         galleryRemaining: Math.max(0, 8 - (galleryKeys?.length ?? 0)),
-        galleryItems: (galleryKeys ?? []).map((key) => ({ key, preview: imagePreview(key, 320) })),
+        galleryItems: (galleryKeys ?? []).map((key) => ({
+          key,
+          preview: imagePreview(key, 320),
+          alt: settings.images.galleryAlt[key] ?? '',
+        })),
       }));
     });
 
@@ -2364,6 +2451,62 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
       saveSiteImages(images);
       writeAudit(request.admin?.email ?? 'admin', 'site.images.remove', { slot });
+      return reply.redirect('/admin/stammdaten/?gespeichert=1', 303);
+    });
+
+    // Galerie: Reihenfolge, Alternativtexte und Entfernen einzelner Bilder.
+    scope.post('/admin/stammdaten/galerie/', async (request, reply) => {
+      const body = bodyObject(request);
+      const current = getSiteSettings().images;
+      const gallery = current.gallery === null ? [] : [...current.gallery];
+      const alts: Record<string, string> = { ...(current.galleryAlt ?? {}) };
+
+      const removeKey = cleanText(body.removeKey, 300);
+      if (removeKey) {
+        const index = gallery.indexOf(removeKey);
+        if (index >= 0) {
+          deleteProductImageFiles(removeKey);
+          gallery.splice(index, 1);
+        }
+        delete alts[removeKey];
+        saveSiteImages({ ...current, gallery, galleryAlt: alts });
+        writeAudit(request.admin?.email ?? 'admin', 'site.gallery.remove', { key: removeKey });
+        return reply.redirect('/admin/stammdaten/?gespeichert=1', 303);
+      }
+
+      // Alternativtexte werden über key-N/alt-N zugeordnet, damit sie beim
+      // Umsortieren mit dem jeweiligen Bild wandern.
+      for (let index = 0; index < gallery.length; index += 1) {
+        const key = cleanText(body[`key-${index}`], 300);
+        if (!key || !gallery.includes(key)) continue;
+        const alt = cleanText(body[`alt-${index}`], 200);
+        if (alt) alts[key] = alt;
+        else delete alts[key];
+      }
+
+      let ordered = gallery;
+      const rawOrder = cleanText(body.order, 5000);
+      if (rawOrder) {
+        try {
+          const parsed: unknown = JSON.parse(rawOrder);
+          if (
+            Array.isArray(parsed) &&
+            parsed.length === gallery.length &&
+            parsed.every((key) => typeof key === 'string' && gallery.includes(key)) &&
+            new Set(parsed).size === gallery.length
+          ) {
+            ordered = parsed as string[];
+          }
+        } catch {
+          // Ungültige Reihenfolge ignorieren; die aktuelle Reihenfolge bleibt erhalten.
+        }
+      }
+
+      saveSiteImages({ ...current, gallery: ordered, galleryAlt: alts });
+      writeAudit(request.admin?.email ?? 'admin', 'site.gallery.update', {
+        images: ordered.length,
+        altTexts: Object.keys(alts).length,
+      });
       return reply.redirect('/admin/stammdaten/?gespeichert=1', 303);
     });
 
@@ -3173,6 +3316,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
       const settings: NotificationSettings = {
         channel,
+        copyCustomerMails: body.copyCustomerMails === '1' || body.copyCustomerMails === 'on',
         smtp: {
           host: cleanText(body.smtpHost, 200),
           port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 587,
@@ -3279,9 +3423,23 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       return reply.redirect('/admin/preise/?zurueckgesetzt=1', 303);
     });
 
-    // Passwort ------------------------------------------------------------
+    // Passwort und Zwei-Faktor-Authentifizierung ---------------------------
     scope.get('/admin/passwort/', async (request, reply) => {
-      render(reply, 'admin/password.njk', adminContext(request, {}));
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+      const row = db()
+        .prepare('SELECT totp_secret, totp_enabled FROM users WHERE id = ?')
+        .get(session.user.id) as { totp_secret: string | null; totp_enabled: number } | undefined;
+      const secret = row?.totp_secret ?? '';
+      const enabled = Boolean(row && Number(row.totp_enabled) === 1 && secret);
+      const setupPending = !enabled && Boolean(secret);
+      const qrDataUrl =
+        setupPending && secret
+          ? await QRCode.toDataURL(totpUri(secret, session.user.email), { margin: 1, width: 220 })
+          : '';
+      render(reply, 'admin/password.njk', adminContext(request, {
+        twoFactor: { enabled, setupPending, secret, qrDataUrl },
+      }));
     });
 
     scope.post('/admin/passwort/', async (request, reply) => {
@@ -3295,11 +3453,12 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const row = db().prepare('SELECT password_hash FROM users WHERE id = ?').get(session.user.id) as
         | { password_hash: string }
         | undefined;
-      const fail = (message: string) => {
-        reply.code(400);
-        return render(reply, 'admin/password.njk', adminContext(request, { error: message }));
+      const fail = (message: string): void => {
+        reply.redirect(`/admin/passwort/?fehler=${encodeURIComponent(message)}`, 303);
       };
-      if (!row || !(await verifyPassword(row.password_hash, current))) return fail('Das aktuelle Passwort ist nicht korrekt.');
+      if (!row || !(await verifyPassword(row.password_hash, current))) {
+        return fail('Das aktuelle Passwort ist nicht korrekt.');
+      }
       if (next.length < 12) return fail('Das neue Passwort muss mindestens 12 Zeichen lang sein.');
       if (next !== repeat) return fail('Die beiden neuen Passwörter stimmen nicht überein.');
 
@@ -3307,6 +3466,66 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       db().prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(hash, session.user.id);
       db().prepare('DELETE FROM sessions WHERE user_id = ? AND id <> ?').run(session.user.id, session.id);
       writeAudit(session.user.email, 'admin.password.change', { ip: request.ip });
+      return reply.redirect('/admin/passwort/?gespeichert=1', 303);
+    });
+
+    scope.post('/admin/passwort/2fa/start/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+      const secret = generateTotpSecret();
+      db()
+        .prepare("UPDATE users SET totp_secret = ?, totp_enabled = 0, updated_at = datetime('now') WHERE id = ?")
+        .run(secret, session.user.id);
+      writeAudit(session.user.email, 'admin.2fa.setup', { ip: request.ip });
+      return reply.redirect('/admin/passwort/?2fa=setup', 303);
+    });
+
+    scope.post('/admin/passwort/2fa/aktivieren/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+      const body = bodyObject(request);
+      const code = cleanText(body.code, 20).replace(/\s+/g, '');
+      const row = db()
+        .prepare('SELECT totp_secret, totp_enabled FROM users WHERE id = ?')
+        .get(session.user.id) as { totp_secret: string | null; totp_enabled: number } | undefined;
+      if (!row?.totp_secret) {
+        return reply.redirect(
+          `/admin/passwort/?fehler=${encodeURIComponent('Bitte starten Sie die Einrichtung erneut.')}`,
+          303,
+        );
+      }
+      if (!verifyTotp(row.totp_secret, code)) {
+        writeAudit(session.user.email, 'admin.2fa.activate.failed', { ip: request.ip });
+        return reply.redirect(
+          `/admin/passwort/?fehler=${encodeURIComponent('Der Code ist ungültig. Bitte prüfen Sie die Uhrzeit und versuchen Sie es erneut.')}`,
+          303,
+        );
+      }
+      db()
+        .prepare("UPDATE users SET totp_enabled = 1, updated_at = datetime('now') WHERE id = ?")
+        .run(session.user.id);
+      writeAudit(session.user.email, 'admin.2fa.enabled', { ip: request.ip });
+      return reply.redirect('/admin/passwort/?gespeichert=1', 303);
+    });
+
+    scope.post('/admin/passwort/2fa/deaktivieren/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+      const body = bodyObject(request);
+      const password = typeof body.currentPassword === 'string' ? body.currentPassword : '';
+      const row = db().prepare('SELECT password_hash FROM users WHERE id = ?').get(session.user.id) as
+        | { password_hash: string }
+        | undefined;
+      if (!row || !(await verifyPassword(row.password_hash, password))) {
+        return reply.redirect(
+          `/admin/passwort/?fehler=${encodeURIComponent('Das aktuelle Passwort ist nicht korrekt.')}`,
+          303,
+        );
+      }
+      db()
+        .prepare("UPDATE users SET totp_secret = NULL, totp_enabled = 0, updated_at = datetime('now') WHERE id = ?")
+        .run(session.user.id);
+      writeAudit(session.user.email, 'admin.2fa.disabled', { ip: request.ip });
       return reply.redirect('/admin/passwort/?gespeichert=1', 303);
     });
   });

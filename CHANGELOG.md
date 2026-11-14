@@ -3,6 +3,26 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.17] – 2026-11-14
+
+### Hinzugefügt
+
+- **Galerieverwaltung:** Reihenfolge per Drag & Drop oder Pfeiltasten ändern,
+  Alternativtexte pro Bild pflegen; die Texte erscheinen auf der Startseite.
+- **Bildzuschnitt im Modal:** Ausschnitt verschieben und an den Ecken
+  verkleinern, zurücksetzen; ohne Änderung wird das Original verwendet.
+- **Kopie von Kunden-E-Mails:** Checkbox unter **Benachrichtigungen**, um
+  Bestell- und Angebotsbestätigungen als BCC an den Betreiber zu senden.
+- **TOTP-2FA:** Einrichtung mit QR-Code unter **Passwort und Sicherheit**;
+  beim Login ist zusätzlich ein 6-stelliger Code erforderlich.
+- **Uptime-Check:** systemd-Timer prüft alle fünf Minuten `/api/health` und
+  benachrichtigt über den gewählten Kanal, inklusive Entwarnung.
+
+### Geändert
+
+- Offene-Fragen-Dokumentation: auf dem Produktivserver erledigte Punkte
+  (DNS/TLS, Bankverbindung, SMTP, Telegram, Port, Hosting/AVV) nachgetragen.
+
 ## [1.0.0-rc.16] – 2026-11-14
 
 ### Hinzugefügt
@@ -284,6 +304,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.17]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.17
 [1.0.0-rc.16]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.16
 [1.0.0-rc.15]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.15
 [1.0.0-rc.14]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.14

@@ -21,18 +21,18 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 
 | Bereich | Status | Kurzbemerkung |
 | --- | --- | --- |
-| Zahlungsarten | 🟡 In Arbeit | Testmodus und alle Methoden geprüft; Bankdaten und Live-Schaltung offen |
+| Zahlungsarten | 🟡 In Arbeit | Bankdaten und Methoden auf Prod eingerichtet; Stripe-Live-Schaltung offen |
 | Kontakt/Spam-Schutz | 🟡 In Arbeit | Antworten und IP-basierte Länderprüfung umgesetzt; Allowlist bestätigen |
-| Benachrichtigungen | 🟡 In Arbeit | Admin/Setup vorhanden; SMTP- und Telegram-Daten offen |
+| Benachrichtigungen | ✅ Erledigt | SMTP und Telegram auf Prod eingerichtet; Kanal und Kopieoption im Admin wählbar |
 | Kategorien | ✅ Erledigt | Verwaltung, Mehrfachzuordnung und Shop-Filter umgesetzt |
 | Veröffentlichung | ✅ Erledigt | Platzhalter-Hinweise im Admin schaltbar |
 | Etsy-Import | 🟡 In Arbeit | CSV-Import umgesetzt und 13 Produkte übernommen; API wartet auf Etsy-Freigabe |
 | Installation/Deployment | ✅ Erledigt | Installationsanleitung und interaktives Setup-Menü vorhanden |
 | Preise/Kalkulation | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
 | Versand | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
-| DNS/TLS | 🔴 Offen | Domain zeigt noch auf WordPress; TLS nicht aktiv |
+| DNS/TLS | ✅ Erledigt | Laut Betreiber auf dem Produktivserver erledigt |
 | Rechtstexte | 🔴 Offen | Entwürfe vorhanden; rechtliche Prüfung offen |
-| Betrieb/Backup | 🟡 In Arbeit | Backup-Skripte vorhanden; externes Ziel/Monitoring offen |
+| Betrieb/Backup | 🟡 In Arbeit | Uptime-Check eingerichtet; externes Backup-Ziel offen |
 
 ---
 
@@ -61,7 +61,7 @@ Die Altseite nennt Kreditkarte, Überweisung, Nachnahme, PayPal, iDEAL und Klarn
 | F10 | ✅ Erledigt | **Entschieden:** PayPal läuft über Stripe. Das bestehende PayPal-Business-Konto wird für diese Shop-Zahlungen nicht genutzt; direkte PayPal-Anbindung bleibt Option für später. Nachweis: Stripe-Test.<br>*(13.11.2026)* |
 | F11 | 🟡 In Arbeit | **Entschieden:** Stripe Checkout für Karte, PayPal, Amazon Pay, Klarna und iDEAL. Testkonto und Testschlüssel sind eingerichtet, die Zahlungsarten sind freigeschaltet. Offen: Live-Verifizierung und Live-Webhook. |
 | F12 | ✅ Erledigt | **Entschieden:** Nachnahme zum Start nicht. Die alte Gebühr (1,00 € + 8,99 €) wird nicht übernommen.<br>*(13.11.2026)* |
-| F13 | 🔴 Offen | Bankverbindung (IBAN, BIC, Kontoinhaber) unter **Admin → Zahlungen** eintragen – nicht per E-Mail oder ins Repository. |
+| F13 | ✅ Erledigt | **Erledigt:** Bankverbindung laut Betreiber auf dem Produktivserver unter **Admin → Zahlungen** hinterlegt.<br>*(14.11.2026)* |
 | F68 | 🟡 In Arbeit | **Livegang von Stripe:** Testmodus läuft. Offen: Live-Schlüssel (`sk_live_…`), Live-Webhook-Secret, finaler `PAYMENT_BASE_URL` und eine echte Live-Testzahlung. |
 
 ## 3. Versand ✅
@@ -84,12 +84,12 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 
 | Nr. | Status | Frage / Entscheidung |
 | --- | --- | --- |
-| F21 | 🟡 In Arbeit | SMTP-Host, Port, Verschlüsselung (STARTTLS/SSL) und Postfach (z. B. `info@3d-mir.de`). Die Maske ist vorhanden; Zugangsdaten fehlen. |
+| F21 | ✅ Erledigt | **Erledigt:** SMTP-Zugang laut Betreiber auf dem Produktivserver eingerichtet.<br>*(14.11.2026)* |
 | F22 | ✅ Erledigt | **Entschieden:** Ja, es gibt eine interaktive Maske im Setup-Menü und im Admin. Zugangsdaten werden nicht im Repository gespeichert. Nachweis: Commit `a1234d2`.<br>*(13.11.2026)* |
-| F23 | 🟡 In Arbeit | Absender und Betreiber-Postfach sind aktuell `MAIL_FROM=3D-MIR <info@3d-mir.de>` und `MAIL_TO=info@3d-mir.de`. Bitte bestätigen oder korrigieren. |
-| F24 | 🔴 Offen | Sollen Kunden-E-Mails (Bestellbestätigung, Angebot) zusätzlich eine Kopie an den Betreiber erhalten? Aktuell nein. |
-| F69 | 🟡 In Arbeit | **Telegram:** Bot-Token und Chat-ID unter **Admin → Benachrichtigungen** eintragen und Testnachricht senden. Die Integration ist vorhanden; Zugangsdaten fehlen. |
-| F70 | 🔴 Offen | **Standardkanal** für Admin-Benachrichtigungen: nur E-Mail, nur Telegram oder beides? Aktuell ist „nur E-Mail“ voreingestellt. |
+| F23 | ✅ Erledigt | Absender und Betreiber-Postfach sind auf dem Produktivserver eingerichtet und bestätigt.<br>*(14.11.2026)* |
+| F24 | ✅ Erledigt | **Umgesetzt:** Checkbox unter **Admin → Benachrichtigungen**; Kunden-E-Mails können als BCC an das Betreiber-Postfach gehen.<br>*(14.11.2026)* |
+| F69 | ✅ Erledigt | **Erledigt:** Telegram ist laut Betreiber auf dem Produktivserver eingerichtet.<br>*(14.11.2026)* |
+| F70 | ✅ Erledigt | Der Kanal lässt sich unter **Admin → Benachrichtigungen** wählen (E-Mail, Telegram oder beides).<br>*(14.11.2026)* |
 | F71 | 🔴 Offen | **Ereignisse für Telegram:** Aktuell neue Bestellung, Kontaktanfrage, Angebotsanfrage, Zahlungseingang und Zahlung nach Stornierung. Statusänderungen an Kunden laufen weiterhin nur per E-Mail. Soll das erweitert werden? |
 
 ## 5. GitHub und Deployment 🟢
@@ -101,16 +101,16 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | F27 | 🟡 In Arbeit | Sichtbarkeit des Repositories (privat/öffentlich) bestätigen. Der Push funktioniert unabhängig davon. |
 | F28 | 🟡 In Arbeit | **Produktionsserver:** `kap-srv` mit weiteren Web-Apps. Bitte bestätigen, ob dies die endgültige Maschine ist und welcher Portbereich für 3D-MIR reserviert werden soll. |
 | F29 | 🟡 In Arbeit | Gibt es einen Staging-/Testserver? Aktuell nicht dokumentiert. |
-| F72 | 🟡 In Arbeit | **Port auf `kap-srv`:** Der Installer prüft die Belegung und wählt bei freier Wahl automatisch einen Port im Bereich 3000–3099. Soll ein fester Port reserviert werden? |
+| F72 | ✅ Erledigt | **Erledigt:** Portkonflikt auf dem Produktivserver laut Betreiber behoben.<br>*(14.11.2026)* |
 
 ## 6. Domain, DNS und TLS 🔴
 
 | Nr. | Status | Frage |
 | --- | --- | --- |
-| F30 | 🔴 Offen | Wo liegen DNS und Mail? Aktuell zeigt `www.3d-mir.de` auf die alte WordPress-Installation. |
-| F31 | 🔴 Offen | Auf welche IP soll `3d-mir.de`/`www.3d-mir.de` zeigen? (Bitte erst umstellen, wenn die neue Seite getestet ist – Anleitung in `docs/INSTALLATION.md`.) |
-| F32 | 🔴 Offen | E-Mail-Adresse für Let's-Encrypt-Benachrichtigungen (vermutlich `info@3d-mir.de`)? |
-| F33 | 🔴 Offen | Soll `3d-mir.de` auf `www.3d-mir.de` (oder umgekehrt) weiterleiten? |
+| F30 | ✅ Erledigt | DNS und Mail liegen laut Betreiber auf dem Produktivserver; die Domain zeigt auf die neue Anwendung.<br>*(14.11.2026)* |
+| F31 | ✅ Erledigt | **Erledigt:** Domain zeigt laut Betreiber auf den Produktivserver.<br>*(14.11.2026)* |
+| F32 | ✅ Erledigt | **Erledigt:** TLS ist auf dem Produktivserver eingerichtet.<br>*(14.11.2026)* |
+| F33 | ✅ Erledigt | **Erledigt:** Weiterleitung ist auf dem Produktivserver eingerichtet.<br>*(14.11.2026)* |
 
 ## 7. Inhalte, Bilder und Marke 🟡
 
@@ -154,7 +154,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | Nr. | Status | Frage |
 | --- | --- | --- |
 | F54 | 🔴 Offen | Wer prüft die Rechtstexte (Anwalt/Steuerberater)? Die Texte sind als technische Entwürfe markiert und müssen vor dem Livegang freigegeben werden. |
-| F55 | 🔴 Offen | Hosting: Ist dieser Server ein gemieteter Root-Server? Bitte Anbieter und Anschrift für die Datenschutzerklärung (AVV mit dem Hoster nötig). |
+| F55 | ✅ Erledigt | **Erledigt:** Hosting-Anbieter, Anschrift und AVV sind laut Betreiber geklärt.<br>*(14.11.2026)* |
 | F56 | ✅ Erledigt | **Entschieden:** Die Abschnitte zu Google Analytics/AdSense wurden entfernt. Die neue Seite setzt kein Tracking ein.<br>*(13.11.2026)* |
 | F57 | 🟡 In Arbeit | **Überarbeitet:** AGB zu Vertragsschluss, Preisen, Versand, Zahlung, Widerruf, Eigentumsvorbehalt, Gewährleistung, 3D-Druck, Datenschutz und Streitbeilegung. Offen: rechtliche Prüfung. |
 | F58 | ✅ Erledigt | **Umgesetzt:** Widerrufsbelehrung enthält den Ausschluss für Sonderanfertigungen; Muster-Widerrufsformular als PDF unter `/widerruf/formular.pdf`. Die rechtliche Gesamtprüfung bleibt F54.<br>*(14.11.2026)* |
@@ -167,9 +167,9 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | --- | --- | --- |
 | F61 | 🔴 Offen | Tägliches Backup: nur lokal unter `/var/lib/3d-mir/backups` oder zusätzlich extern (z. B. Hetzner Storage Box/S3)? |
 | F62 | 🟡 In Arbeit | Aufbewahrungsdauer für Bestellungen/Rechnungen (steuerlich 10 Jahre) und für Angebotsanfragen? |
-| F63 | 🔴 Offen | Soll die Admin-Anmeldung zusätzlich per TOTP-2FA abgesichert werden? Das Datenfeld ist vorbereitet, 2FA ist noch nicht aktiviert. |
+| F63 | ✅ Erledigt | **Umgesetzt:** TOTP-2FA unter **Admin → Passwort und Sicherheit** einrichtbar und beim Login verpflichtend. PassKeys sind nicht enthalten, könnten später ergänzt werden.<br>*(14.11.2026)* |
 | F64 | ✅ Erledigt | **Erledigt:** Der Admin-Zugang des Betreibers ist eingerichtet. Offen: Sollen weitere Personen Zugang erhalten? Zugänge werden mit `npm run admin:create -- --email … --name …` angelegt; Passwörter werden nie im Repo gespeichert.<br>*(13.11.2026)* |
-| F65 | 🔴 Offen | Soll ein Monitoring/Alerting (z. B. Uptime-Check) eingerichtet werden? |
+| F65 | ✅ Erledigt | **Umgesetzt:** systemd-Timer prüft alle fünf Minuten `/api/health` und benachrichtigt über den gewählten Kanal; Wiederherstellung wird ebenfalls gemeldet.<br>*(14.11.2026)* |
 
 ---
 
@@ -189,13 +189,13 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 
 ## 13. Nächste Schritte bis zum Livegang
 
-1. **Zahlung live schalten:** F13 (Bankverbindung) und F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test).
-2. **Benachrichtigungen einrichten:** F21–F24, F69–F71 (SMTP, Telegram, Kanal und Ereignisse).
+1. **Zahlung live schalten:** F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test); Bankverbindung ist auf Prod hinterlegt.
+2. **Benachrichtigungen prüfen:** Test-E-Mail und Test-Telegram im Admin senden; über die Kopieoption (F24) entscheiden.
 3. **Kontakt-Spam-Schutz bestätigen:** F76 (erlaubte Länder) prüfen; GeoIP-Datenbank mit `deploy/update-geoip.sh` installieren und monatlich aktualisieren; Antworten und Prüfmodus im Admin testen.
-4. **DNS, TLS und Port:** F30–F33 (Domain, certbot, kanonische www-Variante) und F72 (reservierter Port auf dem Shared Server).
-5. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
-6. **Betrieb absichern:** F61–F65 (externes Backup, Aufbewahrung, 2FA, Monitoring).
-7. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
+4. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
+5. **Betrieb absichern:** F61 (externes Backup-Ziel) und F62 (Aufbewahrung); Monitoring und TOTP-2FA sind umgesetzt.
+6. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
+7. **Shop live schalten:** F67 und Veröffentlichung im Admin erst nach rechtlicher Freigabe.
 
 ---
 

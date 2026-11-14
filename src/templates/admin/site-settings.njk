@@ -190,20 +190,34 @@
     {% if galleryIsDefault %}
       <p class="text-muted">Aktuell wird die mitgelieferte Standardgalerie mit acht Bildern verwendet. Eigene Bilder ersetzen die Standardgalerie.</p>
     {% elif galleryItems.length > 0 %}
-      <p class="text-muted">{{ galleryItems.length }} von 8 eigenen Galeriebildern hinterlegt.</p>
-      <div class="admin-image-grid">
-        {% for item in galleryItems %}
-          <figure class="admin-image-card">
-            <img src="{{ item.preview }}" alt="Galeriebild {{ loop.index }}">
-            <form method="post" action="/admin/stammdaten/bilder/entfernen/">
-              <input type="hidden" name="_csrf" value="{{ csrf }}">
-              <input type="hidden" name="slot" value="gallery">
-              <input type="hidden" name="index" value="{{ loop.index0 }}">
-              <button class="btn btn-danger btn-small" type="submit">Entfernen</button>
-            </form>
-          </figure>
-        {% endfor %}
-      </div>
+      <p class="text-muted">{{ galleryItems.length }} von 8 eigenen Galeriebildern hinterlegt. Reihenfolge per Ziehen am Griff oder mit den Pfeiltasten ändern; Alternativtexte werden auf der Startseite für Screenreader und Suchmaschinen verwendet.</p>
+      <form method="post" action="/admin/stammdaten/galerie/" class="admin-gallery-form" data-gallery-order-form>
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="order" value="" data-gallery-order>
+        <div class="admin-gallery-list" data-gallery-order-list>
+          {% for item in galleryItems %}
+            <div class="admin-gallery-item" data-gallery-item data-key="{{ item.key }}">
+              <span class="admin-gallery-handle" draggable="true" data-gallery-handle title="Zum Verschieben ziehen" aria-hidden="true">
+                <svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path fill="currentColor" d="M5 3h2v2H5V3Zm4 0h2v2H9V3ZM5 7h2v2H5V7Zm4 0h2v2H9V7Zm-4 4h2v2H5v-2Zm4 0h2v2H9v-2Z"/></svg>
+              </span>
+              <img src="{{ item.preview }}" alt="Galeriebild {{ loop.index }}">
+              <div class="admin-gallery-fields">
+                <label for="galleryAlt{{ loop.index0 }}">Alternativtext</label>
+                <input id="galleryAlt{{ loop.index0 }}" name="alt-{{ loop.index0 }}" type="text" maxlength="200" value="{{ item.alt }}" placeholder="Beschreibung des Bildes">
+                <input type="hidden" name="key-{{ loop.index0 }}" value="{{ item.key }}">
+              </div>
+              <div class="admin-gallery-actions">
+                <button type="button" class="btn btn-secondary btn-small" data-gallery-up aria-label="Galeriebild nach oben verschieben" title="Nach oben">↑</button>
+                <button type="button" class="btn btn-secondary btn-small" data-gallery-down aria-label="Galeriebild nach unten verschieben" title="Nach unten">↓</button>
+                <button type="submit" name="removeKey" value="{{ item.key }}" class="btn btn-danger btn-small" formnovalidate>Entfernen</button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Reihenfolge und Alternativtexte speichern</button>
+        </div>
+      </form>
       <form method="post" action="/admin/stammdaten/bilder/entfernen/" class="mt-2">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <input type="hidden" name="slot" value="gallery">
@@ -284,6 +298,25 @@
           <p class="hint"><span data-accept-label>JPG, PNG, WebP oder AVIF</span> &middot; max. <span data-max-label>12 MB</span></p>
         </div>
         <div class="admin-selection" data-selection hidden></div>
+        <div class="admin-crop" data-crop hidden>
+          <div class="admin-crop-head">
+            <span class="text-muted" data-crop-name></span>
+            <button type="button" class="btn btn-secondary btn-small" data-crop-clear>Anderes Bild</button>
+          </div>
+          <div class="admin-crop-stage" data-crop-stage>
+            <img data-crop-image alt="Vorschau mit Zuschnitt">
+            <div class="admin-crop-box" data-crop-box>
+              <span class="admin-crop-handle" data-crop-handle="nw"></span>
+              <span class="admin-crop-handle" data-crop-handle="ne"></span>
+              <span class="admin-crop-handle" data-crop-handle="sw"></span>
+              <span class="admin-crop-handle" data-crop-handle="se"></span>
+            </div>
+          </div>
+          <div class="admin-crop-actions">
+            <button type="button" class="btn btn-secondary btn-small" data-crop-reset>Ausschnitt zurücksetzen</button>
+            <span class="hint">Ziehen zum Verschieben, an den Ecken ziehen zum Verkleinern.</span>
+          </div>
+        </div>
         <div class="alert alert-danger" data-modal-error hidden role="alert"><p></p></div>
         <div class="upload-progress" data-upload-progress hidden>
           <progress max="100" value="0" data-upload-bar></progress>

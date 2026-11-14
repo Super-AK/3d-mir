@@ -1,0 +1,29 @@
+{% extends "layouts/admin-auth.njk" %}
+
+{% block title %}Bestätigung – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-auth-card card">
+    <a class="admin-auth-brand" href="/">
+      <img src="/assets/img/gen/logo-96.png" alt="" width="44" height="43" decoding="async">
+      <span><strong>3D-MIR</strong><span>Admin-Bereich</span></span>
+    </a>
+    <h1>Anmeldung bestätigen</h1>
+    <p class="text-muted">Für <strong>{{ email }}</strong> ist die Zwei-Faktor-Authentifizierung aktiv. Bitte geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein.</p>
+
+    {% if error %}
+      <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
+    {% endif %}
+
+    <form class="form" method="post" action="/admin/login/2fa/">
+      <input type="hidden" name="weiter" value="{{ weiter }}">
+      <div class="field">
+        <label for="code">Bestätigungscode</label>
+        <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,8}" maxlength="8" required autofocus>
+        <span class="hint">Der Code wechselt alle 30 Sekunden.</span>
+      </div>
+      <button class="btn btn-block" type="submit">Bestätigen</button>
+    </form>
+    <p class="admin-auth-hint text-muted"><small>Falls Sie keinen Zugriff mehr auf Ihre Authenticator-App haben, wenden Sie sich an die Person, die den Admin-Zugang verwaltet.</small></p>
+  </div>
+{% endblock %}

@@ -1,6 +1,6 @@
 {
   "name": "3d-mir",
-  "version": "1.0.0-rc.16",
+  "version": "1.0.0-rc.17",
   "private": true,
   "description": "Webseite und 3D-Druck-Rechner für 3D-MIR 3D-Druck Service",
   "type": "module",
@@ -22,6 +22,7 @@
     "test:e2e": "playwright test",
     "orders:cleanup": "tsx scripts/cleanup-orders.ts",
     "mail:test": "tsx scripts/test-mail.ts",
+    "monitor:check": "node dist/scripts/uptime-check.js",
     "etsy:import": "tsx scripts/import-etsy.ts"
   },
   "dependencies": {
@@ -41,6 +42,7 @@
     "nunjucks": "^3.2.4",
     "pdfkit": "^0.17.2",
     "pino": "^9.14.0",
+    "qrcode": "^1.5.4",
     "sharp": "^0.33.5",
     "three": "^0.187.0",
     "zod": "^3.24.1"
@@ -52,6 +54,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/nunjucks": "^3.2.6",
     "@types/pdfkit": "^0.17.7",
+    "@types/qrcode": "^1.5.6",
     "@types/three": "^0.187.0",
     "subset-font": "^2.9.0",
     "tsx": "^4.19.2",

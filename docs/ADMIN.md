@@ -36,7 +36,12 @@ Unter **Admin → Stammdaten** werden die öffentlichen Geschäftsangaben und Bi
 
 Hochgeladene Logos liegen unter `/var/lib/3d-mir/uploads/site/` und werden über `/site-media/…` ausgeliefert. Hero-, Service-, Material-, Rechner- und Galeriebilder werden wie Produktbilder in AVIF/WebP/JPEG umgewandelt und unter `/media/site/…` bereitgestellt.
 
-Jedes Bild trägt ein Stiftsymbol. Es öffnet ein Modalfenster, in dem die Datei per Klick ausgewählt oder hineingezogen wird. Hochgeladen wird erst mit **Speichern**; während der Übertragung erscheint ein Fortschrittsbalken. Für die Galerie lassen sich mehrere Bilder gleichzeitig auswählen. Die Auswahl wird mit Vorschaubildern angezeigt und kann vor dem Upload einzeln oder komplett geleert werden. **Vorhandene eigene Galerie ersetzen** tauscht die bisherigen Bilder aus. Ist JavaScript deaktiviert, steht ein klassisches Formular im `<noscript>`-Bereich bereit.
+Jedes Bild trägt ein Stiftsymbol. Es öffnet ein Modalfenster, in dem die Datei per Klick ausgewählt oder hineingezogen wird. Hochgeladen wird erst mit **Speichern**; während der Übertragung erscheint ein Fortschrittsbalken.
+
+- **Zuschneiden:** Nach der Auswahl lässt sich der Bildausschnitt direkt im Fenster verschieben und an den Ecken verkleinern. **Ausschnitt zurücksetzen** verwendet wieder das ganze Bild. Wird nichts verschoben, wird die Originaldatei ohne erneute Kodierung hochgeladen.
+- **Galerie:** mehrere Bilder gleichzeitig auswählen, Vorschau prüfen, einzelne Bilder oder die ganze Auswahl entfernen. **Vorhandene eigene Galerie ersetzen** tauscht die bisherigen Bilder aus.
+- **Reihenfolge und Alternativtexte:** In der Galerie-Liste lässt sich die Reihenfolge am Griff per Drag & Drop oder mit den Pfeiltasten ändern. Jedes Bild hat ein Feld für den Alternativtext; gespeichert wird mit **Reihenfolge und Alternativtexte speichern**. Die Texte erscheinen auf der Startseite in `alt` und werden von Screenreadern und Suchmaschinen genutzt.
+- Ist JavaScript deaktiviert, steht ein klassisches Formular im `<noscript>`-Bereich bereit.
 
 Für die Galerie gibt es drei Zustände:
 
@@ -225,6 +230,8 @@ Folgende Felder werden gepflegt:
 
 Das Passwort wird nicht im Klartext angezeigt. Leer lassen, um das gespeicherte Passwort zu behalten.
 
+Mit **Kopie jeder Kunden-E-Mail an das Betreiber-Postfach** gehen Bestellbestätigungen, Angebotsbestätigungen und weitere Kundenmails zusätzlich als BCC an das Betreiber-Postfach. Benachrichtigungen an den Betreiber selbst werden nicht doppelt kopiert.
+
 Ohne SMTP-Konfiguration werden E-Mails als `.eml` unter `/var/log/3d-mir/mail/` gespeichert. Die Werte können auch über die Umgebungsvariablen `SMTP_*`, `MAIL_FROM` und `MAIL_TO` gesetzt werden; Admin-Einstellungen haben Vorrang.
 
 ### Telegram
@@ -336,3 +343,27 @@ Die Dateien liegen unter `/var/lib/3d-mir/uploads/media/products/<produkt-id>/` 
 - CSRF-Token in allen Formularen; Bild-Uploads prüfen das Token aus dem Multipart-Formular.
 - Origin-/Referer-Prüfung, Login-Rate-Limit, Audit-Log.
 - Uploads werden nur als Bild akzeptiert, neu kodiert und ausschließlich aus dem Medien-Unterordner öffentlich ausgeliefert. Hochgeladene 3D-Modelle bleiben privat.
+
+### Zwei-Faktor-Authentifizierung (TOTP)
+
+Unter **Admin → Passwort und Sicherheit** lässt sich TOTP aktivieren:
+
+1. **2FA einrichten** anklicken.
+2. QR-Code mit einer Authenticator-App scannen (alternativ den angezeigten Schlüssel eintragen).
+3. Den 6-stelligen Code eingeben und **2FA aktivieren**.
+4. Beim nächsten Login wird nach dem Passwort zusätzlich der Code verlangt.
+
+Zum Deaktivieren ist das aktuelle Passwort erforderlich. Der Schlüssel liegt in der Datenbank (`users.totp_secret`) und ist damit in Backups enthalten. Bei Verlust der App bleibt nur der Zugang über die Serververwaltung.
+
+## Monitoring
+
+Ein systemd-Timer prüft alle fünf Minuten `http://127.0.0.1:<PORT>/api/health`:
+
+```bash
+systemctl status 3d-mir-monitor.timer
+systemctl list-timers '3d-mir-*'
+journalctl -u 3d-mir-monitor.service -n 20
+npm run monitor:check        # manueller Lauf
+```
+
+Bei einem Ausfall wird der Betreiber über den unter **Benachrichtigungen** gewählten Kanal informiert; nach der Wiederherstellung folgt eine Entwarnung. Erneute Erinnerungen während eines anhaltenden Ausfalls werden höchstens alle sechs Stunden versendet. Der Zustand liegt unter `<DATA_DIR>/monitor-state.json`.

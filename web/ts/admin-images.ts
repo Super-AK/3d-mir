@@ -164,7 +164,7 @@ function uploadFiles(options: {
   request.send(data);
 }
 
-/** Modalfenster für ein einzelnes Bild (Logo, Hero, Service, Material, Rechner). */
+/** Modalfenster für ein einzelnes Bild inklusive Zuschnitt. */
 function initImageModal(): void {
   const dialog = document.querySelector<HTMLDialogElement>('[data-image-modal]');
   if (!dialog) return;
@@ -174,7 +174,13 @@ function initImageModal(): void {
   const title = dialog.querySelector<HTMLElement>('[data-image-modal-title]');
   const zone = dialog.querySelector<HTMLElement>('[data-dropzone]');
   const input = dialog.querySelector<HTMLInputElement>('[data-file-input]');
-  const selection = dialog.querySelector<HTMLElement>('[data-selection]');
+  const crop = dialog.querySelector<HTMLElement>('[data-crop]');
+  const cropStage = dialog.querySelector<HTMLElement>('[data-crop-stage]');
+  const cropImage = dialog.querySelector<HTMLImageElement>('[data-crop-image]');
+  const cropBox = dialog.querySelector<HTMLElement>('[data-crop-box]');
+  const cropName = dialog.querySelector<HTMLElement>('[data-crop-name]');
+  const cropClear = dialog.querySelector<HTMLButtonElement>('[data-crop-clear]');
+  const cropReset = dialog.querySelector<HTMLButtonElement>('[data-crop-reset]');
   const errorBox = dialog.querySelector<HTMLElement>('[data-modal-error]');
   const progress = dialog.querySelector<HTMLElement>('[data-upload-progress]');
   const bar = dialog.querySelector<HTMLProgressElement>('[data-upload-bar]');
@@ -184,26 +190,65 @@ function initImageModal(): void {
   const maxLabel = dialog.querySelector<HTMLElement>('[data-max-label]');
   const csrf = form?.querySelector<HTMLInputElement>('input[name="_csrf"]');
 
-  if (!form || !slotField || !title || !zone || !input || !selection || !errorBox || !progress || !bar || !status || !save) {
+  if (
+    !form || !slotField || !title || !zone || !input || !crop || !cropStage || !cropImage ||
+    !cropBox || !cropName || !cropClear || !cropReset || !errorBox || !progress || !bar ||
+    !status || !save
+  ) {
     return;
   }
 
-  let files: File[] = [];
+  let file: File | null = null;
+  let objectUrl = '';
   let accepted = parseAccept(IMAGE_ACCEPT);
   let maxBytes = MAX_IMAGE_BYTES;
-  let objectUrls: string[] = [];
+  let dirty = false;
+  let rect = { x: 0, y: 0, w: 0, h: 0 };
 
-  const revokeUrls = (): void => {
-    for (const url of objectUrls) URL.revokeObjectURL(url);
-    objectUrls = [];
+  const revokeUrl = (): void => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = '';
+  };
+
+  const applyRect = (): void => {
+    cropBox.style.left = `${Math.round(rect.x)}px`;
+    cropBox.style.top = `${Math.round(rect.y)}px`;
+    cropBox.style.width = `${Math.round(rect.w)}px`;
+    cropBox.style.height = `${Math.round(rect.h)}px`;
+  };
+
+  const resetRect = (): void => {
+    const width = cropImage.clientWidth;
+    const height = cropImage.clientHeight;
+    if (width === 0 || height === 0) return;
+    rect = { x: 0, y: 0, w: width, h: height };
+    dirty = false;
+    applyRect();
+  };
+
+  const clearFile = (): void => {
+    file = null;
+    revokeUrl();
+    cropImage.removeAttribute('src');
+    crop.hidden = true;
+    zone.classList.remove('has-file');
+    dirty = false;
+  };
+
+  const showFile = (next: File): void => {
+    revokeUrl();
+    file = next;
+    objectUrl = URL.createObjectURL(next);
+    zone.classList.add('has-file');
+    crop.hidden = false;
+    cropName.textContent = `${next.name} · ${formatMegabytes(next.size)}`;
+    cropImage.onload = () => resetRect();
+    cropImage.src = objectUrl;
+    if (cropImage.complete) resetRect();
   };
 
   const reset = (): void => {
-    files = [];
-    revokeUrls();
-    selection.replaceChildren();
-    selection.hidden = true;
-    zone.classList.remove('has-file');
+    clearFile();
     hideError(errorBox);
     progress.hidden = true;
     bar.value = 0;
@@ -211,38 +256,67 @@ function initImageModal(): void {
     save.disabled = false;
   };
 
-  const render = (): void => {
-    revokeUrls();
-    selection.replaceChildren();
-    selection.hidden = files.length === 0;
-    zone.classList.toggle('has-file', files.length > 0);
-    for (const file of files) {
-      const item = document.createElement('figure');
-      item.className = 'admin-selection-item';
+  // Ziehen und Größe ändern im Zuschnitt.
+  const startDrag = (event: PointerEvent, mode: 'move' | string): void => {
+    if (!file || cropImage.clientWidth === 0) return;
+    event.preventDefault();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startRect = { ...rect };
+    const boundsW = cropImage.clientWidth;
+    const boundsH = cropImage.clientHeight;
+    const minSize = 24;
 
-      const image = document.createElement('img');
-      const url = URL.createObjectURL(file);
-      objectUrls.push(url);
-      image.src = url;
-      image.alt = '';
+    const onMove = (moveEvent: PointerEvent): void => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      if (mode === 'move') {
+        rect.x = Math.min(Math.max(0, startRect.x + dx), Math.max(0, boundsW - startRect.w));
+        rect.y = Math.min(Math.max(0, startRect.y + dy), Math.max(0, boundsH - startRect.h));
+      } else {
+        const right = startRect.x + startRect.w;
+        const bottom = startRect.y + startRect.h;
+        if (mode.includes('w')) {
+          const nextX = Math.min(Math.max(0, startRect.x + dx), right - minSize);
+          rect.x = nextX;
+          rect.w = right - nextX;
+        }
+        if (mode.includes('e')) {
+          rect.w = Math.min(Math.max(minSize, startRect.w + dx), boundsW - startRect.x);
+        }
+        if (mode.includes('n')) {
+          const nextY = Math.min(Math.max(0, startRect.y + dy), bottom - minSize);
+          rect.y = nextY;
+          rect.h = bottom - nextY;
+        }
+        if (mode.includes('s')) {
+          rect.h = Math.min(Math.max(minSize, startRect.h + dy), boundsH - startRect.y);
+        }
+      }
+      dirty = true;
+      applyRect();
+    };
 
-      const caption = document.createElement('figcaption');
-      caption.textContent = file.name;
+    const onUp = (): void => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
 
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'admin-selection-remove';
-      remove.setAttribute('aria-label', `${file.name} entfernen`);
-      remove.textContent = '×';
-      remove.addEventListener('click', () => {
-        files = [];
-        render();
-      });
-
-      item.append(image, caption, remove);
-      selection.append(item);
-    }
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   };
+
+  cropBox.addEventListener('pointerdown', (event) => {
+    const target = event.target as HTMLElement;
+    const handle = target.closest<HTMLElement>('[data-crop-handle]');
+    startDrag(event, handle?.dataset.cropHandle ?? 'move');
+  });
+
+  cropReset.addEventListener('click', resetRect);
+  cropClear.addEventListener('click', () => {
+    clearFile();
+    zone.focus();
+  });
 
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-image-edit]')) {
     button.addEventListener('click', () => {
@@ -271,10 +345,7 @@ function initImageModal(): void {
     onFiles: (incoming) => {
       hideError(errorBox);
       const picked = validFiles(incoming, accepted, maxBytes, 1, (message) => showError(errorBox, message));
-      if (picked[0]) {
-        files = [picked[0]];
-        render();
-      }
+      if (picked[0]) showFile(picked[0]);
     },
   });
 
@@ -286,17 +357,64 @@ function initImageModal(): void {
   });
   dialog.addEventListener('close', reset);
 
-  form.addEventListener('submit', (event) => {
+  /** Erzeugt bei geändertem Ausschnitt eine zugeschnittene Datei. */
+  const croppedFile = async (): Promise<File | null> => {
+    if (!file) return null;
+    if (!dirty || rect.w < 1 || rect.h < 1) return file;
+
+    const scale = cropImage.naturalWidth / cropImage.clientWidth || 1;
+    let width = Math.max(1, Math.round(rect.w * scale));
+    let height = Math.max(1, Math.round(rect.h * scale));
+    const limit = 4000;
+    if (width > limit || height > limit) {
+      const factor = limit / Math.max(width, height);
+      width = Math.max(1, Math.round(width * factor));
+      height = Math.max(1, Math.round(height * factor));
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    if (!context) return file;
+    context.drawImage(
+      cropImage,
+      rect.x * scale,
+      rect.y * scale,
+      rect.w * scale,
+      rect.h * scale,
+      0,
+      0,
+      width,
+      height,
+    );
+
+    const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.92));
+    if (!blob) return file;
+    const extension = type === 'image/png' ? '.png' : '.jpg';
+    const name = file.name.replace(/\.[^.]+$/, '') + extension;
+    return new File([blob], name, { type });
+  };
+
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
     hideError(errorBox);
-    if (files.length === 0) {
+    if (!file) {
       showError(errorBox, 'Bitte wählen Sie eine Bilddatei aus.');
       return;
     }
+    save.disabled = true;
     const data = new FormData();
     if (csrf) data.append('_csrf', csrf.value);
     data.append('slot', slotField.value);
-    for (const file of files) data.append(slotField.value, file, file.name);
+    const upload = await croppedFile();
+    if (!upload) {
+      save.disabled = false;
+      showError(errorBox, 'Der Ausschnitt konnte nicht erzeugt werden.');
+      return;
+    }
+    data.append(slotField.value, upload, upload.name);
 
     uploadFiles({ form, data, progress, bar, status, save, errorBox });
   });
@@ -460,5 +578,69 @@ function initGalleryModal(): void {
   });
 }
 
+/** Reihenfolge der vorhandenen Galeriebilder per Drag & Drop oder Pfeilen ändern. */
+function initGalleryOrder(): void {
+  const form = document.querySelector<HTMLFormElement>('[data-gallery-order-form]');
+  const list = document.querySelector<HTMLElement>('[data-gallery-order-list]');
+  const orderInput = document.querySelector<HTMLInputElement>('[data-gallery-order]');
+  if (!form || !list || !orderInput) return;
+
+  const items = (): HTMLElement[] =>
+    Array.from(list.querySelectorAll<HTMLElement>('[data-gallery-item]'));
+  const updateOrder = (): void => {
+    orderInput.value = JSON.stringify(items().map((item) => item.dataset.key ?? ''));
+  };
+
+  let dragged: HTMLElement | null = null;
+
+  for (const handle of list.querySelectorAll<HTMLElement>('[data-gallery-handle]')) {
+    handle.addEventListener('dragstart', (event) => {
+      dragged = handle.closest<HTMLElement>('[data-gallery-item]');
+      if (!dragged) return;
+      dragged.classList.add('is-dragging');
+      event.dataTransfer?.setData('text/plain', dragged.dataset.key ?? '');
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+    });
+    handle.addEventListener('dragend', () => {
+      dragged?.classList.remove('is-dragging');
+      dragged = null;
+      updateOrder();
+    });
+  }
+
+  list.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    if (!dragged) return;
+    const target = (event.target as HTMLElement).closest<HTMLElement>('[data-gallery-item]');
+    if (!target || target === dragged) return;
+    const box = target.getBoundingClientRect();
+    const after = event.clientY > box.top + box.height / 2;
+    list.insertBefore(dragged, after ? target.nextSibling : target);
+  });
+
+  list.addEventListener('drop', (event) => {
+    event.preventDefault();
+    updateOrder();
+  });
+
+  for (const item of items()) {
+    item.querySelector<HTMLButtonElement>('[data-gallery-up]')?.addEventListener('click', () => {
+      const previous = item.previousElementSibling;
+      if (previous) {
+        list.insertBefore(item, previous);
+        updateOrder();
+      }
+    });
+    item.querySelector<HTMLButtonElement>('[data-gallery-down]')?.addEventListener('click', () => {
+      const next = item.nextElementSibling;
+      if (next) {
+        list.insertBefore(next, item);
+        updateOrder();
+      }
+    });
+  }
+}
+
 initImageModal();
 initGalleryModal();
+initGalleryOrder();

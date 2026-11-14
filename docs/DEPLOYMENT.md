@@ -233,6 +233,19 @@ sudo deploy/update-geoip.sh --no-restart # ohne Neustart (z. B. im Wartungsfenst
 
 Quelle ist DB-IP Lite (Lizenz CC BY 4.0). Die vorherige Datei bleibt als `.bak` erhalten. Alternativ steht der Menüpunkt **„GeoIP-Datenbank aktualisieren“** im Setup-Menü (`sudo deploy/setup.sh`) zur Verfügung.
 
+## Monitoring
+
+Der Installer richtet `3d-mir-monitor.timer` ein. Der Timer startet alle fünf Minuten einen Health-Check gegen den Anwendungsport und benachrichtigt über den im Admin gewählten Kanal (E-Mail/Telegram), wenn die Anwendung nicht erreichbar ist oder wieder läuft.
+
+```bash
+systemctl status 3d-mir-monitor.timer
+systemctl list-timers '3d-mir-*'
+journalctl -u 3d-mir-monitor.service -n 50 --no-pager
+npm run monitor:check        # manuell, aus dem Projektverzeichnis
+```
+
+Der Zustand wird unter `/var/lib/3d-mir/monitor-state.json` gespeichert. Während eines anhaltenden Ausfalls wird höchstens alle sechs Stunden erneut erinnert.
+
 ## Backup
 
 ```bash
@@ -328,8 +341,7 @@ sqlite3 /var/lib/3d-mir/db/3d-mir.sqlite 'PRAGMA integrity_check;'
 
 ## Offene Punkte
 
-- DNS-/TLS-Umstellung und kanonische `www`-Variante bestätigen (F30–F33).
-- Externes Backup-Ziel festlegen (F61).
-- SMTP-Zugangsdaten hinterlegen (F21–F24).
-- Stripe-Konto anlegen, Live-Schlüssel und Webhook-Secret hinterlegen (F9–F13).
-- Bankverbindung für Vorkasse im Admin eintragen (F13).
+- Externes Backup-Ziel festlegen (F61) und Aufbewahrung bestätigen (F62).
+- Stripe-Live-Schlüssel, Live-Webhook und Live-Test durchführen (F68).
+- Rechtstexte anwaltlich prüfen lassen (F54–F59).
+- Etsy-API-Freigabe abwarten (F79).

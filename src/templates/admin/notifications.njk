@@ -106,6 +106,10 @@
           <input id="smtpTo" name="smtpTo" type="text" maxlength="300" value="{{ settings.smtp.to }}" placeholder="info@3d-mir.de">
         </div>
       </div>
+      <label class="admin-check">
+        <input type="checkbox" name="copyCustomerMails" value="1" {% if settings.copyCustomerMails %}checked{% endif %}>
+        <span>Kopie jeder Kunden-E-Mail an das Betreiber-Postfach senden (z. B. Bestellbestätigung und Angebotsbestätigung)</span>
+      </label>
     </section>
 
     <section class="card admin-panel">

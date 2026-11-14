@@ -69,10 +69,16 @@ export async function sendMail(options: MailOptions): Promise<{ delivered: boole
   const settings = getNotificationSettings();
   const smtp = settings.smtp;
   const to = options.to ?? smtp.to;
+  // Kunden-E-Mails können optional als Kopie an das Betreiber-Postfach gehen.
+  const bcc =
+    settings.copyCustomerMails && smtp.to && to.trim().toLowerCase() !== smtp.to.trim().toLowerCase()
+      ? smtp.to
+      : undefined;
   const { transporter, usingStream } = getTransporter(smtp);
   const message = {
     from: smtp.from,
     to,
+    bcc,
     subject: options.subject,
     text: options.text,
     html: options.html,

@@ -42,7 +42,8 @@
     "service": "",
     "gallery": null,
     "materials": "",
-    "calculator": ""
+    "calculator": "",
+    "galleryAlt": {}
   },
   "features": {
     "shop": true,

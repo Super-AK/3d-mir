@@ -97,6 +97,10 @@ npm run build || rollback
 
 log "Dienst neu starten"
 systemctl restart "$SERVICE" || rollback
+if [[ -f /etc/systemd/system/3d-mir-monitor.timer ]]; then
+  systemctl daemon-reload
+  systemctl restart 3d-mir-monitor.timer || true
+fi
 
 if health; then
   log "Update erfolgreich. Aktueller Stand:"

@@ -71,6 +71,7 @@ export function applySiteSettings(): void {
           ? overrides.images.gallery
           : null
         : merged.images.gallery,
+      galleryAlt: mergeGalleryAlt(merged.images.galleryAlt, overrides.images.galleryAlt),
     };
   }
 
@@ -87,6 +88,23 @@ export function getSiteSettings(): SiteConfig {
 
 function clean(value: unknown, maxLength: number): string {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
+}
+
+/** Alternativtexte der Galerie: nur nicht-leere Texte, maximal 200 Zeichen. */
+function mergeGalleryAlt(
+  base: Record<string, string> | undefined,
+  override: unknown,
+): Record<string, string> {
+  if (!override || typeof override !== 'object' || Array.isArray(override)) {
+    return { ...(base ?? {}) };
+  }
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(override as Record<string, unknown>)) {
+    const name = clean(key, 300);
+    const alt = clean(value, 200);
+    if (name && alt) result[name] = alt;
+  }
+  return result;
 }
 
 function safeUrl(value: unknown, fallback = ''): string {
@@ -162,6 +180,16 @@ export function saveSiteSettings(input: {
 /** Speichert die im Admin hinterlegten Bilder. */
 export function saveSiteImages(images: SiteConfig['images']): void {
   const current = readOverrides();
+  const gallery = images.gallery === null
+    ? null
+    : images.gallery.map((entry) => clean(entry, 300)).filter(Boolean).slice(0, 8);
+  const allowed = new Set(gallery ?? []);
+  const galleryAlt = Object.fromEntries(
+    Object.entries(images.galleryAlt ?? {})
+      .map(([key, value]) => [clean(key, 300), clean(value, 200)] as const)
+      .filter(([key, value]) => allowed.has(key) && value !== ''),
+  );
+
   writeOverrides({
     ...current,
     images: {
@@ -170,9 +198,8 @@ export function saveSiteImages(images: SiteConfig['images']): void {
       service: clean(images.service, 300),
       materials: clean(images.materials, 300),
       calculator: clean(images.calculator, 300),
-      gallery: images.gallery === null
-        ? null
-        : images.gallery.map((entry) => clean(entry, 300)).filter(Boolean).slice(0, 8),
+      gallery,
+      galleryAlt,
     },
   });
   applySiteSettings();
