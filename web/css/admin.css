@@ -344,3 +344,7 @@
   border: 1px solid var(--border);
   font-size: 0.85rem;
 }
+
+/* Etsy-Import */
+.admin-etsy-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.admin-import-log { max-height: 26rem; overflow: auto; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); font-size: 0.82rem; white-space: pre-wrap; }

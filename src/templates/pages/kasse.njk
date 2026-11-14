@@ -20,7 +20,7 @@
     {% if error %}
       <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
     {% endif %}
-    {% if shopConfig.status == 'PLATZHALTER' %}
+    {% if publication.shopStatus == 'PLATZHALTER' %}
       <div class="alert alert-warning" role="status"><p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p></div>
     {% endif %}
 

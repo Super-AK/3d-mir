@@ -24,7 +24,7 @@
 
 <section class="section product-section">
   <div class="container">
-    {% if shopConfig.status == 'PLATZHALTER' %}
+    {% if publication.shopStatus == 'PLATZHALTER' %}
       <div class="alert alert-warning" role="status">
         <p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p>
       </div>
@@ -78,7 +78,7 @@
       </div>
 
       <div class="product-info">
-        <p class="eyebrow">Aufbewahrung · 3D-Druck</p>
+        <p class="eyebrow">{% if categories.length > 0 %}{{ categories[0].name }}{% else %}3D-Druck{% endif %} · 3D-Druck</p>
         <h1>{{ product.name }}</h1>
         {% if product.sku %}<p class="product-sku">Artikelnummer: {{ product.sku }}</p>{% endif %}
 
@@ -130,6 +130,9 @@
     <aside class="product-specs card">
       <h2>Auf einen Blick</h2>
       <dl>
+        {% if categories.length > 0 %}
+          <div><dt>Kategorie</dt><dd>{% for category in categories %}<a href="/shop/?kategorie={{ category.slug }}">{{ category.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</dd></div>
+        {% endif %}
         {% if product.dimensions %}<div><dt>Maße</dt><dd>{{ product.dimensions }}</dd></div>{% endif %}
         <div><dt>Material</dt><dd>PLA</dd></div>
         <div><dt>Verfahren</dt><dd>FDM-3D-Druck</dd></div>
@@ -156,7 +159,7 @@
       <div class="card">
         <h2>Zahlung</h2>
         <ul class="check-list">
-          {% for method in shopConfig.payment.methods %}
+          {% for method in publicPaymentMethods %}
             <li><strong>{{ method.label }}</strong><br><span class="text-muted">{{ method.note }}</span></li>
           {% endfor %}
         </ul>

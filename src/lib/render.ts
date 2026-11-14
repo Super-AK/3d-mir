@@ -5,6 +5,8 @@ import { config } from '../config.js';
 import { assetCss, assetUrl } from './assets.js';
 import { cartCount, readCart } from './cart.js';
 import { getPricingConfig } from './pricing-config.js';
+import { getPublicPaymentMethods } from './shop-settings.js';
+import { getPublicationSettings } from './publication-settings.js';
 
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
 type ImageInfo = { width: number; height: number; alt: string; variants: ImageVariant[] };
@@ -216,12 +218,17 @@ env.addGlobal('maxUploadMb', Math.round(config.maxUploadBytes / (1024 * 1024)));
 
 export function render(res: import('fastify').FastifyReply, template: string, context: RenderContext = {}): void {
   const pricing = getPricingConfig();
-  const paidShipping = pricing.shipping.methods.filter((method) => method.price > 0).map((method) => method.price);
+  // Abholung (0 €) zählt mit: Der günstigste Versandweg ist dann 0 €.
+  const shippingPrices = pricing.shipping.methods
+    .filter((method) => method.active !== false)
+    .map((method) => method.price);
   const html = env.render(template, {
     currentPath: res.request.url.split('?')[0] ?? '/',
     cartCount: cartCount(readCart(res.request)),
     pricing,
-    shippingFromPrice: paidShipping.length > 0 ? Math.min(...paidShipping) : null,
+    publication: getPublicationSettings(),
+    publicPaymentMethods: getPublicPaymentMethods(),
+    shippingFromPrice: shippingPrices.length > 0 ? Math.min(...shippingPrices) : null,
     ...context,
   });
   res.type('text/html; charset=utf-8').send(html);

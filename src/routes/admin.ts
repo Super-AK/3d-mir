@@ -1,6 +1,8 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import sharp from 'sharp';
 import { z } from 'zod';
@@ -83,8 +85,59 @@ import {
 } from '../lib/contact-settings.js';
 import { contactMailHtml, contactMailText } from '../lib/contact-mail.js';
 import { geoipStatus } from '../lib/geoip.js';
+import {
+  allCategories,
+  categoryIdsForProduct,
+  createCategory,
+  deleteCategory,
+  saveProductCategories,
+  updateCategory,
+} from '../lib/categories.js';
+import {
+  getPublicationSettings,
+  savePublicationSettings,
+  type PublicationSettings,
+} from '../lib/publication-settings.js';
 
 const db = () => getDb();
+
+/**
+ * Führt den Etsy-Import als separaten Prozess aus.
+ *
+ * Der Import lädt viele Bilder und kann einige Minuten dauern; ein eigener
+ * Prozess hält die Webserver-Schleife frei. Es läuft immer nur ein Import.
+ */
+let etsyImportRunning = false;
+
+function runEtsyImport(args: string[], extraEnv: Record<string, string> = {}): Promise<{ ok: boolean; output: string }> {
+  return new Promise((resolve) => {
+    const binary = path.join(config.root, 'node_modules', '.bin', 'tsx');
+    const script = path.join(config.root, 'scripts', 'import-etsy.ts');
+    const child = spawn(binary, [script, ...args], {
+      cwd: config.root,
+      env: { ...process.env, ...extraEnv },
+    });
+    let output = '';
+    const append = (chunk: Buffer): void => {
+      output += chunk.toString();
+      if (output.length > 50_000) output = output.slice(-50_000);
+    };
+    child.stdout.on('data', append);
+    child.stderr.on('data', append);
+    const timer = setTimeout(() => {
+      append(Buffer.from('\nZeitüberschreitung: Import wurde abgebrochen.\n'));
+      child.kill('SIGKILL');
+    }, 15 * 60 * 1000);
+    child.on('error', (error) => {
+      clearTimeout(timer);
+      resolve({ ok: false, output: `${output}\n${error.message}` });
+    });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      resolve({ ok: code === 0, output });
+    });
+  });
+}
 
 const orderStatuses = [
   { id: 'neu', label: 'Neu' },
@@ -297,7 +350,7 @@ function slugify(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 120);
+    .slice(0, 90);
 }
 
 function queryObject(request: FastifyRequest): Record<string, unknown> {
@@ -513,6 +566,13 @@ function productFormFromRow(product: ProductRow): ProductForm {
   };
 }
 
+function productCategoryContext(productId?: number) {
+  return {
+    categoryOptions: allCategories(),
+    categoryIds: productId ? categoryIdsForProduct(productId) : [],
+  };
+}
+
 function readProductForm(body: Record<string, unknown>): ProductForm {
   return {
     name: cleanText(body.name, 200),
@@ -600,11 +660,11 @@ function productExists(slug: string, exceptId?: number): boolean {
 }
 
 function uniqueProductSlug(base: string, exceptId?: number): string {
-  const root = (slugify(base) || 'produkt').slice(0, 105);
+  const root = (slugify(base) || 'produkt').slice(0, 80);
   let slug = root;
   let counter = 2;
   while (productExists(slug, exceptId)) {
-    slug = `${root.slice(0, 100)}-${counter}`;
+    slug = `${root.slice(0, 75)}-${counter}`;
     counter += 1;
   }
   return slug;
@@ -1961,6 +2021,53 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       return reply.redirect('/admin/nachrichten/?geloescht=1', 303);
     });
 
+    // Kategorien ----------------------------------------------------------
+    scope.get('/admin/kategorien/', async (request, reply) => {
+      const counts = db()
+        .prepare('SELECT category_id, COUNT(*) AS count FROM product_category_links GROUP BY category_id')
+        .all() as { category_id: number; count: number }[];
+      const countMap = new Map(counts.map((row) => [row.category_id, row.count]));
+      render(reply, 'admin/categories.njk', adminContext(request, {
+        categories: allCategories().map((category) => ({
+          ...category,
+          productCount: countMap.get(category.id) ?? 0,
+        })),
+      }));
+    });
+
+    scope.post('/admin/kategorien/', async (request, reply) => {
+      const body = bodyObject(request);
+      const result = createCategory(cleanText(body.name, 80), intOrNull(body.sortOrder) ?? 0);
+      if (result.error) {
+        return reply.redirect(`/admin/kategorien/?fehler=${encodeURIComponent(result.error)}`, 303);
+      }
+      writeAudit(request.admin?.email ?? 'admin', 'category.create', { id: result.category?.id, name: result.category?.name });
+      return reply.redirect('/admin/kategorien/?gespeichert=1', 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/kategorien/:id/', async (request, reply) => {
+      const id = Number(request.params.id);
+      if (!Number.isInteger(id)) return adminError(request, reply, 404, 'Diese Kategorie wurde nicht gefunden.');
+      const body = bodyObject(request);
+      const result = updateCategory(id, cleanText(body.name, 80), intOrNull(body.sortOrder) ?? 0);
+      if (result.error) {
+        return reply.redirect(`/admin/kategorien/?fehler=${encodeURIComponent(result.error)}`, 303);
+      }
+      writeAudit(request.admin?.email ?? 'admin', 'category.update', { id });
+      return reply.redirect('/admin/kategorien/?gespeichert=1', 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/kategorien/:id/loeschen/', async (request, reply) => {
+      const id = Number(request.params.id);
+      if (!Number.isInteger(id)) return adminError(request, reply, 404, 'Diese Kategorie wurde nicht gefunden.');
+      const result = deleteCategory(id);
+      if (result.error) {
+        return reply.redirect(`/admin/kategorien/?fehler=${encodeURIComponent(result.error)}`, 303);
+      }
+      writeAudit(request.admin?.email ?? 'admin', 'category.delete', { id });
+      return reply.redirect('/admin/kategorien/?geloescht=1', 303);
+    });
+
     // Produkte ------------------------------------------------------------
     scope.get('/admin/produkte/', async (request, reply) => {
       const products = (
@@ -2175,6 +2282,122 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       return reply.redirect('/admin/produkte/?geloescht=1', 303);
     });
 
+    // Etsy-Import ---------------------------------------------------------
+    scope.get('/admin/produkte/etsy/', async (request, reply) => {
+      render(reply, 'admin/etsy-import.njk', adminContext(request, {}));
+    });
+
+    scope.post('/admin/produkte/etsy/', async (request, reply) => {
+      if (etsyImportRunning) {
+        reply.code(409);
+        return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+          result: { ok: false, output: 'Es läuft bereits ein Import. Bitte warten Sie, bis dieser abgeschlossen ist.' },
+        }));
+      }
+
+      const contentType = String(request.headers['content-type'] ?? '');
+      let mode: 'csv' | 'api' = 'csv';
+      let dryRun = false;
+      let filePath = '';
+      let tempDir = '';
+      let apiKey = '';
+      let shop = '3DlMIR';
+      let error = '';
+
+      try {
+        if (contentType.startsWith('multipart/form-data')) {
+          const session = request.adminSession;
+          if (!session) {
+            reply.code(403);
+            return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+              result: { ok: false, output: 'Die Sitzung ist abgelaufen. Bitte erneut anmelden.' },
+            }));
+          }
+          const fields: Record<string, string> = {};
+          let csv: Buffer | null = null;
+          for await (const part of request.parts()) {
+            if (part.type === 'file') {
+              if (part.fieldname === 'file') csv = await part.toBuffer();
+              else part.file.resume();
+            } else {
+              fields[part.fieldname] = String(part.value ?? '');
+            }
+          }
+          if (!verifyCsrfToken(session, fields._csrf)) {
+            reply.code(403);
+            return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+              result: { ok: false, output: 'Das Formular ist abgelaufen. Bitte die Seite neu laden.' },
+            }));
+          }
+          mode = fields.mode === 'api' ? 'api' : 'csv';
+          dryRun = fields.dryRun === '1' || fields.dryRun === 'on';
+          if (mode === 'csv') {
+            if (!csv || csv.length === 0) {
+              error = 'Bitte eine CSV-Datei auswählen.';
+            } else {
+              tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '3d-mir-etsy-'));
+              filePath = path.join(tempDir, 'listings.csv');
+              fs.writeFileSync(filePath, csv);
+            }
+          } else {
+            apiKey = `${cleanText(fields.apiKey, 120)}:${cleanText(fields.apiSecret, 120)}`;
+            shop = cleanText(fields.shop, 80) || '3DlMIR';
+          }
+        } else {
+          const body = bodyObject(request);
+          mode = body.mode === 'api' ? 'api' : 'csv';
+          dryRun = body.dryRun === '1' || body.dryRun === 'on';
+          apiKey = `${cleanText(body.apiKey, 120)}:${cleanText(body.apiSecret, 120)}`;
+          shop = cleanText(body.shop, 80) || '3DlMIR';
+          if (mode === 'csv') error = 'Bitte die CSV-Datei über das Formular hochladen.';
+        }
+
+        if (error) {
+          reply.code(400);
+          return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+            result: { ok: false, output: error },
+          }));
+        }
+
+        etsyImportRunning = true;
+        const args =
+          mode === 'api'
+            ? ['--api', '--shop', shop]
+            : ['--file', filePath];
+        if (dryRun) args.push('--dry-run');
+
+        const result = await runEtsyImport(args, mode === 'api' ? { ETSY_API_KEY: apiKey } : {});
+        writeAudit(request.admin?.email ?? 'admin', 'products.etsy.import', {
+          mode,
+          dryRun,
+          ok: result.ok,
+          output: result.output.slice(0, 1000),
+        });
+        if (!result.ok) reply.code(400);
+        return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+          result: { ok: result.ok, output: result.output },
+        }));
+      } catch (importError) {
+        request.log.error({ err: importError }, 'Etsy-Import fehlgeschlagen');
+        reply.code(500);
+        return render(reply, 'admin/etsy-import.njk', adminContext(request, {
+          result: {
+            ok: false,
+            output: `Import fehlgeschlagen: ${importError instanceof Error ? importError.message : String(importError)}`,
+          },
+        }));
+      } finally {
+        etsyImportRunning = false;
+        if (tempDir) {
+          try {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          } catch {
+            // Temporäre Dateien sind nicht kritisch.
+          }
+        }
+      }
+    });
+
     scope.get('/admin/produkte/neu/', async (request, reply) => {
       render(reply, 'admin/product.njk', adminContext(request, {
         product: null,
@@ -2182,12 +2405,14 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         variants: [],
         images: [],
         isNew: true,
+        ...productCategoryContext(),
         ...productShippingChoices(),
       }));
     });
 
     scope.post('/admin/produkte/neu/', async (request, reply) => {
-      const form = readProductForm(bodyObject(request));
+      const body = bodyObject(request);
+      const form = readProductForm(body);
       const result = validateProductForm(form);
       if (result.error || !result.data) {
         reply.code(400);
@@ -2197,6 +2422,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: [],
           images: [],
           isNew: true,
+          ...productCategoryContext(),
           ...productShippingChoices(),
           error: result.error ?? 'Bitte prüfen Sie Ihre Angaben.',
         }));
@@ -2209,6 +2435,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: [],
           images: [],
           isNew: true,
+          ...productCategoryContext(),
           ...productShippingChoices(),
           error: 'Dieser Slug wird bereits verwendet.',
         }));
@@ -2236,6 +2463,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           JSON.stringify(data.shippingMethodIds),
           JSON.stringify(data.shippingOptionIds),
         );
+      saveProductCategories(Number(info.lastInsertRowid), bodyIds(body.productCategories).map(Number));
       writeAudit(request.admin?.email ?? 'admin', 'product.create', { id: info.lastInsertRowid, slug: data.slug });
       return reply.redirect(`/admin/produkte/${info.lastInsertRowid}/?gespeichert=1`, 303);
     });
@@ -2250,6 +2478,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         variants: variantFormRows(id),
         images: imageRowsFor(id),
         isNew: false,
+        ...productCategoryContext(id),
         ...productShippingChoices(),
       }));
     });
@@ -2259,7 +2488,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const product = Number.isInteger(id) ? findProduct(id) : undefined;
       if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
 
-      const form = readProductForm(bodyObject(request));
+      const body = bodyObject(request);
+      const form = readProductForm(body);
       const result = validateProductForm(form);
       if (result.error || !result.data) {
         reply.code(400);
@@ -2269,6 +2499,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: variantFormRows(id),
           images: imageRowsFor(id),
           isNew: false,
+          ...productCategoryContext(id),
           ...productShippingChoices(),
           error: result.error ?? 'Bitte prüfen Sie Ihre Angaben.',
         }));
@@ -2281,6 +2512,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           variants: variantFormRows(id),
           images: imageRowsFor(id),
           isNew: false,
+          ...productCategoryContext(id),
           ...productShippingChoices(),
           error: 'Dieser Slug wird bereits von einem anderen Produkt verwendet.',
         }));
@@ -2311,6 +2543,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           JSON.stringify(data.shippingOptionIds),
           id,
         );
+      saveProductCategories(id, bodyIds(body.productCategories).map(Number));
       writeAudit(request.admin?.email ?? 'admin', 'product.update', { id, slug: data.slug });
       return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
     });
@@ -2530,6 +2763,27 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         methods: methods.map((method) => ({ id: method.id, enabled: method.enabled })),
       });
       return reply.redirect('/admin/zahlungen/?gespeichert=1', 303);
+    });
+
+    // Veröffentlichung ----------------------------------------------------
+    scope.get('/admin/veroeffentlichung/', async (request, reply) => {
+      render(reply, 'admin/publication.njk', adminContext(request, {
+        publication: getPublicationSettings(),
+      }));
+    });
+
+    scope.post('/admin/veroeffentlichung/', async (request, reply) => {
+      const body = bodyObject(request);
+      const mark = (name: string): boolean => body[name] === '1' || body[name] === 'on';
+      const settings: PublicationSettings = {
+        shopStatus: mark('shopLive') ? 'AKTIV' : 'PLATZHALTER',
+        pricingStatus: mark('pricingFinal') ? 'FINAL' : 'PLATZHALTER',
+        shippingStatus: mark('shippingFinal') ? 'FINAL' : 'PLATZHALTER',
+        showLegalDraftNotice: mark('showLegalDraftNotice'),
+      };
+      savePublicationSettings(settings);
+      writeAudit(request.admin?.email ?? 'admin', 'publication.update', settings);
+      return reply.redirect('/admin/veroeffentlichung/?gespeichert=1', 303);
     });
 
     // Benachrichtigungen --------------------------------------------------

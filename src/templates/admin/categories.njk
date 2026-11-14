@@ -1,0 +1,80 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Kategorien – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Kategorien</h1>
+      <p>Produkte kategorisieren. Die Zuordnung erfolgt beim jeweiligen Produkt.</p>
+    </div>
+  </div>
+
+  {% if meldung.gespeichert %}
+    <div class="alert alert-success" role="status"><p>Die Änderungen wurden gespeichert.</p></div>
+  {% endif %}
+  {% if meldung.geloescht %}
+    <div class="alert alert-success" role="status"><p>Die Kategorie wurde gelöscht.</p></div>
+  {% endif %}
+  {% if meldung.fehler %}
+    <div class="alert alert-danger" role="alert"><p>{{ meldung.fehler }}</p></div>
+  {% endif %}
+
+  {% if categories.length > 0 %}
+    <div class="admin-table-wrap">
+      <table class="admin-table admin-edit-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Reihenfolge</th>
+            <th>Produkte</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+            <tr>
+              <td>
+                <form id="kategorie-{{ category.id }}" method="post" action="/admin/kategorien/{{ category.id }}/">
+                  <input type="hidden" name="_csrf" value="{{ csrf }}">
+                  <input name="name" type="text" maxlength="80" required value="{{ category.name }}">
+                </form>
+              </td>
+              <td><input form="kategorie-{{ category.id }}" name="sortOrder" type="number" min="-1000" max="1000" step="1" value="{{ category.sortOrder }}"></td>
+              <td>{{ category.productCount }}</td>
+              <td class="admin-row-actions">
+                <button form="kategorie-{{ category.id }}" class="btn btn-secondary btn-small" type="submit">Speichern</button>
+                <form method="post" action="/admin/kategorien/{{ category.id }}/loeschen/" onsubmit="return confirm('Kategorie „{{ category.name }}“ wirklich löschen? Die Zuordnungen zu Produkten werden entfernt.');">
+                  <input type="hidden" name="_csrf" value="{{ csrf }}">
+                  <button class="btn btn-danger btn-small" type="submit">Löschen</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">Noch keine Kategorien vorhanden.</p>
+  {% endif %}
+
+  <section class="admin-panel card mt-2">
+    <h2>Neue Kategorie</h2>
+    <form class="form" method="post" action="/admin/kategorien/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="form-row">
+        <div class="field">
+          <label for="newCategoryName">Name</label>
+          <input id="newCategoryName" name="name" type="text" maxlength="80" required placeholder="z. B. Aufbewahrung">
+        </div>
+        <div class="field">
+          <label for="newCategorySort">Reihenfolge</label>
+          <input id="newCategorySort" name="sortOrder" type="number" min="-1000" max="1000" step="1" value="0">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn" type="submit">Kategorie anlegen</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

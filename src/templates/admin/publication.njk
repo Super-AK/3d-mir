@@ -1,0 +1,56 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Veröffentlichung – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Veröffentlichung</h1>
+      <p>Platzhalter-Hinweise ausblenden, sobald Preise, Versand und Rechtstexte geprüft sind.</p>
+    </div>
+  </div>
+
+  {% if meldung.gespeichert %}
+    <div class="alert alert-success" role="status"><p>Die Einstellungen wurden gespeichert.</p></div>
+  {% endif %}
+
+  <div class="alert alert-warning" role="status">
+    <p><strong>Bitte erst nach fachlicher Prüfung umschalten.</strong> Die Hinweise verschwinden sofort auf der ganzen Website. Preise und Versandkosten müssen vorher bestätigt sein; die Rechtstexte sollten rechtlich geprüft sein.</p>
+  </div>
+
+  <form class="form card" method="post" action="/admin/veroeffentlichung/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+      <legend>Shop und Preise</legend>
+
+      <label class="checkbox">
+        <input type="checkbox" name="shopLive" value="1" {% if publication.shopStatus == 'AKTIV' %}checked{% endif %}>
+        <span><strong>Shop ist live</strong> – Hinweis „Der Shop befindet sich im Aufbau …“ auf Shop-, Produkt-, Warenkorb- und Kassenseite ausblenden.</span>
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" name="pricingFinal" value="1" {% if publication.pricingStatus == 'FINAL' %}checked{% endif %}>
+        <span><strong>Preise und Kalkulation sind bestätigt</strong> – Platzhalter-Warnung im Admin-Bereich „Preise“ ausblenden.</span>
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" name="shippingFinal" value="1" {% if publication.shippingStatus == 'FINAL' %}checked{% endif %}>
+        <span><strong>Versandkosten und Lieferzeiten sind bestätigt</strong> – Hinweis auf der Seite „Versandarten und Kosten“ ausblenden.</span>
+      </label>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend>Rechtstexte</legend>
+
+      <label class="checkbox">
+        <input type="checkbox" name="showLegalDraftNotice" value="1" {% if publication.showLegalDraftNotice %}checked{% endif %}>
+        <span><strong>Entwurfshinweis anzeigen</strong> – Hinweis „Dieser Text … ist vor der Veröffentlichung rechtlich zu prüfen“ auf Impressum, AGB, Datenschutz, Widerruf, Versand und Zahlung anzeigen. Erst abwählen, wenn die Texte geprüft sind.</span>
+      </label>
+    </fieldset>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Einstellungen speichern</button>
+    </div>
+  </form>
+{% endblock %}

@@ -15,7 +15,7 @@
   <div class="container prose">
     {% include "partials/legal-notice.njk" %}
 
-    {% if pricing.shipping.status != 'FINAL' %}
+    {% if publication.shippingStatus != 'FINAL' %}
       <div class="alert alert-warning">
         <p><strong>Hinweis:</strong> Die Versandkosten und Lieferzeiten sind Platzhalter (TODO-VERSAND) und werden vor dem Livegang vom Betreiber bestätigt.</p>
       </div>

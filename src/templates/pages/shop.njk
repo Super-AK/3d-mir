@@ -17,7 +17,7 @@
 
 <section class="section">
   <div class="container">
-    {% if shopConfig.status == 'PLATZHALTER' %}
+    {% if publication.shopStatus == 'PLATZHALTER' %}
       <div class="alert alert-warning" role="status">
         <p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p>
       </div>
@@ -36,6 +36,15 @@
       </div>
     </div>
 
+    {% if categories.length > 0 %}
+      <nav class="shop-categories" aria-label="Produktkategorien">
+        <a href="/shop/" class="badge {% if not activeCategory %}badge-info{% else %}badge-neutral{% endif %}">Alle</a>
+        {% for category in categories %}
+          <a href="/shop/?kategorie={{ category.slug }}" class="badge {% if activeCategory and activeCategory.id == category.id %}badge-info{% else %}badge-neutral{% endif %}">{{ category.name }}</a>
+        {% endfor %}
+      </nav>
+    {% endif %}
+
     <div class="product-grid">
       {% for product in products %}
         <article class="product-card card card-hover">
@@ -43,7 +52,7 @@
             {{ image(product.image, { sizes: '(max-width: 700px) 100vw, 33vw', alt: product.name }) | safe }}
           </a>
           <div class="product-card-body">
-            <p class="eyebrow">Aufbewahrung</p>
+            <p class="eyebrow">{{ product.categoryName }}</p>
             <h2><a href="/shop/{{ product.slug }}/">{{ product.name }}</a></h2>
             <p>{{ product.short_description }}</p>
             <div class="product-card-footer">
@@ -72,7 +81,7 @@
       <div class="card">
         <h2>Zahlung</h2>
         <ul class="check-list">
-          {% for method in shopConfig.payment.methods %}
+          {% for method in publicPaymentMethods %}
             <li><strong>{{ method.label }}</strong><br><span class="text-muted">{{ method.note }}</span></li>
           {% endfor %}
         </ul>

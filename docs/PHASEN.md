@@ -392,3 +392,21 @@
 - Preisformular per HTTP: zwei neue Einträge je Kategorie werden in einem Speichervorgang angelegt.
 - Unit-Tests für Token, Länder-Allowlist, Prüfmodus und Inhaltsprüfung (11 Tests).
 - Typecheck, Build und 40 Unit-Tests erfolgreich.
+
+## Nachtrag – Veröffentlichung, Kategorien und Etsy-Import im Admin
+
+**Fertig**
+- **Veröffentlichung im Admin:** Schalter für Shop-Hinweis, Preis-/Kalkulations-Platzhalter, Versandhinweis und Entwurfshinweis auf den Rechtsseiten. Status wird in `settings` (`publication.settings`) gespeichert; kein Neustart nötig.
+- **Lange Produkt-Slugs:** Fastify akzeptiert Parameter bis 300 Zeichen; neue Slug-Erzeugung ist auf 80–90 Zeichen begrenzt. Bestehende lange Slugs wurden verkürzt.
+- **Zahlungsarten im Shop:** Shop- und Produktseite verwenden jetzt die im Admin aktivierten Zahlungsarten statt der statischen Liste aus `config/shop.json`.
+- **Kategorien:** Migration `009_categories.sql` mit `product_categories` und `product_category_links`, Startkategorien und Namenszuordnung. Admin-Seite zum Anlegen/Bearbeiten/Löschen, Mehrfachzuordnung im Produkt, Filterleiste im Shop und Kategorie im Produktkopf.
+- **Versand ab 0 €:** Abholung (0 €) wird bei „Versand ab …“ berücksichtigt.
+- **Etsy-Import im Admin:** CSV-Upload und API-Import direkt unter **Produkte → Aus Etsy importieren**, inklusive Testlauf, Fortschrittsausgabe und Sperre gegen parallele Importe.
+
+**Getestet**
+- Shop zeigt 14 Produkte, Kategorie „Bad“ filtert auf 3 Produkte, lange Produkt-URL liefert 200.
+- Zahlungsbereich im Shop zeigt nur Vorkasse, Karte und PayPal (die drei im Admin aktiven Arten).
+- Produktseite zeigt „Versand: ab 0,00 €, frei ab 50,00 €“.
+- Admin: Veröffentlichung schaltet den Shop-Hinweis sofort aus, Kategorie anlegen funktioniert, Produktformular zeigt Kategorie-Checkboxen.
+- Etsy-Import im Admin (CSV, Testlauf) erkennt 13 Produkte und endet ohne Fehler.
+- Typecheck, Build und 48 Unit-Tests erfolgreich.

@@ -71,9 +71,11 @@
         </aside>
       </div>
 
-      <div class="alert alert-warning mt-2" role="status">
-        <p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p>
-      </div>
+      {% if publication.shopStatus == 'PLATZHALTER' %}
+        <div class="alert alert-warning mt-2" role="status">
+          <p><strong>Hinweis:</strong> {{ shopConfig.notice }}</p>
+        </div>
+      {% endif %}
     {% endif %}
   </div>
 </section>

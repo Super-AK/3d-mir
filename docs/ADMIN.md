@@ -28,18 +28,29 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 
 ### Platzhalter-Hinweise abschalten
 
-Die Hinweise im Shop und auf den Rechtsseiten sind an Statuswerte in den Konfigurationsdateien gebunden. Sie verschwinden erst, wenn der Betreiber die Werte fachlich bestätigt hat:
+Unter **Admin → Veröffentlichung** lassen sich die Hinweise nach fachlicher Prüfung ausblenden:
 
-| Hinweis | Datei und Schlüssel | Ausblenden mit |
-| --- | --- | --- |
-| Shop, Produktseite, Warenkorb, Kasse | `config/shop.json` → `status` | `"AKTIV"` |
-| Versandkosten/Lieferzeiten auf `/versand/` | `config/pricing.json` → `shipping.status` | `"FINAL"` |
-| Platzhalter-Warnung im Admin unter „Preise“ | `config/pricing.json` → `meta.status` | `"FINAL"` |
-| Entwurfshinweis auf Impressum, AGB, Datenschutz, Widerruf, Versand, Zahlung | `config/site.json` → `legal.showDraftNotice` | `false` |
+| Schalter | Wirkung |
+| --- | --- |
+| Shop ist live | Entfernt „Der Shop befindet sich im Aufbau …“ auf Shop-, Produkt-, Warenkorb- und Kassenseite. |
+| Preise und Kalkulation sind bestätigt | Entfernt die Platzhalter-Warnung im Admin unter „Preise“. |
+| Versandkosten und Lieferzeiten sind bestätigt | Entfernt den Hinweis auf `/versand/`. |
+| Entwurfshinweis anzeigen | Steuert den Prüfhinweis auf Impressum, AGB, Datenschutz, Widerruf, Versand und Zahlung. |
 
-Nach Änderungen `npm run build` und `systemctl restart 3d-mir.service` ausführen (oder `sudo deploy/update.sh`). Die Rechtstexte sollten erst nach rechtlicher Prüfung freigegeben werden; die übrigen TODO-Marker in den Texten (z. B. `TODO-VERSAND` in der Datenschutzerklärung) werden dabei ebenfalls entfernt.
+Die Einstellungen werden in der Datenbank (`settings`, Schlüssel `publication.settings`) gespeichert und überlagern die Statuswerte aus `config/shop.json`, `config/pricing.json` und `config/site.json`. Ein Neustart ist nicht nötig.
+
+Rechtstexte sollten erst nach rechtlicher Prüfung freigegeben werden. Die TODO-Marker in den Texten (z. B. `TODO-VERSAND` in der Datenschutzerklärung) werden durch den Schalter nicht ersetzt – sie müssen im Text selbst entfernt werden.
 
 Die Hinweise auf `/leistungen/` („Bauraum-Angaben sind Richtwerte …“) und der Schätzhinweis im Rechner sind keine Platzhalter, sondern dauerhafte fachliche Hinweise.
+
+## Kategorien
+
+Unter **Admin → Kategorien** werden Produktkategorien angelegt, umbenannt, sortiert und gelöscht. Beim Produkt (Admin → Produkte → Produkt) lassen sich beliebig viele Kategorien anhaken.
+
+- Die Shop-Übersicht zeigt eine Filterleiste (`/shop/?kategorie=<slug>`), Produktkarten und Produktseite zeigen die erste Kategorie.
+- Ein Produkt kann mehreren Kategorien angehören (z. B. „Küche“ und „Saisonales“).
+- Beim Löschen einer Kategorie werden nur die Zuordnungen entfernt, die Produkte bleiben bestehen.
+- Die Migration `009_categories.sql` legt sieben Startkategorien an und ordnet bestehende Produkte anhand des Namens zu. Diese Zuordnung ist ein Vorschlag und kann jederzeit geändert werden.
 
 **Löschen:** Mindestens ein Material, ein Drucker, eine Nachbearbeitung und eine Versandart müssen bestehen bleiben. Mengenrabattstaffeln dürfen vollständig entfernt werden. Wird ein Material gelöscht, entfernen sich seine Verknüpfungen zu Druckern automatisch.
 
@@ -203,7 +214,9 @@ Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `p
 
 ### Produkte aus Etsy übernehmen
 
-Etsy stellt im Shop Manager einen CSV-Export der aktiven Listings bereit:
+Der Import ist direkt im Admin unter **Produkte → „Aus Etsy importieren“** verfügbar – entweder als CSV-Upload oder über die Etsy-API (Keystring und Shared Secret). Ein Testlauf ist standardmäßig aktiv.
+
+Alternativ per Kommandozeile. Etsy stellt im Shop Manager einen CSV-Export der aktiven Listings bereit:
 
 1. Etsy → **Shop Manager → Einstellungen → Optionen → Daten herunterladen**.
 2. Unter **Currently for Sale Listings** auf **Download CSV** klicken.

@@ -198,7 +198,7 @@ function slugify(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 120);
+    .slice(0, 90);
 }
 
 function imageUrls(value: string | undefined): string[] {
@@ -491,11 +491,11 @@ migrate();
 const db = getDb();
 
 function uniqueSlug(base: string): string {
-  const root = (slugify(base) || 'produkt').slice(0, 105);
+  const root = (slugify(base) || 'produkt').slice(0, 80);
   let slug = root;
   let counter = 2;
   while (db.prepare('SELECT 1 FROM products WHERE slug = ?').get(slug)) {
-    slug = `${root.slice(0, 100)}-${counter}`;
+    slug = `${root.slice(0, 75)}-${counter}`;
     counter += 1;
   }
   return slug;

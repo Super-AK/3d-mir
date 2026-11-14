@@ -45,6 +45,23 @@
       <span class="hint">Leerzeilen erzeugen Absätze. HTML wird nicht ausgeführt.</span>
     </div>
 
+    <fieldset class="admin-fieldset">
+      <legend>Kategorien</legend>
+      {% if categoryOptions.length > 0 %}
+        <div class="admin-check-list">
+          {% for category in categoryOptions %}
+            <label class="admin-check admin-check-inline">
+              <input type="checkbox" name="productCategories" value="{{ category.id }}" {% if category.id in categoryIds %}checked{% endif %}>
+              <span>{{ category.name }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        <span class="hint">Mehrfachauswahl möglich. Kategorien unter <a href="/admin/kategorien/">Kategorien</a> verwalten.</span>
+      {% else %}
+        <p class="text-muted">Noch keine Kategorien vorhanden. <a href="/admin/kategorien/">Kategorie anlegen</a>.</p>
+      {% endif %}
+    </fieldset>
+
     <div class="form-row form-row-3">
       <div class="field">
         <label for="priceFrom">Preis von (€)</label>

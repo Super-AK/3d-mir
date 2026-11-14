@@ -9,6 +9,7 @@ import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, createReference, isSameOrigin } from '../lib/http.js';
 import { clearCart, readCart, writeCart, type Cart } from '../lib/cart.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
+import { allCategories, categoriesForProduct, findCategoryBySlug } from '../lib/categories.js';
 import type { PricingConfig } from '../config.js';
 import {
   findCheckoutPaymentMethod,
@@ -130,22 +131,32 @@ function addonCents(options: ShippingAddon[]): number {
   return options.reduce((sum, option) => sum + Math.max(0, Math.round(option.price * 100)), 0);
 }
 
-function listProducts(): ProductListItem[] {
+function listProducts(categorySlug?: string): ProductListItem[] {
+  const categoryFilter = categorySlug
+    ? `AND p.id IN (
+         SELECT l.product_id FROM product_category_links l
+         JOIN product_categories c ON c.id = l.category_id
+         WHERE c.slug = ?
+       )`
+    : '';
   const rows = db()
     .prepare(
       `SELECT p.*, (
          SELECT file FROM product_images i WHERE i.product_id = p.id ORDER BY i.sort_order, i.id LIMIT 1
        ) AS image,
        (SELECT MIN(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS variant_min_price,
-       (SELECT MAX(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS variant_max_price
+       (SELECT MAX(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS variant_max_price,
+       (SELECT c.name FROM product_category_links l JOIN product_categories c ON c.id = l.category_id
+         WHERE l.product_id = p.id ORDER BY c.sort_order, c.name LIMIT 1) AS category_name
        FROM products p
-       WHERE p.active = 1
+       WHERE p.active = 1 ${categoryFilter}
        ORDER BY p.sort_order, p.name`,
     )
-    .all() as (ProductRow & {
+    .all(...(categorySlug ? [categorySlug] : [])) as (ProductRow & {
     image: string | null;
     variant_min_price: number | null;
     variant_max_price: number | null;
+    category_name: string | null;
   })[];
 
   return rows.map((row) => {
@@ -153,6 +164,7 @@ function listProducts(): ProductListItem[] {
     const max = row.variant_max_price ?? row.price_from_cents;
     return {
       ...row,
+      categoryName: row.category_name ?? '3D-Druck',
       priceLabel: max > min ? `ab ${formatEuro(min)}` : formatEuro(min),
     };
   });
@@ -517,9 +529,14 @@ function localRetryUrl(order: Pick<PaymentOrder, 'order_number' | 'public_token'
 // ---------------------------------------------------------------------------
 
 export async function shopRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/shop/', async (_request, reply) => {
+  app.get('/shop/', async (request, reply) => {
+    const query = (request.query ?? {}) as Record<string, unknown>;
+    const requestedSlug = typeof query.kategorie === 'string' ? query.kategorie : '';
+    const activeCategory = requestedSlug ? findCategoryBySlug(requestedSlug) : undefined;
     render(reply, 'pages/shop.njk', {
-      products: listProducts(),
+      products: listProducts(activeCategory?.slug),
+      categories: allCategories(),
+      activeCategory: activeCategory ?? null,
     });
   });
 
@@ -537,7 +554,8 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       ? activeMethods.filter((method) => assignedMethods.includes(method.id))
       : activeMethods;
     const productShippingMethods = allowedMethods.length > 0 ? allowedMethods : activeMethods;
-    const paidShipping = productShippingMethods.filter((method) => method.price > 0).map((method) => method.price);
+    // Abholung (0 €) mitzählen: Dann beginnt der Versand bei 0 €.
+    const shippingPrices = productShippingMethods.map((method) => method.price);
     render(reply, 'pages/produkt.njk', {
       product,
       variants,
@@ -546,8 +564,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       maxQuantity: config.shop.maxQuantityPerItem,
       shipping,
       productShippingMethods,
-      shippingFromPrice: paidShipping.length > 0 ? Math.min(...paidShipping) : null,
+      shippingFromPrice: shippingPrices.length > 0 ? Math.min(...shippingPrices) : null,
       basePriceText: maxPrice > minPrice ? `ab ${formatEuro(minPrice)}` : formatEuro(minPrice),
+      categories: categoriesForProduct(product.id),
     });
   });
 

@@ -35,6 +35,8 @@ export async function buildApp() {
     loggerInstance: getLogger(),
     trustProxy: config.trustProxy,
     bodyLimit: 1024 * 1024,
+    // Produkt-Slugs können lang sein (z. B. aus Etsy-Importen).
+    routerOptions: { maxParamLength: 300 },
   });
 
   await app.register(cookie, { secret: config.sessionSecret });
