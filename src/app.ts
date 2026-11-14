@@ -15,6 +15,7 @@ import { shopRoutes } from './routes/shop.js';
 import { paymentRoutes } from './routes/payments.js';
 import { adminRoutes } from './routes/admin.js';
 import { migrate } from './db/migrate.js';
+import { applySiteSettings } from './lib/site-settings.js';
 
 const CSP = [
   "default-src 'self'",
@@ -85,6 +86,17 @@ export async function buildApp() {
     immutable: true,
   });
 
+  // Stammdaten-Bilder (Logo) aus dem Upload-Verzeichnis.
+  const siteMediaDir = path.join(config.uploadDir, 'site');
+  fs.mkdirSync(siteMediaDir, { recursive: true });
+  await app.register(fastifyStatic, {
+    root: siteMediaDir,
+    prefix: '/site-media/',
+    decorateReply: false,
+    maxAge: '7d',
+    immutable: false,
+  });
+
   app.addHook('onSend', async (_request, reply, payload) => {
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -147,6 +159,8 @@ export async function buildApp() {
 
   // Migrationen beim Start ausführen (idempotent).
   migrate();
+  // Im Admin gespeicherte Stammdaten über die Dateiwerte legen.
+  applySiteSettings();
 
   return app;
 }

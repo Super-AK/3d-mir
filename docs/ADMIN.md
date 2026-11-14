@@ -8,6 +8,22 @@ sudo -u mir3d npm run admin:create -- --email admin@example.de --name "Betreiber
 
 Das Passwort wird interaktiv gesetzt oder einmalig über `ADMIN_PASSWORD` übergeben. Es wird nicht im Repository gespeichert.
 
+## Stammdaten
+
+Unter **Admin → Stammdaten** werden die öffentlichen Geschäftsangaben und Bilder gepflegt:
+
+| Bereich | Inhalte |
+| --- | --- |
+| Geschäftsdaten | Kurzname, vollständiger Name, Inhaber, Straße, PLZ, Ort, Land, Ländercode, Telefon, Telefon-Link, E-Mail, Steuerhinweis, Kleinunternehmer |
+| Kanäle | Etsy-Shop-URL und Bewertungs-URL, Kleinanzeigen-Bezeichnung und -URL |
+| Kontakt/SEO | Antwortzeit, Abholhinweis, SEO-Name, Seitentitel und Beschreibung der Startseite |
+| Bilder | Logo (PNG/JPG/WebP, max. 5 MB), Hero-Bild, Service-Bild, Galerie mit bis zu 8 Bildern |
+| Startseite | Kicker, Überschrift und Einleitungstext im Hero sowie Überschrift und Text des Kontaktbereichs |
+
+Änderungen wirken sofort auf Website, Footer, Rechtsseiten, E-Mails und JSON-LD; ein Neustart ist nicht nötig. Die Werte werden in der Tabelle `settings` unter dem Schlüssel `site.settings` gespeichert und überlagern `config/site.json`. „Auf Standard zurücksetzen“ entfernt das Logo bzw. einzelne Bilder; die mitgelieferten Motive werden dann wieder verwendet.
+
+Hochgeladene Logos liegen unter `/var/lib/3d-mir/uploads/site/` und werden über `/site-media/…` ausgeliefert. Hero-, Service- und Galeriebilder werden wie Produktbilder in AVIF/WebP/JPEG umgewandelt und unter `/media/site/…` bereitgestellt.
+
 ## Preise und Katalog
 
 Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:

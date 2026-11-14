@@ -34,7 +34,7 @@ export function mediaFile(key: string): string | null {
 }
 
 /** Verkleinert ein Bild, entfernt Metadaten und legt AVIF/WebP/JPEG-Varianten ab. */
-export async function storeProductImage(productId: number, upload: UploadedImage): Promise<string> {
+async function storeImageAtKey(key: string, upload: UploadedImage): Promise<string> {
   if (!ALLOWED_IMAGE_TYPES.has(upload.mimetype)) {
     throw new ProductImageError('Bitte eine Bilddatei im Format JPG, PNG, WebP oder AVIF auswählen.');
   }
@@ -60,8 +60,6 @@ export async function storeProductImage(productId: number, upload: UploadedImage
     throw new ProductImageError('Das Bild hat zu viele Pixel. Bitte auf maximal 40 Megapixel verkleinern.');
   }
 
-  const base = crypto.randomBytes(12).toString('hex');
-  const key = `products/${productId}/${base}`;
   const file = mediaFile(key);
   if (!file) throw new ProductImageError('Das Bild konnte nicht gespeichert werden.');
 
@@ -92,6 +90,16 @@ export async function storeProductImage(productId: number, upload: UploadedImage
   }
 
   return `${UPLOAD_PREFIX}${key}`;
+}
+
+export function storeProductImage(productId: number, upload: UploadedImage): Promise<string> {
+  return storeImageAtKey(`products/${productId}/${crypto.randomBytes(12).toString('hex')}`, upload);
+}
+
+/** Speichert ein Stammdaten-Bild (Hero, Service, Galerie) mit Responsive-Varianten. */
+export function storeSiteImage(slot: string, upload: UploadedImage): Promise<string> {
+  const safeSlot = slot.replace(/[^a-z0-9-]/gi, '').slice(0, 40) || 'bild';
+  return storeImageAtKey(`site/${safeSlot}-${crypto.randomBytes(8).toString('hex')}`, upload);
 }
 
 /** Entfernt alle Varianten eines hochgeladenen Produktbilds. */

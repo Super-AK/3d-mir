@@ -30,7 +30,7 @@
       </div>
     </div>
     <div class="hero-visual">
-      {{ image('hero', { sizes: '(max-width: 860px) 100vw, 46vw', priority: true, alt: 'FDM-3D-Drucker bei der Fertigung eines Bauteils' }) | safe }}
+      {{ image(site.images.hero or 'hero', { sizes: '(max-width: 860px) 100vw, 46vw', priority: true, alt: 'FDM-3D-Drucker bei der Fertigung eines Bauteils' }) | safe }}
       <p class="hero-badge">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
         Unverbindliche Preisschätzung in Minuten
@@ -100,7 +100,9 @@
       <p class="mt-2"><a class="btn btn-secondary" href="/leistungen/#materialien">Materialien vergleichen</a></p>
     </div>
     <div class="gallery-teaser">
-      {% for name in ['gallery-1', 'gallery-5', 'gallery-9', 'gallery-3'] %}
+      {% set galleryImages = site.images.gallery %}
+      {% if galleryImages | length == 0 %}{% set galleryImages = ['gallery-1', 'gallery-5', 'gallery-9', 'gallery-3'] %}{% endif %}
+      {% for name in galleryImages | slice(0, 4) %}
         {{ image(name, { sizes: '(max-width: 860px) 50vw, 22vw', alt: '3D-gedrucktes Bauteil aus der Werkstatt' }) | safe }}
       {% endfor %}
     </div>
@@ -115,7 +117,7 @@
       <p>Echte Drucke aus laufenden Projekten – von filigranen Modellen bis zu funktionalen Bauteilen.</p>
     </div>
     <div class="gallery">
-      {% for name in ['gallery-1', 'gallery-2', 'gallery-3', 'gallery-4', 'gallery-5', 'gallery-6', 'gallery-7', 'gallery-8'] %}
+      {% for name in galleryImages %}
         <figure class="gallery-item">
           {{ image(name, { sizes: '(max-width: 620px) 50vw, (max-width: 1024px) 33vw, 24vw', alt: '3D-gedrucktes Bauteil aus eigener Fertigung' }) | safe }}
         </figure>
@@ -140,7 +142,7 @@
         </ul>
       </div>
       <div>
-        {{ image('service', { sizes: '(max-width: 860px) 100vw, 45vw', alt: 'Bauteile aus dem 3D-Druck-Service' }) | safe }}
+        {{ image(site.images.service or 'service', { sizes: '(max-width: 860px) 100vw, 45vw', alt: 'Bauteile aus dem 3D-Druck-Service' }) | safe }}
       </div>
     </div>
   </div>

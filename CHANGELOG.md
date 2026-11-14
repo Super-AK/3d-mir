@@ -3,6 +3,24 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.2] – 2026-11-14
+
+### Hinzugefügt
+
+- **Admin → Stammdaten:** Geschäftsdaten (Name, Inhaber, Adresse, Telefon,
+  E-Mail, Steuerhinweis), Kanäle (Etsy, Kleinanzeigen), Kontakt- und
+  SEO-Angaben sowie Startseiten-Texte bearbeiten.
+- **Bilder im Admin:** Logo (PNG/JPG/WebP), Hero-Bild, Service-Bild und
+  Galerie mit bis zu acht Bildern hochladen, ersetzen und zurücksetzen.
+- Neue Auslieferung für Stammdaten-Logos unter `/site-media/`.
+- JSON-LD und alle Templates verwenden die im Admin gespeicherten Werte.
+
+### Geändert
+
+- `config/site.json` enthält einen leeren `images`-Block als Grundeinstellung.
+- Telefon-Link wird beim Ändern der Telefonnummer automatisch aktualisiert,
+  sofern er nicht bewusst abweichend gesetzt wurde.
+
 ## [1.0.0-rc.1] – 2026-11-14
 
 Erster Release-Kandidat: Alle geplanten Funktionen sind umgesetzt. Offen sind
@@ -90,4 +108,5 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.2]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.1

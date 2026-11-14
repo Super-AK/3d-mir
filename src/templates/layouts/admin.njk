@@ -14,11 +14,12 @@
   <header class="admin-header">
     <div class="admin-header-inner">
       <a class="admin-brand" href="/admin/">
-        <img src="/assets/img/gen/logo-96.png" alt="" width="32" height="31" decoding="async">
+        <img src="{{ site.images.logo or '/assets/img/gen/logo-96.png' }}" alt="" width="32" height="31" decoding="async">
         <span><strong>3D-MIR</strong><span>Admin</span></span>
       </a>
       <nav class="admin-nav" aria-label="Admin-Navigation">
         <a href="/admin/" {% if currentPath == '/admin/' %}aria-current="page"{% endif %}>Dashboard</a>
+        <a href="/admin/stammdaten/" {% if currentPath.startsWith('/admin/stammdaten') %}aria-current="page"{% endif %}>Stammdaten</a>
         <a href="/admin/bestellungen/" {% if currentPath.startsWith('/admin/bestellungen') %}aria-current="page"{% endif %}>Bestellungen</a>
         <a href="/admin/anfragen/" {% if currentPath.startsWith('/admin/anfragen') %}aria-current="page"{% endif %}>Anfragen</a>
         <a href="/admin/nachrichten/" {% if currentPath.startsWith('/admin/nachrichten') %}aria-current="page"{% endif %}>Nachrichten</a>

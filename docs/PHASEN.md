@@ -411,6 +411,24 @@
 - Etsy-Import im Admin (CSV, Testlauf) erkennt 13 Produkte und endet ohne Fehler.
 - Typecheck, Build und 48 Unit-Tests erfolgreich.
 
+## Nachtrag – Stammdaten im Admin
+
+**Fertig**
+- Admin-Seite **Stammdaten**: Geschäftsdaten, Kanäle, Kontakt, SEO, Startseiten-Texte sowie Logo, Hero-, Service- und Galeriebilder.
+- Werte werden in `settings` (`site.settings`) gespeichert und sofort in Templates, Footer, Rechtsseiten, E-Mails und JSON-LD übernommen.
+- Logo-Ablage unter `/var/lib/3d-mir/uploads/site/` mit Auslieferung über `/site-media/`; übrige Bilder als Responsive-Varianten unter `/media/site/`.
+- Telefon-Link wird automatisch aus der Telefonnummer abgeleitet, wenn er nicht bewusst gesetzt wurde.
+
+**Getestet**
+- Stammdaten ändern: Ort und Telefon erscheinen sofort im Footer.
+- Logo, Hero und zwei Galeriebilder hochgeladen; Startseite und Header verwenden sie.
+- Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
+- Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
+
+## Release 1.0.0-rc.2 – 14. November 2026
+
+Stammdaten und Bildverwaltung im Admin ergänzt. Versionshistorie in `CHANGELOG.md`.
+
 ## Release 1.0.0-rc.1 – 14. November 2026
 
 Erster Release-Kandidat. Alle geplanten Funktionen sind umgesetzt; die

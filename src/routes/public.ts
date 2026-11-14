@@ -69,35 +69,39 @@ function getPrinters() {
 }
 
 /** Lokale Geschäftsdaten als JSON-LD (strukturierte Daten für Suchmaschinen). */
-const localBusinessJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: config.site.business.legalName,
-  description: config.site.seo.defaultDescription,
-  url: config.site.baseUrl,
-  image: `${config.site.baseUrl}/assets/img/og-image.jpg`,
-  telephone: config.site.business.phone,
-  email: config.site.business.email,
-  priceRange: '€€',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: config.site.business.street,
-    postalCode: config.site.business.zip,
-    addressLocality: config.site.business.city,
-    addressCountry: config.site.business.countryCode,
-  },
-  areaServed: { '@type': 'Country', name: config.site.business.country },
-  sameAs: [config.site.channels.etsy.url, config.site.channels.classifieds.url],
-};
+function localBusinessJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: config.site.business.legalName,
+    description: config.site.seo.defaultDescription,
+    url: config.site.baseUrl,
+    image: `${config.site.baseUrl}/assets/img/og-image.jpg`,
+    telephone: config.site.business.phone,
+    email: config.site.business.email,
+    priceRange: '€€',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: config.site.business.street,
+      postalCode: config.site.business.zip,
+      addressLocality: config.site.business.city,
+      addressCountry: config.site.business.countryCode,
+    },
+    areaServed: { '@type': 'Country', name: config.site.business.country },
+    sameAs: [config.site.channels.etsy.url, config.site.channels.classifieds.url],
+  };
+}
 
-const websiteJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: config.site.seo.siteName,
-  url: config.site.baseUrl,
-  inLanguage: 'de-DE',
-  publisher: { '@type': 'Organization', name: config.site.business.legalName },
-};
+function websiteJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: config.site.seo.siteName,
+    url: config.site.baseUrl,
+    inLanguage: 'de-DE',
+    publisher: { '@type': 'Organization', name: config.site.business.legalName },
+  };
+}
 
 const contactSubjects = [
   'Angebot für ein 3D-Modell',
@@ -181,7 +185,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
     render(reply, 'pages/home.njk', {
       content: getContent(),
       services,
-      localBusinessJsonLd: [localBusinessJsonLd, websiteJsonLd],
+      localBusinessJsonLd: [localBusinessJsonLd(), websiteJsonLd()],
     });
   });
 

@@ -1,0 +1,261 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Stammdaten – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Stammdaten</h1>
+      <p>Geschäftsdaten, Kontaktangaben, Kanäle, SEO, Startseiten-Texte und Bilder pflegen.</p>
+    </div>
+  </div>
+
+  {% if meldung.gespeichert %}
+    <div class="alert alert-success" role="status"><p>Die Änderungen wurden gespeichert.</p></div>
+  {% endif %}
+  {% if meldung.fehler %}
+    <div class="alert alert-danger" role="alert"><p>{{ meldung.fehler }}</p></div>
+  {% endif %}
+
+  <div class="alert alert-info" role="status">
+    <p>Diese Angaben erscheinen auf der Website, in E-Mails und in strukturierten Daten (JSON-LD). Änderungen wirken sofort, ohne Neustart. Die Werte aus <code>config/site.json</code> dienen als Grundeinstellung.</p>
+  </div>
+
+  <form class="form card admin-panel" method="post" action="/admin/stammdaten/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <fieldset class="admin-fieldset">
+      <legend>Geschäftsdaten</legend>
+      <div class="form-row">
+        <div class="field">
+          <label for="businessName">Kurzname</label>
+          <input id="businessName" name="businessName" type="text" maxlength="80" required value="{{ settings.business.name }}">
+        </div>
+        <div class="field">
+          <label for="businessLegalName">Vollständiger Name (Recht)</label>
+          <input id="businessLegalName" name="businessLegalName" type="text" maxlength="160" required value="{{ settings.business.legalName }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="businessOwner">Inhaber</label>
+          <input id="businessOwner" name="businessOwner" type="text" maxlength="120" value="{{ settings.business.owner }}">
+        </div>
+        <div class="field">
+          <label for="businessEmail">E-Mail</label>
+          <input id="businessEmail" name="businessEmail" type="email" maxlength="200" required value="{{ settings.business.email }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="businessStreet">Straße und Hausnummer</label>
+          <input id="businessStreet" name="businessStreet" type="text" maxlength="120" value="{{ settings.business.street }}">
+        </div>
+        <div class="field field-small">
+          <label for="businessZip">PLZ</label>
+          <input id="businessZip" name="businessZip" type="text" maxlength="20" value="{{ settings.business.zip }}">
+        </div>
+        <div class="field">
+          <label for="businessCity">Ort</label>
+          <input id="businessCity" name="businessCity" type="text" maxlength="120" value="{{ settings.business.city }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="businessCountry">Land</label>
+          <input id="businessCountry" name="businessCountry" type="text" maxlength="120" value="{{ settings.business.country }}">
+        </div>
+        <div class="field field-small">
+          <label for="businessCountryCode">Ländercode</label>
+          <input id="businessCountryCode" name="businessCountryCode" type="text" maxlength="2" pattern="[A-Za-z]{2}" value="{{ settings.business.countryCode }}">
+        </div>
+        <div class="field">
+          <label for="businessPhone">Telefon</label>
+          <input id="businessPhone" name="businessPhone" type="tel" maxlength="60" value="{{ settings.business.phone }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="businessPhoneHref">Telefon-Link (optional)</label>
+          <input id="businessPhoneHref" name="businessPhoneHref" type="text" maxlength="60" value="{{ settings.business.phoneHref }}">
+          <span class="hint">Leer lassen: wird automatisch aus der Telefonnummer erzeugt.</span>
+        </div>
+        <div class="field">
+          <label for="businessVatNote">Steuerhinweis</label>
+          <input id="businessVatNote" name="businessVatNote" type="text" maxlength="300" value="{{ settings.business.vatNote }}">
+        </div>
+      </div>
+      <label class="checkbox">
+        <input type="checkbox" name="businessSmallBusiness" value="1" {% if settings.business.smallBusiness %}checked{% endif %}>
+        <span>Kleinunternehmer nach § 19 UStG (kein Mehrwertsteuerausweis)</span>
+      </label>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend>Kanäle</legend>
+      <div class="form-row">
+        <div class="field">
+          <label for="etsyLabel">Etsy-Bezeichnung</label>
+          <input id="etsyLabel" name="etsyLabel" type="text" maxlength="80" value="{{ settings.channels.etsy.label }}">
+        </div>
+        <div class="field">
+          <label for="etsyUrl">Etsy-Shop-URL</label>
+          <input id="etsyUrl" name="etsyUrl" type="url" maxlength="500" value="{{ settings.channels.etsy.url }}">
+        </div>
+      </div>
+      <div class="field">
+        <label for="etsyReviewsUrl">Etsy-Bewertungs-URL (optional)</label>
+        <input id="etsyReviewsUrl" name="etsyReviewsUrl" type="text" maxlength="500" value="{{ settings.channels.etsy.reviewsUrl }}">
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="classifiedsLabel">Kleinanzeigen-Bezeichnung</label>
+          <input id="classifiedsLabel" name="classifiedsLabel" type="text" maxlength="80" value="{{ settings.channels.classifieds.label }}">
+        </div>
+        <div class="field">
+          <label for="classifiedsUrl">Kleinanzeigen-URL</label>
+          <input id="classifiedsUrl" name="classifiedsUrl" type="url" maxlength="500" value="{{ settings.channels.classifieds.url }}">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend>Kontakt und SEO</legend>
+      <div class="form-row">
+        <div class="field">
+          <label for="responseTime">Antwortzeit</label>
+          <input id="responseTime" name="responseTime" type="text" maxlength="200" value="{{ settings.contact.responseTime }}">
+        </div>
+        <div class="field">
+          <label for="appointmentNote">Abholhinweis</label>
+          <input id="appointmentNote" name="appointmentNote" type="text" maxlength="200" value="{{ settings.contact.appointmentNote }}">
+        </div>
+      </div>
+      <div class="field">
+        <label for="siteName">SEO-Name der Website</label>
+        <input id="siteName" name="siteName" type="text" maxlength="120" value="{{ settings.seo.siteName }}">
+      </div>
+      <div class="field">
+        <label for="seoTitle">SEO-Titel Startseite</label>
+        <input id="seoTitle" name="seoTitle" type="text" maxlength="200" value="{{ settings.seo.defaultTitle }}">
+      </div>
+      <div class="field">
+        <label for="seoDescription">SEO-Beschreibung</label>
+        <textarea id="seoDescription" name="seoDescription" rows="2" maxlength="400">{{ settings.seo.defaultDescription }}</textarea>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Stammdaten speichern</button>
+    </div>
+  </form>
+
+  <section class="card admin-panel">
+    <h2>Bilder</h2>
+    <p class="text-muted">Logo (PNG/JPG/WebP, max. 5 MB), Hero- und Servicebild sowie bis zu acht Galeriebilder. Ohne eigene Bilder werden die mitgelieferten Motive verwendet.</p>
+
+    <div class="admin-image-grid">
+      <figure class="admin-image-card">
+        <figcaption><strong>Logo</strong></figcaption>
+        <img src="{{ logoUrl }}" alt="Aktuelles Logo" style="max-height: 90px; width: auto;">
+        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <input type="hidden" name="slot" value="logo">
+          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.logo %}disabled{% endif %}>Logo entfernen</button>
+        </form>
+      </figure>
+      <figure class="admin-image-card">
+        <figcaption><strong>Hero-Bild</strong></figcaption>
+        {% if heroPreview %}<img src="{{ heroPreview }}" alt="Hero-Bild">{% endif %}
+        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <input type="hidden" name="slot" value="hero">
+          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.hero %}disabled{% endif %}>Auf Standard zurücksetzen</button>
+        </form>
+      </figure>
+      <figure class="admin-image-card">
+        <figcaption><strong>Service-Bild</strong></figcaption>
+        {% if servicePreview %}<img src="{{ servicePreview }}" alt="Service-Bild">{% endif %}
+        <form method="post" action="/admin/stammdaten/bilder/entfernen/">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <input type="hidden" name="slot" value="service">
+          <button class="btn btn-secondary btn-small" type="submit" {% if not settings.images.service %}disabled{% endif %}>Auf Standard zurücksetzen</button>
+        </form>
+      </figure>
+    </div>
+
+    <form class="form" method="post" action="/admin/stammdaten/bilder/" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="form-row">
+        <div class="field">
+          <label for="logoUpload">Logo ersetzen</label>
+          <input id="logoUpload" name="logo" type="file" accept="image/png,image/jpeg,image/webp">
+        </div>
+        <div class="field">
+          <label for="heroUpload">Hero-Bild ersetzen</label>
+          <input id="heroUpload" name="hero" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+        </div>
+        <div class="field">
+          <label for="serviceUpload">Service-Bild ersetzen</label>
+          <input id="serviceUpload" name="service" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+        </div>
+      </div>
+      <div class="field">
+        <label for="galleryUpload">Galeriebilder (ersetzt die vorhandene Galerie, max. 8)</label>
+        <input id="galleryUpload" name="gallery" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+      </div>
+      <label class="checkbox">
+        <input type="checkbox" name="resetGallery" value="1">
+        <span>Galerie auf die mitgelieferten Bilder zurücksetzen</span>
+      </label>
+      <div class="form-actions">
+        <button class="btn" type="submit">Bilder speichern</button>
+      </div>
+    </form>
+
+    {% if galleryItems.length > 0 %}
+      <h3>Galerie</h3>
+      <div class="admin-image-grid">
+        {% for item in galleryItems %}
+          <figure class="admin-image-card">
+            <img src="{{ item.preview }}" alt="Galeriebild {{ loop.index }}">
+            <form method="post" action="/admin/stammdaten/bilder/entfernen/">
+              <input type="hidden" name="_csrf" value="{{ csrf }}">
+              <input type="hidden" name="slot" value="gallery">
+              <input type="hidden" name="index" value="{{ loop.index0 }}">
+              <button class="btn btn-danger btn-small" type="submit">Entfernen</button>
+            </form>
+          </figure>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <form class="form card admin-panel" method="post" action="/admin/stammdaten/texte/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <h2>Texte auf der Startseite</h2>
+    <div class="field">
+      <label for="heroKicker">Kicker (Hero)</label>
+      <input id="heroKicker" name="heroKicker" type="text" maxlength="120" value="{{ content['home.hero.kicker'] }}">
+    </div>
+    <div class="field">
+      <label for="heroTitle">Überschrift (Hero)</label>
+      <input id="heroTitle" name="heroTitle" type="text" maxlength="200" value="{{ content['home.hero.title'] }}">
+    </div>
+    <div class="field">
+      <label for="heroText">Einleitungstext (Hero)</label>
+      <textarea id="heroText" name="heroText" rows="3" maxlength="600">{{ content['home.hero.text'] }}</textarea>
+    </div>
+    <div class="field">
+      <label for="contactTitle">Überschrift Kontaktbereich</label>
+      <input id="contactTitle" name="contactTitle" type="text" maxlength="200" value="{{ content['home.contact.title'] }}">
+    </div>
+    <div class="field">
+      <label for="contactText">Text Kontaktbereich</label>
+      <textarea id="contactText" name="contactText" rows="3" maxlength="600">{{ content['home.contact.text'] }}</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit">Texte speichern</button>
+    </div>
+  </form>
+{% endblock %}

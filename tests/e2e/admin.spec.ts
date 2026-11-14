@@ -28,6 +28,7 @@ test.describe('Admin', () => {
     await expect(page.locator('h1')).toHaveText('Dashboard');
 
     for (const [path, heading] of [
+      ['/admin/stammdaten/', 'Stammdaten'],
       ['/admin/bestellungen/', 'Bestellungen'],
       ['/admin/anfragen/', 'Anfragen'],
       ['/admin/nachrichten/', 'Nachrichten'],

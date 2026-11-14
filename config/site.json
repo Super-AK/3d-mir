@@ -20,7 +20,7 @@
     "etsy": {
       "label": "Etsy-Shop",
       "url": "https://www.etsy.com/de/shop/3DlMIR",
-      "reviewsUrl": "TODO-ETSY-BEWERTUNGEN-URL"
+      "reviewsUrl": ""
     },
     "classifieds": {
       "label": "eBay Kleinanzeigen",
@@ -35,6 +35,12 @@
     "siteName": "3D-MIR 3D-Druck Service",
     "defaultTitle": "3D-Druck Service in Schömberg – 3D-MIR",
     "defaultDescription": "3D-Druck nach Maß: Prototyping, Modellbau, Kleinserien und Ersatzteile aus PLA, PETG, ABS, ASA und mehr. Jetzt Modell hochladen und Preis schätzen."
+  },
+  "images": {
+    "logo": "",
+    "hero": "",
+    "service": "",
+    "gallery": []
   },
   "features": {
     "shop": true,

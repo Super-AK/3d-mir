@@ -32,7 +32,7 @@
   text-decoration: none;
   flex: none;
 }
-.admin-brand img { border-radius: 8px; }
+.admin-brand img { border-radius: 8px; max-height: 32px; width: auto; height: auto; }
 .admin-brand span { display: flex; flex-direction: column; line-height: 1.15; }
 .admin-brand strong { font-size: 0.98rem; letter-spacing: 0.02em; }
 .admin-brand span span { font-size: 0.72rem; color: var(--steel-300); text-transform: uppercase; letter-spacing: 0.1em; }

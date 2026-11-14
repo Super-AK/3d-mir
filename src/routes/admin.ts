@@ -17,6 +17,7 @@ import {
   deleteProductImageFiles,
   mediaFile,
   storeProductImage,
+  storeSiteImage,
   type UploadedImage,
 } from '../lib/product-images.js';
 import { resetMailTransporter, sendMail } from '../lib/mailer.js';
@@ -93,6 +94,8 @@ import {
   saveProductCategories,
   updateCategory,
 } from '../lib/categories.js';
+import { getSiteSettings, saveSiteImages, saveSiteSettings } from '../lib/site-settings.js';
+import { deleteSiteLogo, storeSiteLogo } from '../lib/site-media.js';
 import {
   getPublicationSettings,
   savePublicationSettings,
@@ -2079,6 +2082,258 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       db().prepare('DELETE FROM contact_messages WHERE id = ?').run(id);
       writeAudit(request.admin?.email ?? 'admin', 'contact.delete', { id, email: message.email });
       return reply.redirect('/admin/nachrichten/?geloescht=1', 303);
+    });
+
+    // Stammdaten ----------------------------------------------------------
+    const homeContentKeys = [
+      'home.hero.kicker',
+      'home.hero.title',
+      'home.hero.text',
+      'home.contact.title',
+      'home.contact.text',
+    ];
+    const homeContentDefaults: Record<string, string> = {
+      'home.hero.kicker': 'FDM-3D-Druck aus dem Schwarzwald',
+      'home.hero.title': 'Ihre Idee. Gedruckt in 3D.',
+      'home.hero.text':
+        'Prototyping, Modellbau, Kleinserien und Ersatzteile – gefertigt in Schömberg. Laden Sie Ihr Modell hoch und erhalten Sie in wenigen Minuten eine unverbindliche Preisschätzung.',
+      'home.contact.title': 'Sie haben eine Frage oder ein besonderes Teil?',
+      'home.contact.text':
+        'Schreiben Sie uns – wir prüfen Ihr Modell, beraten zur Materialwahl und melden uns in der Regel innerhalb eines Werktags.',
+    };
+
+    const defaultGalleryImages = () => [
+      'gallery-1',
+      'gallery-2',
+      'gallery-3',
+      'gallery-4',
+      'gallery-5',
+      'gallery-6',
+      'gallery-7',
+      'gallery-8',
+    ];
+
+    const readHomeContent = (): Record<string, string> => {
+      const placeholders = homeContentKeys.map(() => '?').join(',');
+      const rows = db()
+        .prepare(`SELECT key, value FROM content_blocks WHERE key IN (${placeholders})`)
+        .all(...homeContentKeys) as { key: string; value: string }[];
+      return {
+        ...homeContentDefaults,
+        ...Object.fromEntries(rows.map((row) => [row.key, row.value])),
+      };
+    };
+
+    const saveHomeContent = (values: Record<string, string>): void => {
+      const statement = db().prepare(
+        `INSERT INTO content_blocks (key, value, updated_at) VALUES (?, ?, datetime('now'))
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+      );
+      for (const [key, value] of Object.entries(values)) {
+        if (!key.startsWith('home.')) continue;
+        statement.run(key, value.slice(0, 600));
+      }
+    };
+
+    scope.get('/admin/stammdaten/', async (request, reply) => {
+      const settings = getSiteSettings();
+      const galleryKeys = settings.images.gallery.length > 0 ? settings.images.gallery : defaultGalleryImages();
+      render(reply, 'admin/site-settings.njk', adminContext(request, {
+        settings,
+        content: readHomeContent(),
+        logoUrl: settings.images.logo || '/assets/img/gen/logo-96.png',
+        heroPreview: imagePreview(settings.images.hero || 'hero', 480),
+        servicePreview: imagePreview(settings.images.service || 'service', 480),
+        galleryItems: galleryKeys.map((key) => ({ key, preview: imagePreview(key, 320) })),
+      }));
+    });
+
+    scope.post('/admin/stammdaten/', async (request, reply) => {
+      const body = bodyObject(request);
+      saveSiteSettings({
+        business: {
+          name: body.businessName,
+          legalName: body.businessLegalName,
+          owner: body.businessOwner,
+          street: body.businessStreet,
+          zip: body.businessZip,
+          city: body.businessCity,
+          country: body.businessCountry,
+          countryCode: body.businessCountryCode,
+          phone: body.businessPhone,
+          phoneHref: body.businessPhoneHref,
+          email: body.businessEmail,
+          vatNote: body.businessVatNote,
+          smallBusiness: body.businessSmallBusiness,
+        },
+        channels: {
+          etsyLabel: body.etsyLabel,
+          etsyUrl: body.etsyUrl,
+          etsyReviewsUrl: body.etsyReviewsUrl,
+          classifiedsLabel: body.classifiedsLabel,
+          classifiedsUrl: body.classifiedsUrl,
+        },
+        contact: {
+          responseTime: body.responseTime,
+          appointmentNote: body.appointmentNote,
+        },
+        seo: {
+          siteName: body.siteName,
+          defaultTitle: body.seoTitle,
+          defaultDescription: body.seoDescription,
+        },
+      });
+      writeAudit(request.admin?.email ?? 'admin', 'site.settings.update', {
+        name: body.businessName,
+        email: body.businessEmail,
+      });
+      return reply.redirect('/admin/stammdaten/?gespeichert=1', 303);
+    });
+
+    scope.post('/admin/stammdaten/texte/', async (request, reply) => {
+      const body = bodyObject(request);
+      const current = readHomeContent();
+      saveHomeContent({
+        'home.hero.kicker': cleanText(body.heroKicker, 120) || current['home.hero.kicker']!,
+        'home.hero.title': cleanText(body.heroTitle, 200) || current['home.hero.title']!,
+        'home.hero.text': cleanText(body.heroText, 600) || current['home.hero.text']!,
+        'home.contact.title': cleanText(body.contactTitle, 200) || current['home.contact.title']!,
+        'home.contact.text': cleanText(body.contactText, 600) || current['home.contact.text']!,
+      });
+      writeAudit(request.admin?.email ?? 'admin', 'site.content.update', { keys: homeContentKeys });
+      return reply.redirect('/admin/stammdaten/?gespeichert=1', 303);
+    });
+
+    scope.post('/admin/stammdaten/bilder/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Die Sitzung ist abgelaufen.');
+
+      const fields: Record<string, string> = {};
+      const files: { field: string; buffer: Buffer; mimetype: string }[] = [];
+      try {
+        for await (const part of request.parts({
+          limits: { files: 10, fileSize: 12 * 1024 * 1024, fields: 10 },
+        })) {
+          if (part.type === 'file') {
+            if (['logo', 'hero', 'service', 'gallery'].includes(part.fieldname)) {
+              const buffer = await part.toBuffer();
+              // Leere Dateifelder werden von manchen Browsern trotzdem übertragen.
+              if (buffer.length > 0) {
+                files.push({ field: part.fieldname, buffer, mimetype: part.mimetype });
+              }
+            } else {
+              part.file.resume();
+            }
+          } else {
+            fields[part.fieldname] = String(part.value ?? '');
+          }
+        }
+      } catch (error) {
+        request.log.warn({ err: error }, 'Stammdaten-Bilder konnten nicht gelesen werden');
+        return reply.redirect(
+          `/admin/stammdaten/?fehler=${encodeURIComponent('Der Upload war zu groß oder unvollständig.')}`,
+          303,
+        );
+      }
+
+      if (!verifyCsrfToken(session, fields._csrf)) {
+        return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte die Seite neu laden.');
+      }
+
+      const current = getSiteSettings().images;
+      const images = { ...current, gallery: [...current.gallery] };
+      const errors: string[] = [];
+
+      if (fields.resetGallery === '1') {
+        for (const key of images.gallery) deleteProductImageFiles(key);
+        images.gallery = [];
+      }
+
+      for (const file of files) {
+        if (file.field === 'gallery') continue;
+        try {
+          if (file.field === 'logo') {
+            const previous = images.logo;
+            images.logo = storeSiteLogo(file.buffer, file.mimetype);
+            if (previous) deleteSiteLogo(previous);
+          } else {
+            const slot = file.field as 'hero' | 'service';
+            const previous = images[slot];
+            images[slot] = await storeSiteImage(slot, {
+              buffer: file.buffer,
+              filename: `${slot}.jpg`,
+              mimetype: file.mimetype,
+            });
+            if (previous) deleteProductImageFiles(previous);
+          }
+        } catch (error) {
+          errors.push(`${file.field}: ${error instanceof Error ? error.message : 'unbekannter Fehler'}`);
+        }
+      }
+
+      // Galerie erst ersetzen, wenn mindestens ein neues Bild gespeichert wurde.
+      const galleryFiles = files.filter((file) => file.field === 'gallery');
+      if (galleryFiles.length > 0) {
+        const newGallery: string[] = [];
+        for (const file of galleryFiles.slice(0, 8)) {
+          try {
+            newGallery.push(
+              await storeSiteImage('gallery', {
+                buffer: file.buffer,
+                filename: 'galerie.jpg',
+                mimetype: file.mimetype,
+              }),
+            );
+          } catch (error) {
+            errors.push(`gallery: ${error instanceof Error ? error.message : 'unbekannter Fehler'}`);
+          }
+        }
+        if (newGallery.length > 0) {
+          for (const key of images.gallery) deleteProductImageFiles(key);
+          images.gallery = newGallery;
+        }
+        if (galleryFiles.length > 8) {
+          errors.push('Es sind maximal 8 Galeriebilder möglich.');
+        }
+      }
+
+      saveSiteImages(images);
+      writeAudit(request.admin?.email ?? 'admin', 'site.images.update', {
+        logo: Boolean(images.logo),
+        hero: Boolean(images.hero),
+        service: Boolean(images.service),
+        gallery: images.gallery.length,
+      });
+      const target = errors.length > 0
+        ? `/admin/stammdaten/?fehler=${encodeURIComponent(errors[0]!)}`
+        : '/admin/stammdaten/?gespeichert=1';
+      return reply.redirect(target, 303);
+    });
+
+    scope.post('/admin/stammdaten/bilder/entfernen/', async (request, reply) => {
+      const body = bodyObject(request);
+      const slot = cleanText(body.slot, 20);
+      const images = { ...getSiteSettings().images, gallery: [...getSiteSettings().images.gallery] };
+
+      if (slot === 'logo') {
+        if (images.logo) deleteSiteLogo(images.logo);
+        images.logo = '';
+      } else if (slot === 'hero' || slot === 'service') {
+        if (images[slot]) deleteProductImageFiles(images[slot]);
+        images[slot] = '';
+      } else if (slot === 'gallery') {
+        const index = intOrNull(body.index);
+        if (index !== null && index >= 0 && index < images.gallery.length) {
+          deleteProductImageFiles(images.gallery[index]!);
+          images.gallery.splice(index, 1);
+        }
+      } else {
+        return adminError(request, reply, 400, 'Unbekanntes Bild.');
+      }
+
+      saveSiteImages(images);
+      writeAudit(request.admin?.email ?? 'admin', 'site.images.remove', { slot });
+      return reply.redirect('/admin/stammdaten/?gespeichert=1', 303);
     });
 
     // Kategorien ----------------------------------------------------------
