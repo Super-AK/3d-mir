@@ -1,9 +1,8 @@
 # Kalkulation des 3D-Druck-Rechners
 
-> **Status: Platzhalter.** Alle Werte in `config/pricing.json` sind technische
-> Annahmen (`TODO-PREISE`, `TODO-KALKULATION`) und müssen vom Auftraggeber
-> bestätigt werden, bevor die Seite live geht. Die Preise im Rechner sind
-> ausdrücklich unverbindliche Schätzungen; der verbindliche Preis steht im
+> **Status: Vom Betreiber am 14.11.2026 bestätigt.** Die Werte in
+> `config/pricing.json` gelten als freigegeben. Die Preise im Rechner sind
+> weiterhin unverbindliche Schätzungen; der verbindliche Preis steht im
 > individuellen Angebot.
 
 ## Ziele
@@ -63,7 +62,7 @@ Die Positionen werden im Rechner und in der Anfrage-E-Mail einzeln ausgewiesen.
 
 ## Parameter in `config/pricing.json`
 
-| Schlüssel | Bedeutung | Aktueller Platzhalter |
+| Schlüssel | Bedeutung | Aktueller Wert |
 | --- | --- | --- |
 | `meta.minOrderValue` | Mindestauftragswert in Euro | 15,00 € |
 | `meta.setupFee` | Rüstkosten pro Auftrag | 3,50 € |

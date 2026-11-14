@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.3 – 14. November 2026
+
+Preise und Kalkulation vom Betreiber bestätigt. `meta.status` und
+`calculation.status` stehen auf `FINAL`; die Preis-Platzhalterhinweise sind
+entfernt, Versandkosten bleiben bis zur Freigabe als Platzhalter markiert.
+
 ## Release 1.0.0-rc.2 – 14. November 2026
 
 Stammdaten und Bildverwaltung im Admin ergänzt. Versionshistorie in `CHANGELOG.md`.

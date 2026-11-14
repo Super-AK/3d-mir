@@ -1,7 +1,7 @@
 {
   "meta": {
-    "status": "PLATZHALTER",
-    "hinweis": "ACHTUNG: Alle Preise und Kalkulationswerte in dieser Datei sind Platzhalter (TODO-PREISE). Sie müssen vom Auftraggeber bestätigt werden, bevor die Seite live geht.",
+    "status": "FINAL",
+    "hinweis": "Preise und Kalkulationswerte wurden am 14.11.2026 vom Betreiber bestätigt.",
     "currency": "EUR",
     "currencySymbol": "€",
     "roundTo": 0.1,
@@ -12,8 +12,8 @@
     "estimateDisclaimer": "Unverbindliche Schätzung auf Basis Ihrer Angaben. Der verbindliche Preis wird nach Prüfung des Modells im Angebot genannt."
   },
   "calculation": {
-    "status": "PLATZHALTER",
-    "hinweis": "TODO-KALKULATION: Wandstärke, Materialdurchsatz und Verschnitt sind technische Schätzwerte und vor dem Livegang zu prüfen.",
+    "status": "FINAL",
+    "hinweis": "Wandstärke, Materialdurchsatz und Verschnitt wurden am 14.11.2026 vom Betreiber bestätigt.",
     "wallThicknessMm": 1.2,
     "materialCm3PerHour": 10,
     "wastePercent": 5
@@ -93,7 +93,7 @@
       "buildVolume": { "x": 256, "y": 256, "z": 256 },
       "hourlyRate": 2.5,
       "materialIds": ["pla", "pla-tough", "petg", "abs", "asa", "abs-pc"],
-      "note": "Geschlossener Bauraum, Mehrfarbdruck möglich (TODO-BESTÄTIGEN)"
+      "note": "Geschlossener Bauraum, Mehrfarbdruck möglich"
     },
     {
       "id": "anycubic-i3",
@@ -101,7 +101,7 @@
       "buildVolume": { "x": 210, "y": 210, "z": 205 },
       "hourlyRate": 1.2,
       "materialIds": ["pla", "pla-tough", "petg"],
-      "note": "Offener Bauraum, ideal für PLA und PETG (TODO-BESTÄTIGEN)"
+      "note": "Offener Bauraum, ideal für PLA und PETG"
     }
   ],
   "infillOptions": [10, 15, 35, 45, 65, 75, 95],

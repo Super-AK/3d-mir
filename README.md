@@ -2,7 +2,7 @@
 
 Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, Sofort-Preisrechner mit 3D-Vorschau, kleiner Shop und Admin-Bereich.
 
-> **Version:** 1.0.0-rc.2 · **Status:** Release-Kandidat; alle geplanten Funktionen umgesetzt, Abnahme und Livegang offen. Rechtstexte und Preise sind Platzhalter bzw. Entwürfe – siehe `docs/OFFENE-FRAGEN.md` und `docs/ABNAHME.md`.
+> **Version:** 1.0.0-rc.3 · **Status:** Release-Kandidat; alle geplanten Funktionen umgesetzt, Abnahme und Livegang offen. Preise und Kalkulation sind bestätigt; Versandkosten und Rechtstexte sind weiterhin offen – siehe `docs/OFFENE-FRAGEN.md` und `docs/ABNAHME.md`.
 
 Änderungen und Versionshistorie: [`CHANGELOG.md`](CHANGELOG.md).
 
@@ -94,4 +94,4 @@ Betrieb, Update, Backup und Fehlersuche: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.
 
 ## Rechtlicher Hinweis
 
-Die mitgelieferten Rechtstexte (Impressum, AGB, Widerruf, Datenschutz) sind **technische Entwürfe** und müssen vor Veröffentlichung durch den Betreiber bzw. eine Rechtsberatung geprüft werden. Preise, Versandkosten und Zahlungsarten sind Platzhalter, bis der Auftraggeber sie bestätigt.
+Die mitgelieferten Rechtstexte (Impressum, AGB, Widerruf, Datenschutz) sind **technische Entwürfe** und müssen vor Veröffentlichung durch den Betreiber bzw. eine Rechtsberatung geprüft werden. Preise und Kalkulation sind bestätigt. Versandkosten und Zahlungsarten sind bis zur abschließenden Freigabe als Platzhalter gekennzeichnet.

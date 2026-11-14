@@ -1,6 +1,6 @@
 # Offene Fragen an den Auftraggeber
 
-**Stand:** 14.11.2026 · **Version:** 2.4 · **Zuletzt geprüft:** 14.11.2026
+**Stand:** 14.11.2026 · **Version:** 2.5 · **Zuletzt geprüft:** 14.11.2026
 
 Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; Einzelfragen sind mit `[F1]` usw. nummeriert. Erledigte Punkte bleiben mit Datum und Nachweis dokumentiert, damit Verweise und die Historie erhalten bleiben.
 
@@ -13,7 +13,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | ✅ Erledigt | umgesetzt und geprüft; Datum und Nachweis sind angegeben |
 | 🟢 Später | wichtig, aber nicht für den Start erforderlich |
 
-**Kurzstand:** Version 1.0.0-rc.1: Zahlung, Benachrichtigungen, Kontakt-Spam-Schutz, Kategorien, Etsy-Import, Veröffentlichungsschalter, Setup-Menü und Installationsanleitung sind technisch umgesetzt. Offen sind vor allem fachliche Freigaben (Preise, Versand, Recht), Zugangsdaten (Bank, SMTP, Telegram, Stripe live), die Bestätigung der Länder-Allowlist, die Etsy-API-Freigabe und DNS/TLS.
+**Kurzstand:** Version 1.0.0-rc.1: Zahlung, Benachrichtigungen, Kontakt-Spam-Schutz, Kategorien, Etsy-Import, Veröffentlichungsschalter, Setup-Menü und Installationsanleitung sind technisch umgesetzt. Preise und Kalkulation sind bestätigt. Offen sind vor allem Versand und Recht, Zugangsdaten (Bank, SMTP, Telegram, Stripe live), die Bestätigung der Länder-Allowlist, die Etsy-API-Freigabe und DNS/TLS.
 
 ---
 
@@ -28,7 +28,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | Veröffentlichung | ✅ Erledigt | Platzhalter-Hinweise im Admin schaltbar |
 | Etsy-Import | 🟡 In Arbeit | CSV-Import umgesetzt und 13 Produkte übernommen; API wartet auf Etsy-Freigabe |
 | Installation/Deployment | ✅ Erledigt | Installationsanleitung und interaktives Setup-Menü vorhanden |
-| Preise/Kalkulation | 🔴 Offen | Platzhalter und Overrides müssen bestätigt werden |
+| Preise/Kalkulation | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
 | Versand | 🟡 In Arbeit | Technik vorhanden; Preise/Lieferzeiten unbestätigt |
 | DNS/TLS | 🔴 Offen | Domain zeigt noch auf WordPress; TLS nicht aktiv |
 | Rechtstexte | 🔴 Offen | Entwürfe vorhanden; rechtliche Prüfung offen |
@@ -36,20 +36,20 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 
 ---
 
-## 1. Preise und Kalkulation (Rechner) 🔴
+## 1. Preise und Kalkulation (Rechner) ✅
 
 Alle Werte stehen aktuell als **Platzhalter** in `config/pricing.json` und sind in der Oberfläche als „unverbindliche Schätzung“ gekennzeichnet. Einzelne Werte werden bereits durch Admin-Overrides überlagert.
 
 | Nr. | Status | Frage | Aktueller Platzhalter |
 | --- | --- | --- | --- |
-| F1 | 🔴 Offen | Materialpreis pro Gramm für PLA, PLA Tough, PETG, ABS, ASA, ABS-PC? | 0,05–0,10 €/g |
-| F2 | 🔴 Offen | Maschinenstundensatz für Bambu Lab X1C und Anycubic i3 Mega S? | 2,50 €/h bzw. 1,20 €/h |
-| F3 | 🔴 Offen | Rüstkosten pro Auftrag und pro zusätzlichem Teil? | 3,50 € / 0,75 € |
-| F4 | 🔴 Offen | Mindestauftragswert? | aktuell 6,00 € (Admin-Override), Grunddatei 15,00 € |
-| F5 | 🔴 Offen | Mengenrabatte (ab welcher Stückzahl, wie viel Prozent)? | 5 % ab 3, 10 % ab 5, 15 % ab 10, 20 % ab 25 |
-| F6 | 🔴 Offen | Aufschläge für Nachbearbeitung (Schleifen, Grundieren/Lackieren)? | 4,00 € / 9,00 € pro Teil |
-| F7 | 🔴 Offen | Sollen Druckzeit und Materialverbrauch pauschal oder modellgenau geschätzt werden? (Die Berechnung nutzt Volumen × Füllung + Wandstärken; eine exakte Slicer-Zeit ist ohne Slicer nicht möglich.) | modellgenaue Schätzung |
-| F8 | 🔴 Offen | Sollen Preise inkl. oder zzgl. der gesetzlichen USt. gedacht sein? (Kleinunternehmer: kein USt.-Ausweis) | Brutto, kein USt.-Ausweis |
+| F1 | ✅ Erledigt | Materialpreis pro Gramm für PLA, PLA Tough, PETG, ABS, ASA, ABS-PC? | 0,05–0,10 €/g |
+| F2 | ✅ Erledigt | Maschinenstundensatz für Bambu Lab X1C und Anycubic i3 Mega S? | 2,50 €/h bzw. 1,20 €/h |
+| F3 | ✅ Erledigt | Rüstkosten pro Auftrag und pro zusätzlichem Teil? | 3,50 € / 0,75 € |
+| F4 | ✅ Erledigt | Mindestauftragswert? | aktuell 6,00 € (Admin-Override), Grunddatei 15,00 € |
+| F5 | ✅ Erledigt | Mengenrabatte (ab welcher Stückzahl, wie viel Prozent)? | 5 % ab 3, 10 % ab 5, 15 % ab 10, 20 % ab 25 |
+| F6 | ✅ Erledigt | Aufschläge für Nachbearbeitung (Schleifen, Grundieren/Lackieren)? | 4,00 € / 9,00 € pro Teil |
+| F7 | ✅ Erledigt | Sollen Druckzeit und Materialverbrauch pauschal oder modellgenau geschätzt werden? (Die Berechnung nutzt Volumen × Füllung + Wandstärken; eine exakte Slicer-Zeit ist ohne Slicer nicht möglich.) | modellgenaue Schätzung |
+| F8 | ✅ Erledigt | Sollen Preise inkl. oder zzgl. der gesetzlichen USt. gedacht sein? (Kleinunternehmer: kein USt.-Ausweis) | Brutto, kein USt.-Ausweis |
 
 ## 2. Zahlungsarten 🟡
 
@@ -135,7 +135,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | F45 | 🟡 In Arbeit | Welche Farben sind je Material tatsächlich vorrätig? | Standardfarben aus Altprodukt |
 | F46 | 🟡 In Arbeit | Gibt es Mindestwandstärken/Designregeln, die wir Kunden nennen sollen? | noch keine |
 | F47 | 🟡 In Arbeit | „Coating“ auf der Altseite: Was genau wird angeboten (Glätten, Lackieren, Versiegeln)? | Schleifen/Lackieren als Platzhalter |
-| F66 | 🔴 Offen | Sind die Kalkulationswerte realistisch: Wandstärke 1,2 mm, Materialdurchsatz 15 cm³/h (Override), Verschnitt 5 %, Rüstkosten 3,50 € + 0,75 € je weiterem Teil, Mindestauftrag 6,00 € (Override), Rundung 0,10 €? Bitte in `config/pricing.json` bzw. im Admin bestätigen oder korrigieren (siehe `docs/KALKULATION.md`). | Platzhalter |
+| F66 | ✅ Erledigt | **Bestätigt:** Wandstärke 1,2 mm, Materialdurchsatz 15 cm³/h (Override), Verschnitt 5 %, Rüstkosten 3,50 € + 0,75 € je weiterem Teil, Mindestauftrag 6,00 € (Override), Rundung 0,10 €.<br>*(14.11.2026)* | – |
 
 ## 9. Shop und Produkte 🟡
 
@@ -189,7 +189,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 
 ## 13. Nächste Schritte bis zum Livegang
 
-1. **Preise und Versand bestätigen:** F1–F8, F14–F20 und F66 in `config/pricing.json` bzw. im Admin korrigieren.
+1. **Versand bestätigen:** F14–F20 in `config/pricing.json` bzw. im Admin korrigieren (Preise und Kalkulation sind erledigt).
 2. **Zahlung live schalten:** F13 (Bankverbindung) und F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test).
 3. **Benachrichtigungen einrichten:** F21–F24, F69–F71 (SMTP, Telegram, Kanal und Ereignisse).
 4. **Kontakt-Spam-Schutz bestätigen:** F76 (erlaubte Länder) prüfen; GeoIP-Datenbank mit `deploy/update-geoip.sh` installieren und monatlich aktualisieren; Antworten und Prüfmodus im Admin testen.
@@ -212,6 +212,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F26 | 13.11.2026 | SSH-Push funktioniert |
 | F56 | 13.11.2026 | Tracking-Abschnitte entfernt |
 | F64 | 13.11.2026 | Admin-Zugang eingerichtet |
+| F1–F8, F66 | 14.11.2026 | Preise und Kalkulation bestätigt |
 | F73 | 14.11.2026 | Direktantwort aus dem Admin inkl. `.eml`-Fallback |
 | F74 | 14.11.2026 | Add-Buttons und mehrere Neu-Zeilen im Preis-Admin |
 | F75 | 14.11.2026 | Bankdaten nur noch in der Vorkasse-Bestätigungsmail |

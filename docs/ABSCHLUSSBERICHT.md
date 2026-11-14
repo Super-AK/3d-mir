@@ -1,14 +1,14 @@
 # Abschlussbericht
 
 **Projekt:** Neuaufbau der Website 3D-MIR (3D-Druck Service, Schömberg)
-**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.2
+**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.3
 **Technischer Status:** Release-Kandidat, alle geplanten Funktionen umgesetzt; Abnahme und Livegang offen
 
 ## 1. Ausgangslage und Ziel
 
 Die bisherige WordPress-Seite wurde vollständig ausgelesen und durch eine eigene Anwendung ersetzt. Ziel war ein schneller, datenschutzfreundlicher Auftritt mit Sofort-Preisrechner, kleinerem Shop und einem Admin-Bereich, der ohne externe Dienste und ohne Tracking auskommt.
 
-Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtstexte wurden inhaltlich unverändert übernommen und als „rechtlich zu prüfen“ gekennzeichnet. Preise, Versandkosten und Zahlungsarten sind bewusst Platzhalter, bis der Auftraggeber sie bestätigt.
+Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtstexte wurden inhaltlich unverändert übernommen und als „rechtlich zu prüfen“ gekennzeichnet. Preise und Kalkulation wurden am 14.11.2026 bestätigt; Versandkosten und Zahlungsarten sind weiterhin offen.
 
 ## 2. Ergebnis
 

@@ -3,6 +3,19 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.3] – 2026-11-14
+
+### Geändert
+
+- **Preise und Kalkulation vom Betreiber bestätigt** (14.11.2026):
+  `meta.status` und `calculation.status` in `config/pricing.json` auf
+  `FINAL` gesetzt.
+- Platzhalter-Hinweise für Preise verschwinden auf Produktseiten, unter
+  „Leistungen“ und im Admin-Bereich „Preise“.
+- Shop-Hinweis und Kassen-Hinweis nennen nur noch die Versandkosten als
+  offenen Platzhalter.
+- TODO-Marker aus den Drucker-Hinweisen und den Live-Preis-Overrides entfernt.
+
 ## [1.0.0-rc.2] – 2026-11-14
 
 ### Hinzugefügt
@@ -108,5 +121,6 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.3]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.3
 [1.0.0-rc.2]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.1
