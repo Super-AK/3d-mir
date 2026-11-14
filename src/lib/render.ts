@@ -228,6 +228,10 @@ export function render(res: import('fastify').FastifyReply, template: string, co
     pricing,
     publication: getPublicationSettings(),
     publicPaymentMethods: getPublicPaymentMethods(),
+    galleryImages:
+      config.site.images.gallery === null
+        ? ['gallery-1', 'gallery-2', 'gallery-3', 'gallery-4', 'gallery-5', 'gallery-6', 'gallery-7', 'gallery-8']
+        : config.site.images.gallery,
     shippingFromPrice: shippingPrices.length > 0 ? Math.min(...shippingPrices) : null,
     ...context,
   });

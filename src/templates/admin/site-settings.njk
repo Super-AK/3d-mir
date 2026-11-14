@@ -213,8 +213,10 @@
       </div>
     </form>
 
-    {% if galleryItems.length > 0 %}
-      <h3>Galerie</h3>
+    <h3>Galerie</h3>
+    {% if galleryIsDefault %}
+      <p class="text-muted">Aktuell wird die mitgelieferte Standardgalerie mit acht Bildern verwendet. Eigene Bilder werden über das Formular oben hochgeladen und ersetzen die Standardgalerie.</p>
+    {% elif galleryItems.length > 0 %}
       <div class="admin-image-grid">
         {% for item in galleryItems %}
           <figure class="admin-image-card">
@@ -228,6 +230,20 @@
           </figure>
         {% endfor %}
       </div>
+      <form method="post" action="/admin/stammdaten/bilder/entfernen/" class="mt-2">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="slot" value="gallery">
+        <input type="hidden" name="reset" value="1">
+        <button class="btn btn-secondary btn-small" type="submit">Standardgalerie wiederherstellen</button>
+      </form>
+    {% else %}
+      <p class="text-muted">Es sind keine eigenen Galeriebilder hinterlegt. Der Referenzbereich wird auf der Startseite ausgeblendet.</p>
+      <form method="post" action="/admin/stammdaten/bilder/entfernen/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="slot" value="gallery">
+        <input type="hidden" name="reset" value="1">
+        <button class="btn btn-secondary btn-small" type="submit">Standardgalerie wiederherstellen</button>
+      </form>
     {% endif %}
   </section>
 

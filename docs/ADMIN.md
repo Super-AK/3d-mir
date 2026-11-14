@@ -24,6 +24,12 @@ Unter **Admin → Stammdaten** werden die öffentlichen Geschäftsangaben und Bi
 
 Hochgeladene Logos liegen unter `/var/lib/3d-mir/uploads/site/` und werden über `/site-media/…` ausgeliefert. Hero-, Service- und Galeriebilder werden wie Produktbilder in AVIF/WebP/JPEG umgewandelt und unter `/media/site/…` bereitgestellt.
 
+Für die Galerie gibt es drei Zustände:
+
+- **Standardgalerie:** es sind keine eigenen Bilder gespeichert; die acht mitgelieferten Motive werden verwendet.
+- **Eigene Galerie:** ein oder mehrere hochgeladene Bilder ersetzen die Standardgalerie.
+- **Keine Galerie:** alle eigenen Bilder wurden entfernt; der Referenzbereich wird auf der Startseite ausgeblendet. Über **„Standardgalerie wiederherstellen“** lassen sich die mitgelieferten Bilder zurückholen.
+
 ## Preise und Katalog
 
 Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:

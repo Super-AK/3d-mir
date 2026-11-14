@@ -2102,17 +2102,6 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         'Schreiben Sie uns – wir prüfen Ihr Modell, beraten zur Materialwahl und melden uns in der Regel innerhalb eines Werktags.',
     };
 
-    const defaultGalleryImages = () => [
-      'gallery-1',
-      'gallery-2',
-      'gallery-3',
-      'gallery-4',
-      'gallery-5',
-      'gallery-6',
-      'gallery-7',
-      'gallery-8',
-    ];
-
     const readHomeContent = (): Record<string, string> => {
       const placeholders = homeContentKeys.map(() => '?').join(',');
       const rows = db()
@@ -2137,14 +2126,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     scope.get('/admin/stammdaten/', async (request, reply) => {
       const settings = getSiteSettings();
-      const galleryKeys = settings.images.gallery.length > 0 ? settings.images.gallery : defaultGalleryImages();
+      const galleryKeys = settings.images.gallery;
       render(reply, 'admin/site-settings.njk', adminContext(request, {
         settings,
         content: readHomeContent(),
         logoUrl: settings.images.logo || '/assets/img/gen/logo-96.png',
         heroPreview: imagePreview(settings.images.hero || 'hero', 480),
         servicePreview: imagePreview(settings.images.service || 'service', 480),
-        galleryItems: galleryKeys.map((key) => ({ key, preview: imagePreview(key, 320) })),
+        galleryIsDefault: galleryKeys === null,
+        galleryItems: (galleryKeys ?? []).map((key) => ({ key, preview: imagePreview(key, 320) })),
       }));
     });
 
@@ -2241,12 +2231,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const current = getSiteSettings().images;
-      const images = { ...current, gallery: [...current.gallery] };
+      const images = {
+        ...current,
+        gallery: current.gallery === null ? null : [...current.gallery],
+      };
       const errors: string[] = [];
 
       if (fields.resetGallery === '1') {
-        for (const key of images.gallery) deleteProductImageFiles(key);
-        images.gallery = [];
+        for (const key of images.gallery ?? []) deleteProductImageFiles(key);
+        images.gallery = null;
       }
 
       for (const file of files) {
@@ -2289,7 +2282,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           }
         }
         if (newGallery.length > 0) {
-          for (const key of images.gallery) deleteProductImageFiles(key);
+          for (const key of images.gallery ?? []) deleteProductImageFiles(key);
           images.gallery = newGallery;
         }
         if (galleryFiles.length > 8) {
@@ -2302,7 +2295,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         logo: Boolean(images.logo),
         hero: Boolean(images.hero),
         service: Boolean(images.service),
-        gallery: images.gallery.length,
+        gallery: images.gallery?.length ?? 0,
       });
       const target = errors.length > 0
         ? `/admin/stammdaten/?fehler=${encodeURIComponent(errors[0]!)}`
@@ -2313,7 +2306,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     scope.post('/admin/stammdaten/bilder/entfernen/', async (request, reply) => {
       const body = bodyObject(request);
       const slot = cleanText(body.slot, 20);
-      const images = { ...getSiteSettings().images, gallery: [...getSiteSettings().images.gallery] };
+      const currentImages = getSiteSettings().images;
+      const images = {
+        ...currentImages,
+        gallery: currentImages.gallery === null ? null : [...currentImages.gallery],
+      };
 
       if (slot === 'logo') {
         if (images.logo) deleteSiteLogo(images.logo);
@@ -2322,10 +2319,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         if (images[slot]) deleteProductImageFiles(images[slot]);
         images[slot] = '';
       } else if (slot === 'gallery') {
-        const index = intOrNull(body.index);
-        if (index !== null && index >= 0 && index < images.gallery.length) {
-          deleteProductImageFiles(images.gallery[index]!);
-          images.gallery.splice(index, 1);
+        if (body.reset === '1') {
+          for (const key of images.gallery ?? []) deleteProductImageFiles(key);
+          images.gallery = null;
+        } else {
+          const index = intOrNull(body.index);
+          if (images.gallery && index !== null && index >= 0 && index < images.gallery.length) {
+            deleteProductImageFiles(images.gallery[index]!);
+            images.gallery.splice(index, 1);
+          }
         }
       } else {
         return adminError(request, reply, 400, 'Unbekanntes Bild.');

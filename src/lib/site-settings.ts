@@ -64,7 +64,11 @@ export function applySiteSettings(): void {
       logo: overrides.images.logo ?? merged.images.logo,
       hero: overrides.images.hero ?? merged.images.hero,
       service: overrides.images.service ?? merged.images.service,
-      gallery: Array.isArray(overrides.images.gallery) ? overrides.images.gallery : merged.images.gallery,
+      gallery: Object.prototype.hasOwnProperty.call(overrides.images, 'gallery')
+        ? Array.isArray(overrides.images.gallery)
+          ? overrides.images.gallery
+          : null
+        : merged.images.gallery,
     };
   }
 
@@ -162,10 +166,9 @@ export function saveSiteImages(images: SiteConfig['images']): void {
       logo: clean(images.logo, 300),
       hero: clean(images.hero, 300),
       service: clean(images.service, 300),
-      gallery: images.gallery
-        .map((entry) => clean(entry, 300))
-        .filter(Boolean)
-        .slice(0, 8),
+      gallery: images.gallery === null
+        ? null
+        : images.gallery.map((entry) => clean(entry, 300)).filter(Boolean).slice(0, 8),
     },
   });
   applySiteSettings();

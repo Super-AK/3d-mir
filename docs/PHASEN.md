@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.4 – 14. November 2026
+
+Galerie-Verwaltung korrigiert: Entfernte Bilder bleiben nicht mehr als
+scheinbare Standardbilder im Admin; leere Galerie blendet den Referenzbereich
+auf der Startseite aus, „Standardgalerie wiederherstellen“ holt die
+mitgelieferten Motive zurück.
+
 ## Release 1.0.0-rc.3 – 14. November 2026
 
 Preise und Kalkulation vom Betreiber bestätigt. `meta.status` und

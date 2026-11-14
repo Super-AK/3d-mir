@@ -99,16 +99,18 @@
       </div>
       <p class="mt-2"><a class="btn btn-secondary" href="/leistungen/#materialien">Materialien vergleichen</a></p>
     </div>
-    <div class="gallery-teaser">
-      {% set galleryImages = site.images.gallery %}
-      {% if galleryImages | length == 0 %}{% set galleryImages = ['gallery-1', 'gallery-5', 'gallery-9', 'gallery-3'] %}{% endif %}
-      {% for name in galleryImages | slice(0, 4) %}
-        {{ image(name, { sizes: '(max-width: 860px) 50vw, 22vw', alt: '3D-gedrucktes Bauteil aus der Werkstatt' }) | safe }}
-      {% endfor %}
+    {% if galleryImages | length > 0 %}
+      <div class="gallery-teaser">
+        {% for name in (galleryImages | slice(0, 4)) %}
+          {{ image(name, { sizes: '(max-width: 860px) 50vw, 22vw', alt: '3D-gedrucktes Bauteil aus der Werkstatt' }) | safe }}
+        {% endfor %}
+      </div>
+    {% endif %}
     </div>
   </div>
 </section>
 
+{% if galleryImages | length > 0 %}
 <section class="section section-soft">
   <div class="container">
     <div class="section-head">
@@ -126,6 +128,7 @@
     <p class="text-muted mt-2"><small>Weitere Referenzen und aktuelle Arbeiten finden Sie in unserem <a href="{{ site.channels.etsy.url }}" target="_blank" rel="noopener">Etsy-Shop</a>. Fotos eigener Drucke werden laufend ergänzt.</small></p>
   </div>
 </section>
+{% endif %}
 
 <section class="section">
   <div class="container">
