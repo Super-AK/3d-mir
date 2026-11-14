@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.7] – 2026-11-14
+
+### Behoben
+
+- `deploy/verify.sh` erkennt ein vorhandenes Let's-Encrypt-Zertifikat und
+  prüft die Seiten automatisch über HTTPS (mit `--resolve` lokal gegen NGINX).
+  Die zuvor gemeldeten 301-Fehler auf Produktivservern mit certbot-Redirect
+  waren kein Anwendungsfehler.
+- Ohne Zertifikat bleibt die Prüfung über HTTP mit `Host`-Header erhalten.
+
 ## [1.0.0-rc.6] – 2026-11-14
 
 ### Behoben
@@ -154,6 +164,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.7]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.7
 [1.0.0-rc.6]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.6
 [1.0.0-rc.5]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.5
 [1.0.0-rc.4]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.4

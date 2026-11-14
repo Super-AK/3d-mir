@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.7 – 14. November 2026
+
+`deploy/verify.sh` prüft bei vorhandenem TLS-Zertifikat automatisch HTTPS.
+Die 301-Meldungen auf Produktivservern mit certbot-Redirect waren dadurch
+bedingt, dass die Prüfung zuvor über HTTP lief.
+
 ## Release 1.0.0-rc.6 – 14. November 2026
 
 Update-Skript prüft den Health-Endpunkt direkt am Anwendungsport; Anleitung

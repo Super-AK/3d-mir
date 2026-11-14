@@ -283,7 +283,7 @@ Das Skript sichert zuerst den aktuellen Zustand, stoppt den Dienst, prüft die D
 sudo deploy/verify.sh
 ```
 
-Prüft Node-Version, Dienststatus, `nginx -t`, alle wichtigen Seiten, Sicherheits-Header, 301-/404-Regeln, SQLite-Integrität, Verzeichnisrechte und den TLS-Ablauf (falls Zertifikat vorhanden). Exit-Code 1 bei Fehlern, geeignet für Monitoring.
+Prüft Node-Version, Dienststatus, `nginx -t`, alle wichtigen Seiten, Sicherheits-Header, 301-/404-Regeln, SQLite-Integrität, Verzeichnisrechte und den TLS-Ablauf. Liegt ein Let's-Encrypt-Zertifikat vor, wird automatisch über HTTPS geprüft (lokal per `--resolve` gegen NGINX); sonst über HTTP mit `Host`-Header. Exit-Code 1 bei Fehlern, geeignet für Monitoring.
 
 ## Test auf frischer VM
 

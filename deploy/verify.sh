@@ -14,7 +14,25 @@ DATA_DIR="${DATA_DIR:-/var/lib/3d-mir}"
 LOG_DIR="${LOG_DIR:-/var/log/3d-mir}"
 DB_PATH="${DB_PATH:-$DATA_DIR/db/3d-mir.sqlite}"
 ENV_FILE="${ENV_FILE:-/etc/3d-mir/3d-mir.env}"
-BASE_URL="${BASE_URL:-http://127.0.0.1}"
+
+# Mit vorhandenem Let's-Encrypt-Zertifikat über HTTPS prüfen. Sonst würde
+# NGINX (certbot --redirect) jede HTTP-Anfrage mit 301 beantworten.
+if [[ -z "${BASE_URL:-}" ]]; then
+  if [[ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
+    BASE_URL="https://$DOMAIN"
+  else
+    BASE_URL="http://127.0.0.1"
+  fi
+fi
+
+CURL_BASE=(curl -sS --max-time 15)
+if [[ "$BASE_URL" == "https://$DOMAIN" ]]; then
+  # SNI/Host bleibt die Domain, die Verbindung geht aber lokal an NGINX.
+  CURL_BASE+=(--resolve "$DOMAIN:443:127.0.0.1")
+elif [[ "$BASE_URL" == http://127.0.0.1* || "$BASE_URL" == http://localhost* ]]; then
+  CURL_BASE+=(-H "Host: $DOMAIN")
+fi
+request() { "${CURL_BASE[@]}" "$@"; }
 
 pass=0
 fail=0
@@ -34,15 +52,15 @@ systemctl is-active --quiet nginx && ok "NGINX aktiv" || bad "NGINX nicht aktiv"
 
 head "HTTP"
 for path in / /leistungen/ /3d-druck-rechner/ /shop/ /zahlung/ /kontakt/ /impressum/ /datenschutz/ /robots.txt /sitemap.xml; do
-  code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Host: $DOMAIN" "$BASE_URL$path" 2>/dev/null || echo 000)"
+  code="$(request -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || echo 000)"
   [[ "$code" == "200" ]] && ok "$path → 200" || bad "$path → $code"
 done
-health="$(curl -fsS -H "Host: $DOMAIN" "$BASE_URL/api/health" 2>/dev/null || true)"
+health="$(request -fsS "$BASE_URL/api/health" 2>/dev/null || true)"
 [[ "$health" == *'"status":"ok"'* ]] && ok "Health-Endpunkt meldet ok" || bad "Health-Endpunkt fehlerhaft: $health"
-webhook_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Host: $DOMAIN" -H 'Content-Type: application/json' --data '{}' "$BASE_URL/zahlung/webhook/stripe/" 2>/dev/null || echo 000)"
+webhook_code="$(request -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' --data '{}' "$BASE_URL/zahlung/webhook/stripe/" 2>/dev/null || echo 000)"
 [[ "$webhook_code" == "400" ]] && ok "Stripe-Webhook lehnt unsignierte Anfrage ab (400)" || bad "Stripe-Webhook antwortet unerwartet: $webhook_code"
 
-headers="$(curl -sS -D- -o /dev/null -H "Host: $DOMAIN" "$BASE_URL/" 2>/dev/null || true)"
+headers="$(request -D- -o /dev/null "$BASE_URL/" 2>/dev/null || true)"
 for header in 'content-security-policy' 'x-content-type-options' 'referrer-policy' 'permissions-policy'; do
   echo "$headers" | grep -qi "^$header:" && ok "Header $header gesetzt" || bad "Header $header fehlt"
 done
@@ -51,7 +69,7 @@ head "Weiterleitungen"
 for pair in '/versandarten/:301' '/wp-admin/:301' '/wp-content/uploads/test.jpg:404'; do
   path="${pair%:*}"
   expected="${pair##*:}"
-  code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Host: $DOMAIN" "$BASE_URL$path" 2>/dev/null || echo 000)"
+  code="$(request -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || echo 000)"
   [[ "$code" == "$expected" ]] && ok "$path → $code" || bad "$path → $code (erwartet $expected)"
 done
 
