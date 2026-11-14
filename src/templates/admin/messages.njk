@@ -6,29 +6,119 @@
   <div class="admin-page-head">
     <div>
       <h1>Nachrichten</h1>
-      <p>Anfragen aus dem Kontaktformular. Erledigte Nachrichten bleiben zur Nachvollziehbarkeit erhalten.</p>
+      <p>Anfragen aus dem Kontaktformular. Nachrichten mit auffälligem Land oder Inhalt warten auf eine manuelle Prüfung.</p>
     </div>
+    {% if reviewCount > 0 or spamCount > 0 %}
+      <div class="admin-page-actions">
+        {% if reviewCount > 0 %}<span class="badge badge-warning">{{ reviewCount }} zur Prüfung</span>{% endif %}
+        {% if spamCount > 0 %}<span class="badge badge-neutral">{{ spamCount }} als Spam</span>{% endif %}
+      </div>
+    {% endif %}
   </div>
+
+  {% if meldung.gespeichert %}
+    <div class="alert alert-success" role="status"><p>Die Änderungen wurden gespeichert.</p></div>
+  {% endif %}
+  {% if meldung.geloescht %}
+    <div class="alert alert-success" role="status"><p>Die Nachricht wurde gelöscht.</p></div>
+  {% endif %}
+  {% if meldung.antwort == 'gesendet' %}
+    <div class="alert alert-success" role="status"><p>Die Antwort wurde per E-Mail versendet.</p></div>
+  {% elif meldung.antwort == 'datei' %}
+    <div class="alert alert-warning" role="status"><p>SMTP ist nicht eingerichtet. Die Antwort wurde als <code>.eml</code>-Datei unter <code>/var/log/3d-mir/mail/</code> gespeichert.</p></div>
+  {% endif %}
+  {% if meldung.fehler %}
+    <div class="alert alert-danger" role="alert"><p>{{ meldung.fehler }}</p></div>
+  {% endif %}
+
+  <details class="admin-help admin-contact-settings">
+    <summary class="btn btn-secondary btn-small">Spam-Schutz und Länderprüfung</summary>
+    <div class="admin-help-body">
+      <form class="form" method="post" action="/admin/nachrichten/einstellungen/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+        <div class="form-row">
+          <div class="field">
+            <label for="contactMode">Verhalten bei Auffälligkeiten</label>
+            <select id="contactMode" name="mode">
+              <option value="review" {% if contactSettings.mode != 'block' %}selected{% endif %}>Zur Prüfung speichern (empfohlen)</option>
+              <option value="block" {% if contactSettings.mode == 'block' %}selected{% endif %}>Anfrage direkt ablehnen</option>
+            </select>
+            <span class="hint">Im Prüfmodus wird die Nachricht gespeichert, aber nicht an den Betreiber weitergeleitet. Sie entscheiden dann manuell.</span>
+          </div>
+        </div>
+
+        <label class="checkbox">
+          <input type="checkbox" name="countryCheck" value="1" {% if contactSettings.countryCheck %}checked{% endif %}>
+          <span>Länderprüfung aktiv: Nur Anfragen aus den ausgewählten Ländern zulassen.</span>
+        </label>
+
+        <div class="field">
+          <span class="field-label">Erlaubte Länder</span>
+          <div class="admin-check-list admin-country-list">
+            {% for country in countries %}
+              <label class="admin-check admin-check-inline">
+                <input type="checkbox" name="allowedCountries" value="{{ country.code }}" {% if country.code in contactSettings.allowedCountries %}checked{% endif %}>
+                <span>{{ country.name }} <code class="admin-code">{{ country.code }}</code></span>
+              </label>
+            {% endfor %}
+          </div>
+          <span class="hint">Mehrfachauswahl möglich. Standard ist Deutschland. Liefert ein vorgeschalteter Proxy ein Länderkürzel (z. B. <code>CF-IPCountry</code>), wird zusätzlich dieses geprüft.</span>
+        </div>
+
+        <label class="checkbox">
+          <input type="checkbox" name="timeCheck" value="1" {% if contactSettings.timeCheck %}checked{% endif %}>
+          <span>Zeitprüfung: Formular muss mindestens 3 Sekunden geöffnet gewesen sein.</span>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" name="contentCheck" value="1" {% if contactSettings.contentCheck %}checked{% endif %}>
+          <span>Inhaltsprüfung: Viele Links, typische Spam-Begriffe oder überwiegende Großschreibung erkennen.</span>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn" type="submit">Einstellungen speichern</button>
+        </div>
+      </form>
+    </div>
+  </details>
 
   {% if messages.length > 0 %}
     <div class="admin-messages">
       {% for message in messages %}
-        <article class="card admin-message {% if message.handled %}is-handled{% endif %}">
+        <article id="nachricht-{{ message.id }}" class="card admin-message {% if message.handled %}is-handled{% endif %} {% if message.review_status == 'spam' %}is-spam{% endif %}">
           <div class="admin-message-head">
             <div>
               <h2>{{ message.subject or 'Kontaktnachricht' }}</h2>
               <p class="text-muted">
                 {{ message.name }} · <a href="mailto:{{ message.email }}">{{ message.email }}</a>
                 {% if message.phone %} · {{ message.phone }}{% endif %}
+                · {{ countryLabels[message.country] or message.country or 'Land unbekannt' }}
                 · {{ message.created_at | date }}
               </p>
             </div>
             <div class="admin-message-actions">
+              {% if message.review_status == 'pruefen' %}
+                <span class="badge badge-warning">Prüfung erforderlich</span>
+              {% elif message.review_status == 'spam' %}
+                <span class="badge badge-neutral">Spam</span>
+              {% endif %}
               {% if message.handled %}
                 <span class="badge badge-success">Erledigt</span>
               {% else %}
                 <span class="badge badge-warning">Offen</span>
               {% endif %}
+
+              {% if message.review_status == 'pruefen' %}
+                <form method="post" action="/admin/nachrichten/{{ message.id }}/freigeben/">
+                  <input type="hidden" name="_csrf" value="{{ csrf }}">
+                  <button class="btn btn-small" type="submit">Freigeben</button>
+                </form>
+                <form method="post" action="/admin/nachrichten/{{ message.id }}/spam/">
+                  <input type="hidden" name="_csrf" value="{{ csrf }}">
+                  <button class="btn btn-secondary btn-small" type="submit">Als Spam markieren</button>
+                </form>
+              {% endif %}
+
               <form method="post" action="/admin/nachrichten/{{ message.id }}/">
                 <input type="hidden" name="_csrf" value="{{ csrf }}">
                 <input type="hidden" name="handled" value="{% if message.handled %}0{% else %}1{% endif %}">
@@ -37,9 +127,45 @@
               <a class="btn btn-danger btn-small" href="/admin/nachrichten/{{ message.id }}/loeschen/">Löschen</a>
             </div>
           </div>
-          <details class="admin-message-text" {% if not message.handled %}open{% endif %}>
+
+          {% if message.review_reason and message.review_status != 'ok' %}
+            <div class="alert alert-warning" role="status">
+              <p><strong>Grund:</strong> {{ message.review_reason }}</p>
+            </div>
+          {% endif %}
+
+          <details class="admin-message-text" {% if not message.handled or message.review_status == 'pruefen' %}open{% endif %}>
             <summary>Nachricht anzeigen</summary>
             <p>{{ message.message }}</p>
+          </details>
+
+          {% if message.replied_at %}
+            <div class="admin-message-reply-sent">
+              <p><strong>Antwort gesendet:</strong> {{ message.replied_at | date }}</p>
+              <details>
+                <summary>{{ message.reply_subject }}</summary>
+                <p>{{ message.reply_text }}</p>
+              </details>
+            </div>
+          {% endif %}
+
+          <details class="admin-message-reply">
+            <summary>{% if message.replied_at %}Weitere Antwort senden{% else %}Antworten{% endif %}</summary>
+            <form class="form" method="post" action="/admin/nachrichten/{{ message.id }}/antworten/">
+              <input type="hidden" name="_csrf" value="{{ csrf }}">
+              <div class="field">
+                <label for="replySubject-{{ message.id }}">Betreff</label>
+                <input id="replySubject-{{ message.id }}" name="replySubject" type="text" maxlength="200" value="Re: {{ message.subject or 'Ihre Anfrage' }}">
+              </div>
+              <div class="field">
+                <label for="replyText-{{ message.id }}">Antwort an {{ message.email }}</label>
+                <textarea id="replyText-{{ message.id }}" name="replyText" required maxlength="10000" placeholder="Ihre Antwort …"></textarea>
+                <span class="hint">Die Nachricht wird direkt per E-Mail an den Kunden gesendet. Die ursprüngliche Anfrage wird nicht automatisch zitiert.</span>
+              </div>
+              <div class="form-actions">
+                <button class="btn" type="submit">Antwort senden</button>
+              </div>
+            </form>
           </details>
         </article>
       {% endfor %}

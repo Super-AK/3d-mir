@@ -4,10 +4,14 @@ import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
 import { notifyAdmin } from '../lib/notifications.js';
-import { cleanText, escapeHtml, isSameOrigin } from '../lib/http.js';
+import { cleanText, isSameOrigin } from '../lib/http.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
-import { getPublicPaymentMethods, getShopSettings, isBankConfigured } from '../lib/shop-settings.js';
+import { getPublicPaymentMethods } from '../lib/shop-settings.js';
 import { isStripeConfigured } from '../lib/payments/stripe.js';
+import { countries, normalizeCountry } from '../lib/countries.js';
+import { getContactSettings } from '../lib/contact-settings.js';
+import { assessContact, createContactToken, headerCountry } from '../lib/contact-protection.js';
+import { contactMailHtml, contactMailText, contactReviewMailHtml, contactReviewMailText } from '../lib/contact-mail.js';
 
 /** Liest alle Inhaltsblöcke als Schlüssel-Wert-Paare. */
 export function getContent(): Record<string, string> {
@@ -104,6 +108,10 @@ const contactSchema = z.object({
   name: z.string().min(2, 'Bitte geben Sie Ihren Namen an.').max(120),
   email: z.string().email('Bitte geben Sie eine gültige E-Mail-Adresse an.').max(200),
   phone: z.string().max(60),
+  country: z
+    .string()
+    .regex(/^[A-Z]{2}$/, 'Bitte wählen Sie Ihr Land aus.')
+    .refine((code) => countries.some((country) => country.code === code), 'Bitte wählen Sie ein gültiges Land aus.'),
   subject: z.enum(contactSubjects),
   message: z
     .string()
@@ -118,6 +126,7 @@ type ContactForm = {
   name: string;
   email: string;
   phone: string;
+  country: string;
   subject: string;
   message: string;
   consent: string;
@@ -130,6 +139,7 @@ function readContactForm(request: FastifyRequest): ContactForm {
     name: cleanText(body.name, 120),
     email: cleanText(body.email, 200),
     phone: cleanText(body.phone, 60),
+    country: normalizeCountry(body.country) || 'DE',
     subject: (contactSubjects as readonly string[]).includes(subject) ? subject : contactSubjects[0],
     message: cleanText(body.message, 5000),
     consent: body.consent === '1' || body.consent === 'on' ? '1' : '',
@@ -138,33 +148,6 @@ function readContactForm(request: FastifyRequest): ContactForm {
 
 function contactErrorMessage(error: z.ZodError): string {
   return error.issues[0]?.message ?? 'Bitte prüfen Sie Ihre Angaben.';
-}
-
-function contactMailText(form: ContactForm): string {
-  return [
-    'Neue Kontaktanfrage über 3d-mir.de',
-    '',
-    `Name:    ${form.name}`,
-    `E-Mail:  ${form.email}`,
-    `Telefon: ${form.phone || '–'}`,
-    `Anliegen: ${form.subject}`,
-    '',
-    form.message,
-  ].join('\n');
-}
-
-function contactMailHtml(form: ContactForm): string {
-  const rows = [
-    ['Name', form.name],
-    ['E-Mail', form.email],
-    ['Telefon', form.phone || '–'],
-    ['Anliegen', form.subject],
-  ]
-    .map(([label, value]) => `<tr><th align="left">${escapeHtml(label!)}</th><td>${escapeHtml(value!)}</td></tr>`)
-    .join('');
-  return `<h1>Neue Kontaktanfrage</h1>
-<table cellpadding="6">${rows}</table>
-<p style="white-space:pre-wrap">${escapeHtml(form.message)}</p>`;
 }
 
 /** Alte WordPress-URLs dauerhaft auf die neuen Seiten umleiten. */
@@ -293,12 +276,20 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
     render(reply, 'pages/leistungen.njk', { printers: getPrinters() });
   });
 
-  app.get('/kontakt/', async (_request, reply) => {
+  const renderContactForm = (
+    reply: import('fastify').FastifyReply,
+    form: Partial<ContactForm>,
+    extra: Record<string, unknown> = {},
+  ) =>
     render(reply, 'pages/kontakt.njk', {
       subjects: contactSubjects,
-      form: {} as Partial<ContactForm>,
+      countries,
+      contactToken: createContactToken(),
+      form,
+      ...extra,
     });
-  });
+
+  app.get('/kontakt/', async (_request, reply) => renderContactForm(reply, {}));
 
   app.post(
     '/kontakt/',
@@ -319,9 +310,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
 
       if (!isSameOrigin(request)) {
         reply.code(403);
-        return render(reply, 'pages/kontakt.njk', {
-          subjects: contactSubjects,
-          form,
+        return renderContactForm(reply, form, {
           error: 'Die Anfrage konnte nicht zugeordnet werden. Bitte laden Sie die Seite neu und versuchen Sie es erneut.',
         });
       }
@@ -329,17 +318,75 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
       const parsed = contactSchema.safeParse(form);
       if (!parsed.success) {
         reply.code(400);
-        return render(reply, 'pages/kontakt.njk', {
-          subjects: contactSubjects,
-          form,
-          error: contactErrorMessage(parsed.error),
-        });
+        return renderContactForm(reply, form, { error: contactErrorMessage(parsed.error) });
       }
 
       const data = parsed.data;
-      getDb()
-        .prepare('INSERT INTO contact_messages (name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)')
-        .run(data.name, data.email, data.phone, data.subject, data.message);
+      const settings = getContactSettings();
+      const assessment = assessContact({
+        settings,
+        formCountry: data.country,
+        headerCountry: headerCountry(request.headers as Record<string, unknown>),
+        token: body.formToken,
+        name: data.name,
+        email: data.email,
+        subject: data.subject,
+        message: data.message,
+      });
+
+      if (assessment.decision === 'block') {
+        request.log.warn(
+          { ip: request.ip, country: assessment.country, reasons: assessment.reasons },
+          'Kontaktformular: Anfrage durch Spam-Schutz abgelehnt',
+        );
+        reply.code(400);
+        return renderContactForm(reply, form, {
+          error:
+            'Ihre Anfrage konnte nicht automatisch angenommen werden. Bitte schreiben Sie uns direkt an info@3d-mir.de.',
+        });
+      }
+
+      const reviewStatus = assessment.decision === 'review' ? 'pruefen' : 'ok';
+      const result = getDb()
+        .prepare(
+          `INSERT INTO contact_messages
+             (name, email, phone, subject, message, country, review_status, review_reason)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          data.name,
+          data.email,
+          data.phone,
+          data.subject,
+          data.message,
+          assessment.country,
+          reviewStatus,
+          assessment.reasons.join(' '),
+        );
+
+      if (reviewStatus === 'pruefen') {
+        request.log.warn(
+          { ip: request.ip, country: assessment.country, reasons: assessment.reasons },
+          'Kontaktformular: Nachricht zur Prüfung gespeichert',
+        );
+        const adminUrl = `${config.site.baseUrl}/admin/nachrichten/#nachricht-${String(result.lastInsertRowid)}`;
+        try {
+          await notifyAdmin({
+            subject: `[Kontakt] Prüfung erforderlich – ${data.subject}`,
+            text: contactReviewMailText(data, assessment.reasons, adminUrl),
+            html: contactReviewMailHtml(data, assessment.reasons, adminUrl),
+            telegramText: [
+              'Kontaktanfrage zur Prüfung',
+              `Land: ${assessment.country || 'unbekannt'}`,
+              ...assessment.reasons.map((reason) => `- ${reason}`),
+              adminUrl,
+            ].join('\n'),
+          });
+        } catch (error) {
+          request.log.error({ err: error }, 'Prüfhinweis konnte nicht versendet werden');
+        }
+        return reply.redirect('/kontakt/danke/?pruefung=1', 303);
+      }
 
       try {
         await notifyAdmin({
@@ -353,7 +400,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         request.log.error({ err: error }, 'Kontaktanfrage gespeichert, aber E-Mail-Versand fehlgeschlagen');
       }
 
-      request.log.info({ subject: data.subject }, 'Kontaktanfrage gespeichert');
+      request.log.info({ subject: data.subject, country: assessment.country }, 'Kontaktanfrage gespeichert');
       return reply.redirect('/kontakt/danke/', 303);
     },
   );
@@ -368,13 +415,10 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
   app.get('/widerruf/', async (_request, reply) => render(reply, 'pages/legal/widerruf.njk'));
   app.get('/versand/', async (_request, reply) => render(reply, 'pages/legal/versand.njk'));
   app.get('/zahlung/', async (_request, reply) => {
-    const settings = getShopSettings();
     const paymentMethods = getPublicPaymentMethods();
     render(reply, 'pages/legal/zahlung.njk', {
       paymentMethods,
       hasStripeMethods: paymentMethods.some((method) => method.provider === 'stripe'),
-      bank: settings.bank,
-      bankConfigured: isBankConfigured(settings.bank),
       stripeConfigured: isStripeConfigured(),
     });
   });

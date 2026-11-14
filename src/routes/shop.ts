@@ -870,7 +870,6 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     const items = order ? getOrderItems(order.id) : [];
     const options = order ? getOrderOptions(order.id) : [];
     const paymentMethod = order ? findPaymentMethod(order.payment_method) : null;
-    const bank = getBankDetails();
 
     render(reply, 'pages/bestellung-danke.njk', {
       number: order ? order.order_number : null,
@@ -880,8 +879,6 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       paymentMethod,
       paymentStatusText: order ? paymentStatusLabel(order.payment_status) : '',
       paymentStatusTone: order ? paymentStatusTone(order.payment_status) : 'neutral',
-      bank,
-      bankConfigured: isBankConfigured(bank),
       token: order?.public_token ?? '',
       retryUrl: order ? localRetryUrl(order) : '',
     });

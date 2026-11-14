@@ -81,7 +81,7 @@ Betrieb, Update, Backup und Fehlersuche: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.
 
 - `docs/ANALYSE.md` – Ist-Zustand der alten WordPress-Seite
 - `docs/OFFENE-FRAGEN.md` – gesammelte Fragen an den Auftraggeber
-- `docs/ADMIN.md` – Preise, Katalog und Produktbilder im Admin-Bereich
+- `docs/ADMIN.md` – Preise, Katalog, Produktbilder, Zahlungen, Nachrichten und Spam-Schutz im Admin-Bereich
 - `docs/KALKULATION.md` – Preisformel und Platzhalter des Rechners
 - `docs/REDIRECTS.md` – 301-Weiterleitungen der alten URLs
 - `docs/INSTALLATION.md` – Installation auf neuem/vorhandenem Server, DNS/TLS, Abnahme

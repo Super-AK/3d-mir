@@ -96,3 +96,41 @@ if (selectAllBoxes.length > 0 && productBoxes.length > 0) {
     });
   });
 }
+
+// Preis-Admin: weitere Neu-Zeilen per Add-Button einfügen.
+// Ohne JavaScript bleibt die jeweils erste Neu-Zeile (Index 0) nutzbar.
+const ADD_ATTRIBUTES = ['name', 'id', 'for', 'data-row-index'] as const;
+
+document.querySelectorAll<HTMLButtonElement>('[data-add-row]').forEach((button) => {
+  const group = button.dataset.addRow;
+  if (!group) return;
+  const template = document.querySelector<HTMLTemplateElement>(`template[data-new-rows="${group}"]`);
+  const target = document.querySelector<HTMLElement>(`[data-add-target="${group}"]`);
+  if (!template || !target) return;
+
+  button.addEventListener('click', () => {
+    const index = Number(target.dataset.nextIndex ?? '1');
+    target.dataset.nextIndex = String(index + 1);
+
+    const fragment = template.content.cloneNode(true) as DocumentFragment;
+    fragment.querySelectorAll<HTMLElement>('[data-new-row]').forEach((row) => {
+      ADD_ATTRIBUTES.forEach((attribute) => {
+        const current = row.getAttribute(attribute);
+        if (current?.includes('__INDEX__')) {
+          row.setAttribute(attribute, current.replaceAll('__INDEX__', String(index)));
+        }
+      });
+      row.querySelectorAll<HTMLElement>('[name], [id], [for]').forEach((field) => {
+        ADD_ATTRIBUTES.forEach((attribute) => {
+          const current = field.getAttribute(attribute);
+          if (current?.includes('__INDEX__')) {
+            field.setAttribute(attribute, current.replaceAll('__INDEX__', String(index)));
+          }
+        });
+      });
+    });
+
+    target.append(fragment);
+    target.querySelector<HTMLInputElement>(`[data-row-index="${index}"] input`)?.focus();
+  });
+});

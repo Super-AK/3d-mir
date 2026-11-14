@@ -74,7 +74,7 @@
           <thead>
             <tr><th>Bezeichnung</th><th>ID</th><th>Dichte (g/cm³)</th><th>Preis je g (€)</th><th>Max. °C</th><th>Aktiv</th><th>Löschen</th></tr>
           </thead>
-          <tbody>
+          <tbody data-add-target="material" data-next-index="1">
             {% for material in view.materials %}
               <tr>
                 <td>
@@ -116,37 +116,37 @@
                 </td>
               </tr>
             {% endfor %}
-            <tr class="admin-new-row">
+            <tr class="admin-new-row" data-new-row data-row-index="0">
               <td>
-                <input name="new_material_label" type="text" maxlength="80" placeholder="Neues Material">
+                <input name="new_material_0_label" type="text" maxlength="80" placeholder="Neues Material">
               </td>
               <td><span class="text-muted">wird erzeugt</span></td>
-              <td><input name="new_material_density" type="number" min="0.1" max="30" step="0.01" placeholder="1.24"></td>
-              <td><input name="new_material_price" type="number" min="0" max="1000" step="0.001" placeholder="0.050"></td>
-              <td><input name="new_material_max_temp" type="number" min="0" max="500" step="1" placeholder="60"></td>
-              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_material_active" value="1" checked><span>aktiv</span></label></td>
+              <td><input name="new_material_0_density" type="number" min="0.1" max="30" step="0.01" placeholder="1.24"></td>
+              <td><input name="new_material_0_price" type="number" min="0" max="1000" step="0.001" placeholder="0.050"></td>
+              <td><input name="new_material_0_max_temp" type="number" min="0" max="500" step="1" placeholder="60"></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_material_0_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
-            <tr class="admin-new-row">
+            <tr class="admin-new-row admin-detail-row" data-new-row data-row-index="0">
               <td colspan="7">
                 <div class="form-row">
                   <div class="field">
-                    <label for="new_material_colors">Farben (kommagetrennt)</label>
-                    <input id="new_material_colors" name="new_material_colors" type="text" maxlength="500" placeholder="Schwarz, Weiß, Blau">
+                    <label for="new_material_0_colors">Farben (kommagetrennt)</label>
+                    <input id="new_material_0_colors" name="new_material_0_colors" type="text" maxlength="500" placeholder="Schwarz, Weiß, Blau">
                   </div>
                   <div class="field">
-                    <label for="new_material_properties">Eigenschaften</label>
-                    <input id="new_material_properties" name="new_material_properties" type="text" maxlength="300">
+                    <label for="new_material_0_properties">Eigenschaften</label>
+                    <input id="new_material_0_properties" name="new_material_0_properties" type="text" maxlength="300">
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="field">
-                    <label for="new_material_use_cases">Anwendungen</label>
-                    <input id="new_material_use_cases" name="new_material_use_cases" type="text" maxlength="300">
+                    <label for="new_material_0_use_cases">Anwendungen</label>
+                    <input id="new_material_0_use_cases" name="new_material_0_use_cases" type="text" maxlength="300">
                   </div>
                   <div class="field">
-                    <label for="new_material_notes">Hinweise</label>
-                    <input id="new_material_notes" name="new_material_notes" type="text" maxlength="500">
+                    <label for="new_material_0_notes">Hinweise</label>
+                    <input id="new_material_0_notes" name="new_material_0_notes" type="text" maxlength="500">
                   </div>
                 </div>
               </td>
@@ -154,7 +154,47 @@
           </tbody>
         </table>
       </div>
-      <p class="hint">Zum Anlegen die Zeile „Neues Material“ ausfüllen. Leere Zeile wird ignoriert.</p>
+      <template data-new-rows="material">
+        <tr class="admin-new-row" data-new-row data-row-index="__INDEX__">
+          <td>
+            <input name="new_material___INDEX___label" type="text" maxlength="80" placeholder="Neues Material">
+          </td>
+          <td><span class="text-muted">wird erzeugt</span></td>
+          <td><input name="new_material___INDEX___density" type="number" min="0.1" max="30" step="0.01" placeholder="1.24"></td>
+          <td><input name="new_material___INDEX___price" type="number" min="0" max="1000" step="0.001" placeholder="0.050"></td>
+          <td><input name="new_material___INDEX___max_temp" type="number" min="0" max="500" step="1" placeholder="60"></td>
+          <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_material___INDEX___active" value="1" checked><span>aktiv</span></label></td>
+          <td></td>
+        </tr>
+        <tr class="admin-new-row admin-detail-row" data-new-row data-row-index="__INDEX__">
+          <td colspan="7">
+            <div class="form-row">
+              <div class="field">
+                <label for="new_material___INDEX___colors">Farben (kommagetrennt)</label>
+                <input id="new_material___INDEX___colors" name="new_material___INDEX___colors" type="text" maxlength="500" placeholder="Schwarz, Weiß, Blau">
+              </div>
+              <div class="field">
+                <label for="new_material___INDEX___properties">Eigenschaften</label>
+                <input id="new_material___INDEX___properties" name="new_material___INDEX___properties" type="text" maxlength="300">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="new_material___INDEX___use_cases">Anwendungen</label>
+                <input id="new_material___INDEX___use_cases" name="new_material___INDEX___use_cases" type="text" maxlength="300">
+              </div>
+              <div class="field">
+                <label for="new_material___INDEX___notes">Hinweise</label>
+                <input id="new_material___INDEX___notes" name="new_material___INDEX___notes" type="text" maxlength="500">
+              </div>
+            </div>
+          </td>
+        </tr>
+      </template>
+      <p class="admin-add-row">
+        <button type="button" class="btn btn-secondary btn-small" data-add-row="material">+ Weiteres Material</button>
+      </p>
+      <p class="hint">Zum Anlegen die Zeile „Neues Material“ ausfüllen. Über „Weiteres Material“ lassen sich mehrere Einträge gleichzeitig vorbereiten. Leere Zeilen werden ignoriert.</p>
     </section>
 
     <section class="card admin-panel">
@@ -165,7 +205,7 @@
           <thead>
             <tr><th>Bezeichnung</th><th>Bauraum X/Y/Z (mm)</th><th>Maschinenstunde (€)</th><th>Materialien</th><th>Aktiv</th><th>Löschen</th></tr>
           </thead>
-          <tbody>
+          <tbody data-add-target="printer" data-next-index="1">
             {% for printer in view.printers %}
               <tr>
                 <td>
@@ -205,40 +245,76 @@
                 </td>
               </tr>
             {% endfor %}
-            <tr class="admin-new-row">
-              <td><input name="new_printer_label" type="text" maxlength="80" placeholder="Neuer Drucker"></td>
+            <tr class="admin-new-row" data-new-row data-row-index="0">
+              <td><input name="new_printer_0_label" type="text" maxlength="80" placeholder="Neuer Drucker"></td>
               <td class="admin-inline-numbers">
-                <input name="new_printer_x" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum X">
+                <input name="new_printer_0_x" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum X">
                 <span>×</span>
-                <input name="new_printer_y" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum Y">
+                <input name="new_printer_0_y" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum Y">
                 <span>×</span>
-                <input name="new_printer_z" type="number" min="10" max="2000" step="1" placeholder="250" aria-label="Bauraum Z">
+                <input name="new_printer_0_z" type="number" min="10" max="2000" step="1" placeholder="250" aria-label="Bauraum Z">
               </td>
-              <td><input name="new_printer_rate" type="number" min="0" max="1000" step="0.01" placeholder="1.00"></td>
+              <td><input name="new_printer_0_rate" type="number" min="0" max="1000" step="0.01" placeholder="1.00"></td>
               <td>
                 <div class="admin-check-list">
                   {% for material in view.materialOptions %}
                     <label class="admin-check admin-check-inline">
-                      <input type="checkbox" name="new_printer_material_{{ material.id }}" value="1" checked>
+                      <input type="checkbox" name="new_printer_0_material_{{ material.id }}" value="1" checked>
                       <span>{{ material.label }}</span>
                     </label>
                   {% endfor %}
                 </div>
               </td>
-              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_printer_active" value="1" checked><span>aktiv</span></label></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_printer_0_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
-            <tr class="admin-new-row">
+            <tr class="admin-new-row admin-detail-row" data-new-row data-row-index="0">
               <td colspan="6">
                 <div class="field">
-                  <label for="new_printer_note">Hinweis zum neuen Drucker</label>
-                  <input id="new_printer_note" name="new_printer_note" type="text" maxlength="500">
+                  <label for="new_printer_0_note">Hinweis zum neuen Drucker</label>
+                  <input id="new_printer_0_note" name="new_printer_0_note" type="text" maxlength="500">
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+      <template data-new-rows="printer">
+        <tr class="admin-new-row" data-new-row data-row-index="__INDEX__">
+          <td><input name="new_printer___INDEX___label" type="text" maxlength="80" placeholder="Neuer Drucker"></td>
+          <td class="admin-inline-numbers">
+            <input name="new_printer___INDEX___x" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum X">
+            <span>×</span>
+            <input name="new_printer___INDEX___y" type="number" min="10" max="2000" step="1" placeholder="220" aria-label="Bauraum Y">
+            <span>×</span>
+            <input name="new_printer___INDEX___z" type="number" min="10" max="2000" step="1" placeholder="250" aria-label="Bauraum Z">
+          </td>
+          <td><input name="new_printer___INDEX___rate" type="number" min="0" max="1000" step="0.01" placeholder="1.00"></td>
+          <td>
+            <div class="admin-check-list">
+              {% for material in view.materialOptions %}
+                <label class="admin-check admin-check-inline">
+                  <input type="checkbox" name="new_printer___INDEX___material_{{ material.id }}" value="1" checked>
+                  <span>{{ material.label }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </td>
+          <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_printer___INDEX___active" value="1" checked><span>aktiv</span></label></td>
+          <td></td>
+        </tr>
+        <tr class="admin-new-row admin-detail-row" data-new-row data-row-index="__INDEX__">
+          <td colspan="6">
+            <div class="field">
+              <label for="new_printer___INDEX___note">Hinweis zum neuen Drucker</label>
+              <input id="new_printer___INDEX___note" name="new_printer___INDEX___note" type="text" maxlength="500">
+            </div>
+          </td>
+        </tr>
+      </template>
+      <p class="admin-add-row">
+        <button type="button" class="btn btn-secondary btn-small" data-add-row="printer">+ Weiteren Drucker</button>
+      </p>
     </section>
 
     <section class="card admin-panel">
@@ -246,7 +322,7 @@
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead><tr><th>Bezeichnung</th><th>Zuschlag (%)</th><th>Preis je Teil (€)</th><th>Aktiv</th><th>Löschen</th></tr></thead>
-          <tbody>
+          <tbody data-add-target="coating" data-next-index="1">
             {% for coating in view.coatings %}
               <tr>
                 <td>
@@ -259,16 +335,28 @@
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="coating_{{ coating.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
-            <tr class="admin-new-row">
-              <td><input name="new_coating_label" type="text" maxlength="80" placeholder="Neue Nachbearbeitung"></td>
-              <td><input name="new_coating_percent" type="number" min="0" max="100" step="0.1" placeholder="0"></td>
-              <td><input name="new_coating_price" type="number" min="0" max="10000" step="0.01" placeholder="0.00"></td>
-              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_coating_active" value="1" checked><span>aktiv</span></label></td>
+            <tr class="admin-new-row" data-new-row data-row-index="0">
+              <td><input name="new_coating_0_label" type="text" maxlength="80" placeholder="Neue Nachbearbeitung"></td>
+              <td><input name="new_coating_0_percent" type="number" min="0" max="100" step="0.1" placeholder="0"></td>
+              <td><input name="new_coating_0_price" type="number" min="0" max="10000" step="0.01" placeholder="0.00"></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_coating_0_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
           </tbody>
         </table>
       </div>
+      <template data-new-rows="coating">
+        <tr class="admin-new-row" data-new-row data-row-index="__INDEX__">
+          <td><input name="new_coating___INDEX___label" type="text" maxlength="80" placeholder="Neue Nachbearbeitung"></td>
+          <td><input name="new_coating___INDEX___percent" type="number" min="0" max="100" step="0.1" placeholder="0"></td>
+          <td><input name="new_coating___INDEX___price" type="number" min="0" max="10000" step="0.01" placeholder="0.00"></td>
+          <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_coating___INDEX___active" value="1" checked><span>aktiv</span></label></td>
+          <td></td>
+        </tr>
+      </template>
+      <p class="admin-add-row">
+        <button type="button" class="btn btn-secondary btn-small" data-add-row="coating">+ Weitere Nachbearbeitung</button>
+      </p>
       <p class="hint">Mindestens eine Option muss vorhanden sein. „Ohne Nachbearbeitung“ sollte erhalten bleiben.</p>
     </section>
 
@@ -278,7 +366,7 @@
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Lieferzeit</th><th>Aktiv</th><th>Löschen</th></tr></thead>
-          <tbody>
+          <tbody data-add-target="shipping" data-next-index="1">
             {% for method in view.shipping %}
               <tr>
                 <td>
@@ -291,16 +379,28 @@
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="shipping_{{ method.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
-            <tr class="admin-new-row">
-              <td><input name="new_shipping_label" type="text" maxlength="80" placeholder="Neue Versandart"></td>
-              <td><input name="new_shipping_price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
-              <td><input name="new_shipping_days" type="text" maxlength="80" placeholder="2–5 Werktage"></td>
-              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_shipping_active" value="1" checked><span>aktiv</span></label></td>
+            <tr class="admin-new-row" data-new-row data-row-index="0">
+              <td><input name="new_shipping_0_label" type="text" maxlength="80" placeholder="Neue Versandart"></td>
+              <td><input name="new_shipping_0_price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
+              <td><input name="new_shipping_0_days" type="text" maxlength="80" placeholder="2–5 Werktage"></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_shipping_0_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
           </tbody>
         </table>
       </div>
+      <template data-new-rows="shipping">
+        <tr class="admin-new-row" data-new-row data-row-index="__INDEX__">
+          <td><input name="new_shipping___INDEX___label" type="text" maxlength="80" placeholder="Neue Versandart"></td>
+          <td><input name="new_shipping___INDEX___price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
+          <td><input name="new_shipping___INDEX___days" type="text" maxlength="80" placeholder="2–5 Werktage"></td>
+          <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_shipping___INDEX___active" value="1" checked><span>aktiv</span></label></td>
+          <td></td>
+        </tr>
+      </template>
+      <p class="admin-add-row">
+        <button type="button" class="btn btn-secondary btn-small" data-add-row="shipping">+ Weitere Versandart</button>
+      </p>
       <div class="form-row">
         <div class="field">
           <label for="shipping_free_from">Kostenloser Versand ab (€)</label>
@@ -316,7 +416,7 @@
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Hinweis</th><th>Aktiv</th><th>Löschen</th></tr></thead>
-          <tbody>
+          <tbody data-add-target="shipping_option" data-next-index="1">
             {% for option in view.shippingOptions %}
               <tr>
                 <td>
@@ -329,16 +429,28 @@
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="shipping_option_{{ option.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
-            <tr class="admin-new-row">
-              <td><input name="new_shipping_option_label" type="text" maxlength="80" placeholder="z. B. Expressversand"></td>
-              <td><input name="new_shipping_option_price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
-              <td><input name="new_shipping_option_note" type="text" maxlength="200" placeholder="z. B. Zustellung am nächsten Werktag"></td>
-              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_shipping_option_active" value="1" checked><span>aktiv</span></label></td>
+            <tr class="admin-new-row" data-new-row data-row-index="0">
+              <td><input name="new_shipping_option_0_label" type="text" maxlength="80" placeholder="z. B. Expressversand"></td>
+              <td><input name="new_shipping_option_0_price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
+              <td><input name="new_shipping_option_0_note" type="text" maxlength="200" placeholder="z. B. Zustellung am nächsten Werktag"></td>
+              <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_shipping_option_0_active" value="1" checked><span>aktiv</span></label></td>
               <td></td>
             </tr>
           </tbody>
         </table>
       </div>
+      <template data-new-rows="shipping_option">
+        <tr class="admin-new-row" data-new-row data-row-index="__INDEX__">
+          <td><input name="new_shipping_option___INDEX___label" type="text" maxlength="80" placeholder="z. B. Expressversand"></td>
+          <td><input name="new_shipping_option___INDEX___price" type="number" min="0" max="1000" step="0.01" placeholder="0.00"></td>
+          <td><input name="new_shipping_option___INDEX___note" type="text" maxlength="200" placeholder="z. B. Zustellung am nächsten Werktag"></td>
+          <td><label class="admin-check admin-check-inline"><input type="checkbox" name="new_shipping_option___INDEX___active" value="1" checked><span>aktiv</span></label></td>
+          <td></td>
+        </tr>
+      </template>
+      <p class="admin-add-row">
+        <button type="button" class="btn btn-secondary btn-small" data-add-row="shipping_option">+ Weitere Versandoption</button>
+      </p>
       <p class="hint">Diese Optionen erscheinen nur bei Produkten, denen sie zugeordnet wurden.</p>
     </section>
 
@@ -347,7 +459,7 @@
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead><tr><th>Ab Stückzahl</th><th>Rabatt (%)</th><th>Löschen</th></tr></thead>
-          <tbody>
+          <tbody data-add-target="discount" data-next-index="1">
             {% for tier in view.discounts %}
               <tr>
                 <td><input name="discount_{{ tier.index }}_min" type="number" min="1" max="100000" step="1" required value="{{ tier.minValue }}"></td>
@@ -355,14 +467,24 @@
                 <td><label class="admin-check admin-check-inline"><input type="checkbox" name="discount_{{ tier.index }}_delete" value="1"><span>löschen</span></label></td>
               </tr>
             {% endfor %}
-            <tr class="admin-new-row">
-              <td><input name="new_discount_min" type="number" min="1" max="100000" step="1" placeholder="z. B. 50"></td>
-              <td><input name="new_discount_percent" type="number" min="0" max="100" step="0.1" placeholder="z. B. 25"></td>
+            <tr class="admin-new-row" data-new-row data-row-index="0">
+              <td><input name="new_discount_0_min" type="number" min="1" max="100000" step="1" placeholder="z. B. 50"></td>
+              <td><input name="new_discount_0_percent" type="number" min="0" max="100" step="0.1" placeholder="z. B. 25"></td>
               <td></td>
             </tr>
           </tbody>
         </table>
       </div>
+      <template data-new-rows="discount">
+        <tr class="admin-new-row" data-new-row data-row-index="__INDEX__">
+          <td><input name="new_discount___INDEX___min" type="number" min="1" max="100000" step="1" placeholder="z. B. 50"></td>
+          <td><input name="new_discount___INDEX___percent" type="number" min="0" max="100" step="0.1" placeholder="z. B. 25"></td>
+          <td></td>
+        </tr>
+      </template>
+      <p class="admin-add-row">
+        <button type="button" class="btn btn-secondary btn-small" data-add-row="discount">+ Weitere Rabattstaffel</button>
+      </p>
       <p class="hint">Leere Liste bedeutet: kein Mengenrabatt.</p>
     </section>
 

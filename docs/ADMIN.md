@@ -24,7 +24,7 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 
 **Speichern:** Alle Änderungen werden mit einer Schaltfläche am Seitenende gespeichert. Löschmarkierungen gelten erst beim Speichern.
 
-**Neu anlegen:** Die Zeile „Neues …“ am Ende jeder Tabelle ausfüllen. Eine leere Zeile wird ignoriert. Die ID wird aus der Bezeichnung erzeugt (`PLA Tough` → `pla-tough`) und bei Bedarf durchnummeriert.
+**Neu anlegen:** Die Zeile „Neues …“ am Ende jeder Tabelle ausfüllen. Über die Schaltfläche **„+ Weiteres …“** lassen sich beliebig viele weitere Neu-Zeilen einfügen und in einem Speichervorgang anlegen. Eine leere Zeile wird ignoriert. Die ID wird aus der Bezeichnung erzeugt (`PLA Tough` → `pla-tough`) und bei Bedarf durchnummeriert. Ohne JavaScript bleibt die erste Neu-Zeile je Tabelle nutzbar.
 
 **Löschen:** Mindestens ein Material, ein Drucker, eine Nachbearbeitung und eine Versandart müssen bestehen bleiben. Mengenrabattstaffeln dürfen vollständig entfernt werden. Wird ein Material gelöscht, entfernen sich seine Verknüpfungen zu Druckern automatisch.
 
@@ -47,9 +47,9 @@ Unter **Admin → Zahlungen** werden Bankverbindung und Zahlungsarten verwaltet.
 
 ### Bankverbindung (Vorkasse)
 
-Kontoinhaber, IBAN, BIC und Bankname eintragen. Diese Daten erscheinen auf der Bestellübersicht und in der Bestätigungs-E-Mail. Sie werden in der Datenbank (`settings`, Schlüssel `shop.settings`) gespeichert und nicht ins Repository geschrieben.
+Kontoinhaber, IBAN, BIC und Bankname eintragen. Aus Sicherheitsgründen werden diese Daten **nicht** auf der öffentlichen Seite „Zahlungsarten“ und **nicht** auf der Bestell-Danke-Seite angezeigt. Kunden erhalten sie ausschließlich in der Bestellbestätigung per E-Mail, wenn sie „Zahlung per Vorkasse“ gewählt haben. Die Daten werden in der Datenbank (`settings`, Schlüssel `shop.settings`) gespeichert und nicht ins Repository geschrieben.
 
-Solange keine Bankverbindung hinterlegt ist, zeigt die Bestellübersicht den Hinweis, dass die Bankverbindung separat mitgeteilt wird. Vor dem Livegang sollten die Daten vollständig sein.
+Solange keine Bankverbindung hinterlegt ist, enthält die Bestätigungs-E-Mail den Hinweis, dass die Bankverbindung separat mitgeteilt wird. Vor dem Livegang sollten die Daten vollständig sein.
 
 ### Zahlungsarten
 
@@ -87,6 +87,32 @@ Im Stripe-Dashboard den Endpunkt `https://www.3d-mir.de/zahlung/webhook/stripe/`
 Das dabei erzeugte `whsec_…`-Secret als `STRIPE_WEBHOOK_SECRET` hinterlegen. Ohne gültige Signatur lehnt die Anwendung Webhooks mit HTTP 400 ab.
 
 Der Button **„Hilfe zu Stripe“** im Bereich Zahlungen öffnet eine Schritt-für-Schritt-Anleitung zu Konto, Zahlungsarten, Schlüsseln, Webhook, Testzahlung und Fehlersuche.
+
+## Nachrichten
+
+Unter **Admin → Nachrichten** erscheinen alle Anfragen aus dem Kontaktformular. Zu jeder Nachricht werden Name, E-Mail, Telefon, Land, Anliegen, Prüfstatus und Eingangsdatum angezeigt.
+
+### Direkt antworten
+
+Über **„Antworten“** lässt sich direkt aus dem Admin eine E-Mail an den Kunden senden. Betreff und Text werden im Formular erfasst; die Antwort geht über den konfigurierten SMTP-Versand heraus (`Reply-To` ist die Betreiberadresse). Der Versand wird in der Nachricht gespeichert und im Audit-Log vermerkt. Ohne SMTP-Konfiguration wird die Antwort als `.eml` unter `/var/log/3d-mir/mail/` abgelegt. Die ursprüngliche Nachricht wird nicht automatisch zitiert.
+
+### Spam-Schutz und Länderprüfung
+
+Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfung“** gepflegt:
+
+| Einstellung | Bedeutung |
+| --- | --- |
+| Länderprüfung | Nur Anfragen aus den ausgewählten Ländern zulassen. Standard: nur Deutschland (`DE`). |
+| Erlaubte Länder | Mehrfachauswahl aus einer festen ISO-3166-Liste. |
+| Verhalten bei Auffälligkeiten | **Zur Prüfung speichern** (empfohlen) oder **Anfrage direkt ablehnen**. |
+| Zeitprüfung | Das Formular muss mindestens 3 Sekunden geöffnet gewesen sein. |
+| Inhaltsprüfung | Erkennt viele Links, typische Spam-Begriffe und überwiegende Großschreibung. |
+
+Zusätzlich schützen ein Honeypot-Feld, ein Rate-Limit und ein signiertes Zeit-Token (HMAC mit `SESSION_SECRET`, 24 Stunden gültig) vor automatisierten Anfragen. Liefert ein vorgeschalteter Proxy oder ein CDN ein Länderkürzel (z. B. `CF-IPCountry`), wird dieses zusätzlich zum Formularfeld geprüft.
+
+Im Prüfmodus wird eine auffällige Nachricht gespeichert, aber **nicht** automatisch an den Betreiber weitergeleitet. Stattdessen erhält der Betreiber einen kurzen Prüfhinweis. Im Admin kann die Nachricht anschließend **freigegeben** (dann wird die normale Benachrichtigung nachgeholt) oder **als Spam markiert** werden. Als Spam markierte Nachrichten bleiben zur Nachvollziehbarkeit erhalten und werden aus der offenen Zählung herausgenommen.
+
+Die Einstellungen liegen in der Tabelle `settings` unter dem Schlüssel `contact.settings`; es gibt keine Umgebungs-Fallbacks.
 
 ## Benachrichtigungen
 

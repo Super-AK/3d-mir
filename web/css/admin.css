@@ -250,8 +250,18 @@
 .admin-detail-row .form-row { margin-top: 0.5rem; }
 .admin-new-row td { background: var(--accent-soft); }
 .admin-new-row input::placeholder { color: var(--silver-600); }
+.admin-add-row { margin: 0.75rem 0 0; }
 .admin-check-list { display: flex; flex-wrap: wrap; gap: 0.15rem 0.9rem; max-width: 22rem; }
 .admin-check-list .admin-check-inline { padding: 0; }
+.admin-country-list { max-width: none; max-height: 22rem; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+.admin-message.is-spam { opacity: 0.6; }
+.admin-message-reply-sent { border-left: 3px solid var(--success, #2e7d32); padding-left: 0.75rem; }
+.admin-message-reply-sent p { margin: 0 0 0.35rem; font-size: 0.88rem; }
+.admin-message-reply-sent summary { cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--accent); }
+.admin-message-reply summary { cursor: pointer; font-weight: 600; font-size: 0.88rem; color: var(--accent); }
+.admin-message-reply form { margin-top: 0.75rem; }
+.admin-contact-settings { margin-bottom: 1.25rem; }
+.admin-contact-settings .admin-help-body { margin-top: 0.75rem; }
 
 /* Produktbilder */
 .admin-image-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }

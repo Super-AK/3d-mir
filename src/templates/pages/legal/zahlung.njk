@@ -25,17 +25,7 @@
             <p>{{ method.note }}</p>
 
             {% if method.provider == 'manual' %}
-              {% if bankConfigured %}
-                <p>Die Bankverbindung wird Ihnen nach der Bestellung auf der Bestellübersicht und in der Bestätigungs-E-Mail angezeigt:</p>
-                <ul>
-                  <li>Kontoinhaber: {{ bank.accountHolder }}</li>
-                  <li>IBAN: {{ bank.iban }}</li>
-                  {% if bank.bic %}<li>BIC: {{ bank.bic }}</li>{% endif %}
-                  {% if bank.bankName %}<li>Bank: {{ bank.bankName }}</li>{% endif %}
-                </ul>
-              {% else %}
-                <p>Die Bankverbindung erhalten Sie nach der Bestellung per E-Mail.</p>
-              {% endif %}
+              <p>Die Bankverbindung wird Ihnen nach der Bestellung per E-Mail mitgeteilt. Aus Sicherheitsgründen veröffentlichen wir die Kontodaten nicht auf dieser Seite.</p>
               <p>Die Bestellung wird nach Zahlungseingang gefertigt und versandt.</p>
 
             {% elif method.provider == 'stripe' %}

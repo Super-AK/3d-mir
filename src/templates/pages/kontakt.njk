@@ -41,13 +41,22 @@
             <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="60" value="{{ form.phone }}">
           </div>
           <div class="field">
-            <label for="subject">Anliegen</label>
-            <select id="subject" name="subject">
-              {% for option in subjects %}
-                <option value="{{ option }}" {% if form.subject == option %}selected{% endif %}>{{ option }}</option>
+            <label for="country">Land <span aria-hidden="true">*</span></label>
+            <select id="country" name="country" required autocomplete="country">
+              {% for country in countries %}
+                <option value="{{ country.code }}" {% if form.country == country.code or (not form.country and country.code == 'DE') %}selected{% endif %}>{{ country.name }}</option>
               {% endfor %}
             </select>
+            <span class="hint">Wir prüfen Anfragen anhand des angegebenen Landes.</span>
           </div>
+        </div>
+        <div class="field">
+          <label for="subject">Anliegen</label>
+          <select id="subject" name="subject">
+            {% for option in subjects %}
+              <option value="{{ option }}" {% if form.subject == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="field">
           <label for="message">Ihre Nachricht <span aria-hidden="true">*</span></label>
@@ -60,6 +69,7 @@
           <label for="website">Website</label>
           <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
         </div>
+        <input type="hidden" name="formToken" value="{{ contactToken }}">
 
         <label class="checkbox">
           <input type="checkbox" name="consent" value="1" required {% if form.consent %}checked{% endif %}>

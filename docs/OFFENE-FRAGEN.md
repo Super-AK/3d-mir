@@ -1,6 +1,6 @@
 # Offene Fragen an den Auftraggeber
 
-**Stand:** 13.11.2026 · **Version:** 2.1 · **Zuletzt geprüft:** 13.11.2026
+**Stand:** 14.11.2026 · **Version:** 2.2 · **Zuletzt geprüft:** 14.11.2026
 
 Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; Einzelfragen sind mit `[F1]` usw. nummeriert. Erledigte Punkte bleiben mit Datum und Nachweis dokumentiert, damit Verweise und die Historie erhalten bleiben.
 
@@ -13,7 +13,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | ✅ Erledigt | umgesetzt und geprüft; Datum und Nachweis sind angegeben |
 | 🟢 Später | wichtig, aber nicht für den Start erforderlich |
 
-**Kurzstand:** Zahlung, Benachrichtigungen, Setup-Menü und Installationsanleitung sind technisch umgesetzt. Offen sind vor allem fachliche Freigaben (Preise, Versand, Recht), Zugangsdaten (Bank, SMTP, Telegram, Stripe live) und DNS/TLS.
+**Kurzstand:** Zahlung, Benachrichtigungen, Kontakt-Spam-Schutz, Setup-Menü und Installationsanleitung sind technisch umgesetzt. Offen sind vor allem fachliche Freigaben (Preise, Versand, Recht), Zugangsdaten (Bank, SMTP, Telegram, Stripe live), die Bestätigung der Länder-Allowlist und DNS/TLS.
 
 ---
 
@@ -22,6 +22,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | Bereich | Status | Kurzbemerkung |
 | --- | --- | --- |
 | Zahlungsarten | 🟡 In Arbeit | Testmodus und alle Methoden geprüft; Bankdaten und Live-Schaltung offen |
+| Kontakt/Spam-Schutz | 🟡 In Arbeit | Antworten, Länderprüfung und Prüfmodus umgesetzt; Allowlist bestätigen |
 | Benachrichtigungen | 🟡 In Arbeit | Admin/Setup vorhanden; SMTP- und Telegram-Daten offen |
 | Installation/Deployment | ✅ Erledigt | Installationsanleitung und interaktives Setup-Menü vorhanden |
 | Preise/Kalkulation | 🔴 Offen | Platzhalter und Overrides müssen bestätigt werden |
@@ -169,15 +170,29 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 
 ---
 
-## 12. Nächste Schritte bis zum Livegang
+## 12. Kontakt, Antworten und Spam-Schutz 🟡
+
+Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rate-Limit und Inhaltsprüfung angenommen. Auffällige Nachrichten landen im Prüfmodus und werden erst nach manueller Freigabe an den Betreiber weitergeleitet. Antworten können direkt aus dem Admin per E-Mail gesendet werden.
+
+| Nr. | Status | Frage / Entscheidung |
+| --- | --- | --- |
+| F73 | ✅ Erledigt | **Umgesetzt:** Direkte Antwort auf Kontaktnachrichten aus dem Admin inklusive Speicherung des Antworttexts und `.eml`-Fallback ohne SMTP. Nachweis: Antwortversand im Test.<br>*(14.11.2026)* |
+| F74 | ✅ Erledigt | **Umgesetzt:** Add-Buttons in allen Preis-Kategorien; mehrere neue Materialien, Drucker, Nachbearbeitungen, Versandarten, Versandoptionen und Rabattstaffeln können in einem Speichervorgang angelegt werden.<br>*(14.11.2026)* |
+| F75 | ✅ Erledigt | **Umgesetzt:** Bankdaten erscheinen nicht mehr auf der öffentlichen Seite „Zahlungsarten“ und nicht auf der Bestell-Danke-Seite. Kunden erhalten sie ausschließlich in der Bestellbestätigung per E-Mail bei Auswahl „Vorkasse“.<br>*(14.11.2026)* |
+| F76 | 🟡 In Arbeit | **Länder-Allowlist bestätigen:** Aktuell ist nur Deutschland (`DE`) freigegeben; Auffälligkeiten werden zur Prüfung gespeichert. Sollen weitere Länder (z. B. AT, CH, NL) zugelassen werden? Einstellung unter **Admin → Nachrichten**. |
+| F77 | 🟢 Später | **Proxy-Länderkopf:** Die Anwendung wertet `CF-IPCountry` bzw. vergleichbare Header aus, falls ein Proxy/CDN sie liefert. Soll ein solcher Header produktiv genutzt werden? |
+| F78 | 🟢 Später | **Externer Captcha-Dienst:** Bewusst nicht eingebaut, um keine externen Skripte und Tracking einzubinden. Soll später ein datenschutzfreundlicher Captcha ergänzt werden? |
+
+## 13. Nächste Schritte bis zum Livegang
 
 1. **Preise und Versand bestätigen:** F1–F8, F14–F20 und F66 in `config/pricing.json` bzw. im Admin korrigieren.
 2. **Zahlung live schalten:** F13 (Bankverbindung) und F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test).
 3. **Benachrichtigungen einrichten:** F21–F24, F69–F71 (SMTP, Telegram, Kanal und Ereignisse).
-4. **DNS, TLS und Port:** F30–F33 (Domain, certbot, kanonische www-Variante) und F72 (reservierter Port auf dem Shared Server).
-5. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
-6. **Betrieb absichern:** F61–F65 (externes Backup, Aufbewahrung, 2FA, Monitoring).
-7. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
+4. **Kontakt-Spam-Schutz bestätigen:** F76 (erlaubte Länder) und F77 (Proxy-Länderkopf) prüfen; Antworten und Prüfmodus im Admin testen.
+5. **DNS, TLS und Port:** F30–F33 (Domain, certbot, kanonische www-Variante) und F72 (reservierter Port auf dem Shared Server).
+6. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
+7. **Betrieb absichern:** F61–F65 (externes Backup, Aufbewahrung, 2FA, Monitoring).
+8. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
 
 ---
 
@@ -193,3 +208,6 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | F26 | 13.11.2026 | SSH-Push funktioniert |
 | F56 | 13.11.2026 | Tracking-Abschnitte entfernt |
 | F64 | 13.11.2026 | Admin-Zugang eingerichtet |
+| F73 | 14.11.2026 | Direktantwort aus dem Admin inkl. `.eml`-Fallback |
+| F74 | 14.11.2026 | Add-Buttons und mehrere Neu-Zeilen im Preis-Admin |
+| F75 | 14.11.2026 | Bankdaten nur noch in der Vorkasse-Bestätigungsmail |

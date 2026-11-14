@@ -8,6 +8,7 @@ import { config, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render, imagePreview } from '../lib/render.js';
 import { resetMailTransporter, sendMail } from '../lib/mailer.js';
+import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
 import {
   clearSessionCookie,
@@ -62,6 +63,14 @@ import {
 } from '../lib/notification-settings.js';
 import { sendTelegramMessage } from '../lib/telegram.js';
 import { formatEuro } from '../lib/shop.js';
+import { countries, isKnownCountry } from '../lib/countries.js';
+import {
+  getContactSettings,
+  saveContactSettings,
+  type ContactReviewMode,
+  type ContactSettings,
+} from '../lib/contact-settings.js';
+import { contactMailHtml, contactMailText } from '../lib/contact-mail.js';
 
 const db = () => getDb();
 
@@ -173,7 +182,13 @@ type ContactRow = {
   phone: string;
   subject: string;
   message: string;
+  country: string;
+  review_status: string;
+  review_reason: string;
   handled: number;
+  replied_at: string | null;
+  reply_subject: string;
+  reply_text: string;
   created_at: string;
 };
 
@@ -317,6 +332,7 @@ function flash(request: FastifyRequest) {
     zurueckgesetzt: query.zurueckgesetzt === '1',
     importiert: typeof query.importiert === 'string' ? Number.parseInt(query.importiert, 10) || 0 : 0,
     fehler: typeof query.fehler === 'string' ? query.fehler : '',
+    antwort: typeof query.antwort === 'string' ? query.antwort : '',
   };
 }
 
@@ -1148,6 +1164,24 @@ function parseColors(value: unknown): string[] {
   return colors.length > 0 ? [...new Set(colors)] : ['Schwarz'];
 }
 
+/**
+ * Ermittelt die Indizes aller Neu-Zeilen einer Kategorie.
+ *
+ * Das Preis-Formular erlaubt mehrere neue Einträge pro Kategorie. Die Felder
+ * heißen `new_<kategorie>_<index>_<feld>`; die Indizes werden aus den
+ * Formularschlüsseln gelesen, damit auch ohne JavaScript (nur Index 0) alles
+ * funktioniert.
+ */
+function newRowIndexes(body: Record<string, unknown>, prefix: string): number[] {
+  const pattern = new RegExp(`^${prefix}_(\\d+)_`);
+  const indexes = new Set<number>();
+  for (const key of Object.keys(body)) {
+    const match = pattern.exec(key);
+    if (match?.[1]) indexes.add(Number(match[1]));
+  }
+  return [...indexes].sort((a, b) => a - b);
+}
+
 function readPricingForm(
   body: Record<string, unknown>,
   pricing: PricingConfig,
@@ -1190,19 +1224,21 @@ function readPricingForm(
       usedMaterialIds.add(existing.id);
     });
 
-    const newMaterialLabel = value('new_material_label', 80);
-    if (newMaterialLabel) {
+    for (const index of newRowIndexes(body, 'new_material')) {
+      const base = `new_material_${index}`;
+      const label = value(`${base}_label`, 80);
+      if (!label) continue;
       materials.push({
-        id: uniqueId(newMaterialLabel, usedMaterialIds, 'material'),
-        label: newMaterialLabel,
-        density: optionalNumber('new_material_density', 0.1, 30, 'Dichte neues Material', 1.24),
-        pricePerGram: optionalNumber('new_material_price', 0, 1000, 'Materialpreis neues Material', 0.05),
-        maxTempC: optionalNumber('new_material_max_temp', 0, 500, 'Temperatur neues Material', 60),
-        colors: parseColors(body.new_material_colors),
-        properties: value('new_material_properties', 300),
-        useCases: value('new_material_use_cases', 300),
-        notes: value('new_material_notes', 500),
-        active: marked('new_material_active'),
+        id: uniqueId(label, usedMaterialIds, 'material'),
+        label,
+        density: optionalNumber(`${base}_density`, 0.1, 30, `Dichte ${label}`, 1.24),
+        pricePerGram: optionalNumber(`${base}_price`, 0, 1000, `Materialpreis ${label}`, 0.05),
+        maxTempC: optionalNumber(`${base}_max_temp`, 0, 500, `Temperaturbeständigkeit ${label}`, 60),
+        colors: parseColors(body[`${base}_colors`]),
+        properties: value(`${base}_properties`, 300),
+        useCases: value(`${base}_use_cases`, 300),
+        notes: value(`${base}_notes`, 500),
+        active: marked(`${base}_active`),
       });
     }
     if (materials.length === 0) throw new FormError('Mindestens ein Material muss vorhanden sein.');
@@ -1235,21 +1271,23 @@ function readPricingForm(
       usedPrinterIds.add(existing.id);
     });
 
-    const newPrinterLabel = value('new_printer_label', 80);
-    if (newPrinterLabel) {
-      const selected = materialIds.filter((materialId) => marked(`new_printer_material_${materialId}`));
+    for (const index of newRowIndexes(body, 'new_printer')) {
+      const base = `new_printer_${index}`;
+      const label = value(`${base}_label`, 80);
+      if (!label) continue;
+      const selected = materialIds.filter((materialId) => marked(`${base}_material_${materialId}`));
       printers.push({
-        id: uniqueId(newPrinterLabel, usedPrinterIds, 'drucker'),
-        label: newPrinterLabel,
+        id: uniqueId(label, usedPrinterIds, 'drucker'),
+        label,
         buildVolume: {
-          x: optionalNumber('new_printer_x', 10, 2000, 'Bauraum X neuer Drucker', 220),
-          y: optionalNumber('new_printer_y', 10, 2000, 'Bauraum Y neuer Drucker', 220),
-          z: optionalNumber('new_printer_z', 10, 2000, 'Bauraum Z neuer Drucker', 250),
+          x: optionalNumber(`${base}_x`, 10, 2000, `Bauraum X ${label}`, 220),
+          y: optionalNumber(`${base}_y`, 10, 2000, `Bauraum Y ${label}`, 220),
+          z: optionalNumber(`${base}_z`, 10, 2000, `Bauraum Z ${label}`, 250),
         },
-        hourlyRate: optionalNumber('new_printer_rate', 0, 1000, 'Maschinenstunde neuer Drucker', 1),
+        hourlyRate: optionalNumber(`${base}_rate`, 0, 1000, `Maschinenstunde ${label}`, 1),
         materialIds: selected.length > 0 ? selected : materialIds,
-        note: value('new_printer_note', 500),
-        active: marked('new_printer_active'),
+        note: value(`${base}_note`, 500),
+        active: marked(`${base}_active`),
       });
     }
     if (printers.length === 0) throw new FormError('Mindestens ein Drucker muss vorhanden sein.');
@@ -1272,14 +1310,16 @@ function readPricingForm(
       });
       usedCoatingIds.add(existing.id);
     });
-    const newCoatingLabel = value('new_coating_label', 80);
-    if (newCoatingLabel) {
+    for (const index of newRowIndexes(body, 'new_coating')) {
+      const base = `new_coating_${index}`;
+      const label = value(`${base}_label`, 80);
+      if (!label) continue;
       coatings.push({
-        id: uniqueId(newCoatingLabel, usedCoatingIds, 'nachbearbeitung'),
-        label: newCoatingLabel,
-        surchargePercent: optionalNumber('new_coating_percent', 0, 100, 'Zuschlag neue Nachbearbeitung', 0),
-        pricePerPart: optionalNumber('new_coating_price', 0, 10000, 'Preis neue Nachbearbeitung', 0),
-        active: marked('new_coating_active'),
+        id: uniqueId(label, usedCoatingIds, 'nachbearbeitung'),
+        label,
+        surchargePercent: optionalNumber(`${base}_percent`, 0, 100, `Zuschlag ${label}`, 0),
+        pricePerPart: optionalNumber(`${base}_price`, 0, 10000, `Preis ${label}`, 0),
+        active: marked(`${base}_active`),
       });
     }
     if (coatings.length === 0) throw new FormError('Mindestens eine Nachbearbeitungsoption muss vorhanden sein.');
@@ -1302,14 +1342,16 @@ function readPricingForm(
       });
       usedShippingIds.add(existing.id);
     });
-    const newShippingLabel = value('new_shipping_label', 80);
-    if (newShippingLabel) {
+    for (const index of newRowIndexes(body, 'new_shipping')) {
+      const base = `new_shipping_${index}`;
+      const label = value(`${base}_label`, 80);
+      if (!label) continue;
       shippingMethods.push({
-        id: uniqueId(newShippingLabel, usedShippingIds, 'versand'),
-        label: newShippingLabel,
-        price: optionalNumber('new_shipping_price', 0, 1000, 'Preis neue Versandart', 0),
-        deliveryDays: value('new_shipping_days', 80),
-        active: marked('new_shipping_active'),
+        id: uniqueId(label, usedShippingIds, 'versand'),
+        label,
+        price: optionalNumber(`${base}_price`, 0, 1000, `Preis ${label}`, 0),
+        deliveryDays: value(`${base}_days`, 80),
+        active: marked(`${base}_active`),
       });
     }
     if (shippingMethods.length === 0) throw new FormError('Mindestens eine Versandart muss vorhanden sein.');
@@ -1332,14 +1374,16 @@ function readPricingForm(
       });
       usedShippingOptionIds.add(existing.id);
     });
-    const newShippingOptionLabel = value('new_shipping_option_label', 80);
-    if (newShippingOptionLabel) {
+    for (const index of newRowIndexes(body, 'new_shipping_option')) {
+      const base = `new_shipping_option_${index}`;
+      const label = value(`${base}_label`, 80);
+      if (!label) continue;
       shippingOptions.push({
-        id: uniqueId(newShippingOptionLabel, usedShippingOptionIds, 'versandoption'),
-        label: newShippingOptionLabel,
-        price: optionalNumber('new_shipping_option_price', 0, 1000, 'Preis neue Versandoption', 0),
-        note: value('new_shipping_option_note', 200),
-        active: marked('new_shipping_option_active'),
+        id: uniqueId(label, usedShippingOptionIds, 'versandoption'),
+        label,
+        price: optionalNumber(`${base}_price`, 0, 1000, `Preis ${label}`, 0),
+        note: value(`${base}_note`, 200),
+        active: marked(`${base}_active`),
       });
     }
 
@@ -1357,14 +1401,18 @@ function readPricingForm(
         percent: numberField(`discount_${index}_percent`, 0, 100, `Rabatt ab ${minQuantity} Stück`),
       });
     });
-    if (typeof body.new_discount_min === 'string' && body.new_discount_min.trim() !== '') {
-      const minQuantity = Math.round(numberField('new_discount_min', 1, 100000, 'Mengenrabatt: Stückzahl'));
+    for (const index of newRowIndexes(body, 'new_discount')) {
+      const base = `new_discount_${index}`;
+      const rawMin = body[`${base}_min`];
+      if (typeof rawMin !== 'string' || rawMin.trim() === '') continue;
+      const minQuantity = Math.round(numberField(`${base}_min`, 1, 100000, 'Mengenrabatt: Stückzahl'));
       if (seenQuantities.has(minQuantity)) {
         throw new FormError(`Die Stückzahl ${minQuantity} ist beim Mengenrabatt doppelt vorhanden.`);
       }
+      seenQuantities.add(minQuantity);
       quantityDiscounts.push({
         minQuantity,
-        percent: optionalNumber('new_discount_percent', 0, 100, 'Rabatt neue Staffel', 0),
+        percent: optionalNumber(`${base}_percent`, 0, 100, `Rabatt ab ${minQuantity} Stück`, 0),
       });
     }
     quantityDiscounts.sort((a, b) => a.minQuantity - b.minQuantity);
@@ -1827,18 +1875,151 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     });
 
     // Kontaktnachrichten --------------------------------------------------
+    const contactMessage = (id: number): ContactRow | undefined =>
+      Number.isInteger(id)
+        ? (db().prepare('SELECT * FROM contact_messages WHERE id = ?').get(id) as ContactRow | undefined)
+        : undefined;
+
     scope.get('/admin/nachrichten/', async (request, reply) => {
       const messages = db()
-        .prepare('SELECT * FROM contact_messages ORDER BY handled ASC, created_at DESC, id DESC LIMIT 300')
+        .prepare(
+          `SELECT * FROM contact_messages
+           ORDER BY CASE review_status WHEN 'pruefen' THEN 0 WHEN 'ok' THEN 1 ELSE 2 END,
+                    handled ASC, created_at DESC, id DESC
+           LIMIT 300`,
+        )
         .all() as ContactRow[];
-      render(reply, 'admin/messages.njk', adminContext(request, { messages }));
+      const reviewCount = messages.filter((message) => message.review_status === 'pruefen').length;
+      const spamCount = messages.filter((message) => message.review_status === 'spam').length;
+      render(reply, 'admin/messages.njk', adminContext(request, {
+        messages,
+        contactSettings: getContactSettings(),
+        countries,
+        countryLabels: Object.fromEntries(countries.map((country) => [country.code, country.name])),
+        reviewCount,
+        spamCount,
+      }));
+    });
+
+    scope.post('/admin/nachrichten/einstellungen/', async (request, reply) => {
+      const body = bodyObject(request);
+      const rawCountries = body.allowedCountries;
+      const allowedCountries = [
+        ...new Set(
+          (Array.isArray(rawCountries) ? rawCountries : typeof rawCountries === 'string' ? [rawCountries] : [])
+            .map((entry) => String(entry).trim().toUpperCase())
+            .filter(isKnownCountry),
+        ),
+      ];
+      const countryCheck = body.countryCheck === '1' || body.countryCheck === 'on';
+      if (countryCheck && allowedCountries.length === 0) {
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent('Bitte mindestens ein erlaubtes Land auswählen.')}`,
+          303,
+        );
+      }
+      const mode: ContactReviewMode = body.mode === 'block' ? 'block' : 'review';
+      const settings: ContactSettings = {
+        countryCheck,
+        allowedCountries,
+        mode,
+        timeCheck: body.timeCheck === '1' || body.timeCheck === 'on',
+        contentCheck: body.contentCheck === '1' || body.contentCheck === 'on',
+      };
+      saveContactSettings(settings);
+      writeAudit(request.admin?.email ?? 'admin', 'contact.settings', {
+        countryCheck,
+        allowedCountries,
+        mode,
+      });
+      return reply.redirect('/admin/nachrichten/?gespeichert=1', 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/antworten/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const message = contactMessage(id);
+      if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
+
+      const body = bodyObject(request);
+      const subject = cleanText(body.replySubject, 200) || `Re: ${message.subject || 'Ihre Anfrage'}`;
+      const text = cleanText(body.replyText, 10000);
+      if (text.length < 2) {
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent('Bitte geben Sie eine Antwort ein.')}#nachricht-${id}`,
+          303,
+        );
+      }
+
+      try {
+        const result = await sendMail({
+          to: message.email,
+          subject,
+          text: [`Hallo ${message.name},`, '', text, '', 'Viele Grüße', '3D-MIR 3D-Druck Service'].join('\n'),
+          replyTo: config.site.business.email,
+        });
+        db()
+          .prepare(
+            `UPDATE contact_messages
+             SET replied_at = datetime('now'), reply_subject = ?, reply_text = ?, handled = 1
+             WHERE id = ?`,
+          )
+          .run(subject, text, id);
+        writeAudit(request.admin?.email ?? 'admin', 'contact.reply', {
+          id,
+          email: message.email,
+          delivered: result.delivered,
+        });
+        return reply.redirect(
+          `/admin/nachrichten/?gespeichert=1&antwort=${result.delivered ? 'gesendet' : 'datei'}#nachricht-${id}`,
+          303,
+        );
+      } catch (error) {
+        request.log.error({ err: error, id }, 'Antwort auf Kontaktnachricht fehlgeschlagen');
+        const detail = error instanceof Error ? error.message : 'Unbekannter Fehler';
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent(`Antwort konnte nicht gesendet werden: ${detail}`)}#nachricht-${id}`,
+          303,
+        );
+      }
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/freigeben/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const message = contactMessage(id);
+      if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
+
+      try {
+        await notifyAdmin({
+          subject: `[Kontakt] ${message.subject || 'Kontaktnachricht'} – ${message.name}`,
+          text: contactMailText(message),
+          html: contactMailHtml(message),
+          replyTo: message.email,
+        });
+      } catch (error) {
+        request.log.error({ err: error, id }, 'Freigabe der Kontaktnachricht: Benachrichtigung fehlgeschlagen');
+      }
+
+      db()
+        .prepare("UPDATE contact_messages SET review_status = 'ok', review_reason = '', handled = 0 WHERE id = ?")
+        .run(id);
+      writeAudit(request.admin?.email ?? 'admin', 'contact.approve', { id, email: message.email });
+      return reply.redirect(`/admin/nachrichten/?gespeichert=1#nachricht-${id}`, 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/spam/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const message = contactMessage(id);
+      if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
+      db()
+        .prepare("UPDATE contact_messages SET review_status = 'spam', handled = 1 WHERE id = ?")
+        .run(id);
+      writeAudit(request.admin?.email ?? 'admin', 'contact.spam', { id, email: message.email });
+      return reply.redirect(`/admin/nachrichten/?gespeichert=1#nachricht-${id}`, 303);
     });
 
     scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/', async (request, reply) => {
       const id = Number(request.params.id);
-      const message = Number.isInteger(id)
-        ? (db().prepare('SELECT * FROM contact_messages WHERE id = ?').get(id) as ContactRow | undefined)
-        : undefined;
+      const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
       const handled = bodyObject(request).handled === '1' || bodyObject(request).handled === 'on';
       db().prepare('UPDATE contact_messages SET handled = ? WHERE id = ?').run(handled ? 1 : 0, id);
@@ -1848,9 +2029,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     scope.get<{ Params: { id: string } }>('/admin/nachrichten/:id/loeschen/', async (request, reply) => {
       const id = Number(request.params.id);
-      const message = Number.isInteger(id)
-        ? (db().prepare('SELECT * FROM contact_messages WHERE id = ?').get(id) as ContactRow | undefined)
-        : undefined;
+      const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
       render(reply, 'admin/confirm.njk', adminContext(request, {
         title: 'Nachricht löschen',
@@ -1862,9 +2041,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/loeschen/', async (request, reply) => {
       const id = Number(request.params.id);
-      const message = Number.isInteger(id)
-        ? (db().prepare('SELECT * FROM contact_messages WHERE id = ?').get(id) as ContactRow | undefined)
-        : undefined;
+      const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
       db().prepare('DELETE FROM contact_messages WHERE id = ?').run(id);
       writeAudit(request.admin?.email ?? 'admin', 'contact.delete', { id, email: message.email });

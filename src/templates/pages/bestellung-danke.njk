@@ -62,18 +62,8 @@
 
         {% elif paymentMethod and paymentMethod.provider == 'manual' %}
           <h2>Zahlung per Vorkasse</h2>
-          <p>Bitte überweisen Sie den Gesamtbetrag von <strong>{{ order.total_cents | price }}</strong> auf unser Konto.</p>
-          {% if bankConfigured %}
-            <dl class="summary-list">
-              <div><dt>Kontoinhaber</dt><dd>{{ bank.accountHolder }}</dd></div>
-              <div><dt>IBAN</dt><dd>{{ bank.iban }}</dd></div>
-              {% if bank.bic %}<div><dt>BIC</dt><dd>{{ bank.bic }}</dd></div>{% endif %}
-              {% if bank.bankName %}<div><dt>Bank</dt><dd>{{ bank.bankName }}</dd></div>{% endif %}
-              <div><dt>Verwendungszweck</dt><dd>{{ order.order_number }}</dd></div>
-            </dl>
-          {% else %}
-            <p class="text-muted">Die Bankverbindung wird Ihnen in einer separaten E-Mail mitgeteilt.</p>
-          {% endif %}
+          <p>Bitte überweisen Sie den Gesamtbetrag von <strong>{{ order.total_cents | price }}</strong> auf unser Konto. Die vollständige Bankverbindung und der Verwendungszweck stehen in der Bestätigungs-E-Mail, die wir Ihnen soeben gesendet haben.</p>
+          <p class="text-muted">Aus Sicherheitsgründen zeigen wir die Kontodaten nicht auf dieser Seite an. Falls Sie die E-Mail nicht erhalten haben, prüfen Sie bitte Ihren Spam-Ordner oder kontaktieren Sie uns.</p>
           <p>Die Bestellung wird nach Zahlungseingang gefertigt bzw. versandt.</p>
 
         {% else %}

@@ -319,7 +319,7 @@
 **Fertig**
 - Zahlungsstatus getrennt vom Fulfillment-Status: `offen`, `in_bearbeitung`, `bezahlt`, `fehlgeschlagen`, `erstattet`, `storniert`.
 - Migration `007_payments.sql` mit Zahlungsfeldern, `order_payments`, `payment_events` (Idempotenz), sicheren Bestelllinks (`public_token`), Bestandsreservierung und `variant_id` in Bestellpositionen.
-- Vorkasse: Bankverbindung im Admin pflegbar; Anzeige auf Danke-Seite und in der Bestätigungs-E-Mail; manuelle Bestätigung des Zahlungseingangs; Zahlungsbestätigung per E-Mail.
+- Vorkasse: Bankverbindung im Admin pflegbar; Bankdaten werden aus Sicherheitsgründen nur in der Bestätigungs-E-Mail mitgeteilt (nicht auf der öffentlichen Zahlungsseite und nicht auf der Danke-Seite); manuelle Bestätigung des Zahlungseingangs; Zahlungsbestätigung per E-Mail.
 - Stripe Checkout für Karte, PayPal, Amazon Pay, Klarna und iDEAL: gehostete Weiterleitung, keine Zahlungsdaten auf dem eigenen Server, Erfolgs-/Abbruch-URLs, Webhook mit Signaturprüfung und Idempotenz, Rückleitungs-Fallback, Betragsprüfung, erneuter Zahlungsversuch.
 - Admin: neue Seite „Zahlungen“ mit Bankdaten, Zahlungsarten, Stripe-Status und Webhook-URL; Bestellliste mit Zahlungsstatus-Filter; Bestelldetail mit Zahlungsstatus, Referenz, Zahlungseingang und Aktionen „Zahlungseingang bestätigen“, „Als fehlgeschlagen markieren“, „Erstattung vermerken“.
 - Öffentliche Seite `/zahlung/` wird aus den aktiven Zahlungsarten erzeugt; AGB, Datenschutz, Widerruf und Cookie-Tabelle angepasst.
@@ -366,3 +366,24 @@
 - Voraussetzungsprüfung erkennt belegten Port und schlägt den nächsten freien Port vor.
 - Systemcheck zeigt, ob der Port von `3d-mir.service` oder einem anderen Prozess genutzt wird.
 - `bash -n` für Installer und Setup-Menü erfolgreich.
+
+## Nachtrag – Kontakt, Antworten und Spam-Schutz
+
+**Fertig**
+- Migration `008_contact.sql`: Länderkürzel, Prüfstatus (`ok`/`pruefen`/`spam`), Prüfgrund, Antwortzeitpunkt und gespeicherter Antworttext.
+- Kontaktformular mit Pflicht-Landauswahl, signiertem Zeit-Token (HMAC mit `SESSION_SECRET`, 24 Stunden gültig, Mindestalter 3 Sekunden), Honeypot und Rate-Limit.
+- Spam-Prüfung: erlaubte Länder (Standard nur `DE`), optionale Auswertung eines Proxy-Länderkopfs (`CF-IPCountry` usw.), Inhaltsprüfung auf Spam-Begriffe, viele Links, Großschreibung und Zeichenwiederholungen.
+- Admin unter **Nachrichten**: Einstellungen für Länderprüfung, erlaubte Länder, Prüfmodus (`review`/`block`), Zeit- und Inhaltsprüfung; Prüfstatus je Nachricht; Freigeben/Als Spam markieren; direkte Antwort per E-Mail inkl. Speicherung und `.eml`-Fallback.
+- Auffällige Nachrichten werden im Prüfmodus gespeichert, aber nicht automatisch an den Betreiber weitergeleitet; stattdessen gibt es einen Prüfhinweis mit Link in den Admin.
+- Preis-Admin: Add-Buttons in allen Kategorien; mehrere neue Materialien, Drucker, Nachbearbeitungen, Versandarten, Versandoptionen und Rabattstaffeln pro Speichervorgang.
+- Bankdaten aus der öffentlichen Seite „Zahlungsarten“ und der Bestell-Danke-Seite entfernt; sie stehen nur in der Vorkasse-Bestätigungsmail.
+- Dokumentation in `docs/ADMIN.md` und `docs/OFFENE-FRAGEN.md`.
+
+**Getestet**
+- Kontaktformular im Browser: Land `DE`, Token, Honeypot und Zeitprüfung; Anfrage wird als `ok` gespeichert und an den Betreiber gemeldet.
+- Anfrage aus gesperrtem Land wird als `pruefen` gespeichert; Freigeben setzt auf `ok`; Als Spam markieren setzt `spam` und `handled`.
+- Antwort aus dem Admin speichert Betreff/Text und erzeugt ohne SMTP eine `.eml`-Datei.
+- Add-Buttons im Browser: jede Kategorie erhält weitere, korrekt indizierte Zeilen ohne `__INDEX__`-Reste.
+- Preisformular per HTTP: zwei neue Einträge je Kategorie werden in einem Speichervorgang angelegt.
+- Unit-Tests für Token, Länder-Allowlist, Prüfmodus und Inhaltsprüfung (11 Tests).
+- Typecheck, Build und 40 Unit-Tests erfolgreich.
