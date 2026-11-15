@@ -3,6 +3,13 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.20] – 2026-11-15
+
+### Geändert
+
+- **LUCID:** Registrierung und Systembeteiligung für Verkaufsverpackungen als
+  erledigt dokumentiert; Hinweis im Adminbereich „Veröffentlichung“ angepasst.
+
 ## [1.0.0-rc.19] – 2026-11-15
 
 ### Geändert
@@ -352,6 +359,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.20]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.20
 [1.0.0-rc.19]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.19
 [1.0.0-rc.18]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.18
 [1.0.0-rc.17]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.17
