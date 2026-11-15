@@ -263,7 +263,7 @@ sed -e "s|__APP_DIR__|$APP_DIR|g" \
     "$APP_DIR/deploy/3d-mir-monitor.service.tpl" > /etc/systemd/system/3d-mir-monitor.service
 cp "$APP_DIR/deploy/3d-mir-monitor.timer.tpl" /etc/systemd/system/3d-mir-monitor.timer
 
-log "Löschung alter Modell-Uploads (systemd-Timer)"
+log "Löschung alter Uploads und Anfragen (systemd-Timer)"
 sed -e "s|__APP_DIR__|$APP_DIR|g" \
     -e "s|__SERVICE_USER__|$SERVICE_USER|g" \
     -e "s|__DATA_DIR__|$DATA_DIR|g" \

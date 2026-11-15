@@ -8,9 +8,9 @@ import { writeAudit } from '../lib/auth.js';
  * Löscht hochgeladene Modelldateien aus Angebotsanfragen nach der
  * dokumentierten Aufbewahrungsfrist (Standard: 90 Tage).
  *
- * Die Anfrage selbst und die Kontaktdaten bleiben erhalten; lediglich die
- * Modelldatei und ihre Metadaten werden entfernt. Zusätzlich werden verwaiste
- * Dateien im Quotes-Upload-Verzeichnis aufgeräumt.
+ * Modelldateien werden nach 90 Tagen entfernt. Angebotsanfragen und
+ * Kontaktnachrichten werden nach 24 Monaten gelöscht. Zusätzlich werden
+ * verwaiste Dateien im Quotes-Upload-Verzeichnis aufgeräumt.
  *
  * Aufruf:
  *   npm run uploads:cleanup
@@ -21,10 +21,17 @@ import { writeAudit } from '../lib/auth.js';
 const daysArg = process.argv.indexOf('--days');
 const days =
   daysArg >= 0 ? Math.max(1, Math.trunc(Number(process.argv[daysArg + 1]))) : 90;
+const monthsArg = process.argv.indexOf('--inquiry-months');
+const inquiryMonths =
+  monthsArg >= 0 ? Math.max(1, Math.trunc(Number(process.argv[monthsArg + 1]))) : 24;
 const dryRun = process.argv.includes('--dry-run');
 
 if (!Number.isFinite(days) || days < 1) {
   console.error('Ungültiger Wert für --days.');
+  process.exit(1);
+}
+if (!Number.isFinite(inquiryMonths) || inquiryMonths < 1) {
+  console.error('Ungültiger Wert für --inquiry-months.');
   process.exit(1);
 }
 
@@ -105,10 +112,56 @@ if (fs.existsSync(quotesDir)) {
   }
 }
 
-if (!dryRun && (removed > 0 || orphans > 0)) {
-  writeAudit('system', 'quote.files.cleanup', { days, removed, orphans });
+// Anfrage- und Kontaktdaten: laut Datenschutzerklärung spätestens nach 24 Monaten.
+const inquiryCutoff = `-${inquiryMonths} months`;
+const oldQuotes = db
+  .prepare(
+    `SELECT id, reference, file_path
+       FROM quote_requests
+      WHERE created_at < datetime('now', ?)
+      ORDER BY id`,
+  )
+  .all(inquiryCutoff) as { id: number; reference: string; file_path: string | null }[];
+
+let deletedQuotes = 0;
+for (const quote of oldQuotes) {
+  if (quote.file_path) {
+    const file = safeFile(quote.file_path);
+    if (file) removeFile(file);
+  }
+  if (!dryRun) {
+    db.prepare('DELETE FROM quote_requests WHERE id = ?').run(quote.id);
+  }
+  deletedQuotes += 1;
+  console.log(`${dryRun ? 'Würde löschen' : 'Gelöscht'}: Anfrage ${quote.reference} (älter als ${inquiryMonths} Monate)`);
+}
+
+const contacts = db
+  .prepare('SELECT COUNT(*) AS count FROM contact_messages WHERE created_at < datetime(\'now\', ?)')
+  .get(inquiryCutoff) as { count: number };
+let deletedContacts = 0;
+if (!dryRun) {
+  deletedContacts = db
+    .prepare("DELETE FROM contact_messages WHERE created_at < datetime('now', ?)")
+    .run(inquiryCutoff).changes;
+} else {
+  deletedContacts = contacts.count;
+}
+if (deletedContacts > 0) {
+  console.log(`${dryRun ? 'Würde löschen' : 'Gelöscht'}: ${deletedContacts} Kontaktnachricht(en) (älter als ${inquiryMonths} Monate)`);
+}
+
+if (!dryRun && (removed > 0 || orphans > 0 || deletedQuotes > 0 || deletedContacts > 0)) {
+  writeAudit('system', 'data.cleanup', {
+    fileDays: days,
+    inquiryMonths,
+    files: removed,
+    orphans,
+    quotes: deletedQuotes,
+    contacts: deletedContacts,
+  });
 }
 
 console.log(
-  `${dryRun ? 'Testlauf' : 'Aufräumen'} abgeschlossen: ${removed} Modelldatei(en), ${orphans} verwaiste Datei(en) (Frist: ${days} Tage).`,
+  `${dryRun ? 'Testlauf' : 'Aufräumen'} abgeschlossen: ${removed} Modelldatei(en), ${orphans} verwaiste Datei(en), ${deletedQuotes} Anfrage(n), ${deletedContacts} Kontaktnachricht(en) (Dateien: ${days} Tage, Anfragen: ${inquiryMonths} Monate).`,
 );

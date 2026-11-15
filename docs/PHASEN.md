@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.30 – 15. November 2026
+
+24-Monats-Löschung für Angebotsanfragen und Kontaktnachrichten ergänzt;
+Modelldateien weiterhin nach 90 Tagen.
+
 ## Release 1.0.0-rc.29 – 15. November 2026
 
 90-Tage-Löschung für Modell-Uploads, Etsy-API-Import entfernt,

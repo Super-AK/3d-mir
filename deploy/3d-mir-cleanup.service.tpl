@@ -2,7 +2,7 @@
 # Platzhalter: __APP_DIR__, __SERVICE_USER__, __DATA_DIR__, __LOG_DIR__
 
 [Unit]
-Description=3D-MIR Modell-Uploads nach 90 Tagen löschen
+Description=3D-MIR Uploads und alte Anfragen löschen
 Documentation=https://www.3d-mir.de
 After=network-online.target 3d-mir.service
 Wants=network-online.target

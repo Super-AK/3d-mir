@@ -1,5 +1,5 @@
 [Unit]
-Description=3D-MIR tägliche Löschung alter Modell-Uploads
+Description=3D-MIR tägliche Löschung alter Uploads und Anfragen
 
 [Timer]
 OnCalendar=*-*-* 03:30:00

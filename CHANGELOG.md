@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.30] – 2026-11-15
+
+### Hinzugefügt
+
+- **24-Monats-Löschung für Anfragen:** Der tägliche Cleanup löscht
+  Angebotsanfragen und Kontaktnachrichten nach 24 Monaten; Modelldateien
+  weiterhin nach 90 Tagen. Bestelldaten bleiben unberührt.
+- Manuell steuerbar über `npm run uploads:cleanup -- --days 90 --inquiry-months 24`.
+
 ## [1.0.0-rc.29] – 2026-11-15
 
 ### Hinzugefügt
@@ -463,6 +472,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.30]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.30
 [1.0.0-rc.29]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.29
 [1.0.0-rc.28]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.28
 [1.0.0-rc.27]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.27

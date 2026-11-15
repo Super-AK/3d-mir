@@ -184,7 +184,7 @@ Nach dem Absenden des Kontaktformulars erhält der Absender automatisch eine **E
 
 ### Automatische Löschung der Modelldateien
 
-Der Timer `3d-mir-cleanup.timer` entfernt täglich Modelldateien aus Angebotsanfragen, die älter als 90 Tage sind. Die Anfrage- und Kontaktdaten bleiben erhalten. Manuell prüfen mit `npm run uploads:cleanup -- --dry-run`; Details unter `docs/DEPLOYMENT.md`.
+Der Timer `3d-mir-cleanup.timer` entfernt täglich Modelldateien nach 90 Tagen sowie Angebotsanfragen und Kontaktnachrichten nach 24 Monaten. Bestelldaten bleiben erhalten. Manuell prüfen mit `npm run uploads:cleanup -- --dry-run`; Details unter `docs/DEPLOYMENT.md`.
 
 ### Spam-Schutz und Länderprüfung
 
