@@ -15,15 +15,31 @@
       <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
     {% endif %}
 
-    <form class="form" method="post" action="/admin/login/2fa/">
-      <input type="hidden" name="weiter" value="{{ weiter }}">
-      <div class="field">
-        <label for="code">Bestätigungscode</label>
-        <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,8}" maxlength="8" required autofocus>
-        <span class="hint">Der Code wechselt alle 30 Sekunden.</span>
+    {% if hasTotp %}
+      <form class="form" method="post" action="/admin/login/2fa/">
+        <input type="hidden" name="weiter" value="{{ weiter }}">
+        <div class="field">
+          <label for="code">Bestätigungscode</label>
+          <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,8}" maxlength="8" required autofocus>
+          <span class="hint">Der Code wechselt alle 30 Sekunden.</span>
+        </div>
+        <button class="btn btn-block" type="submit">Bestätigen</button>
+      </form>
+    {% endif %}
+
+    {% if passkeyCount > 0 %}
+      <div class="admin-passkey-login">
+        <p class="text-muted">{{ 'Oder melden Sie sich mit einem Passkey an.' if hasTotp else 'Melden Sie sich mit einem hinterlegten Passkey an.' }}</p>
+        <button type="button" class="btn btn-secondary btn-block" data-passkey-login data-weiter="{{ weiter }}">
+          Mit Passkey anmelden
+        </button>
+        <div class="alert alert-danger" data-passkey-error hidden role="alert"><p></p></div>
       </div>
-      <button class="btn btn-block" type="submit">Bestätigen</button>
-    </form>
+    {% endif %}
+
+    {% if not hasTotp and passkeyCount == 0 and not error %}
+      <div class="alert alert-danger" role="alert"><p>Für dieses Konto ist kein zweiter Faktor eingerichtet. Bitte wenden Sie sich an die Person, die den Admin-Zugang verwaltet.</p></div>
+    {% endif %}
     <p class="admin-auth-hint text-muted"><small>Falls Sie keinen Zugriff mehr auf Ihre Authenticator-App haben, wenden Sie sich an die Person, die den Admin-Zugang verwaltet.</small></p>
   </div>
 {% endblock %}

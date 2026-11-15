@@ -6,8 +6,17 @@ import { spawn } from 'node:child_process';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import sharp from 'sharp';
 import QRCode from 'qrcode';
+import {
+  generateAuthenticationOptions,
+  generateRegistrationOptions,
+  verifyAuthenticationResponse,
+  verifyRegistrationResponse,
+  type AuthenticatorTransportFuture,
+  type AuthenticationResponseJSON,
+  type RegistrationResponseJSON,
+} from '@simplewebauthn/server';
 import { z } from 'zod';
-import { config, type PricingConfig } from '../config.js';
+import { config, webauthn, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render, imagePreview, UPLOAD_PREFIX } from '../lib/render.js';
 import {
@@ -43,6 +52,16 @@ import {
   writeAudit,
 } from '../lib/auth.js';
 import { generateTotpSecret, totpUri, verifyTotp } from '../lib/totp.js';
+import {
+  addPasskey,
+  countPasskeys,
+  deletePasskey,
+  findPasskey,
+  listPasskeys,
+  passkeyTransports,
+  updatePasskeyCounter,
+} from '../lib/passkeys.js';
+import { setSessionChallenge } from '../lib/auth.js';
 import {
   clearPricingOverrides,
   getPricingConfig,
@@ -82,6 +101,7 @@ import {
   type NotificationSettings,
 } from '../lib/notification-settings.js';
 import { sendTelegramMessage } from '../lib/telegram.js';
+import { getMonitorStatus } from '../lib/monitor-status.js';
 import { formatEuro } from '../lib/shop.js';
 import { countries, isKnownCountry } from '../lib/countries.js';
 import {
@@ -1544,7 +1564,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const factor = db()
         .prepare('SELECT totp_secret, totp_enabled FROM users WHERE id = ?')
         .get(user.id) as { totp_secret: string | null; totp_enabled: number } | undefined;
-      if (factor && Number(factor.totp_enabled) === 1 && factor.totp_secret) {
+      const totpEnabled = Boolean(factor && Number(factor.totp_enabled) === 1 && factor.totp_secret);
+      if (totpEnabled || countPasskeys(user.id) > 0) {
         const pending = createPendingLogin(user.id);
         setPendingCookie(reply, request, pending.id);
         writeAudit(user.email, 'admin.login.password-ok', { ip: request.ip });
@@ -1567,9 +1588,14 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       return reply.redirect('/admin/login/', 303);
     }
     const query = queryObject(request);
+    const factor = db()
+      .prepare('SELECT totp_secret, totp_enabled FROM users WHERE id = ?')
+      .get(pending.user.id) as { totp_secret: string | null; totp_enabled: number } | undefined;
     render(reply, 'admin/login-2fa.njk', {
       email: pending.user.email,
       weiter: safeNext(query.weiter),
+      hasTotp: Boolean(factor && Number(factor.totp_enabled) === 1 && factor.totp_secret),
+      passkeyCount: countPasskeys(pending.user.id),
     });
   });
 
@@ -1583,6 +1609,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           email: '',
           weiter: '/admin/',
           error: 'Die Anfrage konnte nicht zugeordnet werden.',
+          hasTotp: false,
+          passkeyCount: 0,
         });
       }
 
@@ -1612,6 +1640,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           email: pending.user.email,
           weiter,
           error: 'Der Code ist ungültig oder abgelaufen. Bitte einen neuen Code eingeben.',
+          hasTotp: Boolean(factor && Number(factor.totp_enabled) === 1 && factor.totp_secret),
+          passkeyCount: countPasskeys(pending.user.id),
         });
       }
 
@@ -1622,6 +1652,85 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       writeAudit(pending.user.email, 'admin.login.2fa', { ip: request.ip });
       request.log.info({ email: pending.user.email, ip: request.ip }, 'Admin mit 2FA angemeldet');
       return reply.redirect(weiter, 303);
+    },
+  );
+
+  app.post('/admin/login/passkey/optionen/', async (request, reply) => {
+    if (!isSameOrigin(request)) {
+      return reply.code(403).send({ ok: false, error: 'Die Anfrage konnte nicht zugeordnet werden.' });
+    }
+    const pending = getPendingLogin(request);
+    if (!pending) {
+      return reply.code(401).send({ ok: false, error: 'Die Anmeldung ist abgelaufen. Bitte erneut mit dem Passwort anmelden.' });
+    }
+    const credentials = listPasskeys(pending.user.id);
+    if (credentials.length === 0) {
+      return reply.code(404).send({ ok: false, error: 'Für dieses Konto ist kein Passkey hinterlegt.' });
+    }
+    const options = await generateAuthenticationOptions({
+      rpID: webauthn.rpId,
+      allowCredentials: credentials.map((credential) => ({
+        id: credential.id,
+        transports: passkeyTransports(credential) as AuthenticatorTransportFuture[],
+      })),
+      userVerification: 'preferred',
+    });
+    setSessionChallenge(pending.id, options.challenge);
+    return reply.send(options);
+  });
+
+  app.post(
+    '/admin/login/passkey/verifizieren/',
+    { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } },
+    async (request, reply) => {
+      if (!isSameOrigin(request)) {
+        return reply.code(403).send({ ok: false, error: 'Die Anfrage konnte nicht zugeordnet werden.' });
+      }
+      const pending = getPendingLogin(request);
+      if (!pending) {
+        return reply.code(401).send({ ok: false, error: 'Die Anmeldung ist abgelaufen. Bitte erneut mit dem Passwort anmelden.' });
+      }
+      const body = bodyObject(request);
+      const response = body.response as AuthenticationResponseJSON | undefined;
+      const weiter = safeNext(body.weiter);
+      const challenge = pending.data.challenge;
+      setSessionChallenge(pending.id, null);
+      if (!response || typeof response !== 'object' || !challenge) {
+        return reply.code(400).send({ ok: false, error: 'Die Passkey-Antwort ist unvollständig.' });
+      }
+      const credential = findPasskey(String(response.id ?? ''));
+      if (!credential || credential.user_id !== pending.user.id) {
+        return reply.code(400).send({ ok: false, error: 'Der Passkey ist nicht bekannt.' });
+      }
+      try {
+        const verification = await verifyAuthenticationResponse({
+          response,
+          expectedChallenge: challenge,
+          expectedOrigin: webauthn.origin,
+          expectedRPID: webauthn.rpId,
+          credential: {
+            id: credential.id,
+            publicKey: new Uint8Array(credential.public_key),
+            counter: credential.counter,
+            transports: passkeyTransports(credential) as AuthenticatorTransportFuture[],
+          },
+          requireUserVerification: false,
+        });
+        if (!verification.verified) {
+          return reply.code(400).send({ ok: false, error: 'Der Passkey konnte nicht bestätigt werden.' });
+        }
+        updatePasskeyCounter(credential.id, verification.authenticationInfo.newCounter);
+      } catch (error) {
+        request.log.warn({ err: error }, 'Passkey-Anmeldung fehlgeschlagen');
+        return reply.code(400).send({ ok: false, error: 'Der Passkey konnte nicht bestätigt werden.' });
+      }
+
+      destroySessionById(pending.id);
+      clearPendingCookie(reply);
+      const session = createSession(pending.user.id);
+      setSessionCookie(reply, request, session.id);
+      writeAudit(pending.user.email, 'admin.login.passkey', { ip: request.ip });
+      return reply.send({ ok: true, redirect: weiter });
     },
   );
 
@@ -1690,6 +1799,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           recentMessages: db()
             .prepare('SELECT * FROM contact_messages ORDER BY created_at DESC, id DESC LIMIT 6')
             .all() as ContactRow[],
+          monitor: getMonitorStatus(),
         }),
       );
     });
@@ -3439,6 +3549,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           : '';
       render(reply, 'admin/password.njk', adminContext(request, {
         twoFactor: { enabled, setupPending, secret, qrDataUrl },
+        passkeys: listPasskeys(session.user.id),
+        passkeyCount: countPasskeys(session.user.id),
       }));
     });
 
@@ -3526,6 +3638,81 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .prepare("UPDATE users SET totp_secret = NULL, totp_enabled = 0, updated_at = datetime('now') WHERE id = ?")
         .run(session.user.id);
       writeAudit(session.user.email, 'admin.2fa.disabled', { ip: request.ip });
+      return reply.redirect('/admin/passwort/?gespeichert=1', 303);
+    });
+
+    // Passkeys (WebAuthn) ------------------------------------------------
+    scope.post('/admin/passwort/passkey/optionen/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return reply.code(403).send({ ok: false, error: 'Sitzung abgelaufen.' });
+      const credentials = listPasskeys(session.user.id);
+      const options = await generateRegistrationOptions({
+        rpName: webauthn.rpName,
+        rpID: webauthn.rpId,
+        userID: new TextEncoder().encode(String(session.user.id)),
+        userName: session.user.email,
+        userDisplayName: session.user.name || session.user.email,
+        attestationType: 'none',
+        excludeCredentials: credentials.map((credential) => ({
+          id: credential.id,
+          transports: passkeyTransports(credential) as AuthenticatorTransportFuture[],
+        })),
+        authenticatorSelection: {
+          residentKey: 'preferred',
+          userVerification: 'preferred',
+        },
+      });
+      setSessionChallenge(session.id, options.challenge);
+      return reply.send(options);
+    });
+
+    scope.post('/admin/passwort/passkey/registrieren/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return reply.code(403).send({ ok: false, error: 'Sitzung abgelaufen.' });
+      const body = bodyObject(request);
+      const response = body.response as RegistrationResponseJSON | undefined;
+      const challenge = session.data.challenge;
+      const label = cleanText(body.label, 120) || 'Passkey';
+      setSessionChallenge(session.id, null);
+      if (!response || typeof response !== 'object' || !challenge) {
+        return reply.code(400).send({ ok: false, error: 'Die Passkey-Antwort ist unvollständig.' });
+      }
+      try {
+        const verification = await verifyRegistrationResponse({
+          response,
+          expectedChallenge: challenge,
+          expectedOrigin: webauthn.origin,
+          expectedRPID: webauthn.rpId,
+          requireUserVerification: false,
+        });
+        if (!verification.verified) {
+          return reply.code(400).send({ ok: false, error: 'Der Passkey konnte nicht bestätigt werden.' });
+        }
+        const credential = verification.registrationInfo.credential;
+        addPasskey({
+          id: credential.id,
+          userId: session.user.id,
+          publicKey: credential.publicKey,
+          counter: credential.counter,
+          transports: credential.transports ?? [],
+          label,
+        });
+        writeAudit(session.user.email, 'admin.passkey.add', { id: credential.id, label });
+        return reply.send({ ok: true });
+      } catch (error) {
+        request.log.warn({ err: error }, 'Passkey-Registrierung fehlgeschlagen');
+        return reply.code(400).send({ ok: false, error: 'Der Passkey konnte nicht gespeichert werden.' });
+      }
+    });
+
+    scope.post('/admin/passwort/passkey/loeschen/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+      const body = bodyObject(request);
+      const id = cleanText(body.id, 500);
+      if (id && deletePasskey(session.user.id, id)) {
+        writeAudit(session.user.email, 'admin.passkey.delete', { id });
+      }
       return reply.redirect('/admin/passwort/?gespeichert=1', 303);
     });
   });

@@ -42,6 +42,36 @@
     </div>
   </div>
 
+  <section class="card admin-panel admin-monitor-panel">
+    <div class="admin-panel-head">
+      <h2>Systemstatus</h2>
+      {% if not monitor.available %}
+        <span class="badge badge-neutral">noch keine Prüfung</span>
+      {% elif monitor.down %}
+        <span class="badge badge-danger">Störung erkannt</span>
+      {% else %}
+        <span class="badge badge-success">erreichbar</span>
+      {% endif %}
+    </div>
+    {% if monitor.available %}
+      <dl class="admin-dl">
+        <div><dt>Letzte Prüfung</dt><dd>{{ (monitor.lastCheck | datetime) or 'unbekannt' }}</dd></div>
+        <div><dt>Letzte erfolgreiche Prüfung</dt><dd>{{ (monitor.lastOk | datetime) or '–' }}</dd></div>
+        {% if monitor.down %}
+          <div><dt>Ausfall seit</dt><dd>{{ (monitor.since | datetime) or 'unbekannt' }}</dd></div>
+          <div><dt>Letzte Warnung</dt><dd>{{ (monitor.lastAlert | datetime) or '–' }}</dd></div>
+        {% endif %}
+        <div><dt>Details</dt><dd>{{ monitor.detail or '–' }}</dd></div>
+      </dl>
+    {% else %}
+      <p class="text-muted">Noch keine Statusdatei vorhanden. Der Uptime-Check läuft alle fünf Minuten über <code>3d-mir-monitor.timer</code>.</p>
+    {% endif %}
+    <div class="admin-page-actions">
+      <a class="btn btn-secondary btn-small" href="/admin/">Status aktualisieren</a>
+      <a class="btn btn-secondary btn-small" href="/admin/benachrichtigungen/">Benachrichtigungen</a>
+    </div>
+  </section>
+
   <div class="admin-grid-2">
     <section class="card admin-panel">
       <div class="admin-panel-head">

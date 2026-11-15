@@ -16,7 +16,7 @@ const ARGON_OPTIONS = {
 } as const;
 
 export type AdminUser = { id: number; email: string; name: string; role: 'admin' };
-export type SessionData = { csrf?: string; pending2fa?: boolean };
+export type SessionData = { csrf?: string; pending2fa?: boolean; challenge?: string };
 export type AdminSession = {
   id: string;
   data: SessionData;
@@ -140,7 +140,7 @@ export function createPendingLogin(userId: number): { id: string; expiresAt: str
 /** Liest die vorläufige Sitzung nach erfolgreicher Passwortprüfung. */
 export function getPendingLogin(
   request: FastifyRequest,
-): { id: string; user: AdminUser; expiresAt: string } | null {
+): { id: string; user: AdminUser; expiresAt: string; data: SessionData } | null {
   const raw = request.cookies?.[PENDING_ADMIN_COOKIE];
   if (!raw) return null;
   const unsigned = request.unsignCookie(raw);
@@ -163,6 +163,7 @@ export function getPendingLogin(
   return {
     id: row.id,
     expiresAt: row.expires_at,
+    data: parseData(row.data),
     user: { id: row.user_id, email: row.email, name: row.name, role: 'admin' },
   };
 }
@@ -174,6 +175,18 @@ export function destroySession(session: AdminSession): void {
 /** Löscht eine Sitzung anhand ihrer ID (auch vorläufige 2FA-Sitzungen). */
 export function destroySessionById(sessionId: string): void {
   db().prepare('DELETE FROM sessions WHERE id = ?').run(sessionId);
+}
+
+/** Speichert eine WebAuthn-Challenge in der Sitzung (oder löscht sie). */
+export function setSessionChallenge(sessionId: string, challenge: string | null): void {
+  const row = db().prepare('SELECT data FROM sessions WHERE id = ?').get(sessionId) as
+    | { data: string }
+    | undefined;
+  if (!row) return;
+  const data = parseData(row.data);
+  if (challenge) data.challenge = challenge;
+  else delete data.challenge;
+  db().prepare('UPDATE sessions SET data = ? WHERE id = ?').run(JSON.stringify(data), sessionId);
 }
 
 export function setSessionCookie(reply: FastifyReply, request: FastifyRequest, sessionId: string): void {

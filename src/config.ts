@@ -46,6 +46,9 @@ const envSchema = z.object({
   NOTIFICATION_CHANNEL: z.enum(['mail', 'telegram', 'both']).default('mail'),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
+  // Passkeys (WebAuthn): Standard ist Domain/Origin aus config/site.json.
+  WEBAUTHN_RP_ID: z.string().optional(),
+  WEBAUTHN_ORIGIN: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -111,6 +114,13 @@ export const config = {
   site,
   pricing,
   shop,
+} as const;
+
+const siteUrl = new URL(site.baseUrl);
+export const webauthn = {
+  rpId: env.WEBAUTHN_RP_ID ?? siteUrl.hostname,
+  origin: env.WEBAUTHN_ORIGIN ?? siteUrl.origin,
+  rpName: '3D-MIR Admin',
 } as const;
 
 export type SiteConfig = {

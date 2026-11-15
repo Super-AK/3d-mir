@@ -3,6 +3,27 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.18] – 2026-11-15
+
+### Hinzugefügt
+
+- **Passkeys (WebAuthn):** Registrierung mehrerer Geräte unter
+  **Passwort und Sicherheit**, Anmeldung über die 2FA-Seite mit
+  Fingerabdruck, Gesichtserkennung, Windows Hello, Sicherheitsschlüssel oder
+  Passwort-Manager. TOTP und Passkeys können parallel genutzt werden.
+- **Systemstatus im Admin-Dashboard:** Erreichbarkeit, letzte Prüfung,
+  letzte erfolgreiche Prüfung, Ausfallzeitpunkt und Detailmeldung.
+- Neuer Datumsfilter mit Uhrzeit für Statusanzeigen.
+- Datenbankmigration `012_passkeys.sql`; WebAuthn-Konfiguration über
+  `WEBAUTHN_RP_ID` und `WEBAUTHN_ORIGIN` (Standard aus `site.baseUrl`).
+
+### Geändert
+
+- Uptime-Check schreibt zusätzlich Zeitpunkt, Detail und letzte erfolgreiche
+  Prüfung in `monitor-state.json`.
+- Anmelde-Layout lädt das Admin-JavaScript, damit Passkeys auch auf der
+  Login-Seite funktionieren.
+
 ## [1.0.0-rc.17] – 2026-11-14
 
 ### Hinzugefügt
@@ -304,6 +325,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.18]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.18
 [1.0.0-rc.17]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.17
 [1.0.0-rc.16]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.16
 [1.0.0-rc.15]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.15

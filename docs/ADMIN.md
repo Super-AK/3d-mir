@@ -355,6 +355,16 @@ Unter **Admin → Passwort und Sicherheit** lässt sich TOTP aktivieren:
 
 Zum Deaktivieren ist das aktuelle Passwort erforderlich. Der Schlüssel liegt in der Datenbank (`users.totp_secret`) und ist damit in Backups enthalten. Bei Verlust der App bleibt nur der Zugang über die Serververwaltung.
 
+### Passkeys (WebAuthn)
+
+Unter **Passwort und Sicherheit → Passkeys** lassen sich zusätzlich Geräte-Passkeys hinterlegen:
+
+1. Optional eine Bezeichnung eintragen (z. B. „iPhone“).
+2. **Passkey hinzufügen** anklicken und die Freigabe am Gerät bestätigen (Fingerabdruck, Gesichtserkennung, Windows Hello, Sicherheitsschlüssel oder Passwort-Manager).
+3. Der Passkey erscheint in der Liste und kann dort jederzeit entfernt werden.
+
+Sind TOTP und Passkeys aktiv, zeigt die Anmeldung beide Möglichkeiten. Ist nur ein Passkey hinterlegt, entfällt der 6-stellige Code. Passkeys funktionieren ausschließlich über HTTPS (oder `localhost`). Auf dem Server wird nur der öffentliche Schlüssel gespeichert; der private Schlüssel bleibt auf dem Gerät.
+
 ## Monitoring
 
 Ein systemd-Timer prüft alle fünf Minuten `http://127.0.0.1:<PORT>/api/health`:
@@ -367,3 +377,5 @@ npm run monitor:check        # manueller Lauf
 ```
 
 Bei einem Ausfall wird der Betreiber über den unter **Benachrichtigungen** gewählten Kanal informiert; nach der Wiederherstellung folgt eine Entwarnung. Erneute Erinnerungen während eines anhaltenden Ausfalls werden höchstens alle sechs Stunden versendet. Der Zustand liegt unter `<DATA_DIR>/monitor-state.json`.
+
+Der aktuelle Status erscheint außerdem auf dem **Dashboard** unter **Systemstatus**: erreichbar/Störung, letzte Prüfung, letzte erfolgreiche Prüfung, Ausfallzeitpunkt und Detailmeldung.

@@ -167,7 +167,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | --- | --- | --- |
 | F61 | 🔴 Offen | Tägliches Backup: nur lokal unter `/var/lib/3d-mir/backups` oder zusätzlich extern (z. B. Hetzner Storage Box/S3)? |
 | F62 | 🟡 In Arbeit | Aufbewahrungsdauer für Bestellungen/Rechnungen (steuerlich 10 Jahre) und für Angebotsanfragen? |
-| F63 | ✅ Erledigt | **Umgesetzt:** TOTP-2FA unter **Admin → Passwort und Sicherheit** einrichtbar und beim Login verpflichtend. PassKeys sind nicht enthalten, könnten später ergänzt werden.<br>*(14.11.2026)* |
+| F63 | ✅ Erledigt | **Umgesetzt:** TOTP-2FA und Passkeys (WebAuthn) unter **Admin → Passwort und Sicherheit**; beim Login sind je nach Einrichtung Code und/oder Passkey erforderlich.<br>*(15.11.2026)* |
 | F64 | ✅ Erledigt | **Erledigt:** Der Admin-Zugang des Betreibers ist eingerichtet. Offen: Sollen weitere Personen Zugang erhalten? Zugänge werden mit `npm run admin:create -- --email … --name …` angelegt; Passwörter werden nie im Repo gespeichert.<br>*(13.11.2026)* |
 | F65 | ✅ Erledigt | **Umgesetzt:** systemd-Timer prüft alle fünf Minuten `/api/health` und benachrichtigt über den gewählten Kanal; Wiederherstellung wird ebenfalls gemeldet.<br>*(14.11.2026)* |
 

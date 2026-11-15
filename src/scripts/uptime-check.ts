@@ -23,6 +23,9 @@ type MonitorState = {
   down: boolean;
   since?: string;
   lastAlert?: string;
+  lastCheck?: string;
+  lastOk?: string;
+  detail?: string;
 };
 
 function readState(): MonitorState {
@@ -86,7 +89,12 @@ async function main(): Promise<void> {
     } else {
       console.log('Health-Check ok.');
     }
-    writeState({ down: false });
+    writeState({
+      down: false,
+      lastCheck: stamp,
+      lastOk: stamp,
+      detail: result.detail,
+    });
     return;
   }
 
@@ -114,6 +122,9 @@ async function main(): Promise<void> {
     down: true,
     since: state.down && state.since ? state.since : stamp,
     lastAlert: shouldAlert ? stamp : state.lastAlert,
+    lastCheck: stamp,
+    lastOk: state.lastOk,
+    detail: result.detail,
   });
 }
 

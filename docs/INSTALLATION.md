@@ -668,6 +668,8 @@ Datei: `/etc/3d-mir/3d-mir.env`, Rechte `600`, Eigentümer `root`.
 | `NOTIFICATION_CHANNEL` | nein | `mail`, `telegram` oder `both` (Admin hat Vorrang) |
 | `TELEGRAM_BOT_TOKEN` | nein | Telegram-Bot-Token (Admin hat Vorrang) |
 | `TELEGRAM_CHAT_ID` | nein | Telegram-Chat-ID (Admin hat Vorrang) |
+| `WEBAUTHN_RP_ID` | nein | RP-ID für Passkeys; Standard = Host aus `site.baseUrl` |
+| `WEBAUTHN_ORIGIN` | nein | erwartete Origin; Standard = Origin aus `site.baseUrl` |
 
 Nach Änderungen:
 

@@ -195,6 +195,17 @@ env.addFilter('date', (value: string | Date | null | undefined) => {
   if (Number.isNaN(d.getTime())) return String(value);
   return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(d);
 });
+env.addFilter('datetime', (value: string | Date | null | undefined) => {
+  if (!value) return '';
+  const iso = value instanceof Date
+    ? value.toISOString()
+    : value.includes('T')
+      ? value
+      : value.replace(' ', 'T');
+  const d = new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(iso) ? iso : `${iso}Z`);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'medium' }).format(d);
+});
 env.addFilter('json', (value: unknown) => JSON.stringify(value));
 env.addFilter('jsonld', (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c'));
 /** Wandelt Klartext mit Leerzeilen in sichere Absätze um. */
