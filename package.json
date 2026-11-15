@@ -1,6 +1,6 @@
 {
   "name": "3d-mir",
-  "version": "1.0.0-rc.21",
+  "version": "1.0.0-rc.22",
   "private": true,
   "description": "Webseite und 3D-Druck-Rechner für 3D-MIR 3D-Druck Service",
   "type": "module",

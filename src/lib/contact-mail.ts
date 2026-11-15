@@ -73,3 +73,40 @@ export function contactReviewMailHtml(data: ContactMailData, reasons: string[], 
 <ul>${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join('')}</ul>
 <p><a href="${escapeHtml(adminUrl)}">Im Admin-Bereich prüfen</a></p>`;
 }
+
+
+/** Automatische Eingangsbestätigung an den Absender des Kontaktformulars. */
+export function contactAcknowledgementText(data: ContactMailData, baseUrl: string): string {
+  return [
+    `Hallo ${data.name},`,
+    '',
+    'vielen Dank für Ihre Nachricht an 3D-MIR. Wir haben Ihre Anfrage erhalten und melden uns in der Regel innerhalb von 24 Stunden an Werktagen.',
+    '',
+    `Ihr Anliegen: ${data.subject}`,
+    '',
+    'Rechtliche Informationen:',
+    `AGB: ${baseUrl}/agb/`,
+    `Widerrufsbelehrung: ${baseUrl}/widerruf/`,
+    `Muster-Widerrufsformular (PDF): ${baseUrl}/widerruf/formular.pdf`,
+    `Datenschutz: ${baseUrl}/datenschutz/`,
+    '',
+    'Viele Grüße',
+    '3D-MIR 3D-Druck Service',
+  ].join('\n');
+}
+
+/** HTML-Variante der automatischen Eingangsbestätigung. */
+export function contactAcknowledgementHtml(data: ContactMailData, baseUrl: string): string {
+  const link = (href: string, label: string): string =>
+    `<a href="${escapeHtml(`${baseUrl}${href}`)}">${escapeHtml(label)}</a>`;
+  return `<h1>Vielen Dank für Ihre Nachricht</h1>
+<p>Hallo ${escapeHtml(data.name)},</p>
+<p>vielen Dank für Ihre Nachricht an 3D-MIR. Wir haben Ihre Anfrage erhalten und melden uns in der Regel innerhalb von 24 Stunden an Werktagen.</p>
+<p><strong>Ihr Anliegen:</strong> ${escapeHtml(data.subject)}</p>
+<p><strong>Rechtliche Informationen:</strong><br>
+${link('/agb/', 'AGB')}<br>
+${link('/widerruf/', 'Widerrufsbelehrung')}<br>
+${link('/widerruf/formular.pdf', 'Muster-Widerrufsformular (PDF)')}<br>
+${link('/datenschutz/', 'Datenschutz')}</p>
+<p>Viele Grüße<br>3D-MIR 3D-Druck Service</p>`;
+}

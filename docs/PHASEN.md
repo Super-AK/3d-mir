@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.22 – 15. November 2026
+
+Automatische Eingangsbestätigung für Kontaktanfragen mit rechtlichen Links.
+
 ## Release 1.0.0-rc.21 – 15. November 2026
 
 Kassen-Hinweis zur Zahlungsart, rechtliche Links in Kontaktantworten,

@@ -15,7 +15,15 @@ import {
   isTrustedProxyPeer,
   resolveContactCountry,
 } from '../lib/contact-protection.js';
-import { contactMailHtml, contactMailText, contactReviewMailHtml, contactReviewMailText } from '../lib/contact-mail.js';
+import {
+  contactAcknowledgementHtml,
+  contactAcknowledgementText,
+  contactMailHtml,
+  contactMailText,
+  contactReviewMailHtml,
+  contactReviewMailText,
+} from '../lib/contact-mail.js';
+import { sendMail } from '../lib/mailer.js';
 import { createWithdrawalFormPdf } from '../lib/withdrawal-form-pdf.js';
 
 /** Liest alle Inhaltsblöcke als Schlüssel-Wert-Paare. */
@@ -346,6 +354,21 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
       });
       const mailData = { ...data, country: assessment.country };
 
+      const sendAcknowledgement = async (): Promise<void> => {
+        try {
+          await sendMail({
+            to: data.email,
+            subject: `Ihre Nachricht bei 3D-MIR: ${data.subject}`,
+            text: contactAcknowledgementText(mailData, config.site.baseUrl),
+            html: contactAcknowledgementHtml(mailData, config.site.baseUrl),
+            replyTo: config.site.business.email,
+          });
+        } catch (error) {
+          // Die Anfrage ist gespeichert; ein Mailfehler darf den Vorgang nicht verhindern.
+          request.log.error({ err: error }, 'Eingangsbestätigung konnte nicht versendet werden');
+        }
+      };
+
       if (assessment.decision === 'block') {
         request.log.warn(
           { ip: request.ip, country: assessment.country, reasons: assessment.reasons },
@@ -397,6 +420,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         } catch (error) {
           request.log.error({ err: error }, 'Prüfhinweis konnte nicht versendet werden');
         }
+        await sendAcknowledgement();
         return reply.redirect('/kontakt/danke/?pruefung=1', 303);
       }
 
@@ -411,6 +435,8 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         // Die Anfrage ist gespeichert; ein Mailfehler darf den Vorgang nicht verhindern.
         request.log.error({ err: error }, 'Kontaktanfrage gespeichert, aber E-Mail-Versand fehlgeschlagen');
       }
+
+      await sendAcknowledgement();
 
       request.log.info({ subject: data.subject, country: assessment.country }, 'Kontaktanfrage gespeichert');
       return reply.redirect('/kontakt/danke/', 303);

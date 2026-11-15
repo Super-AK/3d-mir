@@ -180,6 +180,8 @@ Unter **Admin → Nachrichten** erscheinen alle Anfragen aus dem Kontaktformular
 
 Über **„Antworten“** lässt sich direkt aus dem Admin eine E-Mail an den Kunden senden. Betreff und Text werden im Formular erfasst; die Antwort geht über den konfigurierten SMTP-Versand heraus (`Reply-To` ist die Betreiberadresse). Der Versand wird in der Nachricht gespeichert und im Audit-Log vermerkt. Ohne SMTP-Konfiguration wird die Antwort als `.eml` unter `/var/log/3d-mir/mail/` abgelegt. Die ursprüngliche Nachricht wird nicht automatisch zitiert.
 
+Nach dem Absenden des Kontaktformulars erhält der Absender automatisch eine **Eingangsbestätigung** per E-Mail. Sie enthält das Anliegen sowie Links zu AGB, Widerrufsbelehrung, Muster-Widerrufsformular (PDF) und Datenschutzerklärung. Bei als Spam eingestuften Nachrichten wird keine Bestätigung versendet.
+
 ### Spam-Schutz und Länderprüfung
 
 Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfung“** gepflegt:
