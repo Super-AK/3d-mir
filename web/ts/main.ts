@@ -71,6 +71,22 @@ if (checkout) {
   checkout.querySelectorAll<HTMLInputElement>('input[name="shippingMethod"]').forEach((input) => {
     input.addEventListener('change', updateTotals);
   });
+
+  // Hinweis zur Zahlungsart: zeigt, ob und wohin weitergeleitet wird.
+  const paymentHint = document.querySelector<HTMLElement>('[data-payment-hint-output]');
+  const updatePaymentHint = (): void => {
+    const selected = checkout.querySelector<HTMLInputElement>('input[name="paymentMethod"]:checked');
+    const hint = selected?.dataset.paymentHint;
+    if (!paymentHint) return;
+    if (hint) paymentHint.textContent = hint;
+    // Hinweis direkt unter die gewählte Zahlungsart verschieben.
+    const label = selected?.closest('label');
+    if (label?.parentElement) label.insertAdjacentElement('afterend', paymentHint);
+  };
+  checkout.querySelectorAll<HTMLInputElement>('input[name="paymentMethod"]').forEach((input) => {
+    input.addEventListener('change', updatePaymentHint);
+  });
+  updatePaymentHint();
   checkout.querySelectorAll<HTMLInputElement>('input[name="shippingOptions"]').forEach((input) => {
     input.addEventListener('change', updateTotals);
   });

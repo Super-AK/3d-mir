@@ -139,6 +139,8 @@ Bot-Token und SMTP-Passwort liegen in der Datenbank und sind in Backups enthalte
 
 ## Mischbetrieb mit WordPress beenden
 
+**Status:** Auf dem Produktivserver erledigt (15.11.2026). Die folgenden Schritte bleiben als Referenz für weitere Installationen erhalten.
+
 Die neue Anwendung liefert `/shop/`, `/3d-druck-rechner/`, `/warenkorb/` und `/mein-konto/` selbst aus. Die alten Footer-Links werden per 301 umgeleitet:
 
 | Alt | Neu |

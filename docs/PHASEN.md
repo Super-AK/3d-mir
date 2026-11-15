@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.21 – 15. November 2026
+
+Kassen-Hinweis zur Zahlungsart, rechtliche Links in Kontaktantworten,
+Bestätigungen zu WordPress, Rechtstexten, Steuer und LUCID dokumentiert.
+
 ## Release 1.0.0-rc.20 – 15. November 2026
 
 LUCID-Registrierung und Systembeteiligung als erledigt dokumentiert.

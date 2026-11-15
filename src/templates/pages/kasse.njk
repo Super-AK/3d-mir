@@ -127,7 +127,7 @@
             <div class="radio-list">
               {% for method in paymentMethods %}
                 <label class="radio-card radio-card-stacked">
-                  <input type="radio" name="paymentMethod" value="{{ method.id }}" {% if form.paymentMethod == method.id or (not form.paymentMethod and loop.first) %}checked{% endif %}>
+                  <input type="radio" name="paymentMethod" value="{{ method.id }}" {% if form.paymentMethod == method.id or (not form.paymentMethod and loop.first) %}checked{% endif %} data-payment-hint="{% if method.provider == 'manual' %}{{ method.note }} Die Bankverbindung erhalten Sie mit der Bestellbestätigung per E-Mail.{% else %}{{ method.note }} Nach dem Absenden werden Sie zur sicheren Zahlungsseite des Anbieters weitergeleitet.{% endif %}">
                   <span class="radio-card-text">
                     <strong>{{ method.label }}</strong>
                     <span>{{ method.note }}</span>
@@ -135,6 +135,7 @@
                 </label>
               {% endfor %}
             </div>
+            <p class="payment-hint" data-payment-hint-output aria-live="polite">Bitte wählen Sie eine Zahlungsart. Bei Online-Zahlungsarten werden Sie nach dem Absenden zur sicheren Zahlungsseite des Anbieters weitergeleitet.</p>
           {% else %}
             <div class="alert alert-warning" role="status">
               <p>Die Zahlung ist derzeit nicht möglich. Bitte kontaktieren Sie uns über das <a href="/kontakt/">Kontaktformular</a>.</p>

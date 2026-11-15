@@ -31,7 +31,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | Preise/Kalkulation | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
 | Versand | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
 | DNS/TLS | ✅ Erledigt | Laut Betreiber auf dem Produktivserver erledigt |
-| Rechtstexte | 🟡 In Arbeit | Impressum, AGB, Widerruf und Datenschutz überarbeitet; anwaltliche Prüfung offen |
+| Rechtstexte | ✅ Erledigt | Impressum, AGB, Widerruf und Datenschutz überarbeitet und anwaltlich geprüft |
 | Betrieb/Backup | 🟡 In Arbeit | Uptime-Check eingerichtet; externes Backup-Ziel offen |
 
 ---
@@ -153,10 +153,10 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 
 | Nr. | Status | Frage |
 | --- | --- | --- |
-| F54 | 🔴 Offen | Wer prüft die Rechtstexte (Anwalt/Steuerberater)? Die Texte sind als technische Entwürfe markiert und müssen vor dem Livegang freigegeben werden. |
+| F54 | ✅ Erledigt | **Erledigt:** Die Rechtstexte wurden anwaltlich geprüft und freigegeben.<br>*(15.11.2026)* |
 | F55 | ✅ Erledigt | **Erledigt:** Hosting-Anbieter, Anschrift und AVV sind laut Betreiber geklärt.<br>*(14.11.2026)* |
 | F56 | ✅ Erledigt | **Entschieden:** Die Abschnitte zu Google Analytics/AdSense wurden entfernt. Die neue Seite setzt kein Tracking ein.<br>*(13.11.2026)* |
-| F57 | 🟡 In Arbeit | **Überarbeitet:** AGB zu Vertragsschluss, Preisen, Versand, Zahlung, Widerruf, Eigentumsvorbehalt, Gewährleistung, 3D-Druck, Datenschutz und Streitbeilegung. Offen: rechtliche Prüfung. |
+| F57 | ✅ Erledigt | **Geprüft:** AGB zu Vertragsschluss, Preisen, Versand, Zahlung, Widerruf, Eigentumsvorbehalt, Gewährleistung, 3D-Druck, Datenschutz und Streitbeilegung anwaltlich freigegeben.<br>*(15.11.2026)* |
 | F58 | ✅ Erledigt | **Umgesetzt:** Widerrufsbelehrung enthält den Ausschluss für Sonderanfertigungen; Muster-Widerrufsformular als PDF unter `/widerruf/formular.pdf`. Die rechtliche Gesamtprüfung bleibt F54.<br>*(14.11.2026)* |
 | F59 | 🟡 In Arbeit | **Entwurf aktualisiert:** Die Datenschutzerklärung beschreibt Rechner-Upload, E-Mail-Ablage und Zahlungsdienstleister. Offen: automatische Löschung der Uploads nach 90 Tagen technisch umsetzen und rechtlich bestätigen. |
 | F60 | 🟡 In Arbeit | **Empfehlung:** Kein Consent-Banner nötig, solange nur technisch notwendige Cookies und keine externen Skripte/Tracker eingesetzt werden. Bitte rechtlich bestätigen. |
@@ -188,19 +188,17 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F79 | 🟡 In Arbeit | **Etsy-API-Freigabe:** Die Etsy-App steht auf „Pending Personal Approval“. Der CSV-Import ist erfolgt (13 Produkte); nach der Freigabe werden die exakten Variationspreise und Bestände per API nachgezogen. |
 | F80 | ✅ Erledigt | **Erledigt:** Der Betreiber ist bei LUCID (Zentrale Stelle Verpackungsregister) registriert und an der Systembeteiligung für versendete Verkaufsverpackungen beteiligt.<br>*(15.11.2026)* |
 | F81 | 🟡 In Arbeit | **GPSR:** Herstellerangaben (Name, Anschrift, E-Mail) und Produktkennung sind auf den Produktseiten eingebunden. Bitte je Produkt bestätigen, dass die Kennung (SKU oder Slug) und die Sicherheitshinweise ausreichen. |
-| F82 | 🔴 Offen | **Rechtstexte nach Überarbeitung:** Impressum (DDG), AGB (dynamische Zahlungsarten, § 14 entfernt), Widerruf und Datenschutz (Rechtsgrundlagen, Aufsichtsbehörde, Drittland, Cookies) anwaltlich prüfen lassen. |
-| F83 | 🔴 Offen | **Steuerliche Aufbewahrungsfristen:** Die pauschale Angabe „10 Jahre“ wurde durch „gesetzliche Aufbewahrungsfristen (in der Regel 6 bzw. 10 Jahre)“ ersetzt. Bitte vom Steuerberater bestätigen lassen. |
+| F82 | ✅ Erledigt | **Geprüft:** Impressum (DDG), AGB (dynamische Zahlungsarten, § 14 entfernt), Widerruf und Datenschutz (Rechtsgrundlagen, Aufsichtsbehörde, Drittland, Cookies) anwaltlich freigegeben.<br>*(15.11.2026)* |
+| F83 | ✅ Erledigt | **Bestätigt:** Die gesetzlichen Aufbewahrungsfristen (in der Regel 6 bzw. 10 Jahre) wurden vom Steuerberater bestätigt.<br>*(15.11.2026)* |
+| F84 | ✅ Erledigt | **Erledigt:** Der WordPress-Altbestand wurde entfernt und der Mischbetrieb beendet; die neuen Routen werden vollständig von der Anwendung ausgeliefert.<br>*(15.11.2026)* |
 
 ## 13. Nächste Schritte bis zum Livegang
 
 1. **Zahlung live schalten:** F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test); Bankverbindung ist auf Prod hinterlegt.
 2. **Benachrichtigungen prüfen:** Test-E-Mail und Test-Telegram im Admin senden; über die Kopieoption (F24) entscheiden.
-3. **Mischbetrieb beenden:** WordPress-Altbestand entfernen bzw. Vhost abschalten; die neuen Routen `/shop/`, `/3d-druck-rechner/`, `/warenkorb/` müssen vom Node-Dienst ausgeliefert werden. Alte Footer-Links sind per 301 umgeleitet.
-4. **Rechtstexte prüfen lassen:** F54–F59 und F82; danach Prüfhinweis entfernen.
-5. **Steuerliche Aufbewahrung bestätigen:** F83.
-6. **Betrieb absichern:** F61 (externes Backup-Ziel) und F62 (Aufbewahrung); Monitoring und 2FA/Passkeys sind umgesetzt.
-7. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
-8. **Shop live schalten:** F67 und Veröffentlichung im Admin erst nach rechtlicher Freigabe.
+3. **Betrieb absichern:** F61 (externes Backup-Ziel) und F62 (Aufbewahrung); Monitoring und 2FA/Passkeys sind umgesetzt.
+4. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
+5. **Shop live schalten:** F67 im Admin unter „Veröffentlichung“; Rechtstexte sind freigegeben.
 
 ---
 

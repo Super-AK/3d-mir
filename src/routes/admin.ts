@@ -2188,7 +2188,18 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         const result = await sendMail({
           to: message.email,
           subject,
-          text: [`Hallo ${message.name},`, '', text, '', 'Viele Grüße', '3D-MIR 3D-Druck Service'].join('\n'),
+          text: [
+            `Hallo ${message.name},`,
+            '',
+            text,
+            '',
+            `AGB: ${config.payment.baseUrl}/agb/`,
+            `Widerrufsbelehrung: ${config.payment.baseUrl}/widerruf/`,
+            `Muster-Widerrufsformular (PDF): ${config.payment.baseUrl}/widerruf/formular.pdf`,
+            '',
+            'Viele Grüße',
+            '3D-MIR 3D-Druck Service',
+          ].join('\n'),
           replyTo: config.site.business.email,
         });
         db()
