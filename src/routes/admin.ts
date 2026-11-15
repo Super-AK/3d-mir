@@ -129,7 +129,7 @@ import {
   placeholderDefinitions,
   savePlaceholderValues,
 } from '../lib/placeholders.js';
-import { deleteSiteLogo, storeSiteLogo } from '../lib/site-media.js';
+import { deleteSiteLogo, storeSiteFavicon, storeSiteLogo } from '../lib/site-media.js';
 import {
   getPublicationSettings,
   savePublicationSettings,
@@ -2385,7 +2385,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         settings,
         content: readHomeContent(),
         logoUrl: settings.images.logo || '/assets/img/gen/logo-96.png',
-        faviconPreview: settings.images.favicon ? imagePreview(settings.images.favicon, 96) : '/assets/img/favicon-32.png',
+        faviconPreview: settings.images.favicon
+          ? settings.images.favicon.startsWith('/site-media/')
+            ? settings.images.favicon
+            : imagePreview(settings.images.favicon, 96) || '/assets/img/favicon-32.png'
+          : '/assets/img/favicon-32.png',
         heroPreview: imagePreview(settings.images.hero || 'hero', 480),
         servicePreview: imagePreview(settings.images.service || 'service', 480),
         materialsPreview: imagePreview(settings.images.materials || 'colors', 480),
@@ -2527,8 +2531,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
             const previous = images.logo;
             images.logo = storeSiteLogo(file.buffer, file.mimetype);
             if (previous) deleteSiteLogo(previous);
+          } else if (file.field === 'favicon') {
+            const previous = images.favicon;
+            images.favicon = await storeSiteFavicon(file.buffer, file.mimetype);
+            if (previous) {
+              if (previous.startsWith('upload:')) deleteProductImageFiles(previous);
+              else deleteSiteLogo(previous);
+            }
           } else {
-            const slot = file.field as 'favicon' | 'hero' | 'service' | 'materials' | 'calculator';
+            const slot = file.field as 'hero' | 'service' | 'materials' | 'calculator';
             const previous = images[slot];
             images[slot] = await storeSiteImage(slot, {
               buffer: file.buffer,
@@ -2599,7 +2610,13 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       if (slot === 'logo') {
         if (images.logo) deleteSiteLogo(images.logo);
         images.logo = '';
-      } else if (slot === 'favicon' || slot === 'hero' || slot === 'service' || slot === 'materials' || slot === 'calculator') {
+      } else if (slot === 'favicon') {
+        if (images.favicon) {
+          if (images.favicon.startsWith('upload:')) deleteProductImageFiles(images.favicon);
+          else deleteSiteLogo(images.favicon);
+        }
+        images.favicon = '';
+      } else if (slot === 'hero' || slot === 'service' || slot === 'materials' || slot === 'calculator') {
         if (images[slot]) deleteProductImageFiles(images[slot]);
         images[slot] = '';
       } else if (slot === 'gallery') {

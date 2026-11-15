@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.27] – 2026-11-15
+
+### Behoben
+
+- **Favicon behält Transparenz:** Das Favicon wird nicht mehr über die
+  JPEG-Bildstrecke gespeichert, sondern direkt als transparentes PNG
+  (180 × 180, RGBA) unter `/site-media/…` abgelegt.
+- Bestehende Favicons im alten JPEG-Format müssen nach dem Update einmal
+  neu hochgeladen werden, damit der transparente Hintergrund erhalten bleibt.
+- Admin-Vorschau zeigt `/site-media/…png` direkt an.
+
 ## [1.0.0-rc.26] – 2026-11-15
 
 ### Behoben
@@ -424,6 +435,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.27]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.27
 [1.0.0-rc.26]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.26
 [1.0.0-rc.25]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.25
 [1.0.0-rc.24]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.24

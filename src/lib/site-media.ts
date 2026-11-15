@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import sharp from 'sharp';
 import { config } from '../config.js';
 
 /**
@@ -27,6 +28,38 @@ export function siteMediaFile(name: string): string | null {
   const file = path.resolve(root, name);
   if (!file.startsWith(`${root}${path.sep}`)) return null;
   return file;
+}
+
+/** Speichert ein Favicon als transparentes PNG und liefert die öffentliche URL. */
+export async function storeSiteFavicon(buffer: Buffer, mimetype: string): Promise<string> {
+  if (!LOGO_TYPES[mimetype]) {
+    throw new Error('Bitte eine Bilddatei im Format PNG, JPG oder WebP auswählen.');
+  }
+  if (buffer.length === 0) throw new Error('Die Datei ist leer.');
+  if (buffer.length > MAX_LOGO_BYTES) throw new Error('Das Favicon ist zu groß. Erlaubt sind bis zu 5 MB.');
+
+  let png: Buffer;
+  try {
+    png = await sharp(buffer, { failOn: 'error' })
+      .rotate()
+      .resize(180, 180, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+        withoutEnlargement: true,
+      })
+      .png()
+      .toBuffer();
+  } catch {
+    throw new Error('Die Datei konnte nicht als Bild gelesen werden.');
+  }
+
+  const dir = siteMediaDir();
+  fs.mkdirSync(dir, { recursive: true, mode: 0o750 });
+  const name = `favicon-${crypto.randomBytes(12).toString('hex')}.png`;
+  const file = siteMediaFile(name);
+  if (!file) throw new Error('Das Favicon konnte nicht gespeichert werden.');
+  fs.writeFileSync(file, png, { mode: 0o644 });
+  return `${SITE_MEDIA_PREFIX}${name}`;
 }
 
 /** Speichert ein Logo und liefert die öffentliche URL. */
