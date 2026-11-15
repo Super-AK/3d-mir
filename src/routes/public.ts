@@ -196,14 +196,18 @@ const redirects: Record<string, string> = {
 };
 
 export async function publicRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/favicon.ico', async (_request, reply) => {
+  const sendFavicon = async (_request: FastifyRequest, reply: import('fastify').FastifyReply) => {
     const png = await faviconPng();
     if (!png) return reply.redirect('/assets/img/favicon-32.png', 302);
     return reply
       .type('image/png')
       .header('Cache-Control', 'public, max-age=3600')
       .send(png);
-  });
+  };
+  app.get('/favicon.ico', sendFavicon);
+  app.get('/favicon.png', sendFavicon);
+  app.get('/apple-touch-icon.png', sendFavicon);
+  app.get('/apple-touch-icon-precomposed.png', sendFavicon);
 
   app.get('/', async (_request, reply) => {
     render(reply, 'pages/home.njk', {

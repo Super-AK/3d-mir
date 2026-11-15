@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.28] – 2026-11-15
+
+### Behoben
+
+- **Favicon-Kompatibilität:** Zusätzlich zu `/favicon.ico` werden
+  `/favicon.png`, `/apple-touch-icon.png` und
+  `/apple-touch-icon-precomposed.png` mit dem transparenten PNG bedient.
+  Layouts setzen zusätzlich `shortcut icon` und `sizes="180x180"`.
+- Behebt Browser, die statt des `<link rel="icon">` einen der alten
+  Standardpfade abfragen.
+
 ## [1.0.0-rc.27] – 2026-11-15
 
 ### Behoben
@@ -435,6 +446,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.28]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.28
 [1.0.0-rc.27]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.27
 [1.0.0-rc.26]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.26
 [1.0.0-rc.25]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.25
