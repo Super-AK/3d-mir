@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.26 – 15. November 2026
+
+Favicon-Auslieferung als PNG mit Cache-Busting; behebt Browser, die
+JPEG-Favicons nicht anzeigen.
+
 ## Release 1.0.0-rc.25 – 15. November 2026
 
 Favicon unter Stammdaten hochladbar; Browser-Tab, Apple-Touch-Icon und

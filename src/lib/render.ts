@@ -242,10 +242,9 @@ export function render(res: import('fastify').FastifyReply, template: string, co
     pricing,
     publication: getPublicationSettings(),
     publicPaymentMethods: paymentMethods,
-    faviconUrl:
-      config.site.images.favicon
-        ? imagePreview(config.site.images.favicon, 96) || '/assets/img/favicon-32.png'
-        : '/assets/img/favicon-32.png',
+    faviconVersion: config.site.images.favicon
+      ? config.site.images.favicon.split('/').pop()?.replace(/[^a-zA-Z0-9.-]/g, '') ?? ''
+      : '',
     publicPaymentFlags: {
       card: paymentMethods.some((method) => method.provider === 'stripe' && method.stripeMethod === 'card'),
       paypal: paymentMethods.some((method) => method.stripeMethod === 'paypal'),
