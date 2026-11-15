@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.24] – 2026-11-15
+
+### Geändert
+
+- **Statusmeldungen als HTML-Mail:** Bestell- und Anfrage-Statusmails nutzen
+  das gemeinsame Layout mit Statusübersicht, Bestell-/Anfragelink und
+  rechtlichen Links. Text-Fallback bleibt erhalten.
+- **Zahlungsbestätigungen als HTML-Mail:** Kunde und Betreiber erhalten
+  übersichtliche Zahlungs- und Positionsdaten mit Link zur Bestellung.
+
 ## [1.0.0-rc.23] – 2026-11-15
 
 ### Hinzugefügt
@@ -395,6 +405,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.24]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.24
 [1.0.0-rc.23]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.23
 [1.0.0-rc.22]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.22
 [1.0.0-rc.21]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.21

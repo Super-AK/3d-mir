@@ -3,6 +3,7 @@ import { getDb } from '../../db/index.js';
 import { getLogger } from '../logger.js';
 import { sendMail } from '../mailer.js';
 import { notifyAdmin } from '../notifications.js';
+import { mailButton, mailLayout, mailNotice, mailParagraph, mailSection, mailTable } from '../mail-layout.js';
 import { formatEuro } from '../shop.js';
 import { findPaymentMethod, getShopSettings, type BankDetails } from '../shop-settings.js';
 import {
@@ -545,6 +546,21 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
           '',
           `Admin: ${config.payment.baseUrl}/admin/bestellungen/${order.id}/`,
         ].join('\n'),
+        html: mailLayout({
+          title: 'Zahlung nach Stornierung',
+          preheader: `Bestellung ${order.order_number} · ${formatEuro(order.total_cents)}`,
+          body: [
+            mailNotice('Für eine bereits stornierte Bestellung ist eine Zahlung eingegangen. Bitte prüfen Sie den Vorgang und veranlassen Sie ggf. eine Erstattung.'),
+            mailSection('Zahlung', mailTable([
+              ['Bestellung', order.order_number],
+              ['Kunde', `${order.first_name} ${order.last_name} <${order.email}>`],
+              ['Betrag', formatEuro(order.total_cents)],
+              ['Zahlungsart', methodLabel],
+              ['Referenz', order.payment_reference || '–'],
+            ])),
+            mailButton(`${config.payment.baseUrl}/admin/bestellungen/${order.id}/`, 'Bestellung im Admin öffnen'),
+          ].join(''),
+        }),
         replyTo: order.email,
       });
     } catch (error) {
@@ -570,11 +586,47 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
     '3D-MIR 3D-Druck Service',
   ].join('\n');
 
+  const itemRows = items.map(
+    (item) => [`${item.quantity} × ${item.name}`, `${item.variant ? `${item.variant} · ` : ''}${formatEuro(item.line_total_cents)}`] as [string, string],
+  );
+  const customerHtml = mailLayout({
+    title: 'Zahlung eingegangen',
+    preheader: `Bestellung ${order.order_number} · ${formatEuro(order.total_cents)}`,
+    body: [
+      mailParagraph(`Hallo ${order.first_name},`),
+      mailNotice(`Ihre Zahlung für die Bestellung ${order.order_number} ist bei uns eingegangen.`),
+      mailSection('Zahlung', mailTable([
+        ['Bestellnummer', order.order_number],
+        ['Betrag', formatEuro(order.total_cents)],
+        ['Zahlungsart', methodLabel],
+      ])),
+      mailSection('Positionen', mailTable(itemRows)),
+      mailParagraph('Wir beginnen mit der Fertigung und melden uns, sobald sich der Status ändert.'),
+      mailButton(publicOrderUrl(order), 'Bestellübersicht öffnen'),
+    ].join(''),
+  });
+  const adminHtml = mailLayout({
+    title: 'Zahlung eingegangen',
+    preheader: `Bestellung ${order.order_number} · ${formatEuro(order.total_cents)}`,
+    body: [
+      mailSection('Zahlung', mailTable([
+        ['Bestellung', order.order_number],
+        ['Kunde', `${order.first_name} ${order.last_name} <${order.email}>`],
+        ['Betrag', formatEuro(order.total_cents)],
+        ['Zahlungsart', methodLabel],
+        ['Anbieter', paymentProviderLabel(order.payment_provider)],
+        ['Referenz', order.payment_reference || '–'],
+      ])),
+      mailButton(`${config.payment.baseUrl}/admin/bestellungen/${order.id}/`, 'Bestellung im Admin öffnen'),
+    ].join(''),
+  });
+
   try {
     await sendMail({
       to: order.email,
       subject: `Zahlung eingegangen – Bestellung ${order.order_number}`,
       text,
+      html: customerHtml,
       replyTo: config.mail.to,
     });
     await notifyAdmin({
@@ -589,6 +641,7 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
         '',
         `Admin: ${config.payment.baseUrl}/admin/bestellungen/${order.id}/`,
       ].join('\n'),
+      html: adminHtml,
       replyTo: order.email,
     });
   } catch (error) {

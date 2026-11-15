@@ -87,6 +87,7 @@ import {
   paymentProviderLabel,
   paymentStatusLabel,
   paymentStatusTone,
+  publicOrderUrl,
   releaseStock,
   sendPaymentConfirmed,
 } from '../lib/payments/index.js';
@@ -101,6 +102,7 @@ import {
   type NotificationSettings,
 } from '../lib/notification-settings.js';
 import { sendTelegramMessage } from '../lib/telegram.js';
+import { mailButton, mailLayout, mailNotice, mailParagraph, mailSection, mailTable } from '../lib/mail-layout.js';
 import { getMonitorStatus } from '../lib/monitor-status.js';
 import { formatEuro } from '../lib/shop.js';
 import { countries, isKnownCountry } from '../lib/countries.js';
@@ -553,28 +555,48 @@ async function adminGuard(request: FastifyRequest, reply: FastifyReply): Promise
   }
 }
 
+const orderStatusIntros: Record<OrderStatus, string> = {
+  neu: 'Ihre Bestellung ist bei uns eingegangen.',
+  bezahlt: 'Ihre Zahlung ist bei uns eingegangen. Wir beginnen mit der Fertigung.',
+  in_druck: 'Ihre Bestellung befindet sich jetzt im Druck.',
+  versandt: 'Ihre Bestellung wurde versandt.',
+  abgeschlossen: 'Ihre Bestellung ist abgeschlossen. Vielen Dank für Ihr Vertrauen!',
+  storniert: 'Ihre Bestellung wurde storniert.',
+};
+
 function statusMailText(order: OrderRow, status: OrderStatus): string {
-  const intro: Record<OrderStatus, string> = {
-    neu: 'Ihre Bestellung ist bei uns eingegangen.',
-    bezahlt: 'Ihre Zahlung ist bei uns eingegangen. Wir beginnen mit der Fertigung.',
-    in_druck: 'Ihre Bestellung befindet sich jetzt im Druck.',
-    versandt: 'Ihre Bestellung wurde versandt.',
-    abgeschlossen: 'Ihre Bestellung ist abgeschlossen. Vielen Dank für Ihr Vertrauen!',
-    storniert: 'Ihre Bestellung wurde storniert.',
-  };
   return [
     `Hallo ${order.first_name},`,
     '',
-    intro[status],
+    orderStatusIntros[status],
     '',
     `Bestellnummer: ${order.order_number}`,
     `Neuer Status: ${orderStatusLabel(status)}`,
     '',
     'Den aktuellen Stand Ihrer Bestellung können Sie jederzeit über Ihre Bestellnummer erfragen.',
     '',
+    `Bestellübersicht: ${publicOrderUrl(order)}`,
+    '',
     'Viele Grüße',
     '3D-MIR 3D-Druck Service',
   ].join('\n');
+}
+
+function statusMailHtml(order: OrderRow, status: OrderStatus): string {
+  return mailLayout({
+    title: `Bestellung ${order.order_number}`,
+    preheader: `${orderStatusLabel(status)} – ${orderStatusIntros[status]}`,
+    body: [
+      mailParagraph(`Hallo ${order.first_name},`),
+      mailNotice(orderStatusIntros[status]),
+      mailSection('Status', mailTable([
+        ['Bestellnummer', order.order_number],
+        ['Neuer Status', orderStatusLabel(status)],
+      ])),
+      mailParagraph('Den aktuellen Stand Ihrer Bestellung können Sie jederzeit über die Bestellübersicht einsehen.'),
+      mailButton(publicOrderUrl(order), 'Bestellübersicht öffnen'),
+    ].join(''),
+  });
 }
 
 async function notifyOrderStatus(request: FastifyRequest, order: OrderRow, status: OrderStatus): Promise<void> {
@@ -583,6 +605,7 @@ async function notifyOrderStatus(request: FastifyRequest, order: OrderRow, statu
       to: order.email,
       subject: `Bestellung ${order.order_number}: ${orderStatusLabel(status)}`,
       text: statusMailText(order, status),
+      html: statusMailHtml(order, status),
     });
   } catch (error) {
     request.log.warn({ err: error, order: order.order_number }, 'Status-E-Mail konnte nicht versendet werden');
@@ -597,9 +620,30 @@ function quoteMailText(quote: QuoteRow, status: QuoteStatus): string {
     '',
     'Bei Rückfragen antworten Sie einfach auf diese E-Mail.',
     '',
+    `AGB: ${config.payment.baseUrl}/agb/`,
+    `Widerrufsbelehrung: ${config.payment.baseUrl}/widerruf/`,
+    `Muster-Widerrufsformular (PDF): ${config.payment.baseUrl}/widerruf/formular.pdf`,
+    '',
     'Viele Grüße',
     '3D-MIR 3D-Druck Service',
   ].join('\n');
+}
+
+function quoteMailHtml(quote: QuoteRow, status: QuoteStatus): string {
+  return mailLayout({
+    title: `Ihre Anfrage ${quote.reference}`,
+    preheader: `Neuer Status: ${quoteStatusLabel(status)}`,
+    body: [
+      mailParagraph(`Hallo ${quote.name},`),
+      mailNotice(`Der Status Ihrer Anfrage wurde geändert: ${quoteStatusLabel(status)}.`),
+      mailSection('Anfrage', mailTable([
+        ['Referenz', quote.reference],
+        ['Neuer Status', quoteStatusLabel(status)],
+      ])),
+      mailParagraph('Bei Rückfragen antworten Sie einfach auf diese E-Mail.'),
+      mailSection('Rechtliche Informationen', `<p style="margin:0;font-size:13px;line-height:1.7;"><a href="${config.payment.baseUrl}/agb/" style="color:#2f6fa8;">AGB</a><br><a href="${config.payment.baseUrl}/widerruf/" style="color:#2f6fa8;">Widerrufsbelehrung</a><br><a href="${config.payment.baseUrl}/widerruf/formular.pdf" style="color:#2f6fa8;">Muster-Widerrufsformular (PDF)</a></p>`),
+    ].join(''),
+  });
 }
 
 async function notifyQuoteStatus(request: FastifyRequest, quote: QuoteRow, status: QuoteStatus): Promise<void> {
@@ -608,6 +652,7 @@ async function notifyQuoteStatus(request: FastifyRequest, quote: QuoteRow, statu
       to: quote.email,
       subject: `Anfrage ${quote.reference}: ${quoteStatusLabel(status)}`,
       text: quoteMailText(quote, status),
+      html: quoteMailHtml(quote, status),
     });
   } catch (error) {
     request.log.warn({ err: error, quote: quote.reference }, 'Status-E-Mail konnte nicht versendet werden');

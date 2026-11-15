@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.24 – 15. November 2026
+
+Status- und Zahlungsbestätigungen nutzen das gemeinsame HTML-Mail-Layout.
+
 ## Release 1.0.0-rc.23 – 15. November 2026
 
 Direkter Download-Link in Anfrage-Mails und einheitliche HTML-Formatierung
