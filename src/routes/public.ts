@@ -123,7 +123,7 @@ const contactSchema = z.object({
     .min(10, 'Bitte beschreiben Sie Ihr Anliegen in mindestens 10 Zeichen.')
     .max(5000, 'Die Nachricht ist zu lang (maximal 5000 Zeichen).'),
   consent: z.literal('1', {
-    errorMap: () => ({ message: 'Bitte stimmen Sie der Verarbeitung Ihrer Angaben zu.' }),
+    errorMap: () => ({ message: 'Bitte bestätigen Sie, dass Sie die Datenschutzerklärung gelesen haben.' }),
   }),
 });
 
@@ -166,10 +166,15 @@ const redirects: Record<string, string> = {
   '/zahlung': '/zahlung/',
   '/cookie-hinweis': '/cookie-hinweis/',
   '/versandarten/': '/versand/',
+  '/versandarten': '/versand/',
   '/bezahlmoeglichkeiten/': '/zahlung/',
+  '/bezahlmoeglichkeiten': '/zahlung/',
   '/widerrufsbelehrung/': '/widerruf/',
+  '/widerrufsbelehrung': '/widerruf/',
   '/cookie-richtlinie-eu/': '/datenschutz/#cookies',
+  '/cookie-richtlinie-eu': '/datenschutz/#cookies',
   '/echtheit-von-bewertungen/': '/datenschutz/#bewertungen',
+  '/echtheit-von-bewertungen': '/datenschutz/#bewertungen',
   '/hallo-welt/': '/',
   '/mein-konto/': '/kontakt/',
   '/feed/': '/',

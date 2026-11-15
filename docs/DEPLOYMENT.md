@@ -137,6 +137,36 @@ Ohne SMTP werden E-Mails als `.eml` unter `/var/log/3d-mir/mail/` gespeichert.
 
 Bot-Token und SMTP-Passwort liegen in der Datenbank und sind in Backups enthalten. Backups entsprechend schützen.
 
+## Mischbetrieb mit WordPress beenden
+
+Die neue Anwendung liefert `/shop/`, `/3d-druck-rechner/`, `/warenkorb/` und `/mein-konto/` selbst aus. Die alten Footer-Links werden per 301 umgeleitet:
+
+| Alt | Neu |
+| --- | --- |
+| `/versandarten/` | `/versand/` |
+| `/bezahlmoeglichkeiten/` | `/zahlung/` |
+| `/widerrufsbelehrung/` | `/widerruf/` |
+| `/cookie-richtlinie-eu/` | `/datenschutz/#cookies` |
+
+Vorgehen auf dem Produktivserver:
+
+1. **Backup der alten WordPress-Installation** (Dateien und Datenbank) außerhalb des Webroots ablegen.
+2. NGINX-Vhost der alten Seite deaktivieren und nur den 3D-MIR-Vhost aktiv lassen:
+   ```bash
+   sudo nginx -T | grep -n "server_name.*3d-mir"
+   sudo unlink /etc/nginx/sites-enabled/<alter-wordpress-vhost>
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+3. WordPress-Dateien erst nach erfolgreicher Prüfung entfernen:
+   ```bash
+   curl -I https://www.3d-mir.de/wp-content/    # muss 404 sein
+   curl -I https://www.3d-mir.de/shop/          # muss 200 vom Node-Dienst sein
+   ```
+4. Cookie-Banner, Tracking- und Marketing-Plugins entfallen mit WordPress. Die neue Seite setzt nur technisch notwendige Cookies (`warenkorb`, `mir3d_admin`, `mir3d_admin_pending`) und benötigt keinen Consent-Banner.
+5. `sudo deploy/verify.sh` prüft die Weiterleitungen und dass `/wp-content/...` nicht mehr ausgeliefert wird.
+
+**Wichtig:** WordPress-Datenbank und Uploads erst löschen, wenn das Backup geprüft ist und keine alten Inhalte mehr benötigt werden.
+
 ## Update und Rollback
 
 ```bash

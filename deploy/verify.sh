@@ -66,7 +66,7 @@ for header in 'content-security-policy' 'x-content-type-options' 'referrer-polic
 done
 
 head "Weiterleitungen"
-for pair in '/versandarten/:301' '/wp-admin/:301' '/wp-content/uploads/test.jpg:404'; do
+for pair in '/versandarten/:301' '/bezahlmoeglichkeiten/:301' '/widerrufsbelehrung/:301' '/cookie-richtlinie-eu/:301' '/wp-admin/:301' '/wp-content/uploads/test.jpg:404'; do
   path="${pair%:*}"
   expected="${pair##*:}"
   code="$(request -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || echo 000)"

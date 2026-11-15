@@ -29,7 +29,7 @@
     <h2>2. Hosting und Server-Logfiles</h2>
     <p>Diese Website wird bei einem technischen Dienstleister gehostet ({{ placeholder('hosting', 'TODO-HOSTING: Anbieter, Anschrift und AVV ergänzen') }}). Beim Aufruf der Website verarbeitet der Webserver automatisch Informationen, die Ihr Browser übermittelt:</p>
     <ul>
-      <li>IP-Adresse (gekürzt bzw. nach kurzer Zeit gelöscht),</li>
+      <li>IP-Adresse (vollständig für maximal 14 Tage gespeichert),</li>
       <li>Datum und Uhrzeit der Anfrage,</li>
       <li>aufgerufene Seite und übertragene Datenmenge,</li>
       <li>Referrer-URL,</li>
@@ -39,61 +39,74 @@
 
     <h2>3. Kontaktformular und E-Mail</h2>
     <p>Wenn Sie uns über das Kontaktformular oder per E-Mail schreiben, verarbeiten wir Ihren Namen, Ihre E-Mail-Adresse, optional Ihre Telefonnummer sowie Ihre Nachricht. Die Angaben werden ausschließlich zur Bearbeitung Ihrer Anfrage verwendet.</p>
-    <p>Zum Schutz vor Spam ermitteln wir beim Absenden des Kontaktformulars das Land Ihres Seitenaufrufs anhand Ihrer IP-Adresse. Dafür nutzen wir eine lokal auf unserem Server gespeicherte GeoIP-Datenbank (DB-IP Lite, <a href="https://db-ip.com" rel="noopener noreferrer" target="_blank">db-ip.com</a>, Lizenz CC BY 4.0); es findet keine Übermittlung Ihrer IP-Adresse an Dritte statt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Abwehr von Spam).</p>
-    <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Anbahnung eines Vertrags) bzw. Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Beantwortung). Die Daten werden gelöscht, wenn die Anfrage abschließend bearbeitet ist und keine gesetzlichen Aufbewahrungspflichten entgegenstehen, spätestens nach <strong>24 Monaten</strong>.</p>
+    <p>Zum Schutz vor Spam ermitteln wir beim Absenden des Kontaktformulars das Land Ihres Seitenaufrufs anhand Ihrer IP-Adresse. Dafür nutzen wir eine lokal auf unserem Server gespeicherte GeoIP-Datenbank (DB-IP Lite, <a href="https://db-ip.com" rel="noopener noreferrer" target="_blank">db-ip.com</a>, Lizenz CC BY 4.0); es findet keine Übermittlung Ihrer IP-Adresse an Dritte statt. Rechtsgrundlage für die Spam-Abwehr ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Abwehr von Spam). Für die Bearbeitung Ihrer Anfrage ist Rechtsgrundlage Art. 6 Abs. 1 lit. b DSGVO (Anbahnung eines Vertrags) bzw. Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Beantwortung). Die Daten werden gelöscht, wenn die Anfrage abschließend bearbeitet ist und keine gesetzlichen Aufbewahrungspflichten entgegenstehen, spätestens nach <strong>24 Monaten</strong>. Die Checkbox im Formular bestätigt lediglich die Kenntnisnahme dieser Datenschutzerklärung und ist keine Einwilligung im Sinne des Art. 6 Abs. 1 lit. a DSGVO.</p>
     <p>Der Versand der E-Mails erfolgt über einen SMTP-Dienstleister ({{ placeholder('smtp', 'TODO-SMTP: Anbieter und AVV ergänzen') }}). Dabei werden die E-Mail-Inhalte und Adressen an den Anbieter übermittelt.</p>
 
     <h2 id="rechner">4. 3D-Druck-Rechner und Modell-Uploads</h2>
     <p>Im 3D-Druck-Rechner können Sie Modelldateien (STL, 3MF, OBJ) hochladen. Die Datei wird auf unserem Server gespeichert, um Volumen, Maße und Preis zu berechnen und Ihre Anfrage zu bearbeiten. Dabei verarbeiten wir die Datei, den von Ihnen vergebenen Dateinamen, die Dateigröße sowie die von Ihnen gemachten Angaben (Material, Farbe, Stückzahl, Kontaktdaten, Nachricht).</p>
-    <p>Die Dateien werden unter einem zufälligen Namen außerhalb des öffentlich erreichbaren Verzeichnisses gespeichert. Zugriff haben nur berechtigte Personen. Die Löschung erfolgt nach Abschluss der Anfrage, spätestens nach <strong>{{ placeholder('aufbewahrung', '90 Tagen (TODO-AUFBEWAHRUNG)') }}</strong>. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO bzw. Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO, die Sie beim Absenden der Anfrage erteilen.</p>
+    <p>Die Dateien werden unter einem zufälligen Namen außerhalb des öffentlich erreichbaren Verzeichnisses gespeichert. Zugriff haben nur berechtigte Personen. Die Löschung erfolgt nach Abschluss der Anfrage, spätestens nach <strong>{{ placeholder('aufbewahrung', '90 Tagen (TODO-AUFBEWAHRUNG)') }}</strong>. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Anbahnung eines Vertrags) bzw. Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Bearbeitung der Anfrage).</p>
     <p>Bitte laden Sie keine personenbezogenen Daten in Modelldateien (z. B. in Dateinamen oder Metadaten) und keine vertraulichen Konstruktionen hoch, wenn Sie deren Verarbeitung nicht wünschen.</p>
 
     <h2 id="shop">5. Bestellungen und Kundenkonto</h2>
     <p>Bei einer Bestellung verarbeiten wir die zur Vertragserfüllung erforderlichen Daten: Name, Anschrift, E-Mail-Adresse, optional Telefonnummer, Bestellinhalt, Zahlungs- und Versandart sowie Rechnungsdaten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO sowie Art. 6 Abs. 1 lit. c DSGVO (gesetzliche Aufbewahrung).</p>
-    <p>Bestelldaten werden aufgrund handels- und steuerrechtlicher Vorgaben <strong>10 Jahre</strong> aufbewahrt. Ein Kundenkonto ist derzeit nicht verpflichtend; Bestellungen sind als Gast möglich.</p>
+    <p>Bestelldaten werden für die Dauer der gesetzlichen Aufbewahrungsfristen aufbewahrt (insbesondere handels- und steuerrechtlich; in der Regel 6 bzw. 10 Jahre). Ein Kundenkonto ist derzeit nicht verpflichtend; Bestellungen sind als Gast möglich.</p>
 
     <h2>6. Zahlungs- und Versanddienstleister</h2>
-    <p>Für die Zahlungsabwicklung geben wir die dafür erforderlichen Daten an die eingesetzten Zahlungsdienstleister weiter:</p>
-    <ul>
-      <li><strong>Stripe Payments Europe, Ltd.</strong>, 1 Grand Canal Street Lower, Grand Canal Dock, Dublin, D02 H210, Irland – Abwicklung von Karten-, PayPal-, Amazon-Pay-, Klarna- und iDEAL-Zahlungen.</li>
-      <li><strong>PayPal (Europe) S.à r.l. et Cie, S.C.A.</strong>, 22-24 Boulevard Royal, L-2449 Luxemburg – bei Zahlung mit PayPal.</li>
-      <li><strong>Amazon Payments Europe S.C.A.</strong>, 38 avenue John F. Kennedy, L-1855 Luxemburg – bei Zahlung mit Amazon Pay.</li>
-      <li><strong>Klarna Bank AB (publ)</strong>, Sveavägen 46, 111 34 Stockholm, Schweden – bei Zahlung mit Klarna.</li>
-    </ul>
-    <p>Übermittelt werden Name, E-Mail-Adresse, Rechnungs- und Lieferadresse, Bestellnummer, Betrag, Währung und Zahlungsart sowie die Transaktionskennung. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) sowie Art. 6 Abs. 1 lit. c DSGVO (gesetzliche Aufbewahrung).</p>
-    <p>Stripe, PayPal, Amazon Pay und Klarna können Daten in Drittländer, insbesondere die USA, übermitteln. Die Übermittlung erfolgt auf Grundlage geeigneter Garantien (Standardvertragsklauseln bzw. Angemessenheitsbeschluss). Weitere Informationen finden Sie in den Datenschutzhinweisen der Anbieter.</p>
+    {% if publicPaymentFlags.stripe %}
+      <p>Für die Zahlungsabwicklung geben wir die dafür erforderlichen Daten an die eingesetzten Zahlungsdienstleister weiter:</p>
+      <ul>
+        <li><strong>Stripe Payments Europe, Ltd.</strong>, 1 Grand Canal Street Lower, Grand Canal Dock, Dublin, D02 H210, Irland – technische Abwicklung der im Checkout angebotenen Online-Zahlungsarten.</li>
+        {% if publicPaymentFlags.paypal %}
+          <li><strong>PayPal (Europe) S.à r.l. et Cie, S.C.A.</strong>, 22-24 Boulevard Royal, L-2449 Luxemburg – bei Zahlung mit PayPal.</li>
+        {% endif %}
+        {% if publicPaymentFlags.amazonPay %}
+          <li><strong>Amazon Payments Europe S.C.A.</strong>, 38 avenue John F. Kennedy, L-1855 Luxemburg – bei Zahlung mit Amazon Pay.</li>
+        {% endif %}
+        {% if publicPaymentFlags.klarna %}
+          <li><strong>Klarna Bank AB (publ)</strong>, Sveavägen 46, 111 34 Stockholm, Schweden – bei Zahlung mit Klarna.</li>
+        {% endif %}
+      </ul>
+      <p>Übermittelt werden Name, E-Mail-Adresse, Rechnungs- und Lieferadresse, Bestellnummer, Betrag, Währung und Zahlungsart sowie die Transaktionskennung. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) sowie Art. 6 Abs. 1 lit. c DSGVO (gesetzliche Aufbewahrung).</p>
+      <p>Die Zahlungsdienstleister können Daten in Drittländer, insbesondere die USA, übermitteln. Stripe stützt sich hierbei auf das EU-US Data Privacy Framework bzw. auf Standardvertragsklauseln; PayPal, Amazon Pay und Klarna verwenden nach eigenen Angaben Standardvertragsklauseln bzw. anerkannte Garantien. Maßgeblich sind die aktuellen Datenschutzhinweise des jeweiligen Anbieters.</p>
+      {% if publicPaymentFlags.paypal or publicPaymentFlags.amazonPay or publicPaymentFlags.klarna %}
+        <p>Bei einer Zahlung über PayPal, Amazon Pay oder Klarna werden Sie auf die Website des jeweiligen Anbieters weitergeleitet. Dort gelten die Datenschutzbestimmungen des Anbieters.</p>
+      {% endif %}
+    {% else %}
+      <p>Es werden derzeit keine Online-Zahlungsdienstleister eingesetzt. Bei Vorkasse erfolgt die Zahlung per Banküberweisung; dabei werden die für die Zahlungsabwicklung erforderlichen Daten ausschließlich im Rahmen der Vertragserfüllung verarbeitet (Art. 6 Abs. 1 lit. b DSGVO).</p>
+    {% endif %}
     <p>Für den Versand geben wir die zur Zustellung erforderlichen Daten an den Versanddienstleister weiter ({{ placeholder('versand', 'TODO-VERSAND: Anbieter, Anschrift und AVV ergänzen') }}).</p>
-    <p>Bei einer Zahlung über PayPal, Amazon Pay oder Klarna werden Sie auf die Website des jeweiligen Anbieters weitergeleitet. Dort gelten die Datenschutzbestimmungen des Anbieters.</p>
 
     <h2 id="cookies">7. Cookies und lokale Speicherung</h2>
-    <p>Diese Website setzt ausschließlich technisch notwendige Cookies. Es gibt <strong>keine</strong> Statistik-, Marketing- oder Drittanbieter-Cookies, kein Tracking und keine Einbindung externer Skripte, Fonts oder Social-Media-Plugins. Die Zahlungsseiten von Stripe, PayPal, Amazon Pay und Klarna werden als Weiterleitung geöffnet; dort gelten die Datenschutzbestimmungen der jeweiligen Anbieter.</p>
+    <p>Diese Website setzt ausschließlich technisch notwendige Cookies. Es gibt <strong>keine</strong> Statistik-, Marketing- oder Drittanbieter-Cookies, kein Tracking und keine Einbindung externer Skripte, Fonts oder Social-Media-Plugins. Die Zahlungsseiten der im Checkout angebotenen Zahlungsanbieter werden als Weiterleitung geöffnet; dort gelten die Datenschutzbestimmungen des jeweiligen Anbieters.</p>
     <div class="table-wrap">
       <table>
         <caption class="visually-hidden">Technisch notwendige Cookies</caption>
         <thead><tr><th scope="col">Name</th><th scope="col">Zweck</th><th scope="col">Speicherdauer</th></tr></thead>
         <tbody>
           <tr><td><code>warenkorb</code></td><td>Warenkorb (Produktvarianten und Mengen)</td><td>bis zu 30 Tage</td></tr>
-          <tr><td><code>mir3d_admin</code></td><td>Anmeldung im Admin-Bereich</td><td>Sitzung</td></tr>
+          <tr><td><code>mir3d_admin</code></td><td>Anmeldung im Admin-Bereich</td><td>8 Stunden</td></tr>
+          <tr><td><code>mir3d_admin_pending</code></td><td>Zwischenschritt der Zwei-Faktor-Anmeldung</td><td>5 Minuten</td></tr>
         </tbody>
       </table>
     </div>
     <p>Da nur technisch notwendige Cookies gesetzt werden, ist kein Cookie-Banner erforderlich. Sie können Cookies in Ihren Browser-Einstellungen jederzeit löschen oder blockieren; der Warenkorb funktioniert dann jedoch nicht.</p>
 
     <h2>8. Empfänger und Drittlandübermittlung</h2>
-    <p>Eine Übermittlung Ihrer Daten erfolgt nur, soweit dies zur Vertragserfüllung, zur technischen Bereitstellung oder aufgrund gesetzlicher Pflichten erforderlich ist. Sofern Dienstleister in Drittländern eingesetzt werden, erfolgt die Übermittlung auf Grundlage geeigneter Garantien (Standardvertragsklauseln bzw. Angemessenheitsbeschluss).</p>
+    <p>Eine Übermittlung Ihrer Daten erfolgt nur, soweit dies zur Vertragserfüllung, zur technischen Bereitstellung oder aufgrund gesetzlicher Pflichten erforderlich ist. Für die Zahlungsabwicklung können Daten an die im Checkout angebotenen Zahlungsdienstleister übermittelt werden. Soweit dabei Daten in Drittländer gelangen, erfolgt die Übermittlung auf Grundlage des EU-US Data Privacy Framework oder von Standardvertragsklauseln. Einzelheiten ergeben sich aus den Datenschutzhinweisen der jeweiligen Anbieter.</p>
 
     <h2>9. Speicherdauer</h2>
     <ul>
       <li>Server-Logfiles: 14 Tage</li>
       <li>Kontaktanfragen: bis zu 24 Monate</li>
       <li>Modell-Uploads: bis zu 90 Tage nach Abschluss der Anfrage</li>
-      <li>Bestell- und Rechnungsdaten: 10 Jahre (gesetzliche Aufbewahrung)</li>
+      <li>Bestell- und Rechnungsdaten: Dauer der gesetzlichen Aufbewahrungsfristen (in der Regel 6 bzw. 10 Jahre)</li>
       <li>Cookies: siehe Abschnitt 7</li>
     </ul>
 
     <h2>10. Ihre Rechte</h2>
     <p>Sie haben nach der DSGVO das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen die Verarbeitung (Art. 21). Eine erteilte Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3).</p>
     <p>Wenden Sie sich dazu an <a href="mailto:{{ site.business.email }}">{{ site.business.email }}</a>. Sie haben außerdem das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren (Art. 77 DSGVO).</p>
+    <p>Zuständige Aufsichtsbehörde: Der Landesbeauftragte für den Datenschutz und die Informationsfreiheit Baden-Württemberg, Lautenschlagerstraße 20, 70173 Stuttgart, <a href="https://www.baden-wuerttemberg.datenschutz.de/" target="_blank" rel="noopener noreferrer">www.baden-wuerttemberg.datenschutz.de</a>.</p>
 
     <h2>11. Verschlüsselung</h2>
     <p>Diese Website nutzt aus Sicherheitsgründen eine TLS-Verschlüsselung (HTTPS). Eine verschlüsselte Verbindung erkennen Sie an „https://“ und dem Schloss-Symbol in der Adresszeile.</p>

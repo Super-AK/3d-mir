@@ -181,11 +181,12 @@
         </ul>
         <dl class="summary-list">
           <div><dt>Zwischensumme</dt><dd data-summary-subtotal="{{ subtotalCents }}">{{ subtotalCents | price }}</dd></div>
-          <div><dt>Versand</dt><dd data-summary-shipping="{{ selectedShippingCents }}">{{ selectedShippingCents | price }}</dd></div>
+          <div><dt>Versand</dt><dd data-summary-shipping="{{ selectedShippingCents }}">{% if selectedShipping %}{{ selectedShipping.label }} · {{ selectedShipping.deliveryDays }}<br>{% endif %}{{ selectedShippingCents | price }}</dd></div>
           <div data-summary-addons-row {% if optionsCents == 0 %}hidden{% endif %}><dt>Optionen</dt><dd data-summary-addons="{{ optionsCents }}">{{ optionsCents | price }}</dd></div>
         </dl>
         <p class="summary-total"><span>Gesamt</span><strong data-summary-total="{{ totalCents }}">{{ totalCents | price }}</strong></p>
         <p class="text-muted"><small>{{ site.business.vatNote }}<br>zzgl. Versandkosten.</small></p>
+        <p class="hint">Es gilt das gesetzliche <a href="/widerruf/">Widerrufsrecht</a>. Für individuell nach Ihren Vorgaben gefertigte Sonderanfertigungen besteht kein Widerrufsrecht. Die <a href="/agb/">AGB</a> gelten ergänzend.</p>
         <a class="btn btn-secondary btn-block" href="/warenkorb/">Warenkorb bearbeiten</a>
         <ul class="summary-legal">
           <li><a href="/agb/">AGB</a></li>

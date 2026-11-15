@@ -148,6 +148,8 @@ Die Zahlungsarten sind im Code vorbereitet und werden im Admin nur aktiviert/dea
 
 Stripe-Methoden erscheinen im Checkout erst, wenn beide Stripe-Geheimnisse in `/etc/3d-mir/3d-mir.env` gesetzt sind. Die Schlüssel werden nie im Repository oder in der Datenbank gespeichert.
 
+Zahlungsseite, AGB § 5 und Datenschutz § 6 werden aus den hier aktiven Zahlungsarten erzeugt. Deaktivierte Anbieter verschwinden automatisch aus den Rechtstexten.
+
 ### Zahlungsstatus und Bestellungen
 
 - Jede Bestellung hat zusätzlich zum Fulfillment-Status einen **Zahlungsstatus**: offen, in Bearbeitung, bezahlt, fehlgeschlagen, erstattet oder storniert.

@@ -142,6 +142,17 @@
         <div><dt>Artikelnummer</dt><dd>{{ product.sku or '–' }}</dd></div>
         <div><dt>Herstellung</dt><dd>Deutschland</dd></div>
       </dl>
+      <div class="product-manufacturer">
+        <h3>Hersteller und Produktsicherheit</h3>
+        <address>
+          {{ site.business.owner }}<br>
+          {{ site.business.legalName }}<br>
+          {{ site.business.street }}<br>
+          {{ site.business.zip }} {{ site.business.city }}, {{ site.business.country }}<br>
+          E-Mail: <a href="mailto:{{ site.business.email }}">{{ site.business.email }}</a>
+        </address>
+        <p><strong>Produktkennung:</strong> {{ product.sku or product.slug }}</p>
+      </div>
     </aside>
   </div>
 </section>

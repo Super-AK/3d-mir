@@ -1497,6 +1497,10 @@ tbody tr:hover { background: var(--surface-2); }
 .product-specs dl div { display: grid; grid-template-columns: 8rem 1fr; gap: 0.75rem; font-size: 0.9rem; }
 .product-specs dt { color: var(--text-muted); }
 .product-specs dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.product-manufacturer { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+.product-manufacturer h3 { margin: 0 0 0.4rem; font-size: 0.98rem; }
+.product-manufacturer address { font-style: normal; color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; }
+.product-manufacturer p { margin: 0.5rem 0 0; font-size: 0.88rem; }
 
 /* Warenkorb */
 .cart-layout,

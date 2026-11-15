@@ -235,12 +235,21 @@ export function render(res: import('fastify').FastifyReply, template: string, co
   const shippingPrices = pricing.shipping.methods
     .filter((method) => method.active !== false)
     .map((method) => method.price);
+  const paymentMethods = getPublicPaymentMethods();
   const html = env.render(template, {
     currentPath: res.request.url.split('?')[0] ?? '/',
     cartCount: cartCount(readCart(res.request)),
     pricing,
     publication: getPublicationSettings(),
-    publicPaymentMethods: getPublicPaymentMethods(),
+    publicPaymentMethods: paymentMethods,
+    publicPaymentFlags: {
+      card: paymentMethods.some((method) => method.provider === 'stripe' && method.stripeMethod === 'card'),
+      paypal: paymentMethods.some((method) => method.stripeMethod === 'paypal'),
+      amazonPay: paymentMethods.some((method) => method.stripeMethod === 'amazon_pay'),
+      klarna: paymentMethods.some((method) => method.stripeMethod === 'klarna'),
+      ideal: paymentMethods.some((method) => method.stripeMethod === 'ideal'),
+      stripe: paymentMethods.some((method) => method.provider === 'stripe'),
+    },
     galleryImages:
       config.site.images.gallery === null
         ? ['gallery-1', 'gallery-2', 'gallery-3', 'gallery-4', 'gallery-5', 'gallery-6', 'gallery-7', 'gallery-8']

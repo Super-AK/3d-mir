@@ -28,6 +28,10 @@ test('SEO: alte WordPress-Pfade leiten dauerhaft um', async ({ request }) => {
     ['/wp-admin/', '/admin/'],
     ['/wp-sitemap-posts-post-1.xml', '/sitemap.xml'],
     ['/versandarten/', '/versand/'],
+    ['/versandarten', '/versand/'],
+    ['/bezahlmoeglichkeiten/', '/zahlung/'],
+    ['/widerrufsbelehrung/', '/widerruf/'],
+    ['/cookie-richtlinie-eu/', '/datenschutz/'],
     ['/mein-konto/', '/kontakt/'],
   ] as const) {
     const response = await request.get(path, { maxRedirects: 0 });

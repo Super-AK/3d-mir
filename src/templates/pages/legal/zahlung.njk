@@ -1,7 +1,7 @@
 {% extends "layouts/base.njk" %}
 
 {% block title %}Zahlungsarten – 3D-MIR{% endblock %}
-{% block description %}Verfügbare Zahlungsmethoden bei 3D-MIR: Vorkasse, Kredit-/Debitkarte, PayPal und iDEAL.{% endblock %}
+{% block description %}Verfügbare Zahlungsmethoden bei 3D-MIR im Überblick.{% endblock %}
 
 {% block content %}
 <section class="page-head">
@@ -30,7 +30,7 @@
 
             {% elif method.provider == 'stripe' %}
               {% if method.stripeMethod == 'card' %}
-                <p>Die Zahlung erfolgt über unseren Zahlungsdienstleister Stripe. Karten- und Zahlungsdaten werden ausschließlich bei Stripe eingegeben und nicht auf unseren Servern gespeichert.</p>
+                <p>Die Zahlung erfolgt über unseren Zahlungsdienstleister Stripe. Karten- und Zahlungsdaten werden ausschließlich bei Stripe eingegeben und nicht auf unseren Servern gespeichert. Apple Pay und Google Pay werden, soweit verfügbar, über die Kartenzahlung abgewickelt.</p>
               {% elif method.stripeMethod == 'paypal' %}
                 <p>Sie werden zu PayPal weitergeleitet und schließen die Zahlung dort ab. Die Abwicklung erfolgt über Stripe.</p>
               {% elif method.stripeMethod == 'amazon_pay' %}
@@ -58,7 +58,7 @@
       <li>Zuzüglich fallen Versandkosten an, sofern im Checkout nicht anders angegeben. Details unter <a href="/versand/">Versandarten</a>.</li>
       <li>Bei individuell gefertigten Drucken gelten die Hinweise zum Widerrufsrecht (<a href="/widerruf/">Widerrufsbelehrung</a>).</li>
       {% if hasStripeMethods %}
-        <li>Für die Zahlung per Kreditkarte, PayPal, Amazon Pay, Klarna oder iDEAL berechnen wir keine zusätzlichen Gebühren.</li>
+        <li>Für die angebotenen Online-Zahlungsarten berechnen wir keine zusätzlichen Gebühren.</li>
         <li>Die Zahlungsabwicklung erfolgt über die Stripe Payments Europe, Ltd., Dublin (Irland). Es gelten ergänzend die Bedingungen des jeweiligen Zahlungsdienstes.</li>
       {% endif %}
     </ul>

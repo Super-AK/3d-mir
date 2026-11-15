@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.19 – 15. November 2026
+
+Rechtstexte und Checkout nach Prüfliste überarbeitet: Impressum/DDG,
+dynamische Zahlungsarten, Widerruf, AGB, Datenschutz, GPSR-Herstellerangaben,
+Weiterleitungen und WordPress-Ablösung dokumentiert.
+
 ## Release 1.0.0-rc.18 – 15. November 2026
 
 Passkeys (WebAuthn) für Registrierung und Anmeldung, parallel zu TOTP.

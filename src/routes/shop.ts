@@ -263,6 +263,18 @@ function productJsonLd(product: ProductRow, variants: VariantRow[]) {
       sku: product.sku ?? undefined,
       image: [`${config.site.baseUrl}/assets/img/gen/product-battery-box-900.jpg`],
       brand: { '@type': 'Brand', name: config.site.business.name },
+      manufacturer: {
+        '@type': 'Organization',
+        name: config.site.business.legalName,
+        email: config.site.business.email,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: config.site.business.street,
+          postalCode: config.site.business.zip,
+          addressLocality: config.site.business.city,
+          addressCountry: config.site.business.countryCode,
+        },
+      },
       offers: {
         '@type': 'AggregateOffer',
         priceCurrency: 'EUR',
@@ -371,6 +383,9 @@ function checkoutContext(form: Partial<CheckoutForm>, lines: CartLine[]) {
     subtotalCents: subtotal,
     shippingOptions: options,
     selectedShippingCents: selected?.cents ?? 0,
+    selectedShipping: selected
+      ? { id: selected.id, label: selected.label, deliveryDays: selected.deliveryDays, cents: selected.cents }
+      : null,
     shippingAddons: addons.map((addon) => ({ ...addon, cents: Math.round(addon.price * 100) })),
     selectedAddonIds: selectedAddons.map((addon) => addon.id),
     optionsCents: extras,
@@ -506,7 +521,9 @@ function customerOrderMailText(
     ...paymentLines,
     '',
     `Bestellübersicht: ${orderUrl}`,
-    `Widerrufsformular: ${config.payment.baseUrl}/widerruf/formular.pdf`,
+    `AGB: ${config.payment.baseUrl}/agb/`,
+    `Widerrufsbelehrung: ${config.payment.baseUrl}/widerruf/`,
+    `Muster-Widerrufsformular (PDF): ${config.payment.baseUrl}/widerruf/formular.pdf`,
     '',
     'Viele Grüße',
     '3D-MIR 3D-Druck Service',

@@ -59,7 +59,7 @@ const quoteSchema = z.object({
   scalePercent: z.coerce.number().min(10).max(400),
   unit: z.enum(['mm', 'inch']),
   consent: z.literal('1', {
-    errorMap: () => ({ message: 'Bitte stimmen Sie der Verarbeitung Ihrer Angaben zu.' }),
+    errorMap: () => ({ message: 'Bitte bestätigen Sie, dass Sie die Datenschutzerklärung gelesen haben.' }),
   }),
 });
 
@@ -356,6 +356,10 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
             `Unverbindliche Preisschätzung: ${formatEuro(price.totalCents)}`,
             '',
             'Wir prüfen das Modell und melden uns in der Regel innerhalb eines Werktags mit einem verbindlichen Angebot.',
+            '',
+            `AGB: ${config.payment.baseUrl}/agb/`,
+            `Widerrufsbelehrung: ${config.payment.baseUrl}/widerruf/`,
+            `Muster-Widerrufsformular (PDF): ${config.payment.baseUrl}/widerruf/formular.pdf`,
             '',
             'Viele Grüße',
             '3D-MIR 3D-Druck Service',

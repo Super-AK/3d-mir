@@ -31,7 +31,7 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | Preise/Kalkulation | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
 | Versand | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
 | DNS/TLS | ✅ Erledigt | Laut Betreiber auf dem Produktivserver erledigt |
-| Rechtstexte | 🔴 Offen | Entwürfe vorhanden; rechtliche Prüfung offen |
+| Rechtstexte | 🟡 In Arbeit | Impressum, AGB, Widerruf und Datenschutz überarbeitet; anwaltliche Prüfung offen |
 | Betrieb/Backup | 🟡 In Arbeit | Uptime-Check eingerichtet; externes Backup-Ziel offen |
 
 ---
@@ -186,16 +186,22 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F77 | ✅ Erledigt | **Umgesetzt:** Länder-Header von Proxy/CDN (`CF-IPCountry` usw.) werden nur ausgewertet, wenn sie über `COUNTRY_HEADER` ausdrücklich konfiguriert sind und die Verbindung von einem in `TRUST_PROXY` eingetragenen Proxy stammt. Standardmäßig entscheidet ausschließlich die lokale GeoIP-Datenbank; damit sind gefälschte Header ausgeschlossen. Nachweis: Test mit `X-Forwarded-For` (DE/US) und ohne ermittelbares Land.<br>*(14.11.2026)* |
 | F78 | 🟢 Später | **Externer Captcha-Dienst:** Bewusst nicht eingebaut, um keine externen Skripte und Tracking einzubinden. Soll später ein datenschutzfreundlicher Captcha ergänzt werden? |
 | F79 | 🟡 In Arbeit | **Etsy-API-Freigabe:** Die Etsy-App steht auf „Pending Personal Approval“. Der CSV-Import ist erfolgt (13 Produkte); nach der Freigabe werden die exakten Variationspreise und Bestände per API nachgezogen. |
+| F80 | 🔴 Offen | **Verpackungsgesetz:** Registrierung bei LUCID (Zentrale Stelle Verpackungsregister) und Systembeteiligung für versendete Verkaufsverpackungen veranlassen. Kein Code-Thema, aber Voraussetzung für den Versand. |
+| F81 | 🟡 In Arbeit | **GPSR:** Herstellerangaben (Name, Anschrift, E-Mail) und Produktkennung sind auf den Produktseiten eingebunden. Bitte je Produkt bestätigen, dass die Kennung (SKU oder Slug) und die Sicherheitshinweise ausreichen. |
+| F82 | 🔴 Offen | **Rechtstexte nach Überarbeitung:** Impressum (DDG), AGB (dynamische Zahlungsarten, § 14 entfernt), Widerruf und Datenschutz (Rechtsgrundlagen, Aufsichtsbehörde, Drittland, Cookies) anwaltlich prüfen lassen. |
+| F83 | 🔴 Offen | **Steuerliche Aufbewahrungsfristen:** Die pauschale Angabe „10 Jahre“ wurde durch „gesetzliche Aufbewahrungsfristen (in der Regel 6 bzw. 10 Jahre)“ ersetzt. Bitte vom Steuerberater bestätigen lassen. |
 
 ## 13. Nächste Schritte bis zum Livegang
 
 1. **Zahlung live schalten:** F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test); Bankverbindung ist auf Prod hinterlegt.
 2. **Benachrichtigungen prüfen:** Test-E-Mail und Test-Telegram im Admin senden; über die Kopieoption (F24) entscheiden.
-3. **Kontakt-Spam-Schutz bestätigen:** F76 (erlaubte Länder) prüfen; GeoIP-Datenbank mit `deploy/update-geoip.sh` installieren und monatlich aktualisieren; Antworten und Prüfmodus im Admin testen.
-4. **Rechtstexte prüfen lassen:** F54–F59; danach Prüfhinweis entfernen.
-5. **Betrieb absichern:** F61 (externes Backup-Ziel) und F62 (Aufbewahrung); Monitoring und TOTP-2FA sind umgesetzt.
-6. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
-7. **Shop live schalten:** F67 und Veröffentlichung im Admin erst nach rechtlicher Freigabe.
+3. **Mischbetrieb beenden:** WordPress-Altbestand entfernen bzw. Vhost abschalten; die neuen Routen `/shop/`, `/3d-druck-rechner/`, `/warenkorb/` müssen vom Node-Dienst ausgeliefert werden. Alte Footer-Links sind per 301 umgeleitet.
+4. **Verpackungsgesetz:** LUCID-Registrierung und Systembeteiligung veranlassen (F80).
+5. **Rechtstexte prüfen lassen:** F54–F59 und F82; danach Prüfhinweis entfernen.
+6. **Steuerliche Aufbewahrung bestätigen:** F83.
+7. **Betrieb absichern:** F61 (externes Backup-Ziel) und F62 (Aufbewahrung); Monitoring und 2FA/Passkeys sind umgesetzt.
+8. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
+9. **Shop live schalten:** F67 und Veröffentlichung im Admin erst nach rechtlicher Freigabe.
 
 ---
 

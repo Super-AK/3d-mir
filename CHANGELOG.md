@@ -3,6 +3,33 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.19] – 2026-11-15
+
+### Geändert
+
+- **Impressum:** § 5 DDG, Haftungsabschnitte §§ 7–10 DDG, „Inhaber“
+  statt „Vertreten durch“, veralteten EU-OS-Plattform-Link entfernt,
+  § 36 VSBG beibehalten.
+- **Zahlungsarten:** AGB § 5 und Datenschutz § 6 werden aus den tatsächlich
+  im Checkout aktiven Methoden erzeugt; Apple Pay/Google Pay sind der
+  Kartenzahlung zugeordnet. Zahlungsseite und Rechtstexte bleiben konsistent.
+- **Widerruf:** Rechtsfragwürdigen Satz zu Verbrauchern außerhalb der EU
+  entfernt; Rückzahlungstext verallgemeinert.
+- **AGB:** § 14 (Vertragsrücktritt) entfernt; anwaltliche Prüfung bleibt
+  offen und ist dokumentiert.
+- **Datenschutz:** Kontakt-/Upload-Rechtsgrundlagen zusammengeführt,
+  Einwilligungs-Checkbox als Kenntnisnahme präzisiert, Logfile-/IP-Angaben
+  vereinheitlicht, LfDI Baden-Württemberg ergänzt, Drittlandübermittlung
+  konkretisiert, Aufbewahrungsfristen entschärft, Admin-/2FA-Cookies ergänzt.
+- **Kasse:** Lieferzeit und Widerrufshinweis in der Bestellübersicht.
+- **E-Mails:** AGB- und Widerrufslinks in Bestell- und Angebotsbestätigung.
+- **GPSR:** Herstellerangaben und Produktkennung auf Produktseiten und im
+  JSON-LD.
+- **Weiterleitungen:** alte Footer-Links auch ohne Schrägstrich; `verify.sh`
+  prüft zusätzliche Altpfade.
+- **Doku:** Anleitung zum Beenden des WordPress-Mischbetriebs, LUCID und
+  steuerliche Aufbewahrung als offene Punkte.
+
 ## [1.0.0-rc.18] – 2026-11-15
 
 ### Hinzugefügt
@@ -325,6 +352,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.19]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.19
 [1.0.0-rc.18]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.18
 [1.0.0-rc.17]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.17
 [1.0.0-rc.16]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.16

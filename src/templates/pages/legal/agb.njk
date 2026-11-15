@@ -36,20 +36,29 @@
     <p>Teillieferungen sind nur nach Absprache möglich. Bei Selbstabholung vereinbaren wir einen Abholtermin; die Ware wird erst nach vollständiger Bezahlung herausgegeben.</p>
 
     <h2>5. Zahlung</h2>
-    <p>Je nach Verfügbarkeit können im Bestellprozess folgende Zahlungsarten angeboten werden. Maßgeblich sind die dort tatsächlich angezeigten Zahlungsarten:</p>
-    <h3>Vorkasse per Banküberweisung</h3>
-    <p>Bei Auswahl der Zahlungsart Vorkasse erhalten Sie die Bankverbindung mit der Bestellbestätigung per E-Mail. Aus Sicherheitsgründen wird die Bankverbindung nicht auf der öffentlichen Zahlungsseite angezeigt. Die Ware wird nach vollständigem Zahlungseingang gefertigt und versandt.</p>
-    <h3>Kredit-/Debitkarte</h3>
-    <p>Die Zahlung erfolgt über den Zahlungsdienstleister Stripe Payments Europe, Ltd., Dublin (Irland). Die Karten- und Zahlungsdaten werden ausschließlich bei Stripe eingegeben und nicht auf unseren Servern gespeichert. Es gelten ergänzend die Bedingungen von Stripe.</p>
-    <h3>PayPal</h3>
-    <p>Bei Auswahl der Zahlungsart PayPal werden Sie zu PayPal weitergeleitet. Die Zahlungsabwicklung erfolgt über Stripe. Für die Nutzung von PayPal ist ein PayPal-Konto erforderlich; die Bedingungen von PayPal gelten ergänzend.</p>
-    <h3>Amazon Pay</h3>
-    <p>Bei Auswahl der Zahlungsart Amazon Pay werden Sie zu Amazon Pay weitergeleitet und schließen die Zahlung dort ab. Die Zahlungsabwicklung erfolgt über Stripe. Für die Nutzung ist ein Amazon-Konto erforderlich; die Bedingungen von Amazon Pay gelten ergänzend.</p>
-    <h3>Klarna</h3>
-    <p>Bei Auswahl der Zahlungsart Klarna bietet Klarna je nach Verfügbarkeit eine Zahlung auf Rechnung oder in Raten an. Die Zahlungsabwicklung erfolgt über Stripe. Die Nutzung setzt eine positive Prüfung durch Klarna voraus; die Bedingungen von Klarna gelten ergänzend.</p>
-    <h3>iDEAL</h3>
-    <p>iDEAL steht Kundinnen und Kunden mit einem niederländischen Bankkonto zur Verfügung. Die Zahlung erfolgt über Stripe; es gelten ergänzend die Bedingungen des jeweiligen Zahlungsdienstes.</p>
-    <p>Bei den Zahlungsarten Kredit-/Debitkarte, PayPal, Amazon Pay, Klarna und iDEAL erfolgt die Belastung nach Abschluss des Zahlungsvorgangs. Für diese Zahlungsarten berechnen wir keine zusätzlichen Gebühren. Bei Zahlungsverzug behalten wir uns die gesetzlichen Ansprüche vor.</p>
+    <p>Im Bestellprozess stehen die dort tatsächlich angezeigten Zahlungsarten zur Verfügung. Je nach Verfügbarkeit können folgende Zahlungsarten angeboten werden:</p>
+    {% for method in publicPaymentMethods %}
+      <h3>{{ method.label }}</h3>
+      {% if method.provider == 'manual' %}
+        <p>Bei Auswahl der Zahlungsart Vorkasse erhalten Sie die Bankverbindung mit der Bestellbestätigung per E-Mail. Aus Sicherheitsgründen wird die Bankverbindung nicht auf der öffentlichen Zahlungsseite angezeigt. Die Ware wird nach vollständigem Zahlungseingang gefertigt und versandt.</p>
+      {% elif method.stripeMethod == 'card' %}
+        <p>Die Zahlung erfolgt über den Zahlungsdienstleister Stripe Payments Europe, Ltd., Dublin (Irland). Die Karten- und Zahlungsdaten werden ausschließlich bei Stripe eingegeben und nicht auf unseren Servern gespeichert. Apple Pay und Google Pay werden, soweit verfügbar, über die Kartenzahlung abgewickelt. Es gelten ergänzend die Bedingungen von Stripe.</p>
+      {% elif method.stripeMethod == 'paypal' %}
+        <p>Bei Auswahl der Zahlungsart PayPal werden Sie zu PayPal weitergeleitet. Die Zahlungsabwicklung erfolgt über Stripe. Für die Nutzung von PayPal ist ein PayPal-Konto erforderlich; die Bedingungen von PayPal gelten ergänzend.</p>
+      {% elif method.stripeMethod == 'amazon_pay' %}
+        <p>Bei Auswahl der Zahlungsart Amazon Pay werden Sie zu Amazon Pay weitergeleitet und schließen die Zahlung dort ab. Die Zahlungsabwicklung erfolgt über Stripe. Für die Nutzung ist ein Amazon-Konto erforderlich; die Bedingungen von Amazon Pay gelten ergänzend.</p>
+      {% elif method.stripeMethod == 'klarna' %}
+        <p>Bei Auswahl der Zahlungsart Klarna bietet Klarna je nach Verfügbarkeit eine Zahlung auf Rechnung oder in Raten an. Die Zahlungsabwicklung erfolgt über Stripe. Die Nutzung setzt eine positive Prüfung durch Klarna voraus; die Bedingungen von Klarna gelten ergänzend.</p>
+      {% elif method.stripeMethod == 'ideal' %}
+        <p>iDEAL steht Kundinnen und Kunden mit einem niederländischen Bankkonto zur Verfügung. Die Zahlung erfolgt über Stripe; es gelten ergänzend die Bedingungen des jeweiligen Zahlungsdienstes.</p>
+      {% else %}
+        <p>{{ method.note }}</p>
+      {% endif %}
+    {% endfor %}
+    {% if publicPaymentMethods.length == 0 %}
+      <p>Die verfügbaren Zahlungsarten werden im Bestellprozess angezeigt.</p>
+    {% endif %}
+    <p>Bei den Online-Zahlungsarten erfolgt die Belastung nach Abschluss des Zahlungsvorgangs. Für diese Zahlungsarten berechnen wir keine zusätzlichen Gebühren. Bei Zahlungsverzug behalten wir uns die gesetzlichen Ansprüche vor.</p>
 
     <h2>6. Widerrufsrecht</h2>
     <p>Verbrauchern steht ein gesetzliches Widerrufsrecht zu. Einzelheiten, Fristen und Folgen sowie das Muster-Widerrufsformular finden Sie in unserer <a href="/widerruf/">Widerrufsbelehrung</a>. Das Muster-Widerrufsformular steht dort auch als <a href="/widerruf/formular.pdf" download>PDF</a> zum Download bereit.</p>
@@ -98,9 +107,6 @@
     <p>Sind Sie Unternehmer, gilt deutsches Recht unter Ausschluss des UN-Kaufrechts. Sind Sie Kaufmann im Sinne des Handelsgesetzbuches, juristische Person des öffentlichen Rechts oder öffentlich-rechtliches Sondervermögen, ist ausschließlicher Gerichtsstand für alle Streitigkeiten aus Vertragsverhältnissen zwischen uns und Ihnen unser Geschäftssitz.</p>
     <p>Sollten einzelne Bestimmungen dieser AGB unwirksam sein oder werden, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.</p>
     <p>Bei Fragen zu diesen AGB erreichen Sie uns unter <a href="mailto:{{ site.business.email }}">{{ site.business.email }}</a> oder über unser <a href="/kontakt/">Kontaktformular</a>.</p>
-
-    <h2>14. Vertragsrücktritt</h2>
-    <p>Wir behalten uns vor, einen Auftrag innerhalb von 14 Tagen abzulehnen, wenn seine Durchführung nicht machbar ist oder wegen eines technischen Fehlers ein falscher Preis ausgewiesen wurde. Wir informieren Sie in diesem Fall unverzüglich und erstatten bereits geleistete Zahlungen.</p>
 
     <p class="text-muted"><small>Stand: {{ site.legal.lastUpdated }}</small></p>
   </div>
