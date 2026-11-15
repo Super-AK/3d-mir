@@ -278,6 +278,20 @@ npm run monitor:check        # manuell, aus dem Projektverzeichnis
 
 Der Zustand wird unter `/var/lib/3d-mir/monitor-state.json` gespeichert. Während eines anhaltenden Ausfalls wird höchstens alle sechs Stunden erneut erinnert.
 
+## Löschung alter Modell-Uploads
+
+Der Timer `3d-mir-cleanup.timer` löscht täglich um 03:30 Uhr Modelldateien aus Angebotsanfragen, die älter als 90 Tage sind. Die Anfrage selbst und die Kontaktdaten bleiben erhalten; nur die Datei und ihre Metadaten werden entfernt. Zusätzlich werden verwaiste Dateien im Upload-Verzeichnis aufgeräumt.
+
+```bash
+systemctl status 3d-mir-cleanup.timer
+systemctl list-timers '3d-mir-*'
+journalctl -u 3d-mir-cleanup.service -n 50 --no-pager
+npm run uploads:cleanup -- --dry-run
+npm run uploads:cleanup -- --days 90
+```
+
+Die Frist entspricht der Datenschutzerklärung („bis zu 90 Tage nach Abschluss der Anfrage“).
+
 ## Backup
 
 ```bash

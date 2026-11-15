@@ -182,6 +182,10 @@ Unter **Admin → Nachrichten** erscheinen alle Anfragen aus dem Kontaktformular
 
 Nach dem Absenden des Kontaktformulars erhält der Absender automatisch eine **Eingangsbestätigung** per E-Mail. Sie enthält das Anliegen sowie Links zu AGB, Widerrufsbelehrung, Muster-Widerrufsformular (PDF) und Datenschutzerklärung. Bei als Spam eingestuften Nachrichten wird keine Bestätigung versendet.
 
+### Automatische Löschung der Modelldateien
+
+Der Timer `3d-mir-cleanup.timer` entfernt täglich Modelldateien aus Angebotsanfragen, die älter als 90 Tage sind. Die Anfrage- und Kontaktdaten bleiben erhalten. Manuell prüfen mit `npm run uploads:cleanup -- --dry-run`; Details unter `docs/DEPLOYMENT.md`.
+
 ### Spam-Schutz und Länderprüfung
 
 Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfung“** gepflegt:

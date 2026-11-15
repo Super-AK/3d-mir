@@ -22,11 +22,11 @@ Diese Liste wird gesammelt gepflegt. Bitte alle Punkte auf einmal beantworten; E
 | Bereich | Status | Kurzbemerkung |
 | --- | --- | --- |
 | Zahlungsarten | 🟡 In Arbeit | Bankdaten und Methoden auf Prod eingerichtet; Stripe-Live-Schaltung offen |
-| Kontakt/Spam-Schutz | 🟡 In Arbeit | Antworten und IP-basierte Länderprüfung umgesetzt; Allowlist bestätigen |
+| Kontakt/Spam-Schutz | ✅ Erledigt | Länderprüfung aktiv; DE, AT und CH zugelassen, übrige Länder zur Prüfung |
 | Benachrichtigungen | ✅ Erledigt | SMTP und Telegram auf Prod eingerichtet; Kanal und Kopieoption im Admin wählbar |
 | Kategorien | ✅ Erledigt | Verwaltung, Mehrfachzuordnung und Shop-Filter umgesetzt |
 | Veröffentlichung | ✅ Erledigt | Platzhalter-Hinweise im Admin schaltbar |
-| Etsy-Import | 🟡 In Arbeit | CSV-Import umgesetzt und 13 Produkte übernommen; API wartet auf Etsy-Freigabe |
+| Etsy-Import | ✅ Erledigt | CSV-Import umgesetzt und 13 Produkte übernommen; Etsy-API wurde abgelehnt |
 | Installation/Deployment | ✅ Erledigt | Installationsanleitung und interaktives Setup-Menü vorhanden |
 | Preise/Kalkulation | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
 | Versand | ✅ Erledigt | Vom Betreiber am 14.11.2026 bestätigt |
@@ -90,7 +90,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | F24 | ✅ Erledigt | **Umgesetzt:** Checkbox unter **Admin → Benachrichtigungen**; Kunden-E-Mails können als BCC an das Betreiber-Postfach gehen.<br>*(14.11.2026)* |
 | F69 | ✅ Erledigt | **Erledigt:** Telegram ist laut Betreiber auf dem Produktivserver eingerichtet.<br>*(14.11.2026)* |
 | F70 | ✅ Erledigt | Der Kanal lässt sich unter **Admin → Benachrichtigungen** wählen (E-Mail, Telegram oder beides).<br>*(14.11.2026)* |
-| F71 | 🔴 Offen | **Ereignisse für Telegram:** Aktuell neue Bestellung, Kontaktanfrage, Angebotsanfrage, Zahlungseingang und Zahlung nach Stornierung. Statusänderungen an Kunden laufen weiterhin nur per E-Mail. Soll das erweitert werden? |
+| F71 | ✅ Erledigt | **Entschieden:** Keine Erweiterung der Telegram-Ereignisse. Statusänderungen an Kunden laufen weiterhin per E-Mail.<br>*(15.11.2026)* |
 
 ## 5. GitHub und Deployment 🟢
 
@@ -158,7 +158,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 | F56 | ✅ Erledigt | **Entschieden:** Die Abschnitte zu Google Analytics/AdSense wurden entfernt. Die neue Seite setzt kein Tracking ein.<br>*(13.11.2026)* |
 | F57 | ✅ Erledigt | **Geprüft:** AGB zu Vertragsschluss, Preisen, Versand, Zahlung, Widerruf, Eigentumsvorbehalt, Gewährleistung, 3D-Druck, Datenschutz und Streitbeilegung anwaltlich freigegeben.<br>*(15.11.2026)* |
 | F58 | ✅ Erledigt | **Umgesetzt:** Widerrufsbelehrung enthält den Ausschluss für Sonderanfertigungen; Muster-Widerrufsformular als PDF unter `/widerruf/formular.pdf`. Die rechtliche Gesamtprüfung bleibt F54.<br>*(14.11.2026)* |
-| F59 | 🟡 In Arbeit | **Entwurf aktualisiert:** Die Datenschutzerklärung beschreibt Rechner-Upload, E-Mail-Ablage und Zahlungsdienstleister. Offen: automatische Löschung der Uploads nach 90 Tagen technisch umsetzen und rechtlich bestätigen. |
+| F59 | ✅ Erledigt | **Umgesetzt:** Modelldateien aus Angebotsanfragen werden nach 90 Tagen automatisch gelöscht (`3d-mir-cleanup.timer`); Anfrage- und Kontaktdaten bleiben erhalten. Datenschutzerklärung und Technik stimmen überein.<br>*(15.11.2026)* |
 | F60 | 🟡 In Arbeit | **Empfehlung:** Kein Consent-Banner nötig, solange nur technisch notwendige Cookies und keine externen Skripte/Tracker eingesetzt werden. Bitte rechtlich bestätigen. |
 
 ## 11. Betrieb 🟢
@@ -182,12 +182,12 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F73 | ✅ Erledigt | **Umgesetzt:** Direkte Antwort auf Kontaktnachrichten aus dem Admin inklusive Speicherung des Antworttexts und `.eml`-Fallback ohne SMTP. Nachweis: Antwortversand im Test.<br>*(14.11.2026)* |
 | F74 | ✅ Erledigt | **Umgesetzt:** Add-Buttons in allen Preis-Kategorien; mehrere neue Materialien, Drucker, Nachbearbeitungen, Versandarten, Versandoptionen und Rabattstaffeln können in einem Speichervorgang angelegt werden.<br>*(14.11.2026)* |
 | F75 | ✅ Erledigt | **Umgesetzt:** Bankdaten erscheinen nicht mehr auf der öffentlichen Seite „Zahlungsarten“ und nicht auf der Bestell-Danke-Seite. Kunden erhalten sie ausschließlich in der Bestellbestätigung per E-Mail bei Auswahl „Vorkasse“.<br>*(14.11.2026)* |
-| F76 | 🟡 In Arbeit | **Länder-Allowlist bestätigen:** Das Land wird serverseitig aus der IP-Adresse ermittelt (lokale GeoIP-Datenbank, kein Besucherfeld). Aktuell ist nur Deutschland (`DE`) freigegeben; andere Länder werden zur Prüfung gespeichert. Sollen weitere Länder (z. B. AT, CH, NL) zugelassen werden? Einstellung unter **Admin → Nachrichten**. |
+| F76 | ✅ Erledigt | **Bestätigt:** Deutschland (`DE`), Österreich (`AT`) und die Schweiz (`CH`) sind zugelassen; übrige Länder werden zur Prüfung gespeichert.<br>*(15.11.2026)* |
 | F77 | ✅ Erledigt | **Umgesetzt:** Länder-Header von Proxy/CDN (`CF-IPCountry` usw.) werden nur ausgewertet, wenn sie über `COUNTRY_HEADER` ausdrücklich konfiguriert sind und die Verbindung von einem in `TRUST_PROXY` eingetragenen Proxy stammt. Standardmäßig entscheidet ausschließlich die lokale GeoIP-Datenbank; damit sind gefälschte Header ausgeschlossen. Nachweis: Test mit `X-Forwarded-For` (DE/US) und ohne ermittelbares Land.<br>*(14.11.2026)* |
 | F78 | 🟢 Später | **Externer Captcha-Dienst:** Bewusst nicht eingebaut, um keine externen Skripte und Tracking einzubinden. Soll später ein datenschutzfreundlicher Captcha ergänzt werden? |
-| F79 | 🟡 In Arbeit | **Etsy-API-Freigabe:** Die Etsy-App steht auf „Pending Personal Approval“. Der CSV-Import ist erfolgt (13 Produkte); nach der Freigabe werden die exakten Variationspreise und Bestände per API nachgezogen. |
+| F79 | ✅ Erledigt | **Abgeschlossen:** Etsy hat die API-Freigabe abgelehnt. Der CSV-Import bleibt die Grundlage; die API-Importmaske wurde aus dem Admin entfernt.<br>*(15.11.2026)* |
 | F80 | ✅ Erledigt | **Erledigt:** Der Betreiber ist bei LUCID (Zentrale Stelle Verpackungsregister) registriert und an der Systembeteiligung für versendete Verkaufsverpackungen beteiligt.<br>*(15.11.2026)* |
-| F81 | 🟡 In Arbeit | **GPSR:** Herstellerangaben (Name, Anschrift, E-Mail) und Produktkennung sind auf den Produktseiten eingebunden. Bitte je Produkt bestätigen, dass die Kennung (SKU oder Slug) und die Sicherheitshinweise ausreichen. |
+| F81 | ✅ Erledigt | **Bestätigt:** Herstellerangaben und Produktkennung auf den Produktseiten sind ausreichend; die Produktdaten wurden vom Betreiber geprüft.<br>*(15.11.2026)* |
 | F82 | ✅ Erledigt | **Geprüft:** Impressum (DDG), AGB (dynamische Zahlungsarten, § 14 entfernt), Widerruf und Datenschutz (Rechtsgrundlagen, Aufsichtsbehörde, Drittland, Cookies) anwaltlich freigegeben.<br>*(15.11.2026)* |
 | F83 | ✅ Erledigt | **Bestätigt:** Die gesetzlichen Aufbewahrungsfristen (in der Regel 6 bzw. 10 Jahre) wurden vom Steuerberater bestätigt.<br>*(15.11.2026)* |
 | F84 | ✅ Erledigt | **Erledigt:** Der WordPress-Altbestand wurde entfernt und der Mischbetrieb beendet; die neuen Routen werden vollständig von der Anwendung ausgeliefert.<br>*(15.11.2026)* |
@@ -196,7 +196,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 
 1. **Zahlung live schalten:** F68 (Stripe-Live-Schlüssel, Live-Webhook, Live-Test); Bankverbindung ist auf Prod hinterlegt.
 2. **Benachrichtigungen prüfen:** Test-E-Mail und Test-Telegram im Admin senden; über die Kopieoption (F24) entscheiden.
-3. **Betrieb absichern:** F61 (externes Backup-Ziel) und F62 (Aufbewahrung); Monitoring und 2FA/Passkeys sind umgesetzt.
+3. **Betrieb absichern:** F61 (externes Backup-Ziel) und F62 (Aufbewahrung); Monitoring, 2FA/Passkeys und die 90-Tage-Löschung sind umgesetzt.
 4. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
 5. **Shop live schalten:** F67 im Admin unter „Veröffentlichung“; Rechtstexte sind freigegeben.
 

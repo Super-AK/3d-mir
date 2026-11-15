@@ -3,6 +3,23 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.29] – 2026-11-15
+
+### Hinzugefügt
+
+- **Automatische Löschung alter Modell-Uploads:** Täglicher systemd-Timer
+  entfernt Modelldateien aus Angebotsanfragen nach 90 Tagen; Anfrage- und
+  Kontaktdaten bleiben erhalten. Zusätzlich werden verwaiste Uploads
+  aufgeräumt. Manuell: `npm run uploads:cleanup -- --dry-run`.
+- Etsy-API-Importmaske entfernt, nachdem Etsy die Freigabe abgelehnt hat;
+  CSV-Import bleibt verfügbar.
+
+### Geändert
+
+- Länder-Allowlist bestätigt: DE, AT und CH zugelassen, übrige Länder zur
+  Prüfung.
+- Telegram-Ereignisse bleiben unverändert (keine Erweiterung gewünscht).
+
 ## [1.0.0-rc.28] – 2026-11-15
 
 ### Behoben
@@ -446,6 +463,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.29]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.29
 [1.0.0-rc.28]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.28
 [1.0.0-rc.27]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.27
 [1.0.0-rc.26]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.26

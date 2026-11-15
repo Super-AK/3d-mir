@@ -53,33 +53,10 @@
 
     <section class="card admin-panel">
       <h2>Etsy-API</h2>
-      <p class="text-muted">Überträgt zusätzlich die exakten Variationen mit Preis und Bestand. Benötigt einen freigegebenen Etsy-Entwicklerzugang (Keystring und Shared Secret).</p>
-      <form class="form" method="post" action="/admin/produkte/etsy/">
-        <input type="hidden" name="_csrf" value="{{ csrf }}">
-        <input type="hidden" name="mode" value="api">
-        <div class="field">
-          <label for="etsyShop">Shopname</label>
-          <input id="etsyShop" name="shop" type="text" maxlength="80" value="3DlMIR" required>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label for="etsyKey">Keystring</label>
-            <input id="etsyKey" name="apiKey" type="text" maxlength="120" autocomplete="off" required>
-          </div>
-          <div class="field">
-            <label for="etsySecret">Shared Secret</label>
-            <input id="etsySecret" name="apiSecret" type="password" maxlength="120" autocomplete="off" required>
-          </div>
-        </div>
-        <label class="checkbox">
-          <input type="checkbox" name="dryRun" value="1" checked>
-          <span>Nur Testlauf (nichts speichern)</span>
-        </label>
-        <div class="form-actions">
-          <button class="btn" type="submit">Über API importieren</button>
-        </div>
-        <p class="hint">Die Zugangsdaten werden nur für diesen Import verwendet und nicht gespeichert. Solange die Etsy-App „Pending Personal Approval“ ist, lehnt Etsy die Anfrage ab.</p>
-      </form>
+      <div class="alert alert-warning" role="status">
+        <p><strong>Etsy-API nicht verfügbar.</strong> Etsy hat die Freigabe für den API-Zugang abgelehnt. Der CSV-Import bleibt vollständig nutzbar; Variationen werden dabei als Text übernommen.</p>
+      </div>
+      <p class="text-muted">Für spätere Preis- und Bestandsabgleiche müsste Etsy den Entwicklerzugang erneut freigeben.</p>
     </section>
   </div>
 {% endblock %}

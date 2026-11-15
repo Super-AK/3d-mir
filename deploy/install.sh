@@ -262,8 +262,17 @@ sed -e "s|__APP_DIR__|$APP_DIR|g" \
     -e "s|__LOG_DIR__|$LOG_DIR|g" \
     "$APP_DIR/deploy/3d-mir-monitor.service.tpl" > /etc/systemd/system/3d-mir-monitor.service
 cp "$APP_DIR/deploy/3d-mir-monitor.timer.tpl" /etc/systemd/system/3d-mir-monitor.timer
+
+log "Löschung alter Modell-Uploads (systemd-Timer)"
+sed -e "s|__APP_DIR__|$APP_DIR|g" \
+    -e "s|__SERVICE_USER__|$SERVICE_USER|g" \
+    -e "s|__DATA_DIR__|$DATA_DIR|g" \
+    -e "s|__LOG_DIR__|$LOG_DIR|g" \
+    "$APP_DIR/deploy/3d-mir-cleanup.service.tpl" > /etc/systemd/system/3d-mir-cleanup.service
+cp "$APP_DIR/deploy/3d-mir-cleanup.timer.tpl" /etc/systemd/system/3d-mir-cleanup.timer
 systemctl daemon-reload
 systemctl enable --now 3d-mir-monitor.timer >/dev/null
+systemctl enable --now 3d-mir-cleanup.timer >/dev/null
 
 log "NGINX-Vhost"
 NGINX_SITE_NAME="${NGINX_SITE_NAME:-${DOMAIN}.conf}"

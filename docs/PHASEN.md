@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.29 – 15. November 2026
+
+90-Tage-Löschung für Modell-Uploads, Etsy-API-Import entfernt,
+Länder-Allowlist bestätigt.
+
 ## Release 1.0.0-rc.28 – 15. November 2026
 
 Favicon zusätzlich unter `/favicon.png` und den Apple-Touch-Pfaden;

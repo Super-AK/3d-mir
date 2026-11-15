@@ -97,10 +97,30 @@ npm run build || rollback
 
 log "Dienst neu starten"
 systemctl restart "$SERVICE" || rollback
-if [[ -f /etc/systemd/system/3d-mir-monitor.timer ]]; then
+# Timer-Einheiten bei Bedarf anlegen bzw. aktualisieren.
+env_value() {
+  [[ -f "$ENV_FILE" ]] || return 0
+  grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- || true
+}
+TIMER_USER="${SERVICE_USER:-mir3d}"
+TIMER_DATA="${DATA_DIR:-$(env_value DATA_DIR)}"
+TIMER_DATA="${TIMER_DATA:-/var/lib/3d-mir}"
+TIMER_LOG="${LOG_DIR:-$(env_value LOG_DIR)}"
+TIMER_LOG="${TIMER_LOG:-/var/log/3d-mir}"
+for timer in 3d-mir-monitor 3d-mir-cleanup; do
+  service_tpl="$APP_DIR/deploy/${timer}.service.tpl"
+  timer_tpl="$APP_DIR/deploy/${timer}.timer.tpl"
+  [[ -f "$service_tpl" && -f "$timer_tpl" ]] || continue
+  sed -e "s|__APP_DIR__|$APP_DIR|g" \
+      -e "s|__SERVICE_USER__|$TIMER_USER|g" \
+      -e "s|__DATA_DIR__|$TIMER_DATA|g" \
+      -e "s|__LOG_DIR__|$TIMER_LOG|g" \
+      "$service_tpl" > "/etc/systemd/system/${timer}.service"
+  cp "$timer_tpl" "/etc/systemd/system/${timer}.timer"
   systemctl daemon-reload
-  systemctl restart 3d-mir-monitor.timer || true
-fi
+  systemctl enable --now "${timer}.timer" >/dev/null
+  systemctl restart "${timer}.timer" || true
+done
 
 if health; then
   log "Update erfolgreich. Aktueller Stand:"
