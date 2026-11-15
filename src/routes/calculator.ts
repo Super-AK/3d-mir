@@ -12,6 +12,7 @@ import { cleanText, createReference, escapeHtml, isSameOrigin } from '../lib/htt
 import { MeshError, parseMesh, type MeshFormat } from '../lib/mesh.js';
 import { calculatePrice, choosePrinter, type PriceMetrics, type PriceOptions } from '../lib/pricing.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
+import { mailButton, mailLayout, mailLink, mailNotice, mailParagraph, mailSection, mailTable } from '../lib/mail-layout.js';
 
 type UploadedFile = { buffer: Buffer; filename: string; mimetype: string };
 type MultipartData = { fields: Record<string, string>; file: UploadedFile | null };
@@ -263,8 +264,9 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
         unit: input.unit,
       });
 
+      let quoteId = 0;
       try {
-        getDb()
+        const inserted = getDb()
           .prepare(
             `INSERT INTO quote_requests
               (reference, name, email, phone, company, message, material_id, color, printer_id, infill,
@@ -299,6 +301,7 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
             sha256,
             new Date().toISOString(),
           );
+        quoteId = Number(inserted.lastInsertRowid);
       } catch (error) {
         request.log.error({ err: error }, 'Anfrage konnte nicht gespeichert werden');
         fs.rmSync(absolutePath, { force: true });
@@ -330,40 +333,96 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
         '',
         `Datei: ${relativePath} (${safeFilename(data.file.filename)}, ${(data.file.buffer.length / 1024 / 1024).toFixed(1)} MB)`,
         `SHA-256: ${sha256}`,
+        `Download: ${config.site.baseUrl}/admin/anfragen/${quoteId}/datei/`,
+        `Im Admin: ${config.site.baseUrl}/admin/anfragen/${quoteId}/`,
         '',
         'Nachricht:',
         input.message || '–',
       ];
 
+      const adminQuoteUrl = `${config.site.baseUrl}/admin/anfragen/${quoteId}/`;
+      const adminFileUrl = `${config.site.baseUrl}/admin/anfragen/${quoteId}/datei/`;
+      const adminHtml = mailLayout({
+        title: `Neue Anfrage ${reference}`,
+        preheader: `${input.name} · ${material.label} · ${formatEuro(price.totalCents)}`,
+        body: [
+          mailSection('Kontakt', mailTable([
+            ['Name', input.name],
+            ['E-Mail', input.email],
+            ['Telefon', input.phone || '–'],
+            ['Firma', input.company || '–'],
+          ])),
+          mailSection('Druckdaten', mailTable([
+            ['Material', material.label],
+            ['Drucker', printer.label],
+            ['Farbe', input.color || '–'],
+            ['Füllung', `${input.infill} %`],
+            ['Schichthöhe', `${input.layerHeight} mm`],
+            ['Stückzahl', String(input.quantity)],
+            ['Nachbearbeitung', coating.label],
+            ['Skalierung', `${input.scalePercent} %`],
+            ['Maße', `${price.dimensionsMm.x} × ${price.dimensionsMm.y} × ${price.dimensionsMm.z} mm`],
+            ['Gewicht (geschätzt)', `${price.weightG} g`],
+            ['Druckzeit (geschätzt)', `${price.printHours} h`],
+          ])),
+          mailSection('Preis (unverbindlich)', `<p style="margin:0 0 10px;font-size:26px;font-weight:800;color:#0a1530;">${escapeHtml(formatEuro(price.totalCents))}</p>${mailTable(price.breakdown.map((item) => [item.label, formatEuro(item.cents)]))}`),
+          mailSection('Modell-Datei', `${mailTable([
+            ['Dateiname', safeFilename(data.file.filename)],
+            ['Größe', `${(data.file.buffer.length / 1024 / 1024).toFixed(1)} MB`],
+            ['SHA-256', sha256],
+          ])}${mailButton(adminFileUrl, 'Modell herunterladen')}${mailNotice('Der Download ist nur nach Anmeldung im Admin-Bereich möglich.')}<p style="margin:8px 0 0;font-size:13px;">${mailLink(adminQuoteUrl, 'Anfrage im Admin öffnen')}</p>`),
+          mailSection('Nachricht', mailParagraph(input.message || '–')),
+        ].join(''),
+      });
+
       try {
         await notifyAdmin({
           subject: `[Anfrage ${reference}] ${material.label} · ${input.quantity} Teile`,
           text: summaryLines.join('\n'),
+          html: adminHtml,
           replyTo: input.email,
         });
+        const customerLines = [
+          `Hallo ${input.name},`,
+          '',
+          'vielen Dank für Ihre Anfrage. Wir haben folgende Angaben erhalten:',
+          '',
+          `Referenz: ${reference}`,
+          `Material: ${material.label}, ${input.color || 'Farbe nach Absprache'}`,
+          `Stückzahl: ${input.quantity}`,
+          `Maße: ${price.dimensionsMm.x} × ${price.dimensionsMm.y} × ${price.dimensionsMm.z} mm`,
+          `Unverbindliche Preisschätzung: ${formatEuro(price.totalCents)}`,
+          '',
+          'Wir prüfen das Modell und melden uns in der Regel innerhalb eines Werktags mit einem verbindlichen Angebot.',
+          '',
+          `AGB: ${config.payment.baseUrl}/agb/`,
+          `Widerrufsbelehrung: ${config.payment.baseUrl}/widerruf/`,
+          `Muster-Widerrufsformular (PDF): ${config.payment.baseUrl}/widerruf/formular.pdf`,
+          '',
+          'Viele Grüße',
+          '3D-MIR 3D-Druck Service',
+        ];
         await sendMail({
           to: input.email,
           subject: `Ihre Anfrage ${reference} bei 3D-MIR`,
-          text: [
-            `Hallo ${input.name},`,
-            '',
-            'vielen Dank für Ihre Anfrage. Wir haben folgende Angaben erhalten:',
-            '',
-            `Referenz: ${reference}`,
-            `Material: ${material.label}, ${input.color || 'Farbe nach Absprache'}`,
-            `Stückzahl: ${input.quantity}`,
-            `Maße: ${price.dimensionsMm.x} × ${price.dimensionsMm.y} × ${price.dimensionsMm.z} mm`,
-            `Unverbindliche Preisschätzung: ${formatEuro(price.totalCents)}`,
-            '',
-            'Wir prüfen das Modell und melden uns in der Regel innerhalb eines Werktags mit einem verbindlichen Angebot.',
-            '',
-            `AGB: ${config.payment.baseUrl}/agb/`,
-            `Widerrufsbelehrung: ${config.payment.baseUrl}/widerruf/`,
-            `Muster-Widerrufsformular (PDF): ${config.payment.baseUrl}/widerruf/formular.pdf`,
-            '',
-            'Viele Grüße',
-            '3D-MIR 3D-Druck Service',
-          ].join('\n'),
+          text: customerLines.join('\n'),
+          html: mailLayout({
+            title: `Ihre Anfrage ${reference}`,
+            preheader: 'Wir haben Ihre Anfrage erhalten.',
+            body: [
+              mailParagraph(`Hallo ${input.name},`),
+              mailParagraph('vielen Dank für Ihre Anfrage. Wir haben folgende Angaben erhalten:'),
+              mailSection('Ihre Angaben', mailTable([
+                ['Referenz', reference],
+                ['Material', `${material.label}, ${input.color || 'Farbe nach Absprache'}`],
+                ['Stückzahl', String(input.quantity)],
+                ['Maße', `${price.dimensionsMm.x} × ${price.dimensionsMm.y} × ${price.dimensionsMm.z} mm`],
+                ['Unverbindliche Preisschätzung', formatEuro(price.totalCents)],
+              ])),
+              mailNotice('Wir prüfen das Modell und melden uns in der Regel innerhalb eines Werktags mit einem verbindlichen Angebot.'),
+              mailSection('Rechtliche Informationen', `<p style="margin:0;font-size:13px;line-height:1.7;">${mailLink(`${config.payment.baseUrl}/agb/`, 'AGB')}<br>${mailLink(`${config.payment.baseUrl}/widerruf/`, 'Widerrufsbelehrung')}<br>${mailLink(`${config.payment.baseUrl}/widerruf/formular.pdf`, 'Muster-Widerrufsformular (PDF)')}</p>`),
+            ].join(''),
+          }),
           replyTo: config.mail.to,
         });
       } catch (error) {

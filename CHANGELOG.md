@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.23] – 2026-11-15
+
+### Hinzugefügt
+
+- **Direkter Download-Link in der Anfrage-Mail:** Die Betreiber-Benachrichtigung
+  enthält einen Link zur Modelldatei und zur Anfrage im Admin. Der Download
+  ist nur nach Admin-Anmeldung möglich.
+- **HTML-E-Mails mit Text-Fallback:** Einheitliches, übersichtliches Layout für
+  Anfrage-, Bestell-, Kontakt- und Bestätigungsmails mit Tabellen, Summen und
+  klaren Handlungsbuttons.
+
 ## [1.0.0-rc.22] – 2026-11-15
 
 ### Hinzugefügt
@@ -384,6 +395,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.23]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.23
 [1.0.0-rc.22]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.22
 [1.0.0-rc.21]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.21
 [1.0.0-rc.20]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.20

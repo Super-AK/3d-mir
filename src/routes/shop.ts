@@ -7,6 +7,7 @@ import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
 import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, createReference, isSameOrigin } from '../lib/http.js';
+import { mailButton, mailLayout, mailLink, mailNotice, mailParagraph, mailSection, mailTable } from '../lib/mail-layout.js';
 import { clearCart, readCart, writeCart, type Cart } from '../lib/cart.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
 import { allCategories, categoriesForProduct, findCategoryBySlug } from '../lib/categories.js';
@@ -818,6 +819,69 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       const orderUrl = publicOrderUrl(order);
 
       const sendOrderMails = async (): Promise<void> => {
+        const paymentUrl = paymentMethod.provider === 'stripe' ? publicRetryUrl(order) : '';
+        const itemRows = lines.map(
+          (line) => [`${line.quantity} × ${line.productName}`, `${line.variantLabel} · ${formatEuro(line.lineTotalCents)}`] as [string, string],
+        );
+        const totalRows: [string, string][] = [
+          ['Zwischensumme', formatEuro(totals.subtotalCents)],
+          [`Versand (${shippingMethod.label})`, totals.shippingCents === 0 ? 'kostenlos' : formatEuro(totals.shippingCents)],
+          ...(selectedAddons.length > 0
+            ? selectedAddons.map((addon) => [addon.label, `+ ${formatEuro(Math.round(addon.price * 100))}`] as [string, string])
+            : []),
+          ['Gesamt', formatEuro(totals.totalCents)],
+        ];
+        const customerPaymentHtml =
+          paymentMethod.provider === 'manual'
+            ? `${mailNotice(bankReady ? `Bitte überweisen Sie ${formatEuro(totals.totalCents)} auf das unten genannte Konto.` : `Bitte überweisen Sie ${formatEuro(totals.totalCents)} auf unsere Bankverbindung. Die Bankverbindung wird Ihnen in einer separaten E-Mail mitgeteilt.`)}${bankReady ? mailTable([
+                ['Kontoinhaber', bank.accountHolder],
+                ['IBAN', bank.iban],
+                ...(bank.bic ? [['BIC', bank.bic] as [string, string]] : []),
+                ...(bank.bankName ? [['Bank', bank.bankName] as [string, string]] : []),
+                ['Verwendungszweck', number],
+              ]) : ''}`
+            : `${mailNotice('Die Zahlung wird über unseren Zahlungsdienstleister Stripe abgewickelt.')}${paymentUrl ? mailButton(paymentUrl, 'Zahlung starten') : ''}`;
+
+        const adminHtml = mailLayout({
+          title: `Neue Bestellung ${number}`,
+          preheader: `${data.firstName} ${data.lastName} · ${formatEuro(totals.totalCents)}`,
+          body: [
+            mailSection('Kunde', mailTable([
+              ['Name', `${data.firstName} ${data.lastName}`],
+              ['E-Mail', data.email],
+              ['Telefon', data.phone || '–'],
+              ['Firma', data.company || '–'],
+            ])),
+            mailSection('Lieferadresse', mailParagraph(`${data.street}${data.addressExtra ? `, ${data.addressExtra}` : ''}\n${data.zip} ${data.city}\n${data.country}`)),
+            mailSection('Positionen', mailTable(itemRows)),
+            mailSection('Summe', mailTable(totalRows)),
+            mailSection('Zahlung und Versand', mailTable([
+              ['Zahlungsart', paymentMethod.label],
+              ['Zahlungsstatus', 'offen'],
+              ['Versandart', shippingMethod.label],
+            ])),
+            ...(data.customerNote ? [mailSection('Anmerkung', mailParagraph(data.customerNote))] : []),
+            mailButton(`${config.site.baseUrl}/admin/bestellungen/${order.id}/`, 'Bestellung im Admin öffnen'),
+          ].join(''),
+        });
+
+        const customerHtml = mailLayout({
+          title: `Ihre Bestellung ${number}`,
+          preheader: 'Vielen Dank für Ihre Bestellung bei 3D-MIR.',
+          body: [
+            mailParagraph(`Hallo ${data.firstName},`),
+            mailParagraph('vielen Dank für Ihre Bestellung. Wir haben folgende Angaben erhalten:'),
+            mailSection('Ihre Positionen', mailTable(itemRows)),
+            mailSection('Summe', mailTable(totalRows)),
+            mailSection('Zahlung', customerPaymentHtml),
+            mailSection('Versand', mailTable([['Versandart', shippingMethod.label]])),
+            ...(data.customerNote ? [mailSection('Ihre Anmerkung', mailParagraph(data.customerNote))] : []),
+            mailSection('Rechtliche Informationen', `<p style="margin:0;font-size:13px;line-height:1.7;">${mailLink(`${config.payment.baseUrl}/agb/`, 'AGB')}<br>${mailLink(`${config.payment.baseUrl}/widerruf/`, 'Widerrufsbelehrung')}<br>${mailLink(`${config.payment.baseUrl}/widerruf/formular.pdf`, 'Muster-Widerrufsformular (PDF)')}</p>`),
+            mailParagraph(config.site.business.vatNote),
+            mailButton(orderUrl, 'Bestellübersicht öffnen'),
+          ].join(''),
+        });
+
         try {
           await notifyAdmin({
             subject: `[Bestellung ${number}] ${lines.length} Position(en), ${formatEuro(totals.totalCents)}`,
@@ -832,6 +896,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               selectedAddons,
               orderUrl,
             ),
+            html: adminHtml,
             replyTo: data.email,
           });
           await sendMail({
@@ -849,8 +914,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               bank,
               bankReady,
               orderUrl,
-              paymentMethod.provider === 'stripe' ? publicRetryUrl(order) : '',
+              paymentUrl,
             ),
+            html: customerHtml,
             replyTo: config.mail.to,
           });
         } catch (error) {

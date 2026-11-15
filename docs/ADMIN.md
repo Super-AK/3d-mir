@@ -223,6 +223,8 @@ Unter **Admin → Benachrichtigungen** wird festgelegt, wie der Betreiber über 
 
 Kunden-E-Mails (Bestellbestätigung, Zahlungsbestätigung, Statusmeldungen) gehen **immer per E-Mail** heraus, unabhängig von der Kanalwahl. Die Kanalwahl betrifft nur Benachrichtigungen an den Betreiber.
 
+Benachrichtigungen und Bestätigungen werden als HTML-E-Mail mit Text-Fallback versendet. Die Benachrichtigung zu einer Angebotsanfrage enthält einen **direkten Download-Link** zur hochgeladenen Modelldatei sowie einen Link zur Anfrage im Admin. Der Download ist nur nach Anmeldung im Admin-Bereich möglich.
+
 ### E-Mail-Versand (SMTP)
 
 Folgende Felder werden gepflegt:

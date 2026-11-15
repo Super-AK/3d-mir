@@ -1,5 +1,6 @@
 import { escapeHtml } from './http.js';
 import { countryName } from './countries.js';
+import { mailLayout, mailLink, mailNotice, mailParagraph, mailSection, mailTable } from './mail-layout.js';
 
 export type ContactMailData = {
   name: string;
@@ -27,18 +28,21 @@ export function contactMailText(data: ContactMailData): string {
 
 /** HTML für die Betreiber-Benachrichtigung einer Kontaktanfrage. */
 export function contactMailHtml(data: ContactMailData): string {
-  const rows = [
-    ['Name', data.name],
-    ['E-Mail', data.email],
-    ['Telefon', data.phone || '–'],
-    ['Land', data.country ? `${countryName(data.country)} (${data.country})` : 'unbekannt'],
-    ['Anliegen', data.subject],
-  ]
-    .map(([label, value]) => `<tr><th align="left">${escapeHtml(label!)}</th><td>${escapeHtml(value!)}</td></tr>`)
-    .join('');
-  return `<h1>Neue Kontaktanfrage</h1>
-<table cellpadding="6">${rows}</table>
-<p style="white-space:pre-wrap">${escapeHtml(data.message)}</p>`;
+  return mailLayout({
+    title: 'Neue Kontaktanfrage',
+    preheader: `${data.name} · ${data.subject}`,
+    body: [
+      mailSection('Kontakt', mailTable([
+        ['Name', data.name],
+        ['E-Mail', data.email],
+        ['Telefon', data.phone || '–'],
+        ['Land', data.country ? `${countryName(data.country)} (${data.country})` : 'unbekannt'],
+        ['Anliegen', data.subject],
+      ])),
+      mailSection('Nachricht', mailParagraph(data.message)),
+      mailParagraph(`Antworten Sie direkt auf diese E-Mail, um ${data.name} zu kontaktieren.`),
+    ].join(''),
+  });
 }
 
 /** Kurze Benachrichtigung, dass eine Nachricht auf Prüfung wartet. */
@@ -61,17 +65,21 @@ export function contactReviewMailText(data: ContactMailData, reasons: string[], 
 
 /** HTML-Variante der Prüf-Benachrichtigung. */
 export function contactReviewMailHtml(data: ContactMailData, reasons: string[], adminUrl: string): string {
-  return `<h1>Kontaktanfrage zur Prüfung</h1>
-<p>Eine Kontaktanfrage wurde nicht automatisch weitergeleitet.</p>
-<table cellpadding="6">
-<tr><th align="left">Name</th><td>${escapeHtml(data.name)}</td></tr>
-<tr><th align="left">E-Mail</th><td>${escapeHtml(data.email)}</td></tr>
-<tr><th align="left">Land</th><td>${escapeHtml(data.country ? `${countryName(data.country)} (${data.country})` : 'unbekannt')}</td></tr>
-<tr><th align="left">Anliegen</th><td>${escapeHtml(data.subject)}</td></tr>
-</table>
-<p><strong>Gründe:</strong></p>
-<ul>${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join('')}</ul>
-<p><a href="${escapeHtml(adminUrl)}">Im Admin-Bereich prüfen</a></p>`;
+  return mailLayout({
+    title: 'Kontaktanfrage zur Prüfung',
+    preheader: `${data.name} · ${data.subject}`,
+    body: [
+      mailNotice('Eine Kontaktanfrage wurde nicht automatisch weitergeleitet.'),
+      mailSection('Kontakt', mailTable([
+        ['Name', data.name],
+        ['E-Mail', data.email],
+        ['Land', data.country ? `${countryName(data.country)} (${data.country})` : 'unbekannt'],
+        ['Anliegen', data.subject],
+      ])),
+      mailSection('Gründe', `<ul style="margin:0 0 10px;padding-left:20px;color:#334155;font-size:13px;line-height:1.6;">${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join('')}</ul>`),
+      mailParagraph(adminUrl),
+    ].join(''),
+  });
 }
 
 
@@ -97,16 +105,15 @@ export function contactAcknowledgementText(data: ContactMailData, baseUrl: strin
 
 /** HTML-Variante der automatischen Eingangsbestätigung. */
 export function contactAcknowledgementHtml(data: ContactMailData, baseUrl: string): string {
-  const link = (href: string, label: string): string =>
-    `<a href="${escapeHtml(`${baseUrl}${href}`)}">${escapeHtml(label)}</a>`;
-  return `<h1>Vielen Dank für Ihre Nachricht</h1>
-<p>Hallo ${escapeHtml(data.name)},</p>
-<p>vielen Dank für Ihre Nachricht an 3D-MIR. Wir haben Ihre Anfrage erhalten und melden uns in der Regel innerhalb von 24 Stunden an Werktagen.</p>
-<p><strong>Ihr Anliegen:</strong> ${escapeHtml(data.subject)}</p>
-<p><strong>Rechtliche Informationen:</strong><br>
-${link('/agb/', 'AGB')}<br>
-${link('/widerruf/', 'Widerrufsbelehrung')}<br>
-${link('/widerruf/formular.pdf', 'Muster-Widerrufsformular (PDF)')}<br>
-${link('/datenschutz/', 'Datenschutz')}</p>
-<p>Viele Grüße<br>3D-MIR 3D-Druck Service</p>`;
+  return mailLayout({
+    title: 'Vielen Dank für Ihre Nachricht',
+    preheader: `Ihre Anfrage ${data.subject} ist bei 3D-MIR eingegangen.`,
+    body: [
+      mailParagraph(`Hallo ${data.name},`),
+      mailParagraph('vielen Dank für Ihre Nachricht an 3D-MIR. Wir haben Ihre Anfrage erhalten und melden uns in der Regel innerhalb von 24 Stunden an Werktagen.'),
+      mailSection('Ihr Anliegen', mailParagraph(data.subject)),
+      mailSection('Rechtliche Informationen', `<p style="margin:0;font-size:13px;line-height:1.7;">${mailLink(`${baseUrl}/agb/`, 'AGB')}<br>${mailLink(`${baseUrl}/widerruf/`, 'Widerrufsbelehrung')}<br>${mailLink(`${baseUrl}/widerruf/formular.pdf`, 'Muster-Widerrufsformular (PDF)')}<br>${mailLink(`${baseUrl}/datenschutz/`, 'Datenschutz')}</p>`),
+      mailParagraph('Viele Grüße\n3D-MIR 3D-Druck Service'),
+    ].join(''),
+  });
 }
