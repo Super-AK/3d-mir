@@ -2385,6 +2385,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         settings,
         content: readHomeContent(),
         logoUrl: settings.images.logo || '/assets/img/gen/logo-96.png',
+        faviconPreview: settings.images.favicon ? imagePreview(settings.images.favicon, 96) : '/assets/img/favicon-32.png',
         heroPreview: imagePreview(settings.images.hero || 'hero', 480),
         servicePreview: imagePreview(settings.images.service || 'service', 480),
         materialsPreview: imagePreview(settings.images.materials || 'colors', 480),
@@ -2476,7 +2477,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           limits: { files: 10, fileSize: 12 * 1024 * 1024, fields: 10 },
         })) {
           if (part.type === 'file') {
-            if (['logo', 'hero', 'service', 'materials', 'calculator', 'gallery'].includes(part.fieldname)) {
+            if (['logo', 'favicon', 'hero', 'service', 'materials', 'calculator', 'gallery'].includes(part.fieldname)) {
               const buffer = await part.toBuffer();
               // Leere Dateifelder werden von manchen Browsern trotzdem übertragen.
               if (buffer.length > 0) {
@@ -2527,7 +2528,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
             images.logo = storeSiteLogo(file.buffer, file.mimetype);
             if (previous) deleteSiteLogo(previous);
           } else {
-            const slot = file.field as 'hero' | 'service' | 'materials' | 'calculator';
+            const slot = file.field as 'favicon' | 'hero' | 'service' | 'materials' | 'calculator';
             const previous = images[slot];
             images[slot] = await storeSiteImage(slot, {
               buffer: file.buffer,
@@ -2574,6 +2575,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       saveSiteImages(images);
       writeAudit(request.admin?.email ?? 'admin', 'site.images.update', {
         logo: Boolean(images.logo),
+        favicon: Boolean(images.favicon),
         hero: Boolean(images.hero),
         service: Boolean(images.service),
         gallery: images.gallery?.length ?? 0,
@@ -2597,7 +2599,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       if (slot === 'logo') {
         if (images.logo) deleteSiteLogo(images.logo);
         images.logo = '';
-      } else if (slot === 'hero' || slot === 'service' || slot === 'materials' || slot === 'calculator') {
+      } else if (slot === 'favicon' || slot === 'hero' || slot === 'service' || slot === 'materials' || slot === 'calculator') {
         if (images[slot]) deleteProductImageFiles(images[slot]);
         images[slot] = '';
       } else if (slot === 'gallery') {

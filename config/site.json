@@ -38,11 +38,12 @@
   },
   "images": {
     "logo": "",
+    "favicon": "",
     "hero": "",
     "service": "",
-    "gallery": null,
     "materials": "",
     "calculator": "",
+    "gallery": null,
     "galleryAlt": {}
   },
   "features": {

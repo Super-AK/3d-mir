@@ -62,6 +62,7 @@ export function applySiteSettings(): void {
   if (overrides.images) {
     merged.images = {
       logo: overrides.images.logo ?? merged.images.logo,
+      favicon: overrides.images.favicon ?? merged.images.favicon,
       hero: overrides.images.hero ?? merged.images.hero,
       service: overrides.images.service ?? merged.images.service,
       materials: overrides.images.materials ?? merged.images.materials,
@@ -194,6 +195,7 @@ export function saveSiteImages(images: SiteConfig['images']): void {
     ...current,
     images: {
       logo: clean(images.logo, 300),
+      favicon: clean(images.favicon, 300),
       hero: clean(images.hero, 300),
       service: clean(images.service, 300),
       materials: clean(images.materials, 300),

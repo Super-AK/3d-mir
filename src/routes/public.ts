@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
-import { render } from '../lib/render.js';
+import { imagePreview, render } from '../lib/render.js';
 import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
@@ -195,6 +195,11 @@ const redirects: Record<string, string> = {
 };
 
 export async function publicRoutes(app: FastifyInstance): Promise<void> {
+  app.get('/favicon.ico', async (_request, reply) => {
+    const favicon = config.site.images.favicon ? imagePreview(config.site.images.favicon, 96) : '';
+    return reply.redirect(favicon || '/assets/img/favicon-32.png', 302);
+  });
+
   app.get('/', async (_request, reply) => {
     render(reply, 'pages/home.njk', {
       content: getContent(),

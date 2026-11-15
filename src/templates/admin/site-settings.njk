@@ -152,10 +152,11 @@
 
   <section class="card admin-panel">
     <h2>Bilder</h2>
-    <p class="text-muted">Logo (PNG/JPG/WebP, max. 5 MB), Hero-, Service-, Material- und Rechnerbild sowie bis zu acht Galeriebilder. Über das Stiftsymbol lässt sich jedes Bild in einem Fenster auswählen oder hineinziehen. Ohne eigene Bilder werden die mitgelieferten Motive verwendet.</p>
+    <p class="text-muted">Logo und Favicon (PNG/JPG/WebP, max. 5 MB), Hero-, Service-, Material- und Rechnerbild sowie bis zu acht Galeriebilder. Über das Stiftsymbol lässt sich jedes Bild in einem Fenster auswählen oder hineinziehen. Ohne eigene Bilder werden die mitgelieferten Motive verwendet.</p>
 
     {% set imageSlots = [
       { slot: 'logo', label: 'Logo', preview: logoUrl, accept: 'image/png,image/jpeg,image/webp', max: 5, typeLabel: 'PNG, JPG oder WebP', resetLabel: 'Logo entfernen' },
+      { slot: 'favicon', label: 'Favicon', preview: faviconPreview, accept: 'image/png,image/jpeg,image/webp', max: 5, typeLabel: 'PNG, JPG oder WebP (quadratisch empfohlen)', resetLabel: 'Favicon entfernen' },
       { slot: 'hero', label: 'Hero-Bild', preview: heroPreview, accept: 'image/jpeg,image/png,image/webp,image/avif', max: 12, typeLabel: 'JPG, PNG, WebP oder AVIF', resetLabel: 'Auf Standard zurücksetzen' },
       { slot: 'service', label: 'Service-Bild', preview: servicePreview, accept: 'image/jpeg,image/png,image/webp,image/avif', max: 12, typeLabel: 'JPG, PNG, WebP oder AVIF', resetLabel: 'Auf Standard zurücksetzen' },
       { slot: 'materials', label: 'Material-Bild (Leistungen)', preview: materialsPreview, accept: 'image/jpeg,image/png,image/webp,image/avif', max: 12, typeLabel: 'JPG, PNG, WebP oder AVIF', resetLabel: 'Auf Standard zurücksetzen' },

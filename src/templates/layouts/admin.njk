@@ -6,7 +6,7 @@
   <title>{% block title %}Admin – 3D-MIR{% endblock %}</title>
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#0a1530">
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  {% if site.images.favicon %}<link rel="icon" href="{{ faviconUrl }}" type="image/jpeg">{% else %}<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">{% endif %}
   {% for css in assetCss('ts/admin.ts') %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
 </head>
 <body class="admin-body">

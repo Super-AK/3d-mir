@@ -29,14 +29,14 @@ Unter **Admin → Stammdaten** werden die öffentlichen Geschäftsangaben und Bi
 | Geschäftsdaten | Kurzname, vollständiger Name, Inhaber, Straße, PLZ, Ort, Land, Ländercode, Telefon, Telefon-Link, E-Mail, Steuerhinweis, Kleinunternehmer |
 | Kanäle | Etsy-Shop-URL und Bewertungs-URL, Kleinanzeigen-Bezeichnung und -URL |
 | Kontakt/SEO | Antwortzeit, Abholhinweis, SEO-Name, Seitentitel und Beschreibung der Startseite |
-| Bilder | Logo (PNG/JPG/WebP, max. 5 MB), Hero-Bild, Service-Bild, Material-Bild (Leistungen), Rechner-Bild, Galerie mit bis zu 8 Bildern |
+| Bilder | Logo und Favicon (PNG/JPG/WebP, max. 5 MB), Hero-Bild, Service-Bild, Material-Bild (Leistungen), Rechner-Bild, Galerie mit bis zu 8 Bildern |
 | Startseite | Kicker, Überschrift und Einleitungstext im Hero sowie Überschrift und Text des Kontaktbereichs |
 
 Änderungen wirken sofort auf Website, Footer, Rechtsseiten, E-Mails und JSON-LD; ein Neustart ist nicht nötig. Die Werte werden in der Tabelle `settings` unter dem Schlüssel `site.settings` gespeichert und überlagern `config/site.json`. „Auf Standard zurücksetzen“ entfernt das Logo bzw. einzelne Bilder; die mitgelieferten Motive werden dann wieder verwendet.
 
 Hochgeladene Logos liegen unter `/var/lib/3d-mir/uploads/site/` und werden über `/site-media/…` ausgeliefert. Hero-, Service-, Material-, Rechner- und Galeriebilder werden wie Produktbilder in AVIF/WebP/JPEG umgewandelt und unter `/media/site/…` bereitgestellt.
 
-Jedes Bild trägt ein Stiftsymbol. Es öffnet ein Modalfenster, in dem die Datei per Klick ausgewählt oder hineingezogen wird. Hochgeladen wird erst mit **Speichern**; während der Übertragung erscheint ein Fortschrittsbalken.
+Jedes Bild – einschließlich Favicon – trägt ein Stiftsymbol. Es öffnet ein Modalfenster, in dem die Datei per Klick ausgewählt oder hineingezogen wird. Für das Favicon wird ein quadratisches PNG (z. B. 512 × 512 px) empfohlen; es erscheint im Browser-Tab und als Apple-Touch-Icon. Hochgeladen wird erst mit **Speichern**; während der Übertragung erscheint ein Fortschrittsbalken.
 
 - **Zuschneiden:** Nach der Auswahl lässt sich der Bildausschnitt direkt im Fenster verschieben und an den Ecken verkleinern. **Ausschnitt zurücksetzen** verwendet wieder das ganze Bild. Wird nichts verschoben, wird die Originaldatei ohne erneute Kodierung hochgeladen.
 - **Galerie:** mehrere Bilder gleichzeitig auswählen, Vorschau prüfen, einzelne Bilder oder die ganze Auswahl entfernen. **Vorhandene eigene Galerie ersetzen** tauscht die bisherigen Bilder aus.
