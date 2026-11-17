@@ -39,12 +39,23 @@ test.describe('Admin', () => {
       ['/admin/zahlungen/', 'Zahlungen'],
       ['/admin/veroeffentlichung/', 'Veröffentlichung'],
       ['/admin/benachrichtigungen/', 'Benachrichtigungen'],
+      ['/admin/testdaten/', 'Testdaten zurücksetzen'],
       ['/admin/produkte/etsy/', 'Produkte aus Etsy importieren'],
     ] as const) {
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);
       await expect(page.locator('h1')).toContainText(heading);
     }
+
+    // Live-Suche in der Bestellliste: tippen aktualisiert die Ergebnisse,
+    // ohne die Seite neu zu laden (der Fokus bleibt im Suchfeld).
+    await page.goto('/admin/bestellungen/');
+    await expect(page.getByRole('button', { name: 'Filtern', exact: true })).toBeHidden();
+    const search = page.locator('#q');
+    await search.fill('zzz-kein-treffer');
+    await expect(page.locator('[data-filter-results]')).toContainText('Keine Bestellungen gefunden');
+    await expect(page).toHaveURL(/[?&]q=zzz-kein-treffer/);
+    await expect(search).toBeFocused();
 
     // Stripe-Hilfe auf der Zahlungsseite ist aufklappbar.
     await page.goto('/admin/zahlungen/');

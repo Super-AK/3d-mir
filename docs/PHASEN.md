@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.35 – 17. November 2026
+
+Testdaten vor dem Livegang zurücksetzen und Live-Suche in Bestell- und Anfragenliste.
+
 ## Release 1.0.0-rc.34 – 17. November 2026
 
 Dashboard-Kachel für offene Bestellungen, Sammelfilter „Offene“ und sofortige Filterung in der Bestell- und Anfragenliste.

@@ -1,0 +1,50 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Testdaten – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Testdaten zurücksetzen</h1>
+      <p>Bestellungen, Zahlungen, Anfragen und Nachrichten aus der Testphase endgültig löschen.</p>
+    </div>
+  </div>
+
+  {% if resetDone %}
+    <div class="alert alert-success" role="status">
+      <p><strong>Testdaten gelöscht.</strong>
+        {{ resetCounts.orders }} Bestellung(en), {{ resetCounts.paymentEvents }} Zahlungsereignis(se),
+        {{ resetCounts.quotes }} Anfrage(n) und {{ resetCounts.messages }} Nachricht(en) wurden entfernt.
+        Umsatz, letzte Bestellungen, letzte Anfragen und letzte Nachrichten sind damit zurückgesetzt.</p>
+    </div>
+  {% endif %}
+
+  {% if shopLive %}
+    <div class="alert alert-danger" role="alert">
+      <p><strong>Der Shop ist live.</strong> Testdaten lassen sich nur zurücksetzen, solange der Shop nicht live ist. Deaktivieren Sie zuerst „Shop ist live“ unter <a href="/admin/veroeffentlichung/">Veröffentlichung</a>.</p>
+    </div>
+  {% endif %}
+
+  <div class="alert alert-warning" role="status">
+    <p><strong>Dieser Vorgang ist endgültig.</strong> Gelöscht werden Bestellungen mit Positionen, Zahlungen und Verlauf, Zahlungsereignisse, Angebotsanfragen mit Modelldateien, Kontaktnachrichten sowie Spam-Beobachtungen und Absender-Sperren.</p>
+    <p>Erhalten bleiben Produkte, Preise, Kategorien, Bilder, Stammdaten, Rechtstexte, Einstellungen, Benutzer und das Audit-Protokoll. Der Vorgang wird im Audit-Protokoll vermerkt.</p>
+  </div>
+
+  <section class="card admin-panel">
+    <h2>Aktueller Bestand</h2>
+    <dl class="admin-dl">
+      <div><dt>Bestellungen</dt><dd>{{ summary.orders }} <span class="text-muted">(erfasster Umsatz: {{ summary.revenueCents | price }})</span></dd></div>
+      <div><dt>Zahlungsereignisse</dt><dd>{{ summary.paymentEvents }}</dd></div>
+      <div><dt>Angebotsanfragen</dt><dd>{{ summary.quotes }} <span class="text-muted">({{ summary.quoteFiles }} Modelldatei(en))</span></dd></div>
+      <div><dt>Kontaktnachrichten</dt><dd>{{ summary.messages }}</dd></div>
+      <div><dt>Spam-Beobachtungen und Sperren</dt><dd>{{ summary.blocks }}</dd></div>
+    </dl>
+
+    {% if not shopLive %}
+      <div class="form-actions">
+        <a class="btn btn-danger" href="/admin/testdaten/loeschen/">Testdaten zurücksetzen …</a>
+      </div>
+      <p class="hint">Im nächsten Schritt werden die Daten noch einmal aufgelistet und eine Bestätigung verlangt.</p>
+    {% endif %}
+  </section>
+{% endblock %}

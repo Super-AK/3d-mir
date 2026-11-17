@@ -143,6 +143,7 @@ import {
   savePublicationSettings,
   type PublicationSettings,
 } from '../lib/publication-settings.js';
+import { getTestDataSummary, resetTestData } from '../lib/test-data.js';
 
 const db = () => getDb();
 
@@ -3704,6 +3705,61 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       savePublicationSettings(settings);
       writeAudit(request.admin?.email ?? 'admin', 'publication.update', settings);
       return reply.redirect('/admin/veroeffentlichung/?gespeichert=1', 303);
+    });
+
+    // Testdaten zurücksetzen ----------------------------------------------
+    scope.get('/admin/testdaten/', async (request, reply) => {
+      const query = queryObject(request);
+      const count = (value: unknown): number =>
+        typeof value === 'string' ? Number.parseInt(value, 10) || 0 : 0;
+      render(reply, 'admin/testdata.njk', adminContext(request, {
+        summary: getTestDataSummary(),
+        shopLive: getPublicationSettings().shopStatus === 'AKTIV',
+        resetDone: query.reset === '1',
+        resetCounts: {
+          orders: count(query.bestellungen),
+          quotes: count(query.anfragen),
+          messages: count(query.nachrichten),
+          paymentEvents: count(query.zahlungen),
+        },
+      }));
+    });
+
+    scope.get('/admin/testdaten/loeschen/', async (request, reply) => {
+      const shopLive = getPublicationSettings().shopStatus === 'AKTIV';
+      if (shopLive) {
+        return reply.redirect(
+          `/admin/testdaten/?fehler=${encodeURIComponent('Der Shop ist live. Bitte schalten Sie ihn zuerst unter „Veröffentlichung“ offline.')}`,
+          303,
+        );
+      }
+      render(reply, 'admin/testdata-confirm.njk', adminContext(request, {
+        summary: getTestDataSummary(),
+      }));
+    });
+
+    scope.post('/admin/testdaten/loeschen/', async (request, reply) => {
+      if (getPublicationSettings().shopStatus === 'AKTIV') {
+        return reply.redirect(
+          `/admin/testdaten/?fehler=${encodeURIComponent('Der Shop ist live. Bitte schalten Sie ihn zuerst unter „Veröffentlichung“ offline.')}`,
+          303,
+        );
+      }
+      const body = bodyObject(request);
+      const confirmation = cleanText(body.confirm, 20).toUpperCase();
+      if (confirmation !== 'LÖSCHEN') {
+        return reply.redirect(
+          `/admin/testdaten/loeschen/?fehler=${encodeURIComponent('Bitte geben Sie zur Bestätigung LÖSCHEN ein.')}`,
+          303,
+        );
+      }
+
+      const result = resetTestData();
+      writeAudit(request.admin?.email ?? 'admin', 'testdata.reset', result);
+      return reply.redirect(
+        `/admin/testdaten/?reset=1&bestellungen=${result.orders}&anfragen=${result.quotes}&nachrichten=${result.messages}&zahlungen=${result.paymentEvents}`,
+        303,
+      );
     });
 
     // Rechtstexte / Platzhalter -------------------------------------------

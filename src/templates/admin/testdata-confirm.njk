@@ -1,0 +1,40 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Testdaten löschen – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <nav class="breadcrumb" aria-label="Brotkrumen">
+    <ol><li><a href="/admin/testdaten/">Testdaten</a></li><li aria-current="page">Löschen bestätigen</li></ol>
+  </nav>
+
+  <div class="admin-page-head">
+    <div>
+      <h1>Testdaten löschen</h1>
+      <p>Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
+    </div>
+  </div>
+
+  <div class="card admin-panel admin-panel-narrow">
+    <h2>Folgende Daten werden endgültig gelöscht</h2>
+    <ul class="admin-list">
+      <li><strong>{{ summary.orders }} Bestellung(en)</strong> mit Positionen, Zahlungen und Statusverlauf <span class="text-muted">(erfasster Umsatz: {{ summary.revenueCents | price }})</span></li>
+      <li><strong>{{ summary.paymentEvents }} Zahlungsereignis(se)</strong></li>
+      <li><strong>{{ summary.quotes }} Angebotsanfrage(n)</strong> mit {{ summary.quoteFiles }} Modelldatei(en)</li>
+      <li><strong>{{ summary.messages }} Kontaktnachricht(en)</strong></li>
+      <li><strong>{{ summary.blocks }} Spam-Beobachtung(en) und Absender-Sperre(n)</strong></li>
+    </ul>
+    <p class="hint">Produkte, Preise, Bilder, Stammdaten, Einstellungen, Benutzer und das Audit-Protokoll bleiben erhalten.</p>
+
+    <form class="form" method="post" action="/admin/testdaten/loeschen/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="field">
+        <label for="confirm">Zur Bestätigung <code>LÖSCHEN</code> eingeben</label>
+        <input id="confirm" name="confirm" type="text" required autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="LÖSCHEN">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-danger" type="submit">Endgültig zurücksetzen</button>
+        <a class="btn btn-secondary" href="/admin/testdaten/">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

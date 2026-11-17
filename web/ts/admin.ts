@@ -132,6 +132,49 @@ document.querySelectorAll<HTMLSelectElement>('[data-auto-submit]').forEach((sele
   });
 });
 
+// Live-Suche: Ergebnisse nach kurzer Pause laden, ohne den Fokus zu verlieren.
+document.querySelectorAll<HTMLInputElement>('[data-live-search]').forEach((input) => {
+  const form = input.form;
+  const results = document.querySelector<HTMLElement>('[data-filter-results]');
+  if (!form || !results) return;
+
+  let timer: number | undefined;
+  let controller: AbortController | undefined;
+
+  const load = async (): Promise<void> => {
+    controller?.abort();
+    controller = new AbortController();
+    const url = new URL(form.action, window.location.origin);
+    const params = new URLSearchParams();
+    new FormData(form).forEach((value, key) => {
+      if (typeof value === 'string' && value !== '') params.set(key, value);
+    });
+    url.search = params.toString();
+
+    try {
+      const response = await fetch(url, {
+        headers: { 'X-Requested-With': 'fetch' },
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const html = await response.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const next = doc.querySelector<HTMLElement>('[data-filter-results]');
+      if (!next) throw new Error('Ergebnisbereich fehlt');
+      results.replaceChildren(...Array.from(next.childNodes));
+      window.history.replaceState(null, '', `${url.pathname}${url.search}`);
+    } catch (error) {
+      if ((error as DOMException).name === 'AbortError') return;
+      form.requestSubmit();
+    }
+  };
+
+  input.addEventListener('input', () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(load, 300);
+  });
+});
+
 // Nachrichtenliste: Massenauswahl und Klick auf die Zeile.
 const messageBoxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-select-message]'));
 const messageSelectAll = document.querySelector<HTMLInputElement>('[data-select-all-messages]');

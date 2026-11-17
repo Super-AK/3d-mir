@@ -3,6 +3,25 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.35] – 2026-11-17
+
+### Hinzugefügt
+
+- **Testdaten zurücksetzen:** Bestellungen, Zahlungen, Zahlungsereignisse,
+  Angebotsanfragen samt Modelldateien, Kontaktnachrichten sowie
+  Spam-Beobachtungen lassen sich vor dem Livegang endgültig löschen.
+  Bestätigung über eine separate Seite mit Eingabe von `LÖSCHEN`.
+- Der Vorgang ist gesperrt, solange der Shop live ist, und wird im
+  Audit-Protokoll mit den gelöschten Anzahlen vermerkt.
+- Produkte, Preise, Bilder, Stammdaten, Einstellungen und Benutzer bleiben
+  erhalten.
+
+### Geändert
+
+- Die Suche in Bestell- und Anfragenliste startet automatisch beim Tippen,
+  ohne die Seite neu zu laden. Der Button „Filtern“ entfällt bei aktivem
+  JavaScript.
+
 ## [1.0.0-rc.34] – 2026-11-17
 
 ### Geändert
@@ -534,6 +553,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.35]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.35
 [1.0.0-rc.34]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.34
 [1.0.0-rc.33]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.33
 [1.0.0-rc.32]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.32

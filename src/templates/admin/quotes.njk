@@ -22,52 +22,56 @@
     </div>
     <div class="field">
       <label for="q">Suche</label>
-      <input id="q" name="q" type="search" value="{{ q }}" placeholder="Referenz, E-Mail oder Name">
+      <input id="q" name="q" type="search" value="{{ q }}" placeholder="Referenz, E-Mail oder Name" data-live-search>
     </div>
     <div class="admin-filter-actions">
-      <button class="btn btn-small" type="submit">Filtern</button>
+      <button class="btn btn-small" type="submit" data-filter-submit>Filtern</button>
       <a class="btn btn-secondary btn-small" href="/admin/anfragen/">Zurücksetzen</a>
     </div>
   </form>
+  <p class="hint">Die Auswahl im Status und die Suche aktualisieren die Ansicht sofort.</p>
 
-  {% if quotes.length > 0 %}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Referenz</th>
-            <th>Datum</th>
-            <th>Kunde</th>
-            <th>Status</th>
-            <th>Modell</th>
-            <th class="text-right">Schätzung</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for quote in quotes %}
+  <div data-filter-results>
+    <p class="text-muted">{{ quotes.length }} Anfrage(n) in dieser Ansicht.</p>
+    {% if quotes.length > 0 %}
+      <div class="table-wrap">
+        <table>
+          <thead>
             <tr>
-              <td><a href="/admin/anfragen/{{ quote.id }}/"><strong>{{ quote.reference }}</strong></a></td>
-              <td>{{ quote.created_at | date }}</td>
-              <td>{{ quote.name }}{% if quote.company %}<br><small class="text-muted">{{ quote.company }}</small>{% endif %}<br><small class="text-muted">{{ quote.email }}</small></td>
-              <td>
-                {% if quote.status == 'neu' %}<span class="badge badge-warning">Neu</span>
-                {% elif quote.status == 'geprueft' %}<span class="badge badge-info">Geprüft</span>
-                {% elif quote.status == 'angebot_gesendet' %}<span class="badge badge-info">Angebot gesendet</span>
-                {% elif quote.status == 'angenommen' %}<span class="badge badge-success">Angenommen</span>
-                {% elif quote.status == 'abgelehnt' %}<span class="badge badge-danger">Abgelehnt</span>
-                {% else %}<span class="badge badge-neutral">Abgeschlossen</span>{% endif %}
-              </td>
-              <td><small>{{ quote.volume_cm3 | number(1) }} cm³ · {{ quote.weight_g | number(1) }} g<br>{{ quote.quantity }} Stück</small></td>
-              <td class="text-right">{{ quote.estimated_price_cents | price }}</td>
+              <th>Referenz</th>
+              <th>Datum</th>
+              <th>Kunde</th>
+              <th>Status</th>
+              <th>Modell</th>
+              <th class="text-right">Schätzung</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <div class="card empty-state">
-      <h2>Keine Anfragen gefunden</h2>
-      <p class="text-muted">Für die gewählten Filter gibt es keine Einträge.</p>
-    </div>
-  {% endif %}
+          </thead>
+          <tbody>
+            {% for quote in quotes %}
+              <tr>
+                <td><a href="/admin/anfragen/{{ quote.id }}/"><strong>{{ quote.reference }}</strong></a></td>
+                <td>{{ quote.created_at | date }}</td>
+                <td>{{ quote.name }}{% if quote.company %}<br><small class="text-muted">{{ quote.company }}</small>{% endif %}<br><small class="text-muted">{{ quote.email }}</small></td>
+                <td>
+                  {% if quote.status == 'neu' %}<span class="badge badge-warning">Neu</span>
+                  {% elif quote.status == 'geprueft' %}<span class="badge badge-info">Geprüft</span>
+                  {% elif quote.status == 'angebot_gesendet' %}<span class="badge badge-info">Angebot gesendet</span>
+                  {% elif quote.status == 'angenommen' %}<span class="badge badge-success">Angenommen</span>
+                  {% elif quote.status == 'abgelehnt' %}<span class="badge badge-danger">Abgelehnt</span>
+                  {% else %}<span class="badge badge-neutral">Abgeschlossen</span>{% endif %}
+                </td>
+                <td><small>{{ quote.volume_cm3 | number(1) }} cm³ · {{ quote.weight_g | number(1) }} g<br>{{ quote.quantity }} Stück</small></td>
+                <td class="text-right">{{ quote.estimated_price_cents | price }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="card empty-state">
+        <h2>Keine Anfragen gefunden</h2>
+        <p class="text-muted">Für die gewählten Filter gibt es keine Einträge.</p>
+      </div>
+    {% endif %}
+  </div>
 {% endblock %}

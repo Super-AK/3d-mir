@@ -99,6 +99,26 @@ Rechtstexte sollten erst nach rechtlicher Prüfung freigegeben werden. Die TODO-
 
 Die Hinweise auf `/leistungen/` („Bauraum-Angaben sind Richtwerte …“) und der Schätzhinweis im Rechner sind keine Platzhalter, sondern dauerhafte fachliche Hinweise.
 
+## Testdaten zurücksetzen
+
+Unter **Admin → Testdaten** lassen sich die Daten aus der Testphase vor dem Livegang endgültig löschen:
+
+| Bereich | Gelöscht werden |
+| --- | --- |
+| Bestellungen | Bestellungen mit Positionen, Optionen, Zahlungen und Statusverlauf |
+| Zahlungen | Zahlungsereignisse (z. B. Stripe-Testwebhooks) |
+| Anfragen | Angebotsanfragen mit Statusverlauf und hochgeladenen Modelldateien |
+| Nachrichten | Kontaktnachrichten |
+| Spam-Schutz | Beobachtete Absender und aktive Sperren |
+
+Damit werden auch der erfasste Umsatz und die Listen „Letzte Bestellungen“, „Letzte Anfragen“ und „Letzte Nachrichten“ im Dashboard zurückgesetzt, weil diese Werte aus den Bestell- und Anfragedaten berechnet werden.
+
+Erhalten bleiben Produkte, Preise, Kategorien, Bilder, Stammdaten, Rechtstexte, Einstellungen, Benutzer und das Audit-Protokoll. Der Vorgang selbst wird im Audit-Protokoll mit den gelöschten Anzahlen vermerkt.
+
+Vor dem endgültigen Löschen zeigt die Anwendung eine Bestätigungsseite mit allen Anzahlen. Zur Bestätigung muss `LÖSCHEN` eingegeben werden.
+
+**Sperre bei aktivem Shop:** Solange unter **Veröffentlichung** der Schalter „Shop ist live“ aktiv ist, verweigert die Anwendung das Zurücksetzen. So können keine echten Bestellungen versehentlich gelöscht werden. Für einen erneuten Testlauf den Shop zuerst offline schalten.
+
 ## Kategorien
 
 Unter **Admin → Kategorien** werden Produktkategorien angelegt, umbenannt, sortiert und gelöscht. Beim Produkt (Admin → Produkte → Produkt) lassen sich beliebig viele Kategorien anhaken.
@@ -158,6 +178,7 @@ Zahlungsseite, AGB § 5 und Datenschutz § 6 werden aus den hier aktiven Zahlung
 - Bei fehlgeschlagener oder abgebrochener Zahlung kann der Kunde die Zahlung über die Bestellübersicht erneut starten.
 - „Erstattung vermerken“ setzt den Zahlungsstatus auf „erstattet“. Die eigentliche Erstattung erfolgt im Stripe-Dashboard bzw. per Überweisung.
 - Die Bestellliste lässt sich nach Bestellstatus und Zahlungsstatus filtern. Die Auswahl im Dropdown aktualisiert die Ansicht sofort.
+- Die Suche startet automatisch beim Tippen. Bei aktivem JavaScript entfällt der Button „Filtern“; ohne JavaScript bleibt er als Absenden-Funktion erhalten.
 - Der Sammelfilter **Offene** umfasst die Status Neu, Bezahlt und In Druck. Die Kachel **Offene Bestellungen** im Dashboard verlinkt auf genau diese Ansicht.
 
 ### Stripe-Webhook
