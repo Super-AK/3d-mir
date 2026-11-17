@@ -418,7 +418,7 @@ Die Preisanzeige im Shop wird aus den Varianten berechnet: Gibt es unterschiedli
 
 Im Produktformular gibt es die Bereiche **Versandarten** und **Versand-Zusatzoptionen**:
 
-- **Versandarten:** Nur die ausgewählten Versandarten werden für dieses Produkt im Checkout angeboten. Ohne Auswahl gelten alle aktiven Versandarten.
+- **Versandarten:** Nur die ausgewählten Versandarten werden für dieses Produkt im Checkout angeboten. Ohne Auswahl gelten alle aktiven Versandarten. Die Abholung wird an der ID `abholung` oder an der Bezeichnung erkannt (enthält „Abhol“), damit auch eigene IDs wie `abholung-nach-absprache` funktionieren.
 - **Produktseite:** Die Angaben zu Versand, Abholung und Lieferzeit richten sich nach den ausgewählten Versandarten. Bei genau einer Versandart steht der genaue Preis ohne „ab“; bei mehreren erscheint der günstigste Preis mit „ab“. Die Abholung wird nur angezeigt, wenn die Versandart „Abholung“ für das Produkt angeboten wird. Die Lieferzeit nennt bei mehreren Versandarten jede Variante mit ihrer Bezeichnung; die Abholung selbst hat keine Lieferzeit. Wird ausschließlich Abholung angeboten, entfällt die Zeile „Lieferzeit“.
 - **Versandoptionen:** Zusatzleistungen wie „Expressversand“ oder „Geschenkverpackung“, die unter „Preise → Versandoptionen“ angelegt werden. Sie erscheinen im Checkout nur bei Produkten, denen sie zugeordnet wurden, und werden mit ihrem Preis auf die Bestellung addiert.
 - Bei Warenkörben mit mehreren Produkten werden nur Versandarten angeboten, die für alle Produkte erlaubt sind. Versandoptionen werden angeboten, wenn mindestens ein Produkt sie unterstützt; sie werden pro Bestellung einmal berechnet.

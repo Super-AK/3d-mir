@@ -62,9 +62,18 @@ export function formatEuro(cents: number): string {
 
 export const PICKUP_SHIPPING_ID = 'abholung';
 
+/**
+ * Erkennt die Abholung an der ID oder an der Bezeichnung. Ältere und
+ * produktive Einstellungen nutzen teils eigene IDs wie
+ * `abholung-nach-absprache`; die Bezeichnung enthält aber „Abholung“.
+ */
+export function isPickupShippingMethod(method: ShippingMethod): boolean {
+  return method.id === PICKUP_SHIPPING_ID || /abhol/i.test(method.label);
+}
+
 /** Findet die Abholung unter den für ein Produkt angebotenen Versandarten. */
 export function pickupShippingMethod(methods: ShippingMethod[]): ShippingMethod | null {
-  return methods.find((method) => method.id === PICKUP_SHIPPING_ID) ?? null;
+  return methods.find(isPickupShippingMethod) ?? null;
 }
 
 /** Liefert true, wenn mindestens eine kostenpflichtige Versandart angeboten wird. */
@@ -76,7 +85,7 @@ export function hasPaidShippingMethod(methods: ShippingMethod[]): boolean {
 export function deliveryDaysText(method: ShippingMethod): string {
   const days = method.deliveryDays.trim();
   if (!days) return 'nach Absprache';
-  if (method.id === PICKUP_SHIPPING_ID) return days;
+  if (isPickupShippingMethod(method)) return days;
   return /^\d+(\s*[–-]\s*\d+)?$/.test(days) ? `${days} Werktage` : days;
 }
 
@@ -87,7 +96,7 @@ export function deliveryDaysText(method: ShippingMethod): string {
  * Ohne Versandart bleibt der Text leer.
  */
 export function deliveryTimeText(methods: ShippingMethod[]): string {
-  const shippingMethods = methods.filter((method) => method.id !== PICKUP_SHIPPING_ID);
+  const shippingMethods = methods.filter((method) => !isPickupShippingMethod(method));
   if (shippingMethods.length === 0) return '';
   const withLabel = shippingMethods.length > 1 || methods.length > shippingMethods.length;
   return shippingMethods

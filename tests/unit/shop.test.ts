@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   deliveryTimeText,
   formatEuro,
+  isPickupShippingMethod,
   orderTotals,
   pickupShippingMethod,
   shippingCents,
@@ -79,6 +80,18 @@ describe('Produktseite: Versand und Lieferzeit', () => {
   it('erkennt die Abholung nur, wenn sie angeboten wird', () => {
     expect(pickupShippingMethod([dhl])).toBeNull();
     expect(pickupShippingMethod([dhl, pickup])?.id).toBe('abholung');
+  });
+
+  it('erkennt die Abholung auch an einer abweichenden Bezeichnung', () => {
+    const labeledPickup = {
+      id: 'abholung-nach-absprache',
+      label: 'Abholung nach Absprache',
+      price: 0,
+      deliveryDays: 'nach Absprache',
+    };
+    expect(isPickupShippingMethod(labeledPickup)).toBe(true);
+    expect(pickupShippingMethod([dhl, labeledPickup])?.id).toBe('abholung-nach-absprache');
+    expect(deliveryTimeText([dhl, labeledPickup])).toBe('DHL Paket: 2–5 Werktage');
   });
 
   it('ergänzt bei reinen Zahlenangaben „Werktage“', () => {

@@ -3,6 +3,19 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.42] – 2026-11-17
+
+### Behoben
+
+- **Abholung auch bei eigener ID erkannt:** Versandarten mit eigener ID, z. B.
+  `abholung-nach-absprache`, werden zusätzlich anhand der Bezeichnung als
+  Abholung erkannt. Die Lieferzeit nennt sie damit nicht mehr, und der Hinweis
+  „Abholung … in Schömberg möglich“ erscheint wieder. Betrifft insbesondere
+  bestehende Produktivdaten.
+- Die Seite „Versandarten und Kosten“ kennzeichnet solche Abholarten ebenfalls
+  korrekt.
+- Unit-Test für die Erkennung anhand der Bezeichnung ergänzt.
+
 ## [1.0.0-rc.41] – 2026-11-17
 
 ### Hinzugefügt

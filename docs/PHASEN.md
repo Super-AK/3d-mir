@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.42 – 17. November 2026
+
+Abholung wird auch bei abweichender ID anhand der Bezeichnung erkannt. Damit
+verschwindet sie aus der Lieferzeit, und der Abholhinweis erscheint wieder –
+auch bei bestehenden Produktivdaten wie „Abholung nach Absprache“.
+
 ## Release 1.0.0-rc.41 – 17. November 2026
 
 Lieferhinweis pro Produkt, standardmäßig „Fertigung nach Bezahlung“ und frei

@@ -8,6 +8,7 @@ import { getPricingConfig } from './pricing-config.js';
 import { getPublicPaymentMethods } from './shop-settings.js';
 import { getPublicationSettings } from './publication-settings.js';
 import { placeholder } from './placeholders.js';
+import { isPickupShippingMethod } from './shop.js';
 
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
 type ImageInfo = { width: number; height: number; alt: string; variants: ImageVariant[] };
@@ -228,6 +229,7 @@ env.addGlobal('imagePreview', imagePreview);
 env.addGlobal('imageThumbnail', imageThumbnail);
 env.addGlobal('maxUploadMb', Math.round(config.maxUploadBytes / (1024 * 1024)));
 env.addGlobal('placeholder', placeholder);
+env.addGlobal('isPickupShipping', isPickupShippingMethod);
 
 export function render(res: import('fastify').FastifyReply, template: string, context: RenderContext = {}): void {
   const pricing = getPricingConfig();

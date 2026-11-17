@@ -30,7 +30,7 @@
               <div><dt>Lieferzeit</dt><dd>{{ method.deliveryDays or 'nach Absprache' }}</dd></div>
               <div><dt>Kosten</dt><dd>{% if method.price > 0 %}{{ method.price | euro }}{% else %}kostenlos{% endif %}</dd></div>
             </dl>
-            {% if method.id == 'abholung' %}
+            {% if isPickupShipping(method) %}
               <p>Bestellen Sie online und holen Sie Ihre Ware nach Absprache in Schömberg ab. Sie werden benachrichtigt, sobald Ihre Bestellung bereitsteht.</p>
             {% else %}
               <p>Die Zustellung erfolgt innerhalb der angegebenen Zeit an die von Ihnen angegebene Lieferadresse.</p>
