@@ -355,7 +355,7 @@ Bot-Token und SMTP-Passwort sind Geheimnisse. Sie werden in der SQLite-Datenbank
 
 ## Produkte und Bilder
 
-Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pflegen.
+Unter **Admin → Produkte** lassen sich Produkte, Varianten, Farben, Personalisierung und Bilder pflegen.
 
 ### Suche
 
@@ -365,8 +365,8 @@ Die Produktliste lässt sich nach **Name**, **SKU** und **Slug** durchsuchen. Di
 
 - **Löschen:** Über „Löschen“ in der Produktzeile öffnet sich eine Bestätigungsseite. Gelöscht werden Produkt, Varianten und Bilder; bestehende Bestellungen bleiben mit ihren Positionsdaten erhalten.
 - **Massenlöschung:** Produkte in der Liste markieren (oder „Alle auswählen“) und „Ausgewählte löschen“ klicken. Es folgt eine Bestätigungsseite mit allen betroffenen Produkten.
-- **Kopieren:** Legt eine vollständige Kopie inklusive Varianten und Bildern an. Name erhält „(Kopie)“, der Slug ein eindeutiges Suffix; die Kopie ist zunächst **inaktiv**.
-- **Exportieren:** „Exportieren“ lädt alle Produkte als JSON herunter; pro Zeile gibt es zusätzlich einen Einzel-Export. Enthalten sind Produktdaten, Varianten und Bilder (hochgeladene Bilder als Base64-JPG).
+- **Kopieren:** Legt eine vollständige Kopie inklusive Varianten, Farben, Personalisierung und Bildern an. Name erhält „(Kopie)“, der Slug ein eindeutiges Suffix; die Kopie ist zunächst **inaktiv**.
+- **Exportieren:** „Exportieren“ lädt alle Produkte als JSON herunter; pro Zeile gibt es zusätzlich einen Einzel-Export. Enthalten sind Produktdaten, Varianten, Farben, Personalisierung und Bilder (hochgeladene Bilder als Base64-JPG).
 - **Importieren:** JSON-Datei über „Importieren“ hochladen (max. 20 MB). Produkte werden neu angelegt, vorhandene Slugs automatisch durchnummeriert (`-2`, `-3`, …). Bilder werden beim Import erneut in AVIF/WebP/JPG umgewandelt. Der Import überschreibt keine bestehenden Produkte.
 
 Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `products` mit Produkt-, Varianten- und Bilddaten. Ein Export kann unverändert wieder importiert werden (erzeugt dann Kopien mit neuen Slugs).
@@ -408,7 +408,7 @@ Der Schlüssel wird nur für den Importprozess übergeben und nicht im Repositor
 
 Name, Slug, Kurz- und Langbeschreibung, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.
 
-Die Preisanzeige im Shop wird aus den Farbvarianten berechnet: Gibt es unterschiedliche Variantenpreise, steht dort „ab <kleinster Preis>“; sind alle Preise gleich oder gibt es keine Varianten, steht ein einzelner Preis. Auf der Produktseite erscheint zunächst „ab …“ und nach Auswahl einer Farbe der konkrete Variantenpreis.
+Die Preisanzeige im Shop wird aus den Varianten berechnet: Gibt es unterschiedliche Variantenpreise, steht dort „ab <kleinster Preis>“; sind alle Preise gleich oder gibt es keine Varianten, steht ein einzelner Preis. Auf der Produktseite erscheint zunächst „ab …“ und nach Auswahl einer Variante der konkrete Variantenpreis.
 
 ### Versandarten und Versandoptionen pro Produkt
 
@@ -419,9 +419,12 @@ Im Produktformular gibt es die Bereiche **Versandarten** und **Versand-Zusatzopt
 - Bei Warenkörben mit mehreren Produkten werden nur Versandarten angeboten, die für alle Produkte erlaubt sind. Versandoptionen werden angeboten, wenn mindestens ein Produkt sie unterstützt; sie werden pro Bestellung einmal berechnet.
 - Inaktive Versandarten oder Optionen werden im Shop und Checkout nicht angeboten, bleiben aber im Admin zur Bearbeitung sichtbar.
 
-### Farbvarianten
+### Varianten, Farben und Personalisierung
 
-Varianten werden direkt in der Tabelle bearbeitet, ergänzt oder per Löschmarkierung entfernt. Der Lagerbestand ist optional; ist er gesetzt, prüft die Kasse die verfügbare Menge.
+- **Varianten:** Echte Ausführungen wie Größe oder Modell mit eigenem Preis und optionalem Lagerbestand. Varianten werden direkt in der Tabelle bearbeitet, ergänzt oder per Löschmarkierung entfernt. Produkte ohne Varianten sind im Shop direkt kaufbar; die frühere Pflichtvariante „Standard“ ist nicht mehr nötig.
+- **Farbvarianten (kommagetrennt):** Im Produktformular lassen sich Farben als Liste hinterlegen, z. B. `Schwarz, Weiß, Rot`. Die Farben haben keinen eigenen Preis und lassen sich mit Varianten kombinieren. Ist die Liste gefüllt, muss der Kunde im Shop eine Farbe auswählen.
+- **Personalisierung:** Die Checkbox **„Personalisierung anbieten“** blendet im Shop ein optionales Textfeld ein. Der Kunde kann es leer lassen. Der eingegebene Text wird in der Bestellung gespeichert und im Admin sowie in den Bestellmails angezeigt.
+- **Lagerbestand:** Ist ein Bestand gesetzt, prüft die Kasse die verfügbare Menge – bei Varianten am Variantenbestand, bei Produkten ohne Varianten am Produktbestand. Reservierter Bestand wird beim Stornieren wieder freigegeben.
 
 ### Bilder
 

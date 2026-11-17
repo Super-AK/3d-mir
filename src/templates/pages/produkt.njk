@@ -88,21 +88,42 @@
         <p>{{ product.short_description }}</p>
 
         <form class="product-form" method="post" action="/warenkorb/hinzufuegen/">
-          <div class="field">
-            <label for="variantId">Farbe</label>
-            <select id="variantId" name="variantId" required data-variant-select>
-              <option value="" selected disabled>Bitte Farbe wählen</option>
-              {% for variant in variants %}
-                <option value="{{ variant.id }}" data-price-cents="{{ variant.price_cents }}">{{ variant.label }} – {{ variant.price_cents | price }}</option>
-              {% endfor %}
-            </select>
-          </div>
+          <input type="hidden" name="productId" value="{{ product.id }}">
+          {% if variants.length > 0 %}
+            <div class="field">
+              <label for="variantId">Variante</label>
+              <select id="variantId" name="variantId" required data-variant-select>
+                <option value="" selected disabled>Bitte Variante wählen</option>
+                {% for variant in variants %}
+                  <option value="{{ variant.id }}" data-price-cents="{{ variant.price_cents }}">{{ variant.label }} – {{ variant.price_cents | price }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+          {% if colorOptions.length > 0 %}
+            <div class="field">
+              <label for="color">Farbe</label>
+              <select id="color" name="color" required>
+                <option value="" selected disabled>Bitte Farbe wählen</option>
+                {% for color in colorOptions %}
+                  <option value="{{ color }}">{{ color }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+          {% if personalizationEnabled %}
+            <div class="field">
+              <label for="personalization">Personalisierung (optional)</label>
+              <textarea id="personalization" name="personalization" rows="3" maxlength="500" placeholder="z. B. Name oder kurzer Text"></textarea>
+              <span class="hint">Dieses Feld ist freiwillig. Lassen Sie es leer, wenn keine Personalisierung gewünscht ist.</span>
+            </div>
+          {% endif %}
           <div class="product-buy-row">
             <div class="field field-quantity">
               <label for="quantity">Menge</label>
               <input id="quantity" name="quantity" type="number" min="1" max="{{ maxQuantity }}" value="1" inputmode="numeric" required>
             </div>
-            <button class="btn btn-block" type="submit" {% if variants.length == 0 %}disabled{% endif %}>In den Warenkorb</button>
+            <button class="btn btn-block" type="submit">In den Warenkorb</button>
           </div>
         </form>
 
@@ -115,7 +136,7 @@
 
         {% if publication.pricingStatus != 'FINAL' %}
           <div class="alert alert-info">
-            <p><strong>Preishinweis:</strong> Die Farbzuordnung der Preise ist noch nicht bestätigt. Im Warenkorb wird der niedrigste Preis angesetzt; der verbindliche Preis wird vor der Fertigung geprüft. <a href="/kontakt/">Fragen?</a></p>
+            <p><strong>Preishinweis:</strong> Die Preise der Varianten sind noch nicht abschließend bestätigt. Im Warenkorb wird der gewählte Preis angesetzt; der verbindliche Preis wird vor der Fertigung geprüft. <a href="/kontakt/">Fragen?</a></p>
           </div>
         {% endif %}
       </div>
@@ -138,7 +159,7 @@
         {% if product.dimensions %}<div><dt>Maße</dt><dd>{{ product.dimensions }}</dd></div>{% endif %}
         <div><dt>Material</dt><dd>PLA</dd></div>
         <div><dt>Verfahren</dt><dd>FDM-3D-Druck</dd></div>
-        <div><dt>Farbe</dt><dd>{{ variants.length }} Varianten</dd></div>
+        <div><dt>Auswahl</dt><dd>{% if variants.length > 0 %}{{ variants.length }} Variante(n){% endif %}{% if variants.length > 0 and colorOptions.length > 0 %} · {% endif %}{% if colorOptions.length > 0 %}{{ colorOptions.length }} Farbe(n){% endif %}{% if variants.length == 0 and colorOptions.length == 0 %}Standard{% endif %}</dd></div>
         <div><dt>Artikelnummer</dt><dd>{{ product.sku or '–' }}</dd></div>
         <div><dt>Herstellung</dt><dd>Deutschland</dd></div>
       </dl>

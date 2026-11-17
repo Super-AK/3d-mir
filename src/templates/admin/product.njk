@@ -10,7 +10,7 @@
   <div class="admin-page-head">
     <div>
       <h1>{% if isNew %}Neues Produkt{% else %}{{ product.name }}{% endif %}</h1>
-      <p>{% if isNew %}Produkt anlegen. Farbvarianten können anschließend ergänzt werden.{% else %}Produktdaten, Preise und Varianten bearbeiten.{% endif %}</p>
+      <p>{% if isNew %}Produkt anlegen. Varianten, Farben und Personalisierung können anschließend ergänzt werden.{% else %}Produktdaten, Preise, Varianten, Farben und Personalisierung bearbeiten.{% endif %}</p>
     </div>
     {% if not isNew %}
       <div class="admin-page-actions">
@@ -135,6 +135,20 @@
       </div>
     </fieldset>
 
+    <fieldset class="admin-fieldset">
+      <legend>Varianten, Farben und Personalisierung</legend>
+      <div class="field">
+        <label for="colorOptions">Farbvarianten (kommagetrennt)</label>
+        <input id="colorOptions" name="colorOptions" type="text" maxlength="1000" value="{{ form.colorOptions }}" placeholder="z. B. Schwarz, Weiß, Rot, Blau">
+        <span class="hint">Zusätzliche Farbauswahl ohne Preisunterschied. Leer lassen, wenn das Produkt keine Farbauswahl hat. Farben lassen sich mit Varianten kombinieren.</span>
+      </div>
+      <label class="admin-check">
+        <input type="checkbox" name="personalizationEnabled" value="1" {% if form.personalizationEnabled %}checked{% endif %}>
+        <span>Personalisierung anbieten</span>
+      </label>
+      <span class="hint">Zeigt im Shop ein optionales Textfeld für eine persönliche Anmerkung. Der Kunde muss es nicht ausfüllen.</span>
+    </fieldset>
+
     <div class="form-actions">
       <button class="btn" type="submit">Speichern</button>
       <a class="btn btn-secondary" href="/admin/produkte/">Zurück</a>
@@ -143,8 +157,8 @@
 
   {% if not isNew %}
     <section class="card admin-panel">
-      <h2>Farbvarianten</h2>
-      <p class="text-muted">Preise werden im Shop pro Variante angezeigt. Ist ein Lagerbestand eingetragen, wird die Bestellmenge dagegen geprüft.</p>
+      <h2>Varianten</h2>
+      <p class="text-muted">Varianten sind echte Ausführungen wie Größe oder Modell mit eigenem Preis und Bestand. Produkte ohne Varianten sind direkt kaufbar. Farben werden oben als kommagetrennte Liste gepflegt.</p>
       <form method="post" action="/admin/produkte/{{ product.id }}/varianten/">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <div class="table-wrap">

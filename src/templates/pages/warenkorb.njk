@@ -33,7 +33,9 @@
             <article class="cart-item card">
               <div class="cart-item-main">
                 <h2><a href="/shop/{{ line.productSlug }}/">{{ line.productName }}</a></h2>
-                <p class="text-muted">Farbe: {{ line.variantLabel }}</p>
+                {% if line.variantLabel %}<p class="text-muted">Variante: {{ line.variantLabel }}</p>{% endif %}
+                {% if line.color %}<p class="text-muted">Farbe: {{ line.color }}</p>{% endif %}
+                {% if line.personalization %}<p class="text-muted">Personalisierung: {{ line.personalization }}</p>{% endif %}
                 <p class="cart-unit-price">{{ line.unitPriceCents | price }} pro Stück</p>
                 {% if line.stock != null and line.stock < line.quantity %}
                   <p class="field-error">Nur noch {{ line.stock }} Stück verfügbar.</p>
@@ -41,12 +43,12 @@
               </div>
               <div class="cart-item-actions">
                 <form class="cart-quantity" method="post" action="/warenkorb/aktualisieren/">
-                  <label for="quantity_{{ line.variantId }}">Menge</label>
-                  <input id="quantity_{{ line.variantId }}" name="quantity_{{ line.variantId }}" type="number" min="1" max="{{ maxQuantity }}" value="{{ line.quantity }}" inputmode="numeric">
+                  <label for="quantity_{{ line.key }}">Menge</label>
+                  <input id="quantity_{{ line.key }}" name="quantity_{{ line.key }}" type="number" min="1" max="{{ maxQuantity }}" value="{{ line.quantity }}" inputmode="numeric">
                   <button class="btn btn-secondary btn-small" type="submit">Aktualisieren</button>
                 </form>
                 <form method="post" action="/warenkorb/entfernen/">
-                  <input type="hidden" name="variantId" value="{{ line.variantId }}">
+                  <input type="hidden" name="key" value="{{ line.key }}">
                   <button class="btn btn-danger btn-small" type="submit">Entfernen</button>
                 </form>
               </div>

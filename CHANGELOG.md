@@ -3,6 +3,29 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.38] – 2026-11-17
+
+### Hinzugefügt
+
+- **Varianten, Farben und Personalisierung:** Der bisherige Bereich
+  „Farbvarianten“ heißt jetzt „Varianten“ und ist für echte Ausführungen wie
+  Größe oder Modell mit eigenem Preis und Bestand gedacht.
+- **Farbvarianten als kommagetrennte Liste:** Farben lassen sich pro Produkt
+  zusätzlich hinterlegen, ohne eigenen Preis, und mit Varianten kombinieren.
+- **Personalisierung pro Produkt:** Eine Checkbox blendet im Shop ein
+  optionales Textfeld ein. Der Text wird in der Bestellung gespeichert und im
+  Admin, in den Bestellmails und in den Stripe-Positionen angezeigt.
+- **Produkte ohne Varianten** sind direkt kaufbar; die Pflichtvariante
+  „Standard“ entfällt.
+- Der Warenkorb speichert Variante, Farbe, Personalisierung und Menge mit
+  stabilen Zeilenschlüsseln; Bestandsführung und Freigabe berücksichtigen auch
+  Produkte ohne Varianten.
+- Export, Import, Kopieren und Etsy-Import übernehmen die neuen Felder.
+- E2E-Tests für Produkte ohne Varianten, kombinierte Varianten/Farben und
+  optionale Personalisierung ergänzt.
+- Produktkarten ohne Bild zeigen einen neutralen Platzhalter statt eines
+  Fehlers.
+
 ## [1.0.0-rc.37] – 2026-11-17
 
 ### Hinzugefügt
@@ -576,6 +599,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.38]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.38
 [1.0.0-rc.37]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.37
 [1.0.0-rc.36]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.36
 [1.0.0-rc.35]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.35

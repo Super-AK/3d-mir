@@ -100,7 +100,7 @@
         <ul class="summary-items">
           {% for item in items %}
             <li>
-              <span><strong>{{ item.quantity }} ×</strong> {{ item.name }}<br><span class="text-muted">{{ item.variant }}</span></span>
+              <span><strong>{{ item.quantity }} ×</strong> {{ item.name }}{% if item.variant %}<br><span class="text-muted">{{ item.variant }}</span>{% endif %}{% if item.color %}<br><span class="text-muted">Farbe: {{ item.color }}</span>{% endif %}{% if item.personalization %}<br><span class="text-muted">Personalisierung: {{ item.personalization }}</span>{% endif %}</span>
               <span>{{ item.line_total_cents | price }}</span>
             </li>
           {% endfor %}

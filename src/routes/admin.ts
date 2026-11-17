@@ -317,6 +317,8 @@ type OrderItemRow = {
   id: number;
   name: string;
   variant: string;
+  color: string;
+  personalization: string;
   unit_price_cents: number;
   quantity: number;
   line_total_cents: number;
@@ -391,6 +393,8 @@ type ProductRow = {
   sort_order: number;
   shipping_method_ids: string;
   shipping_option_ids: string;
+  color_options: string;
+  personalization_enabled: number;
   created_at: string;
   updated_at: string;
 };
@@ -421,7 +425,25 @@ type ProductForm = {
   active: boolean;
   shippingMethodIds: string[];
   shippingOptionIds: string[];
+  colorOptions: string;
+  personalizationEnabled: boolean;
 };
+
+/** Zerlegt die kommagetrennte Farbliste und entfernt Dubletten. */
+function parseColorOptions(value: string): string[] {
+  const seen = new Set<string>();
+  const colors: string[] = [];
+  for (const raw of value.split(',')) {
+    const color = raw.trim().replace(/\s+/g, ' ').slice(0, 60);
+    if (!color) continue;
+    const key = color.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    colors.push(color);
+    if (colors.length >= 40) break;
+  }
+  return colors;
+}
 
 function orderStatusLabel(status: string): string {
   return orderStatuses.find((item) => item.id === status)?.label ?? status;
@@ -725,6 +747,8 @@ function emptyProductForm(): ProductForm {
     active: true,
     shippingMethodIds: [],
     shippingOptionIds: [],
+    colorOptions: '',
+    personalizationEnabled: false,
   };
 }
 
@@ -744,6 +768,8 @@ function productFormFromRow(product: ProductRow): ProductForm {
     active: product.active === 1,
     shippingMethodIds: parseIdJson(product.shipping_method_ids),
     shippingOptionIds: parseIdJson(product.shipping_option_ids),
+    colorOptions: product.color_options,
+    personalizationEnabled: product.personalization_enabled === 1,
   };
 }
 
@@ -770,6 +796,8 @@ function readProductForm(body: Record<string, unknown>): ProductForm {
     active: body.active === '1' || body.active === 'on',
     shippingMethodIds: bodyIds(body.shippingMethodIds),
     shippingOptionIds: bodyIds(body.shippingOptionIds),
+    colorOptions: cleanText(body.colorOptions, 1000),
+    personalizationEnabled: body.personalizationEnabled === '1' || body.personalizationEnabled === 'on',
   };
 }
 
@@ -788,6 +816,8 @@ type ProductData = {
   active: boolean;
   shippingMethodIds: string[];
   shippingOptionIds: string[];
+  colorOptions: string;
+  personalizationEnabled: boolean;
 };
 
 function validateProductForm(form: ProductForm): { data?: ProductData; error?: string } {
@@ -829,6 +859,8 @@ function validateProductForm(form: ProductForm): { data?: ProductData; error?: s
       active: form.active,
       shippingMethodIds: form.shippingMethodIds,
       shippingOptionIds: form.shippingOptionIds,
+      colorOptions: parseColorOptions(form.colorOptions).join(', '),
+      personalizationEnabled: form.personalizationEnabled,
     },
   };
 }
@@ -1013,6 +1045,8 @@ function exportProducts(ids?: number[]) {
       sortOrder: product.sort_order,
       shippingMethodIds: parseIdJson(product.shipping_method_ids),
       shippingOptionIds: parseIdJson(product.shipping_option_ids),
+      colorOptions: parseColorOptions(product.color_options),
+      personalizationEnabled: product.personalization_enabled === 1,
       variants: variantsFor(product.id).map((variant) => ({
         label: variant.label,
         priceCents: variant.price_cents,
@@ -1049,6 +1083,8 @@ const importProductSchema = z.object({
   sortOrder: z.number().int().min(-100_000).max(100_000).optional().default(0),
   shippingMethodIds: z.array(z.string().regex(/^[a-z0-9-]+$/)).max(50).optional().default([]),
   shippingOptionIds: z.array(z.string().regex(/^[a-z0-9-]+$/)).max(50).optional().default([]),
+  colorOptions: z.array(z.string().max(60)).max(40).optional().default([]),
+  personalizationEnabled: z.boolean().optional().default(false),
   variants: z
     .array(
       z.object({
@@ -1086,8 +1122,9 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
         .prepare(
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
-              dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
+              personalization_enabled)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -1104,6 +1141,8 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
           sortOrder,
           JSON.stringify(item.shippingMethodIds),
           JSON.stringify(item.shippingOptionIds),
+          parseColorOptions(item.colorOptions.join(', ')).join(', '),
+          item.personalizationEnabled ? 1 : 0,
         );
       const productId = Number(info.lastInsertRowid);
 
@@ -3153,8 +3192,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .prepare(
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
-              dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
+              personalization_enabled)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -3171,6 +3211,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           maxSort.value + 1,
           product.shipping_method_ids,
           product.shipping_option_ids,
+          product.color_options,
+          product.personalization_enabled,
         );
       const productId = Number(info.lastInsertRowid);
 
@@ -3374,8 +3416,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const info = db()
         .prepare(
           `INSERT INTO products
-            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options, personalization_enabled)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           data.slug,
@@ -3392,6 +3434,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.sortOrder,
           JSON.stringify(data.shippingMethodIds),
           JSON.stringify(data.shippingOptionIds),
+          data.colorOptions,
+          data.personalizationEnabled ? 1 : 0,
         );
       saveProductCategories(Number(info.lastInsertRowid), bodyIds(body.productCategories).map(Number));
       writeAudit(request.admin?.email ?? 'admin', 'product.create', { id: info.lastInsertRowid, slug: data.slug });
@@ -3453,7 +3497,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           `UPDATE products SET
              slug = ?, name = ?, short_description = ?, description = ?, price_from_cents = ?,
              price_to_cents = ?, sku = ?, weight_g = ?, dimensions = ?, stock = ?, active = ?,
-             sort_order = ?, shipping_method_ids = ?, shipping_option_ids = ?, updated_at = datetime('now')
+             sort_order = ?, shipping_method_ids = ?, shipping_option_ids = ?, color_options = ?,
+             personalization_enabled = ?, updated_at = datetime('now')
            WHERE id = ?`,
         )
         .run(
@@ -3471,6 +3516,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.sortOrder,
           JSON.stringify(data.shippingMethodIds),
           JSON.stringify(data.shippingOptionIds),
+          data.colorOptions,
+          data.personalizationEnabled ? 1 : 0,
           id,
         );
       saveProductCategories(id, bodyIds(body.productCategories).map(Number));

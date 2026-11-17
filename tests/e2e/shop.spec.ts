@@ -6,7 +6,7 @@ test('Shop: Produkt in den Warenkorb legen und bestellen', async ({ page }) => {
 
   await page.goto('/shop/');
   await expect(page.locator('h1')).toHaveText('Shop');
-  await page.getByRole('link', { name: 'Details ansehen' }).click();
+  await page.locator('.product-card', { hasText: 'Recycling-Box' }).getByRole('link', { name: 'Details ansehen' }).click();
   await expect(page.locator('h1')).toContainText('Recycling-Box');
 
   await page.selectOption('#variantId', { index: 1 });

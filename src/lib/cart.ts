@@ -1,18 +1,30 @@
+import crypto from 'node:crypto';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { config } from '../config.js';
 
 /**
  * Warenkorb im signierten Cookie.
  *
- * Es werden nur Varianten-IDs und Mengen gespeichert – niemals Preise. Preise
- * und Verfügbarkeit werden bei jeder Anzeige und bei der Bestellung erneut aus
- * der Datenbank gelesen.
+ * Gespeichert werden nur Produkt-/Varianten-IDs, Farbe, Personalisierung und
+ * Menge – niemals Preise. Preise und Verfügbarkeit werden bei jeder Anzeige
+ * und bei der Bestellung erneut aus der Datenbank gelesen.
+ *
+ * Produkte ohne Varianten haben variantId = null. Farbe und Personalisierung
+ * sind optional und werden serverseitig gegen das Produkt geprüft.
  */
-export type CartItem = { variantId: number; quantity: number };
+export type CartItem = {
+  productId: number;
+  variantId: number | null;
+  color: string;
+  personalization: string;
+  quantity: number;
+};
 export type Cart = { items: CartItem[] };
 
 export const CART_COOKIE = 'warenkorb';
 const MAX_ITEMS = 50;
+const MAX_COLOR_LENGTH = 60;
+const MAX_PERSONALIZATION_LENGTH = 500;
 
 function clampQuantity(value: unknown): number {
   const quantity = Math.trunc(Number(value));
@@ -20,21 +32,55 @@ function clampQuantity(value: unknown): number {
   return Math.min(config.shop.maxQuantityPerItem, Math.max(1, quantity));
 }
 
+function cleanText(value: unknown, maxLength: number): string {
+  if (typeof value !== 'string') return '';
+  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
+
+/** Stabile Zeilenkennung für Aktualisieren und Entfernen. */
+export function cartLineKey(item: Pick<CartItem, 'productId' | 'variantId' | 'color' | 'personalization'>): string {
+  return crypto
+    .createHash('sha256')
+    .update(`${item.productId}\u0000${item.variantId ?? ''}\u0000${item.color}\u0000${item.personalization}`)
+    .digest('hex')
+    .slice(0, 16);
+}
+
+function normaliseItem(raw: unknown): CartItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const source = raw as Record<string, unknown>;
+  const productId = Math.trunc(Number(source.productId));
+  if (!Number.isFinite(productId) || productId <= 0) return null;
+  const variantId = source.variantId == null || source.variantId === '' ? null : Math.trunc(Number(source.variantId));
+  const validVariant = variantId !== null && Number.isFinite(variantId) && variantId > 0 ? variantId : null;
+  return {
+    productId,
+    variantId: validVariant,
+    color: cleanText(source.color, MAX_COLOR_LENGTH),
+    personalization: cleanText(source.personalization, MAX_PERSONALIZATION_LENGTH),
+    quantity: clampQuantity(source.quantity),
+  };
+}
+
 function normalise(value: unknown): Cart {
   if (!value || typeof value !== 'object') return { items: [] };
   const rawItems = (value as { items?: unknown }).items;
   if (!Array.isArray(rawItems)) return { items: [] };
 
-  const merged = new Map<number, number>();
+  const merged = new Map<string, CartItem>();
   for (const raw of rawItems.slice(0, MAX_ITEMS)) {
-    if (!raw || typeof raw !== 'object') continue;
-    const variantId = Math.trunc(Number((raw as { variantId?: unknown }).variantId));
-    if (!Number.isFinite(variantId) || variantId <= 0) continue;
-    const quantity = clampQuantity((raw as { quantity?: unknown }).quantity);
-    merged.set(variantId, Math.min(config.shop.maxQuantityPerItem, (merged.get(variantId) ?? 0) + quantity));
+    const item = normaliseItem(raw);
+    if (!item) continue;
+    const key = cartLineKey(item);
+    const existing = merged.get(key);
+    if (existing) {
+      existing.quantity = Math.min(config.shop.maxQuantityPerItem, existing.quantity + item.quantity);
+    } else {
+      merged.set(key, item);
+    }
   }
 
-  return { items: [...merged].map(([variantId, quantity]) => ({ variantId, quantity })) };
+  return { items: [...merged.values()] };
 }
 
 /** Liest den Warenkorb aus dem signierten Cookie. Ungültige Cookies ergeben einen leeren Warenkorb. */

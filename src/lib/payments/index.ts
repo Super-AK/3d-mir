@@ -44,10 +44,13 @@ export type PaymentOrder = {
 export type OrderItem = {
   name: string;
   variant: string;
+  color: string;
+  personalization: string;
   quantity: number;
   unit_price_cents: number;
   line_total_cents: number;
   variant_id: number | null;
+  product_id: number | null;
 };
 
 export type OrderOption = {
@@ -114,7 +117,7 @@ export function getPaymentOrderByAccess(orderNumber: string, token: string): Pay
 export function getOrderItems(orderId: number): OrderItem[] {
   return db()
     .prepare(
-      'SELECT name, variant, quantity, unit_price_cents, line_total_cents, variant_id FROM order_items WHERE order_id = ? ORDER BY id',
+      'SELECT name, variant, color, personalization, quantity, unit_price_cents, line_total_cents, variant_id, product_id FROM order_items WHERE order_id = ? ORDER BY id',
     )
     .all(orderId) as OrderItem[];
 }
@@ -133,12 +136,22 @@ export function publicOrderUrl(order: Pick<PaymentOrder, 'order_number' | 'publi
   return `${config.payment.baseUrl}/bestellung/danke/?nummer=${encodeURIComponent(order.order_number)}&token=${order.public_token}`;
 }
 
+function orderItemLabel(item: OrderItem): string {
+  return [
+    item.variant,
+    item.color ? `Farbe: ${item.color}` : '',
+    item.personalization ? `Personalisierung: ${item.personalization}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 function buildLineItems(order: PaymentOrder): StripeLineItem[] {
   const items = getOrderItems(order.id);
   const options = getOrderOptions(order.id);
   const method = findPaymentMethod(order.payment_method);
   const lineItems: StripeLineItem[] = items.map((item) => ({
-    name: `${item.name}${item.variant ? ` – ${item.variant}` : ''}`,
+    name: `${item.name}${orderItemLabel(item) ? ` – ${orderItemLabel(item)}` : ''}`,
     amountCents: item.unit_price_cents,
     quantity: item.quantity,
   }));
@@ -351,12 +364,18 @@ export function releaseStock(orderId: number, reason: string, cancelOrder = true
 
     if (order.stock_reserved === 1 && !order.stock_released_at) {
       const items = db()
-        .prepare('SELECT variant_id, quantity FROM order_items WHERE order_id = ? AND variant_id IS NOT NULL')
-        .all(orderId) as { variant_id: number; quantity: number }[];
+        .prepare('SELECT product_id, variant_id, quantity FROM order_items WHERE order_id = ?')
+        .all(orderId) as { product_id: number | null; variant_id: number | null; quantity: number }[];
       for (const item of items) {
-        db()
-          .prepare('UPDATE product_variants SET stock = stock + ? WHERE id = ? AND stock IS NOT NULL')
-          .run(item.quantity, item.variant_id);
+        if (item.variant_id !== null) {
+          db()
+            .prepare('UPDATE product_variants SET stock = stock + ? WHERE id = ? AND stock IS NOT NULL')
+            .run(item.quantity, item.variant_id);
+        } else if (item.product_id !== null) {
+          db()
+            .prepare('UPDATE products SET stock = stock + ? WHERE id = ? AND stock IS NOT NULL')
+            .run(item.quantity, item.product_id);
+        }
       }
       db()
         .prepare(
@@ -580,7 +599,7 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
     '',
     ...items.map(
       (item) =>
-        `- ${item.quantity} × ${item.name}${item.variant ? ` (${item.variant})` : ''} = ${formatEuro(item.line_total_cents)}`,
+        `- ${item.quantity} × ${item.name}${orderItemLabel(item) ? ` (${orderItemLabel(item)})` : ''} = ${formatEuro(item.line_total_cents)}`,
     ),
     '',
     'Viele Grüße',
@@ -588,7 +607,7 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
   ].join('\n');
 
   const itemRows = items.map(
-    (item) => [`${item.quantity} × ${item.name}`, `${item.variant ? `${item.variant} · ` : ''}${formatEuro(item.line_total_cents)}`] as [string, string],
+    (item) => [`${item.quantity} × ${item.name}`, `${orderItemLabel(item) ? `${orderItemLabel(item)} · ` : ''}${formatEuro(item.line_total_cents)}`] as [string, string],
   );
   const customerHtml = mailLayout({
     title: 'Zahlung eingegangen',

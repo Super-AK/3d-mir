@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.38 – 17. November 2026
+
+Varianten, kommagetrennte Farben und optionale Personalisierung.
+
 ## Release 1.0.0-rc.37 – 17. November 2026
 
 Live-Suche in der Produktliste.

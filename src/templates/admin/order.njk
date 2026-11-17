@@ -41,7 +41,7 @@
           <tbody>
             {% for item in items %}
               <tr>
-                <td>{{ item.name }}{% if item.variant %}<br><small class="text-muted">{{ item.variant }}</small>{% endif %}</td>
+                <td>{{ item.name }}{% if item.variant %}<br><small class="text-muted">{{ item.variant }}</small>{% endif %}{% if item.color %}<br><small class="text-muted">Farbe: {{ item.color }}</small>{% endif %}{% if item.personalization %}<br><small class="text-muted">Personalisierung: {{ item.personalization }}</small>{% endif %}</td>
                 <td>{{ item.quantity }}</td>
                 <td class="text-right">{{ item.unit_price_cents | price }}</td>
                 <td class="text-right">{{ item.line_total_cents | price }}</td>

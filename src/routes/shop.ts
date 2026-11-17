@@ -8,7 +8,7 @@ import { sendMail } from '../lib/mailer.js';
 import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, createReference, isSameOrigin } from '../lib/http.js';
 import { mailButton, mailLayout, mailLink, mailNotice, mailParagraph, mailSection, mailTable } from '../lib/mail-layout.js';
-import { clearCart, readCart, writeCart, type Cart } from '../lib/cart.js';
+import { clearCart, readCart, writeCart, cartLineKey, type Cart } from '../lib/cart.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
 import { allCategories, categoriesForProduct, findCategoryBySlug } from '../lib/categories.js';
 import type { PricingConfig } from '../config.js';
@@ -58,6 +58,8 @@ type ProductRow = {
   sort_order: number;
   shipping_method_ids: string;
   shipping_option_ids: string;
+  color_options: string;
+  personalization_enabled: number;
 };
 
 type VariantRow = {
@@ -79,11 +81,14 @@ type ProductListItem = ProductRow & {
 };
 
 type CartLine = {
-  variantId: number;
+  key: string;
+  variantId: number | null;
   quantity: number;
   unitPriceCents: number;
   lineTotalCents: number;
   variantLabel: string;
+  color: string;
+  personalization: string;
   productId: number;
   productSlug: string;
   productName: string;
@@ -130,6 +135,21 @@ function availableShippingAddons(shipping: PricingConfig['shipping'], lines: Car
 
 function addonCents(options: ShippingAddon[]): number {
   return options.reduce((sum, option) => sum + Math.max(0, Math.round(option.price * 100)), 0);
+}
+
+/** Zerlegt die kommagetrennte Farbliste eines Produkts. */
+function productColors(product: Pick<ProductRow, 'color_options'>): string[] {
+  return product.color_options
+    .split(',')
+    .map((color) => color.trim())
+    .filter((color) => color.length > 0);
+}
+
+/** Findet eine Farbe ohne Beachtung der Groß-/Kleinschreibung und liefert die Schreibweise aus der Datenbank. */
+function matchColor(colors: string[], value: string): string | null {
+  const wanted = value.trim().toLowerCase();
+  if (!wanted) return null;
+  return colors.find((color) => color.toLowerCase() === wanted) ?? null;
 }
 
 function listProducts(categorySlug?: string): ProductListItem[] {
@@ -183,61 +203,75 @@ function findProduct(slug: string): { product: ProductRow; variants: VariantRow[
   return { product, variants, images };
 }
 
-function findVariant(variantId: number): (VariantRow & { product_slug: string; product_name: string; product_active: number }) | null {
-  const row = db()
-    .prepare(
-      `SELECT v.*, p.slug AS product_slug, p.name AS product_name, p.active AS product_active
-       FROM product_variants v JOIN products p ON p.id = v.product_id
-       WHERE v.id = ?`,
-    )
-    .get(variantId) as
-    | (VariantRow & { product_slug: string; product_name: string; product_active: number })
-    | undefined;
-  return row ?? null;
+function findProductById(id: number): { product: ProductRow; variants: VariantRow[] } | null {
+  const product = db().prepare('SELECT * FROM products WHERE id = ? AND active = 1').get(id) as ProductRow | undefined;
+  if (!product) return null;
+  const variants = db()
+    .prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY sort_order, id')
+    .all(product.id) as VariantRow[];
+  return { product, variants };
 }
 
 /** Löst den Cookie-Warenkorb gegen die Datenbank auf. Preise kommen nie aus dem Cookie. */
 function loadCartLines(cart: Cart): CartLine[] {
   if (cart.items.length === 0) return [];
-  const ids = cart.items.map((item) => item.variantId);
-  const placeholders = ids.map(() => '?').join(',');
-  const rows = db()
-    .prepare(
-      `SELECT v.id, v.label, v.price_cents, v.stock, p.id AS product_id, p.slug, p.name,
-              p.shipping_method_ids, p.shipping_option_ids
-       FROM product_variants v JOIN products p ON p.id = v.product_id
-       WHERE p.active = 1 AND v.id IN (${placeholders})`,
-    )
-    .all(...ids) as {
-    id: number;
-    label: string;
-    price_cents: number;
-    stock: number | null;
-    product_id: number;
-    slug: string;
-    name: string;
-    shipping_method_ids: string;
-    shipping_option_ids: string;
-  }[];
 
-  const byId = new Map(rows.map((row) => [row.id, row]));
+  const productIds = [...new Set(cart.items.map((item) => item.productId))];
+  const productPlaceholders = productIds.map(() => '?').join(',');
+  const products = db()
+    .prepare(`SELECT * FROM products WHERE active = 1 AND id IN (${productPlaceholders})`)
+    .all(...productIds) as ProductRow[];
+  const byProductId = new Map(products.map((product) => [product.id, product]));
+
+  const variantIds = [...new Set(cart.items.map((item) => item.variantId).filter((id): id is number => id !== null))];
+  const variants = variantIds.length > 0
+    ? (db()
+        .prepare(
+          `SELECT * FROM product_variants WHERE id IN (${variantIds.map(() => '?').join(',')})`,
+        )
+        .all(...variantIds) as VariantRow[])
+    : [];
+  const byVariantId = new Map(variants.map((variant) => [variant.id, variant]));
+
   const lines: CartLine[] = [];
   for (const item of cart.items) {
-    const row = byId.get(item.variantId);
-    if (!row) continue;
+    const product = byProductId.get(item.productId);
+    if (!product) continue;
+
+    const variant = item.variantId === null ? null : byVariantId.get(item.variantId) ?? null;
+    if (item.variantId !== null && (!variant || variant.product_id !== product.id)) continue;
+
+    const colors = productColors(product);
+    let color = '';
+    if (colors.length > 0 && item.color) {
+      const matched = matchColor(colors, item.color);
+      if (!matched) continue;
+      color = matched;
+    } else if (colors.length === 0) {
+      color = '';
+    } else {
+      // Farbe ist bei hinterlegten Farben Pflicht; veraltete Cookie-Zeilen verwerfen.
+      continue;
+    }
+
+    const personalization = product.personalization_enabled === 1 ? item.personalization : '';
     const quantity = Math.min(config.shop.maxQuantityPerItem, Math.max(1, item.quantity));
+    const unitPriceCents = variant ? variant.price_cents : product.price_from_cents;
     lines.push({
-      variantId: row.id,
+      key: cartLineKey(item),
+      variantId: variant ? variant.id : null,
       quantity,
-      unitPriceCents: row.price_cents,
-      lineTotalCents: row.price_cents * quantity,
-      variantLabel: row.label,
-      productId: row.product_id,
-      productSlug: row.slug,
-      productName: row.name,
-      stock: row.stock,
-      shippingMethodIds: parseIdList(row.shipping_method_ids),
-      shippingOptionIds: parseIdList(row.shipping_option_ids),
+      unitPriceCents,
+      lineTotalCents: unitPriceCents * quantity,
+      variantLabel: variant ? variant.label : '',
+      color,
+      personalization,
+      productId: product.id,
+      productSlug: product.slug,
+      productName: product.name,
+      stock: variant ? variant.stock : product.stock,
+      shippingMethodIds: parseIdList(product.shipping_method_ids),
+      shippingOptionIds: parseIdList(product.shipping_option_ids),
     });
   }
   return lines;
@@ -406,6 +440,16 @@ function orderNumber(): string {
   throw new Error('Bestellnummer konnte nicht erzeugt werden.');
 }
 
+function cartLineLabel(line: CartLine): string {
+  return [
+    line.variantLabel,
+    line.color ? `Farbe: ${line.color}` : '',
+    line.personalization ? `Personalisierung: ${line.personalization}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 function orderMailText(
   number: string,
   form: CheckoutForm,
@@ -431,7 +475,7 @@ function orderMailText(
     'Positionen:',
     ...lines.map(
       (line) =>
-        `- ${line.quantity} × ${line.productName} (${line.variantLabel}) à ${formatEuro(line.unitPriceCents)} = ${formatEuro(line.lineTotalCents)}`,
+        `- ${line.quantity} × ${line.productName}${cartLineLabel(line) ? ` (${cartLineLabel(line)})` : ''} à ${formatEuro(line.unitPriceCents)} = ${formatEuro(line.lineTotalCents)}`,
     ),
     '',
     `Zwischensumme: ${formatEuro(totals.subtotalCents)}`,
@@ -506,7 +550,7 @@ function customerOrderMailText(
     `Bestellnummer: ${number}`,
     ...lines.map(
       (line) =>
-        `- ${line.quantity} × ${line.productName} (${line.variantLabel}) = ${formatEuro(line.lineTotalCents)}`,
+        `- ${line.quantity} × ${line.productName}${cartLineLabel(line) ? ` (${cartLineLabel(line)})` : ''} = ${formatEuro(line.lineTotalCents)}`,
     ),
     '',
     `Zwischensumme: ${formatEuro(totals.subtotalCents)}`,
@@ -587,6 +631,8 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       product,
       variants,
       images,
+      colorOptions: productColors(product),
+      personalizationEnabled: product.personalization_enabled === 1,
       productJsonLd: productJsonLd(product, variants),
       maxQuantity: config.shop.maxQuantityPerItem,
       shipping,
@@ -600,25 +646,50 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
   app.post('/warenkorb/hinzufuegen/', async (request, reply) => {
     if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
     const body = (request.body ?? {}) as Record<string, unknown>;
-    const variantId = Math.trunc(Number(body.variantId));
+    const productId = Math.trunc(Number(body.productId));
+    const found = Number.isFinite(productId) ? findProductById(productId) : null;
+    if (!found) {
+      return shopError(reply, 400, 'Dieses Produkt ist nicht mehr verfügbar.');
+    }
+    const { product, variants } = found;
+
+    let variant: VariantRow | null = null;
+    if (variants.length > 0) {
+      const variantId = Math.trunc(Number(body.variantId));
+      variant = Number.isFinite(variantId) ? variants.find((item) => item.id === variantId) ?? null : null;
+      if (!variant) return shopError(reply, 400, 'Bitte wählen Sie eine gültige Variante.');
+    }
+
+    const colors = productColors(product);
+    let color = '';
+    if (colors.length > 0) {
+      color = matchColor(colors, cleanText(body.color, 60)) ?? '';
+      if (!color) return shopError(reply, 400, 'Bitte wählen Sie eine gültige Farbe.');
+    }
+    const personalization = product.personalization_enabled === 1 ? cleanText(body.personalization, 500) : '';
+
     const quantity = Math.min(
       config.shop.maxQuantityPerItem,
       Math.max(1, Math.trunc(Number(body.quantity ?? 1)) || 1),
     );
-    const variant = Number.isFinite(variantId) ? findVariant(variantId) : null;
-    if (!variant || variant.product_active !== 1) {
-      return shopError(reply, 400, 'Bitte wählen Sie eine gültige Farbvariante.');
-    }
+    const item = {
+      productId: product.id,
+      variantId: variant ? variant.id : null,
+      color,
+      personalization,
+      quantity,
+    };
 
     const cart = readCart(request);
-    const existing = cart.items.find((item) => item.variantId === variantId);
+    const key = cartLineKey(item);
+    const existing = cart.items.find((entry) => cartLineKey(entry) === key);
     if (existing) {
       existing.quantity = Math.min(config.shop.maxQuantityPerItem, existing.quantity + quantity);
     } else {
-      cart.items.push({ variantId, quantity });
+      cart.items.push(item);
     }
     writeCart(reply, cart, secureCookie(request));
-    request.log.info({ variantId, quantity }, 'Artikel in den Warenkorb gelegt');
+    request.log.info({ productId: product.id, variantId: item.variantId, color, quantity }, 'Artikel in den Warenkorb gelegt');
     return reply.redirect('/warenkorb/', 303);
   });
 
@@ -639,7 +710,8 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     const body = (request.body ?? {}) as Record<string, unknown>;
     const cart = readCart(request);
     for (const item of cart.items) {
-      const raw = body[`quantity_${item.variantId}`];
+      const key = cartLineKey(item);
+      const raw = body[`quantity_${key}`];
       if (raw === undefined) continue;
       const quantity = Math.trunc(Number(raw));
       if (!Number.isFinite(quantity) || quantity <= 0) {
@@ -656,9 +728,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
   app.post('/warenkorb/entfernen/', async (request, reply) => {
     if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
     const body = (request.body ?? {}) as Record<string, unknown>;
-    const variantId = Math.trunc(Number(body.variantId));
+    const key = cleanText(body.key, 64);
     const cart = readCart(request);
-    cart.items = cart.items.filter((item) => item.variantId !== variantId);
+    cart.items = cart.items.filter((item) => cartLineKey(item) !== key);
     writeCart(reply, cart, secureCookie(request));
     return reply.redirect('/warenkorb/', 303);
   });
@@ -726,7 +798,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       for (const line of lines) {
         if (line.stock != null && line.stock < line.quantity) {
           return fail(
-            `Von „${line.productName}“ in ${line.variantLabel} sind nur noch ${line.stock} Stück verfügbar. Bitte passen Sie die Menge im Warenkorb an.`,
+            `Von „${line.productName}“${line.variantLabel ? ` in ${line.variantLabel}` : ''} sind nur noch ${line.stock} Stück verfügbar. Bitte passen Sie die Menge im Warenkorb an.`,
           );
         }
       }
@@ -778,8 +850,8 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
           }
           const insertItem = db().prepare(
             `INSERT INTO order_items
-               (order_id, product_id, variant_id, name, variant, unit_price_cents, quantity, line_total_cents)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+               (order_id, product_id, variant_id, name, variant, color, personalization, unit_price_cents, quantity, line_total_cents)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           );
           for (const line of lines) {
             insertItem.run(
@@ -788,14 +860,20 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               line.variantId,
               line.productName,
               line.variantLabel,
+              line.color,
+              line.personalization,
               line.unitPriceCents,
               line.quantity,
               line.lineTotalCents,
             );
             if (line.stock != null) {
-              const reserved = db()
-                .prepare('UPDATE product_variants SET stock = stock - ? WHERE id = ? AND stock >= ?')
-                .run(line.quantity, line.variantId, line.quantity);
+              const reserved = line.variantId === null
+                ? db()
+                    .prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?')
+                    .run(line.quantity, line.productId, line.quantity)
+                : db()
+                    .prepare('UPDATE product_variants SET stock = stock - ? WHERE id = ? AND stock >= ?')
+                    .run(line.quantity, line.variantId, line.quantity);
               if (reserved.changes === 0) {
                 throw new Error(`Bestand für ${line.productName} reicht nicht aus.`);
               }
@@ -821,7 +899,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       const sendOrderMails = async (): Promise<void> => {
         const paymentUrl = paymentMethod.provider === 'stripe' ? publicRetryUrl(order) : '';
         const itemRows = lines.map(
-          (line) => [`${line.quantity} × ${line.productName}`, `${line.variantLabel} · ${formatEuro(line.lineTotalCents)}`] as [string, string],
+          (line) => [`${line.quantity} × ${line.productName}`, `${cartLineLabel(line) ? `${cartLineLabel(line)} · ` : ''}${formatEuro(line.lineTotalCents)}`] as [string, string],
         );
         const totalRows: [string, string][] = [
           ['Zwischensumme', formatEuro(totals.subtotalCents)],
