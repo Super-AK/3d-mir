@@ -70,6 +70,18 @@ test.describe('Admin', () => {
     expect(await action.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('1');
     await expect(page.locator('.admin-icon-btn--danger').first()).toHaveCSS('color', 'rgb(179, 38, 30)');
 
+    // Live-Suche in der Produktliste: Treffer und Leerzustand ohne Neuladen.
+    await expect(page.getByRole('button', { name: 'Filtern', exact: true })).toBeHidden();
+    const productSearch = page.locator('#q');
+    await productSearch.fill('zzz-kein-treffer');
+    await expect(page.locator('[data-filter-results]')).toContainText('Keine Produkte gefunden');
+    await expect(page).toHaveURL(/[?&]q=zzz-kein-treffer/);
+    await expect(productSearch).toBeFocused();
+    await productSearch.fill('');
+    await expect(page.locator('[data-select-product]').first()).toBeVisible();
+    await page.locator('[data-select-all]').first().check();
+    await expect(page.locator('[data-select-product]').first()).toBeChecked();
+
     // Stripe-Hilfe auf der Zahlungsseite ist aufklappbar.
     await page.goto('/admin/zahlungen/');
     const stripeHelp = page.locator('summary', { hasText: 'Hilfe zu Stripe' });

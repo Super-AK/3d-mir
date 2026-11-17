@@ -357,6 +357,10 @@ Bot-Token und SMTP-Passwort sind Geheimnisse. Sie werden in der SQLite-Datenbank
 
 Unter **Admin → Produkte** lassen sich Produkte, Farbvarianten und Bilder pflegen.
 
+### Suche
+
+Die Produktliste lässt sich nach **Name**, **SKU** und **Slug** durchsuchen. Die Suche startet automatisch beim Tippen und tauscht nur den Ergebnisbereich aus; die Seite wird nicht neu geladen und der Fokus bleibt im Suchfeld. Bei aktivem JavaScript entfällt der Button **Filtern**; ohne JavaScript bleibt er als Absenden-Funktion erhalten. Der Suchbegriff steht in der URL (`?q=…`) und lässt sich daher teilen oder neu laden. „Alle auswählen“ und die Massenlöschung funktionieren auch nach einer Suche.
+
 ### Löschen, Kopieren, Import und Export
 
 - **Löschen:** Über „Löschen“ in der Produktzeile öffnet sich eine Bestätigungsseite. Gelöscht werden Produkt, Varianten und Bilder; bestehende Bestellungen bleiben mit ihren Positionsdaten erhalten.

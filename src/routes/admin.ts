@@ -3005,6 +3005,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     // Produkte ------------------------------------------------------------
     scope.get('/admin/produkte/', async (request, reply) => {
+      const query = queryObject(request);
+      const q = cleanText(query.q, 100);
+      const params: unknown[] = [];
+      let where = '';
+      if (q) {
+        where = 'WHERE p.name LIKE ? OR p.sku LIKE ? OR p.slug LIKE ?';
+        const like = `%${q}%`;
+        params.push(like, like, like);
+      }
       const products = (
         db()
           .prepare(
@@ -3012,16 +3021,16 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
                (SELECT COUNT(*) FROM product_variants v WHERE v.product_id = p.id) AS variant_count,
                (SELECT MIN(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS min_price,
                (SELECT MAX(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS max_price
-             FROM products p ORDER BY p.sort_order, p.name`,
+             FROM products p ${where} ORDER BY p.sort_order, p.name`,
           )
-          .all() as (ProductRow & { variant_count: number; min_price: number | null; max_price: number | null })[]
+          .all(...params) as (ProductRow & { variant_count: number; min_price: number | null; max_price: number | null })[]
       ).map((product) => ({
         ...product,
         priceLabel: productPriceLabel(product),
         stockLabel: product.stock === null ? 'ohne Bestandsführung' : String(product.stock),
         stockEmpty: product.stock === null,
       }));
-      render(reply, 'admin/products.njk', adminContext(request, { products }));
+      render(reply, 'admin/products.njk', adminContext(request, { products, q }));
     });
 
     // Export / Import -----------------------------------------------------

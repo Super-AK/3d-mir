@@ -101,10 +101,13 @@ if (uploadForm) {
   });
 }
 
-// Produktliste: „Alle auswählen“ für die Massenlöschung.
-const selectAllBoxes = document.querySelectorAll<HTMLInputElement>('[data-select-all]');
-const productBoxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-select-product]'));
-if (selectAllBoxes.length > 0 && productBoxes.length > 0) {
+// Produktliste: „Alle auswählen“ für die Massenlöschung. Die Liste wird bei der
+// Live-Suche ausgetauscht, deshalb wird die Auswahl danach neu gebunden.
+function initProductSelection(): void {
+  const selectAllBoxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-select-all]'));
+  const productBoxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-select-product]'));
+  if (selectAllBoxes.length === 0 || productBoxes.length === 0) return;
+
   selectAllBoxes.forEach((selectAll) => {
     selectAll.addEventListener('change', () => {
       productBoxes.forEach((box) => {
@@ -124,6 +127,8 @@ if (selectAllBoxes.length > 0 && productBoxes.length > 0) {
     });
   });
 }
+initProductSelection();
+document.addEventListener('admin:filter-updated', initProductSelection);
 
 // Filterformulare: Auswahl im Dropdown lädt die Ansicht sofort neu.
 document.querySelectorAll<HTMLSelectElement>('[data-auto-submit]').forEach((select) => {
@@ -162,6 +167,7 @@ document.querySelectorAll<HTMLInputElement>('[data-live-search]').forEach((input
       const next = doc.querySelector<HTMLElement>('[data-filter-results]');
       if (!next) throw new Error('Ergebnisbereich fehlt');
       results.replaceChildren(...Array.from(next.childNodes));
+      document.dispatchEvent(new CustomEvent('admin:filter-updated'));
       window.history.replaceState(null, '', `${url.pathname}${url.search}`);
     } catch (error) {
       if ((error as DOMException).name === 'AbortError') return;

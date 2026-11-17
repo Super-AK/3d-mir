@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.37] – 2026-11-17
+
+### Hinzugefügt
+
+- **Live-Suche in der Produktliste:** Die Suche nach Name, SKU und Slug
+  aktualisiert die Ansicht beim Tippen, ohne die Seite neu zu laden. Der
+  Fokus bleibt im Suchfeld, der Suchbegriff steht in der URL.
+- „Alle auswählen“ und die Massenlöschung werden nach jeder Suche neu
+  gebunden und funktionieren auch mit gefilterten Ergebnissen.
+
 ## [1.0.0-rc.36] – 2026-11-17
 
 ### Geändert
@@ -566,6 +576,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.37]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.37
 [1.0.0-rc.36]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.36
 [1.0.0-rc.35]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.35
 [1.0.0-rc.34]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.34
