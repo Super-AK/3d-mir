@@ -1,0 +1,36 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Nachrichten löschen – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Nachrichten löschen</h1>
+      <p>{{ messages.length }} Nachricht(en) endgültig löschen? Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
+    </div>
+  </div>
+
+  <div class="card admin-panel">
+    <ul class="admin-list">
+      {% for message in messages %}
+        <li>
+          <strong>{{ message.subject or 'Kontaktnachricht' }}</strong>
+          <span class="text-muted">{{ message.name }} · {{ message.created_at | date }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <form class="form" method="post" action="/admin/nachrichten/massenaktion/bestaetigen/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <input type="hidden" name="action" value="delete">
+      <input type="hidden" name="status" value="{{ status }}">
+      {% for message in messages %}
+        <input type="hidden" name="ids" value="{{ message.id }}">
+      {% endfor %}
+      <div class="form-actions">
+        <button class="btn btn-danger" type="submit">Endgültig löschen</button>
+        <a class="btn btn-secondary" href="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

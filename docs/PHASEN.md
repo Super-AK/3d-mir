@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.33 – 17. November 2026
+
+Kompakte Nachrichtenliste mit Detailseite, Statusfiltern und Massenaktionen.
+
 ## Release 1.0.0-rc.32 – 17. November 2026
 
 Absenderkennung nur noch bei Nachrichten im Prüfmodus gespeichert

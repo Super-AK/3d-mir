@@ -3,6 +3,24 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.33] – 2026-11-17
+
+### Hinzugefügt
+
+- **Kompakte Nachrichtenliste:** Kontaktnachrichten werden als Tabelle mit
+  Status, Datum, Absender, Betreff, Land und kompakten Aktionsbuttons
+  dargestellt. Ein Klick auf die Zeile öffnet die Detailseite.
+- **Detailseite für Nachrichten:** vollständige Nachricht, Absenderdaten,
+  Prüfgrund, pseudonyme IP-Auswertung, Antwortverlauf und Antwortformular.
+- **Massenaktionen:** als erledigt markieren, wieder öffnen,
+  freigeben/kein Spam, als Spam markieren und endgültig löschen. Löschen
+  erfolgt über eine Bestätigungsseite.
+- Statusfilter für alle, offene, zu prüfende, Spam- und erledigte Nachrichten.
+
+### Geändert
+
+- Dashboard verlinkt die letzten Nachrichten direkt auf die Detailseite.
+
 ## [1.0.0-rc.32] – 2026-11-17
 
 ### Geändert
@@ -506,6 +524,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.33]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.33
 [1.0.0-rc.32]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.32
 [1.0.0-rc.31]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.31
 [1.0.0-rc.30]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.30

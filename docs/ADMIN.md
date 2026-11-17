@@ -186,6 +186,30 @@ Nach dem Absenden des Kontaktformulars erhält der Absender automatisch eine **E
 
 Der Timer `3d-mir-cleanup.timer` entfernt täglich Modelldateien nach 90 Tagen sowie Angebotsanfragen und Kontaktnachrichten nach 24 Monaten. Bestelldaten bleiben erhalten. Manuell prüfen mit `npm run uploads:cleanup -- --dry-run`; Details unter `docs/DEPLOYMENT.md`.
 
+### Nachrichtenliste
+
+Unter **Admin → Nachrichten** werden die Kontaktnachrichten als kompakte Tabelle dargestellt. Jede Zeile zeigt Status, Datum, Absender, Betreff und Land sowie die wichtigsten Aktionen:
+
+- **Öffnen** oder Klick auf die Zeile öffnet die Detailseite mit der vollständigen Nachricht.
+- **Erledigt / Wieder öffnen** ändert den Bearbeitungsstatus.
+- **Freigeben** holt eine Nachricht aus dem Prüf- oder Spam-Status.
+- **Spam** markiert eine Nachricht als Spam.
+- **Löschen** öffnet eine Bestätigungsseite.
+
+Über die Filter **Alle, Offen, Prüfung, Spam und Erledigt** lässt sich die Liste eingrenzen. Die Zahlen in den Filtern zeigen den jeweiligen Bestand.
+
+Für Massenaktionen die gewünschten Zeilen ankreuzen, eine Aktion auswählen und **Ausführen** klicken:
+
+| Massenaktion | Wirkung |
+| --- | --- |
+| Als erledigt markieren | Setzt alle ausgewählten Nachrichten auf erledigt. |
+| Wieder öffnen | Setzt alle ausgewählten Nachrichten auf offen. |
+| Freigeben / Kein Spam | Setzt Prüf- und Spam-Nachrichten auf „ok“ und offen; sendet eine Sammelbenachrichtigung an den Betreiber. |
+| Als Spam markieren | Markiert alle ausgewählten Nachrichten als Spam und erledigt. |
+| Endgültig löschen | Zeigt zuerst eine Bestätigungsseite mit allen ausgewählten Nachrichten. |
+
+Die Detailseite enthält zusätzlich die vollständigen Absenderdaten, die pseudonyme IP-Auswertung, den Prüfgrund, die gesendete Antwort und das Antwortformular. Aktionen auf der Detailseite führen anschließend wieder dorthin zurück.
+
 ### Spam-Schutz und Länderprüfung
 
 Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfung“** gepflegt:

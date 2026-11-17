@@ -509,6 +509,7 @@ function flash(request: FastifyRequest) {
     geloescht: query.geloescht === '1',
     zurueckgesetzt: query.zurueckgesetzt === '1',
     importiert: typeof query.importiert === 'string' ? Number.parseInt(query.importiert, 10) || 0 : 0,
+    anzahl: typeof query.anzahl === 'string' ? Number.parseInt(query.anzahl, 10) || 0 : 0,
     fehler: typeof query.fehler === 'string' ? query.fehler : '',
     antwort: typeof query.antwort === 'string' ? query.antwort : '',
   };
@@ -543,6 +544,20 @@ function safeNext(value: unknown): string {
   if (!value.startsWith('/admin/') || value.startsWith('//') || value.includes('\\')) return '/admin/';
   if (value.startsWith('/admin/login')) return '/admin/';
   return value;
+}
+
+/** Rückkehrziel für Nachrichten-Aktionen (Liste oder Detailseite). */
+function messageReturnTo(value: unknown, fallback = '/admin/nachrichten/'): string {
+  if (typeof value !== 'string') return fallback;
+  if (!value.startsWith('/admin/nachrichten/') || value.startsWith('//') || value.includes('\\')) {
+    return fallback;
+  }
+  return value;
+}
+
+/** Hängt Parameter an eine URL an, ohne ein vorhandenes `?` zu verdoppeln. */
+function appendQuery(url: string, query: string): string {
+  return `${url}${url.includes('?') ? '&' : '?'}${query}`;
 }
 
 async function adminGuard(request: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -2169,16 +2184,39 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         : undefined;
 
     scope.get('/admin/nachrichten/', async (request, reply) => {
+      const query = queryObject(request);
+      const status = ['offen', 'erledigt', 'pruefung', 'spam'].includes(String(query.status))
+        ? String(query.status)
+        : '';
+      const filterWhere =
+        status === 'offen'
+          ? 'WHERE handled = 0'
+          : status === 'erledigt'
+            ? 'WHERE handled = 1'
+            : status === 'pruefung'
+              ? "WHERE review_status = 'pruefen'"
+              : status === 'spam'
+                ? "WHERE review_status = 'spam'"
+                : '';
       const messages = db()
         .prepare(
           `SELECT * FROM contact_messages
+           ${filterWhere}
            ORDER BY CASE review_status WHEN 'pruefen' THEN 0 WHEN 'ok' THEN 1 ELSE 2 END,
                     handled ASC, created_at DESC, id DESC
            LIMIT 300`,
         )
         .all() as ContactRow[];
-      const reviewCount = messages.filter((message) => message.review_status === 'pruefen').length;
-      const spamCount = messages.filter((message) => message.review_status === 'spam').length;
+      const counts = db()
+        .prepare(
+          `SELECT COUNT(*) AS total,
+                  COALESCE(SUM(CASE WHEN handled = 0 THEN 1 ELSE 0 END), 0) AS open,
+                  COALESCE(SUM(CASE WHEN handled = 1 THEN 1 ELSE 0 END), 0) AS done,
+                  COALESCE(SUM(CASE WHEN review_status = 'pruefen' THEN 1 ELSE 0 END), 0) AS review,
+                  COALESCE(SUM(CASE WHEN review_status = 'spam' THEN 1 ELSE 0 END), 0) AS spam
+             FROM contact_messages`,
+        )
+        .get() as { total: number; open: number; done: number; review: number; spam: number };
       const blocks = listContactBlocks().map((block) => ({
         ...block,
         active: isContactBlockActive(block),
@@ -2190,10 +2228,23 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         countries,
         countryLabels: Object.fromEntries(countries.map((country) => [country.code, country.name])),
         geoip: geoipStatus(),
-        reviewCount,
-        spamCount,
+        reviewCount: counts.review,
+        spamCount: counts.spam,
+        counts,
+        status,
         blocks,
         blockedCount,
+      }));
+    });
+
+    scope.get<{ Params: { id: string } }>('/admin/nachrichten/:id/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const message = contactMessage(id);
+      if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
+      render(reply, 'admin/message.njk', adminContext(request, {
+        message,
+        countryLabels: Object.fromEntries(countries.map((country) => [country.code, country.name])),
+        weiter: `/admin/nachrichten/${id}/`,
       }));
     });
 
@@ -2255,17 +2306,164 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       },
     );
 
+    scope.post('/admin/nachrichten/massenaktion/', async (request, reply) => {
+      const body = bodyObject(request);
+      const action = cleanText(body.action, 20);
+      const status = ['offen', 'erledigt', 'pruefung', 'spam'].includes(String(body.status))
+        ? String(body.status)
+        : '';
+      const statusQuery = status ? `&status=${encodeURIComponent(status)}` : '';
+      const ids = idList(body.ids);
+      if (ids.length === 0) {
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent('Bitte wählen Sie mindestens eine Nachricht aus.')}${statusQuery}`,
+          303,
+        );
+      }
+      const placeholders = ids.map(() => '?').join(',');
+      const messages = db()
+        .prepare(
+          `SELECT * FROM contact_messages
+            WHERE id IN (${placeholders})
+            ORDER BY created_at DESC, id DESC`,
+        )
+        .all(...ids) as ContactRow[];
+      if (messages.length === 0) {
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent('Keine Nachrichten zum Bearbeiten gefunden.')}${statusQuery}`,
+          303,
+        );
+      }
+
+      if (action === 'delete') {
+        render(reply, 'admin/message-bulk-delete.njk', adminContext(request, {
+          messages,
+          status,
+        }));
+        return;
+      }
+
+      let changes = 0;
+      if (action === 'handled') {
+        changes = db()
+          .prepare(`UPDATE contact_messages SET handled = 1 WHERE id IN (${placeholders})`)
+          .run(...ids).changes;
+      } else if (action === 'reopen') {
+        changes = db()
+          .prepare(`UPDATE contact_messages SET handled = 0 WHERE id IN (${placeholders})`)
+          .run(...ids).changes;
+      } else if (action === 'spam') {
+        changes = db()
+          .prepare(
+            `UPDATE contact_messages
+                SET review_status = 'spam', handled = 1
+              WHERE id IN (${placeholders})`,
+          )
+          .run(...ids).changes;
+      } else if (action === 'approve') {
+        const approved = db()
+          .prepare(
+            `SELECT id, subject, name, email FROM contact_messages
+              WHERE id IN (${placeholders}) AND review_status IN ('pruefen', 'spam')
+              ORDER BY created_at DESC, id DESC`,
+          )
+          .all(...ids) as { id: number; subject: string; name: string; email: string }[];
+        changes = db()
+          .prepare(
+            `UPDATE contact_messages
+                SET review_status = 'ok', review_reason = '', handled = 0
+              WHERE id IN (${placeholders}) AND review_status IN ('pruefen', 'spam')`,
+          )
+          .run(...ids).changes;
+        if (approved.length > 0) {
+          try {
+            await notifyAdmin({
+              event: 'contact_message',
+              subject: `[Kontakt] ${approved.length} Nachricht(en) freigegeben`,
+              text: [
+                `${approved.length} Kontaktnachricht(en) wurden im Admin freigegeben.`,
+                '',
+                ...approved
+                  .slice(0, 20)
+                  .map((item) => `${item.subject || 'Kontaktnachricht'} – ${item.name}`),
+                ...(approved.length > 20 ? ['…'] : []),
+                '',
+                `Admin: ${config.site.baseUrl}/admin/nachrichten/`,
+              ].join('\n'),
+            });
+          } catch (error) {
+            request.log.error({ err: error }, 'Sammel-Benachrichtigung nach Freigabe fehlgeschlagen');
+          }
+        }
+      } else {
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent('Unbekannte Massenaktion.')}${statusQuery}`,
+          303,
+        );
+      }
+
+      writeAudit(request.admin?.email ?? 'admin', 'contact.bulk', {
+        action,
+        count: changes,
+        ids: messages.map((message) => message.id),
+      });
+      return reply.redirect(
+        `/admin/nachrichten/?gespeichert=1&anzahl=${changes}${statusQuery}`,
+        303,
+      );
+    });
+
+    scope.post('/admin/nachrichten/massenaktion/bestaetigen/', async (request, reply) => {
+      const body = bodyObject(request);
+      const status = ['offen', 'erledigt', 'pruefung', 'spam'].includes(String(body.status))
+        ? String(body.status)
+        : '';
+      const statusQuery = status ? `&status=${encodeURIComponent(status)}` : '';
+      const ids = idList(body.ids);
+      if (ids.length === 0 || body.action !== 'delete') {
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent('Keine Nachrichten zum Löschen ausgewählt.')}${statusQuery}`,
+          303,
+        );
+      }
+      const placeholders = ids.map(() => '?').join(',');
+      const messages = db()
+        .prepare(
+          `SELECT id, subject, name, email FROM contact_messages WHERE id IN (${placeholders})`,
+        )
+        .all(...ids) as { id: number; subject: string; name: string; email: string }[];
+      if (messages.length === 0) {
+        return reply.redirect(
+          `/admin/nachrichten/?fehler=${encodeURIComponent('Keine Nachrichten zum Löschen gefunden.')}${statusQuery}`,
+          303,
+        );
+      }
+      const changes = db()
+        .prepare(`DELETE FROM contact_messages WHERE id IN (${placeholders})`)
+        .run(...ids).changes;
+      writeAudit(request.admin?.email ?? 'admin', 'contact.bulk_delete', {
+        count: changes,
+        ids: messages.map((message) => message.id),
+        subjects: messages.map((message) => message.subject),
+      });
+      return reply.redirect(
+        `/admin/nachrichten/?geloescht=1&anzahl=${changes}${statusQuery}`,
+        303,
+      );
+    });
+
     scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/antworten/', async (request, reply) => {
       const id = Number(request.params.id);
       const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
 
       const body = bodyObject(request);
+      const weiter = messageReturnTo(body.weiter);
       const subject = cleanText(body.replySubject, 200) || `Re: ${message.subject || 'Ihre Anfrage'}`;
       const text = cleanText(body.replyText, 10000);
       if (text.length < 2) {
         return reply.redirect(
-          `/admin/nachrichten/?fehler=${encodeURIComponent('Bitte geben Sie eine Antwort ein.')}#nachricht-${id}`,
+          appendQuery(weiter, `fehler=${encodeURIComponent('Bitte geben Sie eine Antwort ein.')}`),
           303,
         );
       }
@@ -2301,14 +2499,14 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           delivered: result.delivered,
         });
         return reply.redirect(
-          `/admin/nachrichten/?gespeichert=1&antwort=${result.delivered ? 'gesendet' : 'datei'}#nachricht-${id}`,
+          appendQuery(weiter, `gespeichert=1&antwort=${result.delivered ? 'gesendet' : 'datei'}`),
           303,
         );
       } catch (error) {
         request.log.error({ err: error, id }, 'Antwort auf Kontaktnachricht fehlgeschlagen');
         const detail = error instanceof Error ? error.message : 'Unbekannter Fehler';
         return reply.redirect(
-          `/admin/nachrichten/?fehler=${encodeURIComponent(`Antwort konnte nicht gesendet werden: ${detail}`)}#nachricht-${id}`,
+          appendQuery(weiter, `fehler=${encodeURIComponent(`Antwort konnte nicht gesendet werden: ${detail}`)}`),
           303,
         );
       }
@@ -2318,6 +2516,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const id = Number(request.params.id);
       const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
+      const weiter = messageReturnTo(bodyObject(request).weiter);
 
       try {
         await notifyAdmin({
@@ -2335,39 +2534,43 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .prepare("UPDATE contact_messages SET review_status = 'ok', review_reason = '', handled = 0 WHERE id = ?")
         .run(id);
       writeAudit(request.admin?.email ?? 'admin', 'contact.approve', { id, email: message.email });
-      return reply.redirect(`/admin/nachrichten/?gespeichert=1#nachricht-${id}`, 303);
+      return reply.redirect(appendQuery(weiter, 'gespeichert=1'), 303);
     });
 
     scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/spam/', async (request, reply) => {
       const id = Number(request.params.id);
       const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
+      const weiter = messageReturnTo(bodyObject(request).weiter);
       db()
         .prepare("UPDATE contact_messages SET review_status = 'spam', handled = 1 WHERE id = ?")
         .run(id);
       writeAudit(request.admin?.email ?? 'admin', 'contact.spam', { id, email: message.email });
-      return reply.redirect(`/admin/nachrichten/?gespeichert=1#nachricht-${id}`, 303);
+      return reply.redirect(appendQuery(weiter, 'gespeichert=1'), 303);
     });
 
     scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/', async (request, reply) => {
       const id = Number(request.params.id);
       const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
-      const handled = bodyObject(request).handled === '1' || bodyObject(request).handled === 'on';
+      const body = bodyObject(request);
+      const weiter = messageReturnTo(body.weiter);
+      const handled = body.handled === '1' || body.handled === 'on';
       db().prepare('UPDATE contact_messages SET handled = ? WHERE id = ?').run(handled ? 1 : 0, id);
       writeAudit(request.admin?.email ?? 'admin', 'contact.update', { id, handled });
-      return reply.redirect('/admin/nachrichten/?gespeichert=1', 303);
+      return reply.redirect(appendQuery(weiter, 'gespeichert=1'), 303);
     });
 
     scope.get<{ Params: { id: string } }>('/admin/nachrichten/:id/loeschen/', async (request, reply) => {
       const id = Number(request.params.id);
       const message = contactMessage(id);
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
+      const weiter = messageReturnTo(queryObject(request).weiter);
       render(reply, 'admin/confirm.njk', adminContext(request, {
         title: 'Nachricht löschen',
         message: `Soll die Nachricht von ${message.name} vom ${message.created_at} endgültig gelöscht werden?`,
         action: `/admin/nachrichten/${id}/loeschen/`,
-        cancel: '/admin/nachrichten/',
+        cancel: weiter,
       }));
     });
 
@@ -2377,7 +2580,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       if (!message) return adminError(request, reply, 404, 'Diese Nachricht wurde nicht gefunden.');
       db().prepare('DELETE FROM contact_messages WHERE id = ?').run(id);
       writeAudit(request.admin?.email ?? 'admin', 'contact.delete', { id, email: message.email });
-      return reply.redirect('/admin/nachrichten/?geloescht=1', 303);
+      return reply.redirect('/admin/nachrichten/?geloescht=1&anzahl=1', 303);
     });
 
     // Stammdaten ----------------------------------------------------------

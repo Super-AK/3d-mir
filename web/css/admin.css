@@ -251,6 +251,50 @@
 .admin-message-head p { margin: 0; font-size: 0.85rem; }
 .admin-message-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .admin-message-actions form { margin: 0; }
+.admin-message-full { white-space: pre-wrap; line-height: 1.7; }
+
+/* Kompakte Nachrichtenliste */
+.admin-filter-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 0.9rem; }
+.admin-filter-tabs a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.admin-filter-tabs a span { color: inherit; opacity: 0.75; }
+.admin-filter-tabs a.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.admin-messages-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0 0 0.6rem;
+}
+.admin-messages-toolbar p { margin: 0; }
+.admin-bulk-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.admin-bulk-form select { min-height: 36px; padding: 0.25rem 0.4rem; }
+.admin-message-table { min-width: 960px; }
+.admin-message-table th,
+.admin-message-table td { padding: 0.45rem 0.55rem; vertical-align: top; }
+.admin-message-table td { font-size: 0.84rem; }
+.admin-message-table .admin-row-actions { gap: 0.25rem; }
+.admin-message-table .admin-row-actions .btn { padding: 0.28rem 0.5rem; font-size: 0.78rem; }
+.admin-message-row { cursor: pointer; }
+.admin-message-row:hover { background: var(--surface-2); }
+.admin-message-row.is-handled { color: var(--text-muted); }
+.admin-message-row.is-spam { opacity: 0.62; }
 .admin-message-text summary { cursor: pointer; font-weight: 600; font-size: 0.88rem; color: var(--accent); }
 .admin-message-text p { margin: 0.75rem 0 0; white-space: pre-wrap; color: var(--text); }
 

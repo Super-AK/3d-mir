@@ -5,10 +5,10 @@
   <div class="alert alert-danger" role="alert"><p>{{ meldung.fehler }}</p></div>
 {% endif %}
 {% if meldung and meldung.gespeichert %}
-  <div class="alert alert-success" role="status"><p>Änderungen wurden gespeichert.</p></div>
+  <div class="alert alert-success" role="status"><p>{% if meldung.anzahl %}{{ meldung.anzahl }} Nachricht(en) wurden aktualisiert.{% else %}Änderungen wurden gespeichert.{% endif %}</p></div>
 {% endif %}
 {% if meldung and meldung.geloescht %}
-  <div class="alert alert-success" role="status"><p>Der Eintrag wurde gelöscht.</p></div>
+  <div class="alert alert-success" role="status"><p>{% if meldung.anzahl %}{{ meldung.anzahl }} Nachricht(en) wurden gelöscht.{% else %}Der Eintrag wurde gelöscht.{% endif %}</p></div>
 {% endif %}
 {% if meldung and meldung.zurueckgesetzt %}
   <div class="alert alert-success" role="status"><p>Die Preise wurden auf die Grundeinstellung zurückgesetzt.</p></div>

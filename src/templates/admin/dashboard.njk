@@ -129,7 +129,7 @@
       <ul class="admin-list">
         {% for message in recentMessages %}
           <li>
-            <a href="/admin/nachrichten/">{{ message.subject or 'Kontaktnachricht' }}</a>
+            <a href="/admin/nachrichten/{{ message.id }}/">{{ message.subject or 'Kontaktnachricht' }}</a>
             <span>{{ message.name }}</span>
             <small class="text-muted">{{ message.created_at | date }}{% if message.handled %} · erledigt{% endif %}</small>
           </li>

@@ -17,19 +17,10 @@
     {% endif %}
   </div>
 
-  {% if meldung.gespeichert %}
-    <div class="alert alert-success" role="status"><p>Die Änderungen wurden gespeichert.</p></div>
-  {% endif %}
-  {% if meldung.geloescht %}
-    <div class="alert alert-success" role="status"><p>Die Nachricht wurde gelöscht.</p></div>
-  {% endif %}
   {% if meldung.antwort == 'gesendet' %}
     <div class="alert alert-success" role="status"><p>Die Antwort wurde per E-Mail versendet.</p></div>
   {% elif meldung.antwort == 'datei' %}
     <div class="alert alert-warning" role="status"><p>SMTP ist nicht eingerichtet. Die Antwort wurde als <code>.eml</code>-Datei unter <code>/var/log/3d-mir/mail/</code> gespeichert.</p></div>
-  {% endif %}
-  {% if meldung.fehler %}
-    <div class="alert alert-danger" role="alert"><p>{{ meldung.fehler }}</p></div>
   {% endif %}
 
   <details class="admin-help admin-contact-settings">
@@ -191,105 +182,106 @@
     </section>
   {% endif %}
 
+  <nav class="admin-filter-tabs" aria-label="Nachrichten filtern">
+    <a class="{% if not status %}is-active{% endif %}" href="/admin/nachrichten/">Alle <span>{{ counts.total }}</span></a>
+    <a class="{% if status == 'offen' %}is-active{% endif %}" href="/admin/nachrichten/?status=offen">Offen <span>{{ counts.open }}</span></a>
+    <a class="{% if status == 'pruefung' %}is-active{% endif %}" href="/admin/nachrichten/?status=pruefung">Prüfung <span>{{ counts.review }}</span></a>
+    <a class="{% if status == 'spam' %}is-active{% endif %}" href="/admin/nachrichten/?status=spam">Spam <span>{{ counts.spam }}</span></a>
+    <a class="{% if status == 'erledigt' %}is-active{% endif %}" href="/admin/nachrichten/?status=erledigt">Erledigt <span>{{ counts.done }}</span></a>
+  </nav>
+
   {% if messages.length > 0 %}
-    <div class="admin-messages">
-      {% for message in messages %}
-        <article id="nachricht-{{ message.id }}" class="card admin-message {% if message.handled %}is-handled{% endif %} {% if message.review_status == 'spam' %}is-spam{% endif %}">
-          <div class="admin-message-head">
-            <div>
-              <h2>{{ message.subject or 'Kontaktnachricht' }}</h2>
-              <p class="text-muted">
-                {{ message.name }} · <a href="mailto:{{ message.email }}">{{ message.email }}</a>
-                {% if message.phone %} · {{ message.phone }}{% endif %}
-                · {{ countryLabels[message.country] or message.country or 'Land unbekannt' }}
-                · {{ message.created_at | date }}
-              </p>
-              {% if message.ip_prefix or message.ip_hash or message.user_agent %}
-                <p class="text-muted admin-message-meta">
-                  {% if message.ip_prefix %}IP-Bereich: <code class="admin-code">{{ message.ip_prefix }}</code>{% endif %}
-                  {% if message.ip_hash %} · Prüfsumme: <code class="admin-code">{{ message.ip_hash | truncate(12, true, '…') }}</code>{% endif %}
-                  {% if message.user_agent %} · Browser: <span title="{{ message.user_agent }}">{{ message.user_agent | truncate(60) }}</span>{% endif %}
-                </p>
-              {% endif %}
-            </div>
-            <div class="admin-message-actions">
-              {% if message.review_status == 'pruefen' %}
-                <span class="badge badge-warning">Prüfung erforderlich</span>
-              {% elif message.review_status == 'spam' %}
-                <span class="badge badge-neutral">Spam</span>
-              {% endif %}
-              {% if message.handled %}
-                <span class="badge badge-success">Erledigt</span>
-              {% else %}
-                <span class="badge badge-warning">Offen</span>
-              {% endif %}
+    <form id="messages-bulk" method="post" action="/admin/nachrichten/massenaktion/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <input type="hidden" name="status" value="{{ status }}">
+    </form>
 
-              {% if message.review_status == 'pruefen' %}
-                <form method="post" action="/admin/nachrichten/{{ message.id }}/freigeben/">
-                  <input type="hidden" name="_csrf" value="{{ csrf }}">
-                  <button class="btn btn-small" type="submit">Freigeben</button>
-                </form>
-                <form method="post" action="/admin/nachrichten/{{ message.id }}/spam/">
-                  <input type="hidden" name="_csrf" value="{{ csrf }}">
-                  <button class="btn btn-secondary btn-small" type="submit">Als Spam markieren</button>
-                </form>
-              {% endif %}
+    <div class="admin-messages-toolbar">
+      <p class="text-muted">{{ messages.length }} Nachricht(en) in dieser Ansicht.</p>
+      <div class="admin-bulk-form">
+        <label class="admin-check admin-check-inline">
+          <input type="checkbox" data-select-all-messages aria-label="Alle Nachrichten auswählen">
+          <span>Alle</span>
+        </label>
+        <select name="action" form="messages-bulk" aria-label="Massenaktion">
+          <option value="handled">Als erledigt markieren</option>
+          <option value="reopen">Wieder öffnen</option>
+          <option value="approve">Freigeben / Kein Spam</option>
+          <option value="spam">Als Spam markieren</option>
+          <option value="delete">Endgültig löschen</option>
+        </select>
+        <button class="btn btn-secondary btn-small" type="submit" form="messages-bulk">Ausführen</button>
+        <span class="text-muted" data-bulk-count>0 ausgewählt</span>
+      </div>
+    </div>
 
-              <form method="post" action="/admin/nachrichten/{{ message.id }}/">
-                <input type="hidden" name="_csrf" value="{{ csrf }}">
-                <input type="hidden" name="handled" value="{% if message.handled %}0{% else %}1{% endif %}">
-                <button class="btn btn-secondary btn-small" type="submit">{% if message.handled %}Wieder öffnen{% else %}Als erledigt markieren{% endif %}</button>
-              </form>
-              <a class="btn btn-danger btn-small" href="/admin/nachrichten/{{ message.id }}/loeschen/">Löschen</a>
-            </div>
-          </div>
-
-          {% if message.review_reason and message.review_status != 'ok' %}
-            <div class="alert alert-warning" role="status">
-              <p><strong>Grund:</strong> {{ message.review_reason }}</p>
-            </div>
-          {% endif %}
-
-          <details class="admin-message-text" {% if not message.handled or message.review_status == 'pruefen' %}open{% endif %}>
-            <summary>Nachricht anzeigen</summary>
-            <p>{{ message.message }}</p>
-          </details>
-
-          {% if message.replied_at %}
-            <div class="admin-message-reply-sent">
-              <p><strong>Antwort gesendet:</strong> {{ message.replied_at | date }}</p>
-              <details>
-                <summary>{{ message.reply_subject }}</summary>
-                <p>{{ message.reply_text }}</p>
-              </details>
-            </div>
-          {% endif %}
-
-          <details class="admin-message-reply">
-            <summary>{% if message.replied_at %}Weitere Antwort senden{% else %}Antworten{% endif %}</summary>
-            <form class="form" method="post" action="/admin/nachrichten/{{ message.id }}/antworten/">
-              <input type="hidden" name="_csrf" value="{{ csrf }}">
-              <div class="field">
-                <label for="replySubject-{{ message.id }}">Betreff</label>
-                <input id="replySubject-{{ message.id }}" name="replySubject" type="text" maxlength="200" value="Re: {{ message.subject or 'Ihre Anfrage' }}">
-              </div>
-              <div class="field">
-                <label for="replyText-{{ message.id }}">Antwort an {{ message.email }}</label>
-                <textarea id="replyText-{{ message.id }}" name="replyText" required maxlength="10000" placeholder="Ihre Antwort …"></textarea>
-                <span class="hint">Die Nachricht wird direkt per E-Mail an den Kunden gesendet. Die ursprüngliche Anfrage wird nicht automatisch zitiert.</span>
-              </div>
-              <div class="form-actions">
-                <button class="btn" type="submit">Antwort senden</button>
-              </div>
-            </form>
-          </details>
-        </article>
-      {% endfor %}
+    <div class="admin-table-wrap">
+      <table class="admin-table admin-message-table">
+        <thead>
+          <tr>
+            <th class="admin-check-cell"><span class="visually-hidden">Auswählen</span></th>
+            <th>Status</th>
+            <th>Datum</th>
+            <th>Absender</th>
+            <th>Betreff</th>
+            <th>Land</th>
+            <th>Aktionen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for message in messages %}
+            <tr id="nachricht-{{ message.id }}" class="admin-message-row {% if message.handled %}is-handled{% endif %} {% if message.review_status == 'spam' %}is-spam{% endif %}" data-message-row data-href="/admin/nachrichten/{{ message.id }}/" tabindex="0">
+              <td class="admin-check-cell">
+                <input type="checkbox" name="ids" value="{{ message.id }}" form="messages-bulk" data-select-message aria-label="Nachricht von {{ message.name }} auswählen">
+              </td>
+              <td>
+                {% if message.review_status == 'pruefen' %}<span class="badge badge-warning">Prüfung</span>{% endif %}
+                {% if message.review_status == 'spam' %}<span class="badge badge-neutral">Spam</span>{% endif %}
+                {% if message.handled %}<span class="badge badge-success">Erledigt</span>{% else %}<span class="badge badge-warning">Offen</span>{% endif %}
+              </td>
+              <td>{{ message.created_at | date }}</td>
+              <td><strong>{{ message.name }}</strong><br><span class="text-muted">{{ message.email }}</span></td>
+              <td><a href="/admin/nachrichten/{{ message.id }}/">{{ message.subject or 'Kontaktnachricht' }}</a></td>
+              <td>{{ countryLabels[message.country] or message.country or '–' }}</td>
+              <td>
+                <div class="admin-row-actions">
+                  <a class="btn btn-secondary btn-small" href="/admin/nachrichten/{{ message.id }}/">Öffnen</a>
+                  <form method="post" action="/admin/nachrichten/{{ message.id }}/">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
+                    <input type="hidden" name="handled" value="{% if message.handled %}0{% else %}1{% endif %}">
+                    <button class="btn btn-secondary btn-small" type="submit">{% if message.handled %}Wieder öffnen{% else %}Erledigt{% endif %}</button>
+                  </form>
+                  {% if message.review_status == 'pruefen' %}
+                    <form method="post" action="/admin/nachrichten/{{ message.id }}/freigeben/">
+                      <input type="hidden" name="_csrf" value="{{ csrf }}">
+                      <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
+                      <button class="btn btn-small" type="submit">Freigeben</button>
+                    </form>
+                    <form method="post" action="/admin/nachrichten/{{ message.id }}/spam/">
+                      <input type="hidden" name="_csrf" value="{{ csrf }}">
+                      <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
+                      <button class="btn btn-secondary btn-small" type="submit">Spam</button>
+                    </form>
+                  {% elif message.review_status == 'spam' %}
+                    <form method="post" action="/admin/nachrichten/{{ message.id }}/freigeben/">
+                      <input type="hidden" name="_csrf" value="{{ csrf }}">
+                      <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
+                      <button class="btn btn-small" type="submit">Freigeben</button>
+                    </form>
+                  {% endif %}
+                  <a class="btn btn-danger btn-small" href="/admin/nachrichten/{{ message.id }}/loeschen/?weiter=/admin/nachrichten/">Löschen</a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   {% else %}
     <div class="card empty-state">
       <h2>Keine Nachrichten</h2>
-      <p class="text-muted">Über das Kontaktformular sind noch keine Nachrichten eingegangen.</p>
+      <p class="text-muted">{% if status %}Für diesen Filter sind keine Nachrichten vorhanden.{% else %}Über das Kontaktformular sind noch keine Nachrichten eingegangen.{% endif %}</p>
     </div>
   {% endif %}
 {% endblock %}

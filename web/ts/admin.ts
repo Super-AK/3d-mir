@@ -125,6 +125,48 @@ if (selectAllBoxes.length > 0 && productBoxes.length > 0) {
   });
 }
 
+// Nachrichtenliste: Massenauswahl und Klick auf die Zeile.
+const messageBoxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-select-message]'));
+const messageSelectAll = document.querySelector<HTMLInputElement>('[data-select-all-messages]');
+const messageCount = document.querySelector<HTMLElement>('[data-bulk-count]');
+if (messageBoxes.length > 0) {
+  const updateMessageSelection = (): void => {
+    const selected = messageBoxes.filter((box) => box.checked).length;
+    if (messageCount) messageCount.textContent = `${selected} ausgewählt`;
+    if (messageSelectAll) {
+      messageSelectAll.checked = selected === messageBoxes.length;
+      messageSelectAll.indeterminate = selected > 0 && selected < messageBoxes.length;
+    }
+  };
+  if (messageSelectAll) {
+    messageSelectAll.addEventListener('change', () => {
+      messageBoxes.forEach((box) => {
+        box.checked = messageSelectAll.checked;
+      });
+      updateMessageSelection();
+    });
+  }
+  messageBoxes.forEach((box) => box.addEventListener('change', updateMessageSelection));
+  updateMessageSelection();
+}
+
+document.querySelectorAll<HTMLElement>('[data-message-row]').forEach((row) => {
+  const openMessage = (): void => {
+    const href = row.dataset.href;
+    if (href) window.location.href = href;
+  };
+  row.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('a, button, input, label, form, select, textarea')) return;
+    openMessage();
+  });
+  row.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.target !== row) return;
+    event.preventDefault();
+    openMessage();
+  });
+});
+
 // Preis-Admin: weitere Neu-Zeilen per Add-Button einfügen.
 // Ohne JavaScript bleibt die jeweils erste Neu-Zeile (Index 0) nutzbar.
 const ADD_ATTRIBUTES = ['name', 'id', 'for', 'data-row-index'] as const;

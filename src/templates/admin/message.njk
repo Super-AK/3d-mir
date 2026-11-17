@@ -1,0 +1,120 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}{{ message.subject or 'Kontaktnachricht' }} – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <nav class="breadcrumb" aria-label="Brotkrumen">
+    <ol><li><a href="/admin/nachrichten/">Nachrichten</a></li><li aria-current="page">{{ message.subject or 'Kontaktnachricht' }}</li></ol>
+  </nav>
+
+  <div class="admin-page-head">
+    <div>
+      <h1>{{ message.subject or 'Kontaktnachricht' }}</h1>
+      <p>{{ message.name }} · <a href="mailto:{{ message.email }}">{{ message.email }}</a>{% if message.phone %} · {{ message.phone }}{% endif %} · {{ message.created_at | datetime }}</p>
+    </div>
+    <div class="admin-page-actions">
+      {% if message.review_status == 'pruefen' %}
+        <span class="badge badge-warning">Prüfung erforderlich</span>
+      {% elif message.review_status == 'spam' %}
+        <span class="badge badge-neutral">Spam</span>
+      {% endif %}
+      {% if message.handled %}
+        <span class="badge badge-success">Erledigt</span>
+      {% else %}
+        <span class="badge badge-warning">Offen</span>
+      {% endif %}
+      <a class="btn btn-secondary btn-small" href="/admin/nachrichten/">Zurück zur Liste</a>
+    </div>
+  </div>
+
+  {% if meldung.antwort == 'gesendet' %}
+    <div class="alert alert-success" role="status"><p>Die Antwort wurde per E-Mail versendet.</p></div>
+  {% elif meldung.antwort == 'datei' %}
+    <div class="alert alert-warning" role="status"><p>SMTP ist nicht eingerichtet. Die Antwort wurde als <code>.eml</code>-Datei unter <code>/var/log/3d-mir/mail/</code> gespeichert.</p></div>
+  {% endif %}
+
+  <div class="admin-grid-2 admin-grid-wide">
+    <section class="card admin-panel">
+      <h2>Nachricht</h2>
+      <p class="admin-message-full">{{ message.message }}</p>
+
+      <h2 class="mt-2">Absender</h2>
+      <dl class="admin-dl">
+        <div><dt>Name</dt><dd>{{ message.name }}</dd></div>
+        <div><dt>E-Mail</dt><dd><a href="mailto:{{ message.email }}">{{ message.email }}</a></dd></div>
+        <div><dt>Telefon</dt><dd>{{ message.phone or '–' }}</dd></div>
+        <div><dt>Land</dt><dd>{{ countryLabels[message.country] or message.country or 'unbekannt' }}</dd></div>
+        <div><dt>Eingegangen</dt><dd>{{ message.created_at | datetime }}</dd></div>
+        {% if message.ip_prefix %}
+          <div><dt>IP-Bereich</dt><dd><code class="admin-code">{{ message.ip_prefix }}</code></dd></div>
+        {% endif %}
+        {% if message.ip_hash %}
+          <div><dt>IP-Prüfsumme</dt><dd><code class="admin-code">{{ message.ip_hash }}</code></dd></div>
+        {% endif %}
+        {% if message.user_agent %}
+          <div><dt>Browser</dt><dd><span title="{{ message.user_agent }}">{{ message.user_agent }}</span></dd></div>
+        {% endif %}
+      </dl>
+
+      {% if message.review_reason and message.review_status != 'ok' %}
+        <div class="alert alert-warning" role="status">
+          <p><strong>Grund:</strong> {{ message.review_reason }}</p>
+        </div>
+      {% endif %}
+
+      {% if message.replied_at %}
+        <h2 class="mt-2">Gesendete Antwort</h2>
+        <div class="admin-message-reply-sent">
+          <p><strong>Gesendet am {{ message.replied_at | datetime }}</strong></p>
+          <p><strong>{{ message.reply_subject }}</strong></p>
+          <p>{{ message.reply_text }}</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="card admin-panel">
+      <h2>Aktionen</h2>
+      <div class="admin-message-actions">
+        {% if message.review_status != 'ok' %}
+          <form method="post" action="/admin/nachrichten/{{ message.id }}/freigeben/">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="weiter" value="{{ weiter }}">
+            <button class="btn btn-small" type="submit">Freigeben</button>
+          </form>
+        {% endif %}
+        {% if message.review_status != 'spam' %}
+          <form method="post" action="/admin/nachrichten/{{ message.id }}/spam/">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="weiter" value="{{ weiter }}">
+            <button class="btn btn-secondary btn-small" type="submit">Als Spam markieren</button>
+          </form>
+        {% endif %}
+        <form method="post" action="/admin/nachrichten/{{ message.id }}/">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <input type="hidden" name="weiter" value="{{ weiter }}">
+          <input type="hidden" name="handled" value="{% if message.handled %}0{% else %}1{% endif %}">
+          <button class="btn btn-secondary btn-small" type="submit">{% if message.handled %}Wieder öffnen{% else %}Als erledigt markieren{% endif %}</button>
+        </form>
+        <a class="btn btn-danger btn-small" href="/admin/nachrichten/{{ message.id }}/loeschen/?weiter={{ weiter }}">Löschen</a>
+      </div>
+
+      <h2 class="mt-2">Antworten</h2>
+      <form class="form" method="post" action="/admin/nachrichten/{{ message.id }}/antworten/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="weiter" value="{{ weiter }}">
+        <div class="field">
+          <label for="replySubject">Betreff</label>
+          <input id="replySubject" name="replySubject" type="text" maxlength="200" value="Re: {{ message.subject or 'Ihre Anfrage' }}">
+        </div>
+        <div class="field">
+          <label for="replyText">Antwort an {{ message.email }}</label>
+          <textarea id="replyText" name="replyText" required maxlength="10000" placeholder="Ihre Antwort …"></textarea>
+          <span class="hint">Die Nachricht wird direkt per E-Mail an den Kunden gesendet. Die ursprüngliche Anfrage wird nicht automatisch zitiert.</span>
+        </div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Antwort senden</button>
+        </div>
+      </form>
+    </section>
+  </div>
+{% endblock %}
