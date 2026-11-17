@@ -12,8 +12,13 @@ import { isStripeConfigured } from '../lib/payments/stripe.js';
 import { getContactSettings } from '../lib/contact-settings.js';
 import {
   assessContact,
+  contactIpHash,
+  contactIpPrefix,
+  contactUserAgent,
   createContactToken,
+  getActiveContactBlock,
   isTrustedProxyPeer,
+  registerContactAttempt,
   resolveContactCountry,
 } from '../lib/contact-protection.js';
 import {
@@ -330,10 +335,44 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const form = readContactForm(request);
       const body = (request.body ?? {}) as Record<string, unknown>;
+      const settings = getContactSettings();
+
+      // Pseudonyme Absenderkennung: Die vollständige IP-Adresse wird nicht gespeichert.
+      const ipHash = contactIpHash(request.ip);
+      const ipPrefix = contactIpPrefix(request.ip);
+      const userAgent = contactUserAgent(request.headers['user-agent']);
+      const attemptInfo = { ipHash, ipPrefix, userAgent };
+
+      const activeBlock = getActiveContactBlock(ipHash);
+      if (activeBlock) {
+        registerContactAttempt({
+          ...attemptInfo,
+          country: activeBlock.country,
+          reason: 'Gesperrter Absender',
+          settings,
+        });
+        request.log.warn(
+          { ipPrefix, country: activeBlock.country },
+          'Kontaktformular: gesperrter Absender abgewiesen',
+        );
+        return reply
+          .code(429)
+          .type('text/plain; charset=utf-8')
+          .send('Zu viele Anfragen. Bitte versuchen Sie es später erneut.');
+      }
 
       // Honeypot: Bots füllen das unsichtbare Feld. Wir tun so, als wäre alles gut.
       if (cleanText(body.website, 100)) {
-        request.log.warn({ ip: request.ip }, 'Kontaktformular: Honeypot ausgelöst');
+        const attempt = registerContactAttempt({
+          ...attemptInfo,
+          country: '',
+          reason: 'Honeypot ausgefüllt',
+          settings,
+        });
+        request.log.warn(
+          { ipPrefix, attempts: attempt.attempts, blocked: attempt.blocked },
+          'Kontaktformular: Honeypot ausgelöst',
+        );
         return reply.redirect('/kontakt/danke/', 303);
       }
 
@@ -351,7 +390,6 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const data = parsed.data;
-      const settings = getContactSettings();
       const detected = await resolveContactCountry({
         ip: request.ip,
         headers: request.headers as Record<string, unknown>,
@@ -367,6 +405,65 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         message: data.message,
       });
       const mailData = { ...data, country: assessment.country };
+
+      // Auffällige Versuche zählen und den Absender bei Erreichen der Schwelle sperren.
+      const suspicious = assessment.decision === 'review' || assessment.decision === 'block';
+      const attempt = suspicious
+        ? registerContactAttempt({
+            ...attemptInfo,
+            country: assessment.country,
+            reason: assessment.reasons.join(' ') || 'Spam-Verdacht',
+            settings,
+          })
+        : null;
+
+      if (attempt?.blocked) {
+        request.log.warn(
+          {
+            ipPrefix,
+            country: assessment.country,
+            attempts: attempt.attempts,
+            newlyBlocked: attempt.newlyBlocked,
+          },
+          'Kontaktformular: Absender gesperrt',
+        );
+        if (attempt.newlyBlocked && attempt.shouldNotify) {
+          const blockUrl = `${config.site.baseUrl}/admin/nachrichten/#absender-${attempt.block.id}`;
+          const until = attempt.block.blocked_until
+            ? `bis ${attempt.block.blocked_until} UTC`
+            : 'dauerhaft';
+          try {
+            await notifyAdmin({
+              event: 'contact_review',
+              subject: `[Kontakt] Absender gesperrt – ${assessment.country || 'Land unbekannt'}`,
+              text: [
+                'Ein Absender wurde nach mehreren auffälligen Kontaktversuchen gesperrt.',
+                '',
+                `Land: ${assessment.country || 'unbekannt'}`,
+                `IP-Bereich: ${ipPrefix || 'unbekannt'} (vollständige IP wird nicht gespeichert)`,
+                `Versuche: ${attempt.attempts}`,
+                `Sperre: ${until}`,
+                `Grund: ${assessment.reasons.join(' ') || 'Spam-Verdacht'}`,
+                '',
+                `Admin: ${blockUrl}`,
+              ].join('\n'),
+              telegramText: [
+                'Kontakt-Absender gesperrt',
+                `Land: ${assessment.country || 'unbekannt'}`,
+                `IP-Bereich: ${ipPrefix || 'unbekannt'}`,
+                `Versuche: ${attempt.attempts}`,
+                blockUrl,
+              ].join('\n'),
+            });
+          } catch (error) {
+            request.log.error({ err: error }, 'Sperr-Hinweis konnte nicht versendet werden');
+          }
+        }
+        return reply
+          .code(429)
+          .type('text/plain; charset=utf-8')
+          .send('Zu viele Anfragen. Bitte versuchen Sie es später erneut.');
+      }
 
       const sendAcknowledgement = async (): Promise<void> => {
         try {
@@ -385,7 +482,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
 
       if (assessment.decision === 'block') {
         request.log.warn(
-          { ip: request.ip, country: assessment.country, reasons: assessment.reasons },
+          { ipPrefix, country: assessment.country, reasons: assessment.reasons },
           'Kontaktformular: Anfrage durch Spam-Schutz abgelehnt',
         );
         reply.code(400);
@@ -399,8 +496,9 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
       const result = getDb()
         .prepare(
           `INSERT INTO contact_messages
-             (name, email, phone, subject, message, country, review_status, review_reason)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+             (name, email, phone, subject, message, country, review_status, review_reason,
+              ip_hash, ip_prefix, user_agent)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           data.name,
@@ -411,28 +509,51 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           assessment.country,
           reviewStatus,
           assessment.reasons.join(' '),
+          ipHash,
+          ipPrefix,
+          userAgent,
         );
 
       if (reviewStatus === 'pruefen') {
         request.log.warn(
-          { ip: request.ip, country: assessment.country, reasons: assessment.reasons },
+          {
+            ipPrefix,
+            country: assessment.country,
+            reasons: assessment.reasons,
+            attempts: attempt?.attempts,
+          },
           'Kontaktformular: Nachricht zur Prüfung gespeichert',
         );
         const adminUrl = `${config.site.baseUrl}/admin/nachrichten/#nachricht-${String(result.lastInsertRowid)}`;
-        try {
-          await notifyAdmin({
-            subject: `[Kontakt] Prüfung erforderlich – ${data.subject}`,
-            text: contactReviewMailText(mailData, assessment.reasons, adminUrl),
-            html: contactReviewMailHtml(mailData, assessment.reasons, adminUrl),
-            telegramText: [
-              'Kontaktanfrage zur Prüfung',
-              `Land: ${assessment.country || 'unbekannt'}`,
-              ...assessment.reasons.map((reason) => `- ${reason}`),
-              adminUrl,
-            ].join('\n'),
-          });
-        } catch (error) {
-          request.log.error({ err: error }, 'Prüfhinweis konnte nicht versendet werden');
+        if (attempt?.shouldNotify) {
+          try {
+            await notifyAdmin({
+              event: 'contact_review',
+              subject: `[Kontakt] Prüfung erforderlich – ${data.subject}`,
+              text: contactReviewMailText(mailData, assessment.reasons, adminUrl, {
+                ipPrefix,
+                attempts: attempt.attempts,
+                threshold: settings.spamBanThreshold,
+                userAgent,
+              }),
+              html: contactReviewMailHtml(mailData, assessment.reasons, adminUrl, {
+                ipPrefix,
+                attempts: attempt.attempts,
+                threshold: settings.spamBanThreshold,
+                userAgent,
+              }),
+              telegramText: [
+                'Kontaktanfrage zur Prüfung',
+                `Land: ${assessment.country || 'unbekannt'}`,
+                `IP-Bereich: ${ipPrefix || 'unbekannt'}`,
+                `Auffällige Versuche: ${attempt.attempts} von ${settings.spamBanThreshold}`,
+                ...assessment.reasons.map((reason) => `- ${reason}`),
+                adminUrl,
+              ].join('\n'),
+            });
+          } catch (error) {
+            request.log.error({ err: error }, 'Prüfhinweis konnte nicht versendet werden');
+          }
         }
         await sendAcknowledgement();
         return reply.redirect('/kontakt/danke/?pruefung=1', 303);
@@ -440,6 +561,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
 
       try {
         await notifyAdmin({
+          event: 'contact_message',
           subject: `[Kontakt] ${data.subject} – ${data.name}`,
           text: contactMailText(mailData),
           html: contactMailHtml(mailData),
@@ -452,7 +574,10 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
 
       await sendAcknowledgement();
 
-      request.log.info({ subject: data.subject, country: assessment.country }, 'Kontaktanfrage gespeichert');
+      request.log.info(
+        { subject: data.subject, country: assessment.country, ipPrefix },
+        'Kontaktanfrage gespeichert',
+      );
       return reply.redirect('/kontakt/danke/', 303);
     },
   );

@@ -1,7 +1,7 @@
 # Abschlussbericht
 
 **Projekt:** Neuaufbau der Website 3D-MIR (3D-Druck Service, Schömberg)
-**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.30
+**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.31
 **Technischer Status:** Release-Kandidat, alle geplanten Funktionen umgesetzt; Abnahme und Livegang offen
 
 ## 1. Ausgangslage und Ziel

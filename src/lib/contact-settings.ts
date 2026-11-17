@@ -26,6 +26,14 @@ export type ContactSettings = {
   timeCheck: boolean;
   /** Inhaltsprüfung: Links, Spam-Begriffe und Großschreibung. */
   contentCheck: boolean;
+  /** Absender nach wiederholten auffälligen Versuchen automatisch sperren. */
+  spamBanEnabled: boolean;
+  /** Anzahl auffälliger Versuche bis zur Sperre (3 oder 5). */
+  spamBanThreshold: number;
+  /** Zeitfenster in Minuten, in dem die Versuche gezählt werden. */
+  spamBanWindowMinutes: number;
+  /** Sperrdauer in Stunden; 0 bedeutet dauerhaft. */
+  spamBanHours: number;
 };
 
 export const defaultContactSettings: ContactSettings = {
@@ -35,6 +43,10 @@ export const defaultContactSettings: ContactSettings = {
   unknownCountry: 'review',
   timeCheck: true,
   contentCheck: true,
+  spamBanEnabled: true,
+  spamBanThreshold: 5,
+  spamBanWindowMinutes: 60,
+  spamBanHours: 24,
 };
 
 const SETTINGS_KEY = 'contact.settings';
@@ -49,6 +61,16 @@ function bool(value: unknown, fallback: boolean): boolean {
 function countryList(value: unknown): string[] {
   const values = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[,;\s]+/) : [];
   return [...new Set(values.map((entry) => String(entry).trim().toUpperCase()).filter(isKnownCountry))];
+}
+
+function wholeNumber(value: unknown, fallback: number, min: number, max: number): number {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= min && number <= max ? number : fallback;
+}
+
+/** Nur 3 oder 5 Versuche sind als Sperrschwelle vorgesehen. */
+function banThreshold(value: unknown): number {
+  return Number(value) === 3 ? 3 : 5;
 }
 
 /** Liest die aktuellen Einstellungen inklusive Standardwerten. */
@@ -74,6 +96,15 @@ export function getContactSettings(): ContactSettings {
     unknownCountry: readUnknownCountry(parsed.unknownCountry),
     timeCheck: bool(parsed.timeCheck, defaultContactSettings.timeCheck),
     contentCheck: bool(parsed.contentCheck, defaultContactSettings.contentCheck),
+    spamBanEnabled: bool(parsed.spamBanEnabled, defaultContactSettings.spamBanEnabled),
+    spamBanThreshold: banThreshold(parsed.spamBanThreshold),
+    spamBanWindowMinutes: wholeNumber(
+      parsed.spamBanWindowMinutes,
+      defaultContactSettings.spamBanWindowMinutes,
+      5,
+      1440,
+    ),
+    spamBanHours: wholeNumber(parsed.spamBanHours, defaultContactSettings.spamBanHours, 0, 8760),
   };
 }
 
@@ -90,6 +121,15 @@ export function saveContactSettings(settings: ContactSettings): void {
     unknownCountry: readUnknownCountry(settings.unknownCountry),
     timeCheck: settings.timeCheck,
     contentCheck: settings.contentCheck,
+    spamBanEnabled: settings.spamBanEnabled,
+    spamBanThreshold: banThreshold(settings.spamBanThreshold),
+    spamBanWindowMinutes: wholeNumber(
+      settings.spamBanWindowMinutes,
+      defaultContactSettings.spamBanWindowMinutes,
+      5,
+      1440,
+    ),
+    spamBanHours: wholeNumber(settings.spamBanHours, defaultContactSettings.spamBanHours, 0, 8760),
   });
   getDb()
     .prepare(

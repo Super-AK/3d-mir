@@ -74,6 +74,7 @@ async function main(): Promise<void> {
   if (result.ok) {
     if (state.down) {
       await notifyAdmin({
+        event: 'monitoring',
         subject: '[Monitoring] 3D-MIR ist wieder erreichbar',
         text: [
           'Die Website ist wieder erreichbar.',
@@ -102,6 +103,7 @@ async function main(): Promise<void> {
   const shouldAlert = !state.down || !Number.isFinite(lastAlert) || now.getTime() - lastAlert >= ALERT_INTERVAL_MS;
   if (shouldAlert) {
     await notifyAdmin({
+      event: 'monitoring',
       subject: '[Monitoring] 3D-MIR ist nicht erreichbar',
       text: [
         'Der Health-Check der Website ist fehlgeschlagen.',

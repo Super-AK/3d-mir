@@ -11,6 +11,44 @@ export type ContactMailData = {
   country: string;
 };
 
+/** Zusatzangaben zur Absendererkennung; die vollständige IP wird nie übermittelt. */
+export type ContactReviewContext = {
+  ipPrefix?: string;
+  attempts?: number;
+  threshold?: number;
+  userAgent?: string;
+};
+
+function reviewContextLines(context?: ContactReviewContext): string[] {
+  if (!context) return [];
+  const lines: string[] = [];
+  if (context.ipPrefix) {
+    lines.push(`IP-Bereich: ${context.ipPrefix} (vollständige IP wird nicht gespeichert)`);
+  }
+  if (context.attempts !== undefined) {
+    lines.push(
+      `Auffällige Versuche: ${context.attempts}${context.threshold ? ` von ${context.threshold}` : ''}`,
+    );
+  }
+  if (context.userAgent) lines.push(`Browser: ${context.userAgent}`);
+  return lines;
+}
+
+function reviewContextRows(context?: ContactReviewContext): [string, string][] {
+  if (!context) return [];
+  const rows: [string, string][] = [];
+  if (context.ipPrefix) rows.push(['IP-Bereich', `${context.ipPrefix} (vollständige IP wird nicht gespeichert)`]);
+  if (context.attempts !== undefined) {
+    rows.push([
+      'Auffällige Versuche',
+      `${context.attempts}${context.threshold ? ` von ${context.threshold}` : ''}`,
+    ]);
+  }
+  if (context.userAgent) rows.push(['Browser', context.userAgent]);
+  return rows;
+}
+
+
 /** Klartext für die Betreiber-Benachrichtigung einer Kontaktanfrage. */
 export function contactMailText(data: ContactMailData): string {
   return [
@@ -46,13 +84,19 @@ export function contactMailHtml(data: ContactMailData): string {
 }
 
 /** Kurze Benachrichtigung, dass eine Nachricht auf Prüfung wartet. */
-export function contactReviewMailText(data: ContactMailData, reasons: string[], adminUrl: string): string {
+export function contactReviewMailText(
+  data: ContactMailData,
+  reasons: string[],
+  adminUrl: string,
+  context?: ContactReviewContext,
+): string {
   return [
     'Eine Kontaktanfrage wartet auf Prüfung.',
     '',
     `Name:    ${data.name}`,
     `E-Mail:  ${data.email}`,
     `Land:    ${data.country ? `${countryName(data.country)} (${data.country})` : 'unbekannt'}`,
+    ...reviewContextLines(context),
     `Anliegen: ${data.subject}`,
     '',
     'Gründe:',
@@ -64,7 +108,12 @@ export function contactReviewMailText(data: ContactMailData, reasons: string[], 
 }
 
 /** HTML-Variante der Prüf-Benachrichtigung. */
-export function contactReviewMailHtml(data: ContactMailData, reasons: string[], adminUrl: string): string {
+export function contactReviewMailHtml(
+  data: ContactMailData,
+  reasons: string[],
+  adminUrl: string,
+  context?: ContactReviewContext,
+): string {
   return mailLayout({
     title: 'Kontaktanfrage zur Prüfung',
     preheader: `${data.name} · ${data.subject}`,
@@ -74,6 +123,7 @@ export function contactReviewMailHtml(data: ContactMailData, reasons: string[], 
         ['Name', data.name],
         ['E-Mail', data.email],
         ['Land', data.country ? `${countryName(data.country)} (${data.country})` : 'unbekannt'],
+        ...reviewContextRows(context),
         ['Anliegen', data.subject],
       ])),
       mailSection('Gründe', `<ul style="margin:0 0 10px;padding-left:20px;color:#334155;font-size:13px;line-height:1.6;">${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join('')}</ul>`),

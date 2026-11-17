@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   assessContact,
+  contactIpHash,
+  contactIpPrefix,
+  contactUserAgent,
   createContactToken,
   headerCountry,
   isTrustedProxyPeer,
@@ -17,6 +20,10 @@ const baseSettings: ContactSettings = {
   unknownCountry: 'review',
   timeCheck: false,
   contentCheck: false,
+  spamBanEnabled: true,
+  spamBanThreshold: 5,
+  spamBanWindowMinutes: 60,
+  spamBanHours: 24,
 };
 
 const baseInput = {
@@ -98,6 +105,30 @@ describe('Kontakt-Spam-Schutz', () => {
       now: Date.now(),
     });
     expect(result.decision).toBe('review');
+  });
+});
+
+describe('Absender-Erkennung', () => {
+  it('erzeugt für dieselbe IP dieselbe Prüfsumme, aber nicht die IP selbst', () => {
+    const hash = contactIpHash('203.0.113.7');
+    expect(hash).toBe(contactIpHash('203.0.113.7'));
+    expect(hash).not.toContain('203.0.113.7');
+    expect(contactIpHash('203.0.113.8')).not.toBe(hash);
+  });
+
+  it('kürzt IPv4- und IPv6-Adressen für die Anzeige', () => {
+    expect(contactIpPrefix('203.0.113.7')).toBe('203.0.113.0/24');
+    expect(contactIpPrefix('::ffff:203.0.113.7')).toBe('203.0.113.0/24');
+    expect(contactIpPrefix('2001:db8:abcd:12::1')).toBe('2001:db8:abcd::/48');
+    expect(contactIpPrefix('2001:db8::1')).toBe('2001:db8:0::/48');
+    expect(contactIpPrefix('keine-ip')).toBe('');
+  });
+
+  it('bereinigt und begrenzt den User-Agent', () => {
+    expect(contactUserAgent('Mozilla/5.0')).toBe('Mozilla/5.0');
+    expect(contactUserAgent('a\u0000b')).toBe('ab');
+    expect(contactUserAgent('x'.repeat(400))).toHaveLength(300);
+    expect(contactUserAgent(undefined)).toBe('');
   });
 });
 

@@ -13,6 +13,73 @@ import { getDb } from '../db/index.js';
  */
 export type NotificationChannel = 'mail' | 'telegram' | 'both';
 
+/** Ereignisse, die der Betreiber einzeln ein- und ausschalten kann. */
+export type NotificationEvent =
+  | 'contact_message'
+  | 'contact_review'
+  | 'quote_request'
+  | 'order_new'
+  | 'payment_received'
+  | 'payment_after_cancellation'
+  | 'monitoring';
+
+export type NotificationEventSettings = Record<NotificationEvent, boolean>;
+
+export const NOTIFICATION_EVENTS: NotificationEvent[] = [
+  'contact_message',
+  'contact_review',
+  'quote_request',
+  'order_new',
+  'payment_received',
+  'payment_after_cancellation',
+  'monitoring',
+];
+
+export const notificationEventLabels: Record<
+  NotificationEvent,
+  { label: string; description: string }
+> = {
+  contact_message: {
+    label: 'Neue Kontaktnachricht',
+    description: 'Normale Anfrage aus dem Kontaktformular.',
+  },
+  contact_review: {
+    label: 'Kontaktnachricht zur Prüfung',
+    description:
+      'Spam-Verdacht, nicht freigegebenes Land oder zu schnelles Absenden. Wird höchstens einmal pro Absender und Tag sowie bei einer neuen Sperre gemeldet.',
+  },
+  quote_request: {
+    label: 'Neue Angebotsanfrage',
+    description: 'Anfrage aus dem 3D-Druck-Rechner inklusive Modell-Datei.',
+  },
+  order_new: {
+    label: 'Neue Bestellung',
+    description: 'Bestellung aus dem Shop.',
+  },
+  payment_received: {
+    label: 'Zahlungseingang',
+    description: 'Bestätigte Zahlung zu einer Bestellung.',
+  },
+  payment_after_cancellation: {
+    label: 'Zahlung nach Stornierung',
+    description: 'Zahlung zu einer bereits stornierten Bestellung.',
+  },
+  monitoring: {
+    label: 'Systemüberwachung',
+    description: 'Website nicht erreichbar oder wieder erreichbar.',
+  },
+};
+
+export const defaultNotificationEvents: NotificationEventSettings = {
+  contact_message: true,
+  contact_review: true,
+  quote_request: true,
+  order_new: true,
+  payment_received: true,
+  payment_after_cancellation: true,
+  monitoring: true,
+};
+
 export type SmtpSettings = {
   host: string;
   port: number;
@@ -32,6 +99,8 @@ export type NotificationSettings = {
   channel: NotificationChannel;
   /** Kopie jeder Kunden-E-Mail an das Betreiber-Postfach. */
   copyCustomerMails: boolean;
+  /** Einzelne Ereignisse für Betreiber-Benachrichtigungen. */
+  events: NotificationEventSettings;
   smtp: SmtpSettings;
   telegram: TelegramSettings;
 };
@@ -39,6 +108,7 @@ export type NotificationSettings = {
 export type NotificationOverrides = {
   channel?: NotificationChannel;
   copyCustomerMails?: boolean;
+  events?: Partial<NotificationEventSettings>;
   smtp?: Partial<SmtpSettings>;
   telegram?: Partial<TelegramSettings>;
 };
@@ -68,6 +138,7 @@ function envDefaults(): NotificationSettings {
   return {
     channel: config.notifications.channel,
     copyCustomerMails: false,
+    events: { ...defaultNotificationEvents },
     smtp: {
       host: config.mail.host ?? '',
       port: config.mail.port,
@@ -110,6 +181,15 @@ export function getNotificationOverrides(): NotificationOverrides {
     overrides.copyCustomerMails = bool(raw.copyCustomerMails, false);
   }
 
+  if (raw.events && typeof raw.events === 'object') {
+    const rawEvents = raw.events as Record<string, unknown>;
+    const events: Partial<NotificationEventSettings> = {};
+    for (const event of NOTIFICATION_EVENTS) {
+      if (rawEvents[event] !== undefined) events[event] = bool(rawEvents[event], true);
+    }
+    if (Object.keys(events).length > 0) overrides.events = events;
+  }
+
   const port = Number(smtp.port);
   const smtpOverride: Partial<SmtpSettings> = {};
   if (typeof smtp.host === 'string') smtpOverride.host = text(smtp.host, 200);
@@ -139,6 +219,7 @@ export function getNotificationSettings(): NotificationSettings {
   return {
     channel: overrides.channel ?? env.channel,
     copyCustomerMails: overrides.copyCustomerMails ?? env.copyCustomerMails,
+    events: { ...defaultNotificationEvents, ...overrides.events },
     smtp: {
       host: text(smtp.host, 200) || env.smtp.host,
       port: Number.isFinite(Number(smtp.port)) ? Number(smtp.port) : env.smtp.port,
@@ -171,6 +252,13 @@ export function isSmtpConfigured(settings: NotificationSettings = getNotificatio
 
 export function isTelegramConfigured(settings: NotificationSettings = getNotificationSettings()): boolean {
   return settings.telegram.botToken !== '' && settings.telegram.chatId !== '';
+}
+
+export function isNotificationEnabled(
+  event: NotificationEvent,
+  settings: NotificationSettings = getNotificationSettings(),
+): boolean {
+  return settings.events[event] !== false;
 }
 
 export function notificationChannelLabel(value: NotificationChannel): string {

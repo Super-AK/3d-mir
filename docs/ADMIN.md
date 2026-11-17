@@ -198,6 +198,10 @@ Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfu
 | Land nicht ermittelbar | **Zur Prüfung speichern** (empfohlen), **Anfrage direkt ablehnen** oder **ohne Länderprüfung zulassen**. |
 | Zeitprüfung | Das Formular muss mindestens 3 Sekunden geöffnet gewesen sein. |
 | Inhaltsprüfung | Erkennt viele Links, typische Spam-Begriffe und überwiegende Großschreibung. |
+| Automatische Absender-Sperre | Sperrt einen Absender nach 3 oder 5 auffälligen Versuchen innerhalb eines Zeitfensters. |
+| Versuche bis zur Sperre | Auswahl zwischen **3** und **5** Versuchen. |
+| Zeitfenster | Zeitraum in Minuten, in dem die Versuche gezählt werden (Standard: 60). |
+| Sperrdauer | Dauer in Stunden; **0** bedeutet dauerhaft bis zur manuellen Aufhebung. |
 
 **Woher kommt das Land?** Ausschließlich serverseitig, nie aus einer Besuchereingabe:
 
@@ -208,6 +212,17 @@ Der Spam-Schutz wird im aufklappbaren Bereich **„Spam-Schutz und Länderprüfu
 Die Datenbank wird mit `sudo deploy/update-geoip.sh` installiert bzw. aktualisiert (Quelle: DB-IP Lite, CC BY 4.0) und sollte monatlich erneuert werden. Im Admin-Bereich zeigt ein Hinweis, ob die Datenbank gefunden wurde und welcher Pfad verwendet wird. Es werden keine IP-Adressen an externe Dienste übermittelt.
 
 Zusätzlich schützen ein Honeypot-Feld, ein Rate-Limit und ein signiertes Zeit-Token (HMAC mit `SESSION_SECRET`, 24 Stunden gültig) vor automatisierten Anfragen.
+
+### Absender erkennen und sperren
+
+Bei jedem auffälligen Versuch (falsches Land, zu schnelles Absenden, Spam-Inhalt oder Honeypot) zählt der Server den Absender pseudonymisiert:
+
+- Gespeichert werden eine **HMAC-Prüfsumme** der IP-Adresse, eine **gekürzte IP-Adresse** (IPv4 `/24`, IPv6 `/48`) und die **Browserkennung** (User-Agent). Die vollständige IP-Adresse wird nicht gespeichert.
+- Erreicht ein Absender die eingestellte Zahl an Versuchen, wird er für die gewählte Dauer gesperrt. Weitere Anfragen werden mit HTTP `429` abgewiesen, nicht gespeichert und lösen keine Benachrichtigung aus.
+- Im Bereich **„Gesperrte und auffällige Absender“** unter **Admin → Nachrichten** stehen Status, Land, Versuche, letzter Zeitpunkt und Browser. Aktive Sperren lassen sich dort mit **Sperre aufheben** zurücksetzen.
+- Reine Spam-Beobachtungen und abgelaufene Sperren werden nach **30 Tagen** ohne Aktivität automatisch entfernt.
+
+Der Prüfhinweis wird außerdem **höchstens einmal pro Absender und Tag** versendet; bei einer neuen Sperre kommt eine zusätzliche Meldung. Dadurch entstehen bei wiederholten Versuchen nicht mehr für jeden einzelnen Versuch neue Benachrichtigungen.
 
 Im Prüfmodus wird eine auffällige Nachricht gespeichert, aber **nicht** automatisch an den Betreiber weitergeleitet. Stattdessen erhält der Betreiber einen kurzen Prüfhinweis. Im Admin kann die Nachricht anschließend **freigegeben** (dann wird die normale Benachrichtigung nachgeholt) oder **als Spam markiert** werden. Als Spam markierte Nachrichten bleiben zur Nachvollziehbarkeit erhalten und werden aus der offenen Zählung herausgenommen.
 
@@ -226,6 +241,22 @@ Unter **Admin → Benachrichtigungen** wird festgelegt, wie der Betreiber über 
 | E-Mail und Telegram | Benachrichtigungen werden über beide Kanäle versendet. |
 
 Kunden-E-Mails (Bestellbestätigung, Zahlungsbestätigung, Statusmeldungen) gehen **immer per E-Mail** heraus, unabhängig von der Kanalwahl. Die Kanalwahl betrifft nur Benachrichtigungen an den Betreiber.
+
+### Ereignisse einzeln auswählen
+
+Unter **„Benachrichtigungen an mich“** lässt sich jede Benachrichtigungsart einzeln ein- oder ausschalten:
+
+| Ereignis | Inhalt |
+| --- | --- |
+| Neue Kontaktnachricht | Normale Anfrage aus dem Kontaktformular. |
+| Kontaktnachricht zur Prüfung | Spam-Verdacht, nicht freigegebenes Land oder zu schnelles Absenden. Wird höchstens einmal pro Absender und Tag sowie bei einer neuen Sperre gemeldet. |
+| Neue Angebotsanfrage | Anfrage aus dem 3D-Druck-Rechner inklusive Modell-Datei. |
+| Neue Bestellung | Bestellung aus dem Shop. |
+| Zahlungseingang | Bestätigte Zahlung zu einer Bestellung. |
+| Zahlung nach Stornierung | Zahlung zu einer bereits stornierten Bestellung. |
+| Systemüberwachung | Website nicht erreichbar oder wieder erreichbar. |
+
+Die Auswahl gilt für E-Mail und Telegram gleichermaßen. Kunden-E-Mails sind davon nicht betroffen. Die Werte liegen in der Tabelle `settings` unter dem Schlüssel `notifications` im Feld `events`.
 
 Benachrichtigungen, Statusmeldungen und Bestätigungen werden als HTML-E-Mail mit Text-Fallback versendet. Die Benachrichtigung zu einer Angebotsanfrage enthält einen **direkten Download-Link** zur hochgeladenen Modelldatei sowie einen Link zur Anfrage im Admin. Der Download ist nur nach Anmeldung im Admin-Bereich möglich.
 

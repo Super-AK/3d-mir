@@ -884,6 +884,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
 
         try {
           await notifyAdmin({
+            event: 'order_new',
             subject: `[Bestellung ${number}] ${lines.length} Position(en), ${formatEuro(totals.totalCents)}`,
             text: orderMailText(
               number,

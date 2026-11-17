@@ -534,6 +534,7 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
   if (order.status === 'storniert') {
     try {
       await notifyAdmin({
+        event: 'payment_after_cancellation',
         subject: `[Zahlung nach Stornierung] Bestellung ${order.order_number} – ${formatEuro(order.total_cents)}`,
         text: [
           `Für die bereits stornierte Bestellung ${order.order_number} ist eine Zahlung eingegangen.`,
@@ -630,6 +631,7 @@ export async function sendPaymentConfirmed(order: PaymentOrder): Promise<void> {
       replyTo: config.mail.to,
     });
     await notifyAdmin({
+      event: 'payment_received',
       subject: `[Zahlung] Bestellung ${order.order_number} – ${formatEuro(order.total_cents)}`,
       text: [
         `Zahlung eingegangen für Bestellung ${order.order_number}.`,

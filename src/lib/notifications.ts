@@ -1,9 +1,15 @@
 import { getLogger } from './logger.js';
 import { sendMail } from './mailer.js';
-import { getNotificationSettings, notificationChannelLabel } from './notification-settings.js';
+import {
+  getNotificationSettings,
+  notificationChannelLabel,
+  type NotificationEvent,
+} from './notification-settings.js';
 import { sendTelegramMessage } from './telegram.js';
 
 export type AdminNotification = {
+  /** Ereignis, das im Admin einzeln ein- oder ausgeschaltet werden kann. */
+  event: NotificationEvent;
   subject: string;
   text: string;
   html?: string;
@@ -20,6 +26,13 @@ export type AdminNotification = {
  */
 export async function notifyAdmin(notification: AdminNotification): Promise<void> {
   const settings = getNotificationSettings();
+  if (settings.events[notification.event] === false) {
+    getLogger().debug(
+      { event: notification.event },
+      'Admin-Benachrichtigung im Admin deaktiviert',
+    );
+    return;
+  }
   const channel = settings.channel;
   const errors: string[] = [];
 

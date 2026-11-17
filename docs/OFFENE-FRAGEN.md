@@ -175,7 +175,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 
 ## 12. Kontakt, Antworten und Spam-Schutz 🟡
 
-Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rate-Limit und Inhaltsprüfung angenommen. Auffällige Nachrichten landen im Prüfmodus und werden erst nach manueller Freigabe an den Betreiber weitergeleitet. Antworten können direkt aus dem Admin per E-Mail gesendet werden.
+Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rate-Limit und Inhaltsprüfung angenommen. Auffällige Nachrichten landen im Prüfmodus und werden erst nach manueller Freigabe an den Betreiber weitergeleitet. Wiederholte auffällige Versuche werden pseudonymisiert gezählt und nach 3 oder 5 Versuchen automatisch gesperrt. Antworten können direkt aus dem Admin per E-Mail gesendet werden.
 
 | Nr. | Status | Frage / Entscheidung |
 | --- | --- | --- |
@@ -191,6 +191,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F82 | ✅ Erledigt | **Geprüft:** Impressum (DDG), AGB (dynamische Zahlungsarten, § 14 entfernt), Widerruf und Datenschutz (Rechtsgrundlagen, Aufsichtsbehörde, Drittland, Cookies) anwaltlich freigegeben.<br>*(15.11.2026)* |
 | F83 | ✅ Erledigt | **Bestätigt:** Die gesetzlichen Aufbewahrungsfristen (in der Regel 6 bzw. 10 Jahre) wurden vom Steuerberater bestätigt.<br>*(15.11.2026)* |
 | F84 | ✅ Erledigt | **Erledigt:** Der WordPress-Altbestand wurde entfernt und der Mischbetrieb beendet; die neuen Routen werden vollständig von der Anwendung ausgeliefert.<br>*(15.11.2026)* |
+| F85 | 🟡 In Arbeit | **Neue Spam-Abwehr:** Die Datenschutzerklärung wurde um die Speicherung einer gekürzten IP-Adresse, einer nicht rückführbaren Prüfsumme und der Browserkennung ergänzt (Nachricht bis 24 Monate, reine Beobachtungen 30 Tage). Bitte bei der nächsten rechtlichen Prüfung bestätigen. |
 
 ## 13. Nächste Schritte bis zum Livegang
 

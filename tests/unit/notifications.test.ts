@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { sendTelegramMessage } from '../../src/lib/telegram.js';
+import {
+  defaultNotificationEvents,
+  isNotificationEnabled,
+  type NotificationSettings,
+} from '../../src/lib/notification-settings.js';
 
 const settings = { botToken: '123456789:AAH_test-token_123', chatId: '987654321' };
 
@@ -50,5 +55,26 @@ describe('Telegram-Benachrichtigungen', () => {
     await expect(sendTelegramMessage('Test', { botToken: '../falsch', chatId: '1' })).rejects.toThrow(
       'ungültiges Format',
     );
+  });
+});
+
+describe('Benachrichtigungen pro Ereignis', () => {
+  const base: NotificationSettings = {
+    channel: 'mail',
+    copyCustomerMails: false,
+    events: { ...defaultNotificationEvents, contact_review: false },
+    smtp: { host: '', port: 587, secure: false, user: '', pass: '', from: '', to: '' },
+    telegram: { botToken: '', chatId: '' },
+  };
+
+  it('respektiert ausgeschaltete Ereignisse', () => {
+    expect(isNotificationEnabled('contact_review', base)).toBe(false);
+    expect(isNotificationEnabled('order_new', base)).toBe(true);
+  });
+
+  it('schaltet standardmäßig alle Ereignisse ein', () => {
+    for (const enabled of Object.values(defaultNotificationEvents)) {
+      expect(enabled).toBe(true);
+    }
   });
 });

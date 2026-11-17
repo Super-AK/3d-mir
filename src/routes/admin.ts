@@ -97,8 +97,11 @@ import {
   isSmtpConfigured,
   isTelegramConfigured,
   notificationChannelLabel,
+  notificationEventLabels,
+  NOTIFICATION_EVENTS,
   saveNotificationSettings,
   type NotificationChannel,
+  type NotificationEventSettings,
   type NotificationSettings,
 } from '../lib/notification-settings.js';
 import { sendTelegramMessage } from '../lib/telegram.js';
@@ -114,6 +117,11 @@ import {
   type UnknownCountryBehavior,
 } from '../lib/contact-settings.js';
 import { contactMailHtml, contactMailText } from '../lib/contact-mail.js';
+import {
+  isContactBlockActive,
+  listContactBlocks,
+  unblockContactBlock,
+} from '../lib/contact-protection.js';
 import { geoipStatus } from '../lib/geoip.js';
 import {
   allCategories,
@@ -351,6 +359,9 @@ type ContactRow = {
   replied_at: string | null;
   reply_subject: string;
   reply_text: string;
+  ip_hash: string;
+  ip_prefix: string;
+  user_agent: string;
   created_at: string;
 };
 
@@ -456,6 +467,11 @@ function queryObject(request: FastifyRequest): Record<string, unknown> {
 
 function bodyObject(request: FastifyRequest): Record<string, unknown> {
   return (request.body ?? {}) as Record<string, unknown>;
+}
+
+function intInRange(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : fallback;
 }
 
 function idList(value: unknown): number[] {
@@ -2163,6 +2179,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .all() as ContactRow[];
       const reviewCount = messages.filter((message) => message.review_status === 'pruefen').length;
       const spamCount = messages.filter((message) => message.review_status === 'spam').length;
+      const blocks = listContactBlocks().map((block) => ({
+        ...block,
+        active: isContactBlockActive(block),
+      }));
+      const blockedCount = blocks.filter((block) => block.active).length;
       render(reply, 'admin/messages.njk', adminContext(request, {
         messages,
         contactSettings: getContactSettings(),
@@ -2171,6 +2192,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         geoip: geoipStatus(),
         reviewCount,
         spamCount,
+        blocks,
+        blockedCount,
       }));
     });
 
@@ -2203,6 +2226,10 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         unknownCountry,
         timeCheck: body.timeCheck === '1' || body.timeCheck === 'on',
         contentCheck: body.contentCheck === '1' || body.contentCheck === 'on',
+        spamBanEnabled: body.spamBanEnabled === '1' || body.spamBanEnabled === 'on',
+        spamBanThreshold: Number(body.spamBanThreshold) === 3 ? 3 : 5,
+        spamBanWindowMinutes: intInRange(body.spamBanWindowMinutes, 60, 5, 1440),
+        spamBanHours: intInRange(body.spamBanHours, 24, 0, 8760),
       };
       saveContactSettings(settings);
       writeAudit(request.admin?.email ?? 'admin', 'contact.settings', {
@@ -2210,9 +2237,23 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         allowedCountries,
         mode,
         unknownCountry,
+        spamBanEnabled: settings.spamBanEnabled,
+        spamBanThreshold: settings.spamBanThreshold,
       });
       return reply.redirect('/admin/nachrichten/?gespeichert=1', 303);
     });
+
+    scope.post<{ Params: { id: string } }>(
+      '/admin/nachrichten/sperren/:id/aufheben/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        if (!Number.isInteger(id) || id <= 0 || !unblockContactBlock(id)) {
+          return adminError(request, reply, 404, 'Diese Sperre wurde nicht gefunden.');
+        }
+        writeAudit(request.admin?.email ?? 'admin', 'contact.unblock', { id });
+        return reply.redirect(`/admin/nachrichten/?gespeichert=1#absender-${id}`, 303);
+      },
+    );
 
     scope.post<{ Params: { id: string } }>('/admin/nachrichten/:id/antworten/', async (request, reply) => {
       const id = Number(request.params.id);
@@ -2280,6 +2321,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
       try {
         await notifyAdmin({
+          event: 'contact_message',
           subject: `[Kontakt] ${message.subject || 'Kontaktnachricht'} – ${message.name}`,
           text: contactMailText(message),
           html: contactMailHtml(message),
@@ -3477,6 +3519,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       render(reply, 'admin/notifications.njk', adminContext(request, {
         settings,
         channelLabel: notificationChannelLabel(settings.channel),
+        notificationEvents: NOTIFICATION_EVENTS.map((event) => ({
+          key: event,
+          ...notificationEventLabels[event],
+          enabled: settings.events[event],
+        })),
         smtpConfigured: isSmtpConfigured(settings),
         telegramConfigured: isTelegramConfigured(settings),
         smtpFromEnv: !overrides.smtp?.host && Boolean(config.mail.host),
@@ -3498,10 +3545,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const smtpPassInput = typeof body.smtpPass === 'string' ? body.smtpPass.slice(0, 500) : '';
       const telegramTokenInput =
         typeof body.telegramToken === 'string' ? body.telegramToken.slice(0, 300) : '';
+      const events = {} as NotificationEventSettings;
+      for (const event of NOTIFICATION_EVENTS) {
+        events[event] = body[`event_${event}`] === '1' || body[`event_${event}`] === 'on';
+      }
 
       const settings: NotificationSettings = {
         channel,
         copyCustomerMails: body.copyCustomerMails === '1' || body.copyCustomerMails === 'on',
+        events,
         smtp: {
           host: cleanText(body.smtpHost, 200),
           port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 587,
@@ -3523,6 +3575,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         channel: settings.channel,
         smtpConfigured: Boolean(settings.smtp.host),
         telegramConfigured: Boolean(settings.telegram.botToken && settings.telegram.chatId),
+        events: Object.entries(settings.events)
+          .filter(([, enabled]) => enabled)
+          .map(([event]) => event),
       });
       return reply.redirect('/admin/benachrichtigungen/?gespeichert=1', 303);
     });

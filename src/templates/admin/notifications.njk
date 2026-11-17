@@ -36,6 +36,22 @@
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     <section class="card admin-panel">
+      <h2>Benachrichtigungen an mich</h2>
+      <p class="text-muted">Wählen Sie, welche Ereignisse per E-Mail oder Telegram an Sie gemeldet werden. Kunden-E-Mails (Bestellbestätigung, Statusmeldungen) sind davon nicht betroffen und gehen immer an den Kunden.</p>
+      <div class="admin-check-list admin-notification-events">
+        {% for event in notificationEvents %}
+          <label class="admin-check">
+            <input type="checkbox" name="event_{{ event.key }}" value="1" {% if event.enabled %}checked{% endif %}>
+            <span>
+              <strong>{{ event.label }}</strong><br>
+              <span class="hint">{{ event.description }}</span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card admin-panel">
       <h2>Benachrichtigungskanal</h2>
       <p class="text-muted">Die Auswahl gilt für Benachrichtigungen an den Betreiber, z. B. neue Bestellungen, Kontaktanfragen und Zahlungseingänge. Kunden erhalten ihre Bestellbestätigungen weiterhin per E-Mail.</p>
       <div class="radio-list">

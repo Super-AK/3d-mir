@@ -377,6 +377,7 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
 
       try {
         await notifyAdmin({
+          event: 'quote_request',
           subject: `[Anfrage ${reference}] ${material.label} · ${input.quantity} Teile`,
           text: summaryLines.join('\n'),
           html: adminHtml,

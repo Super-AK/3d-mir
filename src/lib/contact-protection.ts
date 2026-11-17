@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { config } from '../config.js';
+import { getDb } from '../db/index.js';
 import type { ContactSettings } from './contact-settings.js';
 import { normalizeCountry } from './countries.js';
 import { countryFromIp } from './geoip.js';
@@ -209,4 +210,228 @@ export function assessContact(input: ContactAssessmentInput): ContactAssessment 
   }
 
   return { decision, country, reasons: [...new Set(reasons)] };
+}
+
+/* -------------------------------------------------------------------------
+ * Absender-Erkennung und automatische Sperren
+ *
+ * Die vollständige IP-Adresse wird bewusst nicht gespeichert. Für Sperren
+ * genügt eine HMAC-Prüfsumme; die gekürzte Adresse dient nur der Diagnose.
+ * ---------------------------------------------------------------------- */
+
+export type ContactBlockRow = {
+  id: number;
+  ip_hash: string;
+  ip_prefix: string;
+  country: string;
+  user_agent: string;
+  reason: string;
+  attempts: number;
+  first_seen: string;
+  last_seen: string;
+  blocked: number;
+  blocked_until: string | null;
+  last_notified_at: string | null;
+  created_at: string;
+};
+
+export type ContactAttemptInput = {
+  ipHash: string;
+  ipPrefix: string;
+  country: string;
+  userAgent: string;
+  reason: string;
+  settings: ContactSettings;
+  now?: number;
+};
+
+export type ContactAttemptResult = {
+  block: ContactBlockRow;
+  attempts: number;
+  blocked: boolean;
+  newlyBlocked: boolean;
+  /** Nur die erste Meldung je Absender und Tag sowie eine neue Sperre melden. */
+  shouldNotify: boolean;
+};
+
+function sqliteTime(value: string | null): number {
+  if (!value) return 0;
+  const iso = value.includes('T') ? value : `${value.replace(' ', 'T')}Z`;
+  const time = Date.parse(iso);
+  return Number.isFinite(time) ? time : 0;
+}
+
+function sqliteNow(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 19).replace('T', ' ');
+}
+
+/** HMAC-Prüfsumme der IP-Adresse; ohne das Server-Secret nicht rückführbar. */
+export function contactIpHash(address: string): string {
+  return crypto
+    .createHmac('sha256', config.sessionSecret)
+    .update(`contact-ip:${normalizeAddress(address)}`)
+    .digest('base64url');
+}
+
+/** Gekürzte IP-Adresse für die Anzeige im Admin (IPv4 /24, IPv6 /48). */
+export function contactIpPrefix(address: string): string {
+  const ip = normalizeAddress(address);
+  if (ip.includes('.')) {
+    const parts = ip.split('.');
+    if (parts.length === 4 && parts.every((part) => /^\d{1,3}$/.test(part))) {
+      return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
+    }
+    return '';
+  }
+  if (ip.includes(':')) {
+    const [head = '', tail = ''] = ip.split('::');
+    const headParts = head ? head.split(':') : [];
+    const tailParts = tail ? tail.split(':') : [];
+    const missing = Math.max(0, 8 - headParts.length - tailParts.length);
+    const full = [...headParts, ...Array.from({ length: missing }, () => '0'), ...tailParts];
+    return `${full.slice(0, 3).map((part) => part || '0').join(':')}::/48`;
+  }
+  return '';
+}
+
+/** Browserkennung bereinigen und auf 300 Zeichen begrenzen. */
+export function contactUserAgent(value: unknown): string {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return typeof raw === 'string'
+    ? raw.replace(/[\u0000-\u001F\u007F]/g, '').trim().slice(0, 300)
+    : '';
+}
+
+/** Liefert eine aktuell aktive Sperre für die IP-Prüfsumme. */
+export function getActiveContactBlock(ipHash: string, now = Date.now()): ContactBlockRow | null {
+  const row = getDb()
+    .prepare('SELECT * FROM contact_blocks WHERE ip_hash = ?')
+    .get(ipHash) as ContactBlockRow | undefined;
+  if (!row || row.blocked !== 1) return null;
+  if (row.blocked_until && sqliteTime(row.blocked_until) <= now) return null;
+  return row;
+}
+
+export function isContactBlockActive(row: ContactBlockRow, now = Date.now()): boolean {
+  return row.blocked === 1 && (!row.blocked_until || sqliteTime(row.blocked_until) > now);
+}
+
+/**
+ * Zählt einen auffälligen Versuch und sperrt den Absender bei Erreichen der
+ * eingestellten Schwelle. Normale Anfragen rufen diese Funktion nicht auf.
+ */
+export function registerContactAttempt(input: ContactAttemptInput): ContactAttemptResult {
+  const db = getDb();
+  const now = input.now ?? Date.now();
+  const nowSql = sqliteNow(now);
+  const windowMs = input.settings.spamBanWindowMinutes * 60_000;
+  const existing = db
+    .prepare('SELECT * FROM contact_blocks WHERE ip_hash = ?')
+    .get(input.ipHash) as ContactBlockRow | undefined;
+
+  const withinWindow = existing ? now - sqliteTime(existing.last_seen) <= windowMs : false;
+  let attempts = withinWindow ? existing!.attempts + 1 : 1;
+  let firstSeen = withinWindow ? existing!.first_seen : nowSql;
+  let blocked = existing ? existing.blocked === 1 : false;
+  let blockedUntil = existing?.blocked_until ?? null;
+
+  // Abgelaufene Sperre aufheben und den Zähler neu beginnen.
+  if (blocked && blockedUntil && sqliteTime(blockedUntil) <= now) {
+    blocked = false;
+    blockedUntil = null;
+    attempts = 1;
+    firstSeen = nowSql;
+  }
+
+  const newlyBlocked =
+    input.settings.spamBanEnabled && !blocked && attempts >= input.settings.spamBanThreshold;
+
+  if (newlyBlocked) {
+    blocked = true;
+    blockedUntil =
+      input.settings.spamBanHours > 0
+        ? sqliteNow(now + input.settings.spamBanHours * 60 * 60 * 1000)
+        : null;
+  }
+
+  const lastNotifiedAt = existing ? sqliteTime(existing.last_notified_at) : 0;
+  const shouldNotify =
+    newlyBlocked ||
+    (!blocked && (lastNotifiedAt === 0 || now - lastNotifiedAt >= 24 * 60 * 60 * 1000));
+
+  const values: (string | number | null)[] = [
+    input.ipPrefix || existing?.ip_prefix || '',
+    input.country || existing?.country || '',
+    input.userAgent || existing?.user_agent || '',
+    input.reason || existing?.reason || '',
+    attempts,
+    firstSeen,
+    nowSql,
+    blocked ? 1 : 0,
+    blockedUntil,
+    shouldNotify ? nowSql : (existing?.last_notified_at ?? null),
+    input.ipHash,
+  ];
+
+  let id: number;
+  if (existing) {
+    db.prepare(
+      `UPDATE contact_blocks
+          SET ip_prefix = ?, country = ?, user_agent = ?, reason = ?, attempts = ?,
+              first_seen = ?, last_seen = ?, blocked = ?, blocked_until = ?,
+              last_notified_at = ?
+        WHERE ip_hash = ?`,
+    ).run(...values);
+    id = existing.id;
+  } else {
+    const info = db
+      .prepare(
+        `INSERT INTO contact_blocks
+           (ip_prefix, country, user_agent, reason, attempts, first_seen, last_seen,
+            blocked, blocked_until, last_notified_at, ip_hash)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(...values);
+    id = Number(info.lastInsertRowid);
+  }
+
+  const block = db
+    .prepare('SELECT * FROM contact_blocks WHERE id = ?')
+    .get(id) as ContactBlockRow;
+  return { block, attempts, blocked, newlyBlocked, shouldNotify };
+}
+
+/** Listet beobachtete und gesperrte Absender für den Admin. */
+export function listContactBlocks(limit = 50): ContactBlockRow[] {
+  return getDb()
+    .prepare(
+      `SELECT * FROM contact_blocks
+        ORDER BY blocked DESC, last_seen DESC, id DESC
+        LIMIT ?`,
+    )
+    .all(limit) as ContactBlockRow[];
+}
+
+/** Hebt eine Sperre auf und setzt den Versuchszähler zurück. */
+export function unblockContactBlock(id: number): boolean {
+  return (
+    getDb()
+      .prepare(
+        `UPDATE contact_blocks
+            SET blocked = 0, blocked_until = NULL, attempts = 0, reason = ''
+          WHERE id = ?`,
+      )
+      .run(id).changes > 0
+  );
+}
+
+/** Entfernt alte Beobachtungen und abgelaufene Sperren (Datenschutz). */
+export function pruneContactBlocks(days = 30): number {
+  return getDb()
+    .prepare(
+      `DELETE FROM contact_blocks
+        WHERE (blocked = 0 AND last_seen < datetime('now', ?))
+           OR (blocked = 1 AND blocked_until IS NOT NULL AND blocked_until < datetime('now', ?))`,
+    )
+    .run(`-${days} days`, `-${days} days`).changes;
 }

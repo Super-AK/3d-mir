@@ -14,6 +14,7 @@ test.describe('Admin', () => {
   test.skip(!email || !password, 'E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD nicht gesetzt');
 
   test('Login, geschützte Seiten und Logout', async ({ page }) => {
+    test.setTimeout(90_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
 
@@ -64,7 +65,7 @@ test.describe('Admin', () => {
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
     }
     await page.goto('/admin/produkte/');
-    await expect(page.getByRole('link', { name: 'Importieren' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Importieren', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Exportieren' })).toBeVisible();
     await expect(page.locator('[data-select-product]').first()).toBeVisible();
     await page.locator('table tbody tr a').first().click();

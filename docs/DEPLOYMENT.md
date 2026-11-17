@@ -284,6 +284,7 @@ Der Timer `3d-mir-cleanup.timer` läuft täglich um 03:30 Uhr:
 
 - **Modelldateien** aus Angebotsanfragen werden nach **90 Tagen** gelöscht.
 - **Angebotsanfragen** und **Kontaktnachrichten** werden nach **24 Monaten** gelöscht.
+- **Spam-Beobachtungen und abgelaufene Absender-Sperren** werden nach **30 Tagen** ohne Aktivität entfernt.
 - Verwaiste Dateien im Upload-Verzeichnis werden mit aufgeräumt.
 
 Die Fristen entsprechen der Datenschutzerklärung („Modell-Uploads bis zu 90 Tage“, „Kontaktanfragen bis zu 24 Monate“). Steuerlich relevante Bestelldaten sind davon nicht betroffen; diese liegen in der Bestelltabelle.

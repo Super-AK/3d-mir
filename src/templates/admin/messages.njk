@@ -8,10 +8,11 @@
       <h1>Nachrichten</h1>
       <p>Anfragen aus dem Kontaktformular. Nachrichten mit auffälligem Land oder Inhalt warten auf eine manuelle Prüfung.</p>
     </div>
-    {% if reviewCount > 0 or spamCount > 0 %}
+    {% if reviewCount > 0 or spamCount > 0 or blockedCount > 0 %}
       <div class="admin-page-actions">
         {% if reviewCount > 0 %}<span class="badge badge-warning">{{ reviewCount }} zur Prüfung</span>{% endif %}
         {% if spamCount > 0 %}<span class="badge badge-neutral">{{ spamCount }} als Spam</span>{% endif %}
+        {% if blockedCount > 0 %}<span class="badge badge-danger">{{ blockedCount }} gesperrt</span>{% endif %}
       </div>
     {% endif %}
   </div>
@@ -98,12 +99,97 @@
           <span>Inhaltsprüfung: Viele Links, typische Spam-Begriffe oder überwiegende Großschreibung erkennen.</span>
         </label>
 
+        <fieldset class="admin-fieldset">
+          <legend>Automatische Absender-Sperre</legend>
+          <label class="checkbox">
+            <input type="checkbox" name="spamBanEnabled" value="1" {% if contactSettings.spamBanEnabled %}checked{% endif %}>
+            <span>Absender nach wiederholten auffälligen Versuchen automatisch sperren.</span>
+          </label>
+          <div class="form-row">
+            <div class="field">
+              <label for="spamBanThreshold">Versuche bis zur Sperre</label>
+              <select id="spamBanThreshold" name="spamBanThreshold">
+                <option value="3" {% if contactSettings.spamBanThreshold == 3 %}selected{% endif %}>3 Versuche</option>
+                <option value="5" {% if contactSettings.spamBanThreshold != 3 %}selected{% endif %}>5 Versuche</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="spamBanWindowMinutes">Zeitfenster (Minuten)</label>
+              <input id="spamBanWindowMinutes" name="spamBanWindowMinutes" type="number" min="5" max="1440" step="1" value="{{ contactSettings.spamBanWindowMinutes }}">
+              <span class="hint">Nur Versuche innerhalb dieses Zeitraums werden gezählt.</span>
+            </div>
+            <div class="field">
+              <label for="spamBanHours">Sperrdauer (Stunden)</label>
+              <input id="spamBanHours" name="spamBanHours" type="number" min="0" max="8760" step="1" value="{{ contactSettings.spamBanHours }}">
+              <span class="hint">0 = dauerhaft, bis Sie die Sperre manuell aufheben.</span>
+            </div>
+          </div>
+          <p class="hint">Gezählt werden nur auffällige Versuche: nicht freigegebenes Land, Zeitprüfung, Spam-Inhalt oder Honeypot. Gespeichert werden eine gekürzte IP-Adresse und eine Prüfsumme, nicht die vollständige IP-Adresse.</p>
+        </fieldset>
+
         <div class="form-actions">
           <button class="btn" type="submit">Einstellungen speichern</button>
         </div>
       </form>
     </div>
   </details>
+
+  {% if blocks.length > 0 %}
+    <section class="card admin-panel">
+      <h2>Gesperrte und auffällige Absender</h2>
+      <p class="text-muted">Wiederholte Spam-Versuche werden hier zusammengeführt. Eine aktive Sperre verhindert weitere Benachrichtigungen; die Anfragen werden nicht mehr gespeichert.</p>
+      <div class="admin-table-wrap">
+        <table class="admin-table admin-edit-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>IP-Bereich / Prüfsumme</th>
+              <th>Land</th>
+              <th>Versuche</th>
+              <th>Zuletzt</th>
+              <th>Browser</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for block in blocks %}
+              <tr id="absender-{{ block.id }}">
+                <td>
+                  {% if block.active %}
+                    <span class="badge badge-danger">gesperrt</span>
+                  {% else %}
+                    <span class="badge badge-neutral">beobachtet</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <code class="admin-code">{{ block.ip_prefix or 'unbekannt' }}</code><br>
+                  <small class="text-muted" title="Prüfsumme der IP-Adresse">{{ block.ip_hash | truncate(12, true, '…') }}</small>
+                </td>
+                <td>{{ countryLabels[block.country] or block.country or 'unbekannt' }}</td>
+                <td>{{ block.attempts }}</td>
+                <td>{{ block.last_seen | date }}</td>
+                <td><span title="{{ block.user_agent }}">{{ block.user_agent | truncate(50) or '–' }}</span></td>
+                <td class="admin-row-actions">
+                  {% if block.active %}
+                    <form method="post" action="/admin/nachrichten/sperren/{{ block.id }}/aufheben/">
+                      <input type="hidden" name="_csrf" value="{{ csrf }}">
+                      <button class="btn btn-secondary btn-small" type="submit">Sperre aufheben</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% if block.reason %}
+                <tr class="admin-detail-row">
+                  <td colspan="7"><small class="text-muted">Letzter Grund: {{ block.reason }}</small></td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">Die vollständige IP-Adresse wird nicht gespeichert. Beobachtete Absender ohne aktive Sperre werden nach 30 Tagen ohne Aktivität automatisch entfernt.</p>
+    </section>
+  {% endif %}
 
   {% if messages.length > 0 %}
     <div class="admin-messages">
@@ -118,6 +204,13 @@
                 · {{ countryLabels[message.country] or message.country or 'Land unbekannt' }}
                 · {{ message.created_at | date }}
               </p>
+              {% if message.ip_prefix or message.ip_hash or message.user_agent %}
+                <p class="text-muted admin-message-meta">
+                  {% if message.ip_prefix %}IP-Bereich: <code class="admin-code">{{ message.ip_prefix }}</code>{% endif %}
+                  {% if message.ip_hash %} · Prüfsumme: <code class="admin-code">{{ message.ip_hash | truncate(12, true, '…') }}</code>{% endif %}
+                  {% if message.user_agent %} · Browser: <span title="{{ message.user_agent }}">{{ message.user_agent | truncate(60) }}</span>{% endif %}
+                </p>
+              {% endif %}
             </div>
             <div class="admin-message-actions">
               {% if message.review_status == 'pruefen' %}

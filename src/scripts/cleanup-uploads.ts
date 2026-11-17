@@ -9,8 +9,9 @@ import { writeAudit } from '../lib/auth.js';
  * dokumentierten Aufbewahrungsfrist (Standard: 90 Tage).
  *
  * Modelldateien werden nach 90 Tagen entfernt. Angebotsanfragen und
- * Kontaktnachrichten werden nach 24 Monaten gelöscht. Zusätzlich werden
- * verwaiste Dateien im Quotes-Upload-Verzeichnis aufgeräumt.
+ * Kontaktnachrichten werden nach 24 Monaten gelöscht. Spam-Beobachtungen und
+ * abgelaufene Absender-Sperren werden nach 30 Tagen ohne Aktivität entfernt.
+ * Zusätzlich werden verwaiste Dateien im Quotes-Upload-Verzeichnis aufgeräumt.
  *
  * Aufruf:
  *   npm run uploads:cleanup
@@ -151,7 +152,33 @@ if (deletedContacts > 0) {
   console.log(`${dryRun ? 'Würde löschen' : 'Gelöscht'}: ${deletedContacts} Kontaktnachricht(en) (älter als ${inquiryMonths} Monate)`);
 }
 
-if (!dryRun && (removed > 0 || orphans > 0 || deletedQuotes > 0 || deletedContacts > 0)) {
+// Spam-Beobachtungen und abgelaufene Sperren: 30 Tage nach der letzten Aktivität.
+const oldBlockWhere = `(blocked = 0 AND last_seen < datetime('now', ?))
+   OR (blocked = 1 AND blocked_until IS NOT NULL AND blocked_until < datetime('now', ?))`;
+const oldBlockCount = (
+  db.prepare(`SELECT COUNT(*) AS count FROM contact_blocks WHERE ${oldBlockWhere}`).get(
+    '-30 days',
+    '-30 days',
+  ) as { count: number }
+).count;
+let deletedBlocks = 0;
+if (!dryRun) {
+  deletedBlocks = db
+    .prepare(`DELETE FROM contact_blocks WHERE ${oldBlockWhere}`)
+    .run('-30 days', '-30 days').changes;
+} else {
+  deletedBlocks = oldBlockCount;
+}
+if (deletedBlocks > 0) {
+  console.log(
+    `${dryRun ? 'Würde löschen' : 'Gelöscht'}: ${deletedBlocks} alte Absender-Beobachtung(en) (älter als 30 Tage)`,
+  );
+}
+
+if (
+  !dryRun &&
+  (removed > 0 || orphans > 0 || deletedQuotes > 0 || deletedContacts > 0 || deletedBlocks > 0)
+) {
   writeAudit('system', 'data.cleanup', {
     fileDays: days,
     inquiryMonths,
@@ -159,9 +186,10 @@ if (!dryRun && (removed > 0 || orphans > 0 || deletedQuotes > 0 || deletedContac
     orphans,
     quotes: deletedQuotes,
     contacts: deletedContacts,
+    blocks: deletedBlocks,
   });
 }
 
 console.log(
-  `${dryRun ? 'Testlauf' : 'Aufräumen'} abgeschlossen: ${removed} Modelldatei(en), ${orphans} verwaiste Datei(en), ${deletedQuotes} Anfrage(n), ${deletedContacts} Kontaktnachricht(en) (Dateien: ${days} Tage, Anfragen: ${inquiryMonths} Monate).`,
+  `${dryRun ? 'Testlauf' : 'Aufräumen'} abgeschlossen: ${removed} Modelldatei(en), ${orphans} verwaiste Datei(en), ${deletedQuotes} Anfrage(n), ${deletedContacts} Kontaktnachricht(en), ${deletedBlocks} Absender-Beobachtung(en) (Dateien: ${days} Tage, Anfragen: ${inquiryMonths} Monate).`,
 );

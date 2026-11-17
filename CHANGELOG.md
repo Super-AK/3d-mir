@@ -3,6 +3,32 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.31] – 2026-11-17
+
+### Hinzugefügt
+
+- **Automatische Absender-Sperre:** Wiederholte auffällige Kontaktversuche
+  werden pseudonymisiert gezählt; nach 3 oder 5 Versuchen innerhalb eines
+  Zeitfensters wird der Absender für die eingestellte Dauer gesperrt.
+  Gesperrte Absender erhalten HTTP 429, werden nicht gespeichert und lösen
+  keine Benachrichtigung mehr aus.
+- **Absender-Erkennung im Admin:** Gekürzte IP-Adresse (IPv4 /24, IPv6 /48),
+  nicht rückführbare HMAC-Prüfsumme, Browserkennung, Land, Versuche und
+  Zeitpunkt. Aktive Sperren lassen sich unter **Admin → Nachrichten**
+  aufheben.
+- **Benachrichtigungen pro Ereignis:** Neue Kontaktnachricht, Prüfhinweis,
+  Angebotsanfrage, Bestellung, Zahlungseingang, Zahlung nach Stornierung und
+  Systemüberwachung lassen sich unter **Admin → Benachrichtigungen** einzeln
+  ein- und ausschalten.
+- Prüfhinweise werden höchstens einmal pro Absender und Tag sowie bei einer
+  neuen Sperre versendet.
+
+### Geändert
+
+- Datenschutzerklärung um die pseudonyme Spam-Abwehr ergänzt (gekürzte IP,
+  Prüfsumme, Browserkennung; reine Beobachtungen 30 Tage).
+- Cleanup entfernt zusätzlich alte Spam-Beobachtungen und abgelaufene Sperren.
+
 ## [1.0.0-rc.30] – 2026-11-15
 
 ### Hinzugefügt
@@ -472,6 +498,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.31]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.31
 [1.0.0-rc.30]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.30
 [1.0.0-rc.29]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.29
 [1.0.0-rc.28]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.28
