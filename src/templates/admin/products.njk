@@ -1,4 +1,5 @@
 {% extends "layouts/admin.njk" %}
+{% from "admin/partials/icons.njk" import icon %}
 
 {% block title %}Produkte – 3D-MIR Admin{% endblock %}
 
@@ -48,13 +49,13 @@
               <td><span class="{% if product.stockEmpty %}text-muted{% endif %}">{{ product.stockLabel }}</span></td>
               <td>{% if product.active %}<span class="badge badge-success">Aktiv</span>{% else %}<span class="badge badge-neutral">Inaktiv</span>{% endif %}</td>
               <td>
-                <div class="admin-row-actions">
+                <div class="admin-icon-actions">
                   <form method="post" action="/admin/produkte/{{ product.id }}/kopieren/">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">
-                    <button class="btn btn-secondary btn-small" type="submit">Kopieren</button>
+                    <button class="admin-icon-btn" type="submit" data-tooltip="Kopieren" aria-label="Produkt {{ product.name }} kopieren">{{ icon('copy') }}</button>
                   </form>
-                  <a class="btn btn-secondary btn-small" href="/admin/produkte/{{ product.id }}/export/">Export</a>
-                  <a class="btn btn-danger btn-small" href="/admin/produkte/{{ product.id }}/loeschen/">Löschen</a>
+                  <a class="admin-icon-btn" href="/admin/produkte/{{ product.id }}/export/" data-tooltip="Export" aria-label="Produkt {{ product.name }} exportieren">{{ icon('download') }}</a>
+                  <a class="admin-icon-btn admin-icon-btn--danger" href="/admin/produkte/{{ product.id }}/loeschen/" data-tooltip="Löschen" aria-label="Produkt {{ product.name }} löschen">{{ icon('trash') }}</a>
                 </div>
               </td>
             </tr>

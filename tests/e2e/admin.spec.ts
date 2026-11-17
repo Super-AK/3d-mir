@@ -57,6 +57,19 @@ test.describe('Admin', () => {
     await expect(page).toHaveURL(/[?&]q=zzz-kein-treffer/);
     await expect(search).toBeFocused();
 
+    // Icon-Aktionen in Tabellen: quadratisch, mit Tooltip und Statusfarbe.
+    await page.goto('/admin/produkte/');
+    const action = page.locator('.admin-icon-actions .admin-icon-btn').first();
+    await expect(action).toBeVisible();
+    await expect(action).toHaveAttribute('data-tooltip', 'Kopieren');
+    const box = await action.boundingBox();
+    expect(box?.width).toBe(36);
+    expect(box?.height).toBe(36);
+    await action.hover();
+    await page.waitForTimeout(250);
+    expect(await action.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('1');
+    await expect(page.locator('.admin-icon-btn--danger').first()).toHaveCSS('color', 'rgb(179, 38, 30)');
+
     // Stripe-Hilfe auf der Zahlungsseite ist aufklappbar.
     await page.goto('/admin/zahlungen/');
     const stripeHelp = page.locator('summary', { hasText: 'Hilfe zu Stripe' });
@@ -77,7 +90,7 @@ test.describe('Admin', () => {
     }
     await page.goto('/admin/produkte/');
     await expect(page.getByRole('link', { name: 'Importieren', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Exportieren' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Exportieren', exact: true })).toBeVisible();
     await expect(page.locator('[data-select-product]').first()).toBeVisible();
     await page.locator('table tbody tr a').first().click();
     await expect(page.getByRole('heading', { name: 'Bilder', exact: true })).toBeVisible();

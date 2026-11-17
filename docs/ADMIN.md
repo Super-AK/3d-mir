@@ -16,9 +16,19 @@ Die Verwaltung nutzt eine feste Seitenleiste, die nach Aufgaben gruppiert ist:
 - **Verkauf:** Bestellungen, Anfragen, Nachrichten
 - **Katalog:** Produkte, Kategorien, Preise
 - **Website:** Stammdaten, Rechtstexte, Veröffentlichung
-- **Einstellungen:** Zahlungen, Benachrichtigungen
+- **Einstellungen:** Zahlungen, Benachrichtigungen, Testdaten
 
 Auf Bildschirmen unter 1000 px wird die Seitenleiste über die Schaltfläche **Menü** im Kopfbereich ein- und ausgeklappt; nach dem Öffnen einer Seite schließt sie sich automatisch. Ohne JavaScript bleibt die Navigation geöffnet und vollständig nutzbar.
+
+### Aktionen in Tabellen
+
+In den Listen unter **Produkte**, **Kategorien** und **Nachrichten** stehen die Aktionen als kompakte, quadratische Symbolschaltflächen in der Spalte **Aktionen**. Beim Überfahren mit der Maus oder bei Tastaturfokus erscheint der jeweilige Aktionsname als Tooltip.
+
+- Dunkelgraue Symbole kennzeichnen neutrale Aktionen wie Öffnen, Kopieren oder Exportieren.
+- Grüne Symbole kennzeichnen bestätigende Aktionen wie Speichern, Erledigt, Wieder öffnen, Freigeben oder Sperre aufheben.
+- Rote Symbole kennzeichnen löschende oder ablehnende Aktionen wie Löschen oder Spam.
+
+Die Symbole tragen zusätzlich einen unsichtbaren Beschreibungstext für Screenreader.
 
 ## Stammdaten
 

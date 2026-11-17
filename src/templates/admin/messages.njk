@@ -1,4 +1,5 @@
 {% extends "layouts/admin.njk" %}
+{% from "admin/partials/icons.njk" import icon %}
 
 {% block title %}Nachrichten – 3D-MIR Admin{% endblock %}
 
@@ -139,7 +140,7 @@
               <th>Versuche</th>
               <th>Zuletzt</th>
               <th>Browser</th>
-              <th></th>
+              <th>Aktionen</th>
             </tr>
           </thead>
           <tbody>
@@ -160,13 +161,15 @@
                 <td>{{ block.attempts }}</td>
                 <td>{{ block.last_seen | date }}</td>
                 <td><span title="{{ block.user_agent }}">{{ block.user_agent | truncate(50) or '–' }}</span></td>
-                <td class="admin-row-actions">
-                  {% if block.active %}
-                    <form method="post" action="/admin/nachrichten/sperren/{{ block.id }}/aufheben/">
-                      <input type="hidden" name="_csrf" value="{{ csrf }}">
-                      <button class="btn btn-secondary btn-small" type="submit">Sperre aufheben</button>
-                    </form>
-                  {% endif %}
+                <td>
+                  <div class="admin-icon-actions">
+                    {% if block.active %}
+                      <form method="post" action="/admin/nachrichten/sperren/{{ block.id }}/aufheben/">
+                        <input type="hidden" name="_csrf" value="{{ csrf }}">
+                        <button class="admin-icon-btn admin-icon-btn--success" type="submit" data-tooltip="Sperre aufheben" aria-label="Sperre für {{ block.ip_prefix or 'unbekannten Absender' }} aufheben">{{ icon('unlock') }}</button>
+                      </form>
+                    {% endif %}
+                  </div>
                 </td>
               </tr>
               {% if block.reason %}
@@ -244,33 +247,37 @@
               <td><a href="/admin/nachrichten/{{ message.id }}/">{{ message.subject or 'Kontaktnachricht' }}</a></td>
               <td>{{ countryLabels[message.country] or message.country or '–' }}</td>
               <td>
-                <div class="admin-row-actions">
-                  <a class="btn btn-secondary btn-small" href="/admin/nachrichten/{{ message.id }}/">Öffnen</a>
+                <div class="admin-icon-actions">
+                  <a class="admin-icon-btn" href="/admin/nachrichten/{{ message.id }}/" data-tooltip="Öffnen" aria-label="Nachricht von {{ message.name }} öffnen">{{ icon('eye') }}</a>
                   <form method="post" action="/admin/nachrichten/{{ message.id }}/">
                     <input type="hidden" name="_csrf" value="{{ csrf }}">
                     <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
                     <input type="hidden" name="handled" value="{% if message.handled %}0{% else %}1{% endif %}">
-                    <button class="btn btn-secondary btn-small" type="submit">{% if message.handled %}Wieder öffnen{% else %}Erledigt{% endif %}</button>
+                    {% if message.handled %}
+                      <button class="admin-icon-btn admin-icon-btn--success" type="submit" data-tooltip="Wieder öffnen" aria-label="Nachricht von {{ message.name }} wieder öffnen">{{ icon('rotate') }}</button>
+                    {% else %}
+                      <button class="admin-icon-btn admin-icon-btn--success" type="submit" data-tooltip="Erledigt" aria-label="Nachricht von {{ message.name }} als erledigt markieren">{{ icon('check') }}</button>
+                    {% endif %}
                   </form>
                   {% if message.review_status == 'pruefen' %}
                     <form method="post" action="/admin/nachrichten/{{ message.id }}/freigeben/">
                       <input type="hidden" name="_csrf" value="{{ csrf }}">
                       <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
-                      <button class="btn btn-small" type="submit">Freigeben</button>
+                      <button class="admin-icon-btn admin-icon-btn--success" type="submit" data-tooltip="Freigeben" aria-label="Nachricht von {{ message.name }} freigeben">{{ icon('check') }}</button>
                     </form>
                     <form method="post" action="/admin/nachrichten/{{ message.id }}/spam/">
                       <input type="hidden" name="_csrf" value="{{ csrf }}">
                       <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
-                      <button class="btn btn-secondary btn-small" type="submit">Spam</button>
+                      <button class="admin-icon-btn admin-icon-btn--danger" type="submit" data-tooltip="Spam" aria-label="Nachricht von {{ message.name }} als Spam markieren">{{ icon('ban') }}</button>
                     </form>
                   {% elif message.review_status == 'spam' %}
                     <form method="post" action="/admin/nachrichten/{{ message.id }}/freigeben/">
                       <input type="hidden" name="_csrf" value="{{ csrf }}">
                       <input type="hidden" name="weiter" value="/admin/nachrichten/{% if status %}?status={{ status }}{% endif %}">
-                      <button class="btn btn-small" type="submit">Freigeben</button>
+                      <button class="admin-icon-btn admin-icon-btn--success" type="submit" data-tooltip="Freigeben" aria-label="Nachricht von {{ message.name }} freigeben">{{ icon('check') }}</button>
                     </form>
                   {% endif %}
-                  <a class="btn btn-danger btn-small" href="/admin/nachrichten/{{ message.id }}/loeschen/?weiter=/admin/nachrichten/">Löschen</a>
+                  <a class="admin-icon-btn admin-icon-btn--danger" href="/admin/nachrichten/{{ message.id }}/loeschen/?weiter=/admin/nachrichten/" data-tooltip="Löschen" aria-label="Nachricht von {{ message.name }} löschen">{{ icon('trash') }}</a>
                 </div>
               </td>
             </tr>

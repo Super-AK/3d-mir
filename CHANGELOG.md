@@ -3,6 +3,19 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.36] – 2026-11-17
+
+### Geändert
+
+- **Aktionen in Admin-Tabellen:** Die bisherigen großen Buttons in der Spalte
+  „Aktionen“ wurden durch kompakte, quadratische Symbolschaltflächen ersetzt
+  (Produkte, Kategorien, Nachrichten). Jede Schaltfläche zeigt ein
+  Outline-Symbol und beim Überfahren oder bei Tastaturfokus einen Tooltip mit
+  dem Aktionsnamen.
+- Neutrale Aktionen erscheinen dunkelgrau, bestätigende Aktionen grün und
+  löschende bzw. ablehnende Aktionen rot. Die Schaltflächen tragen zusätzlich
+  einen Screenreader-Text.
+
 ## [1.0.0-rc.35] – 2026-11-17
 
 ### Hinzugefügt
@@ -553,6 +566,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.36]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.36
 [1.0.0-rc.35]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.35
 [1.0.0-rc.34]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.34
 [1.0.0-rc.33]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.33

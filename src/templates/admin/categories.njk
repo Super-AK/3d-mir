@@ -1,4 +1,5 @@
 {% extends "layouts/admin.njk" %}
+{% from "admin/partials/icons.njk" import icon %}
 
 {% block title %}Kategorien – 3D-MIR Admin{% endblock %}
 
@@ -28,7 +29,7 @@
             <th>Name</th>
             <th>Reihenfolge</th>
             <th>Produkte</th>
-            <th></th>
+            <th>Aktionen</th>
           </tr>
         </thead>
         <tbody>
@@ -42,12 +43,14 @@
               </td>
               <td><input form="kategorie-{{ category.id }}" name="sortOrder" type="number" min="-1000" max="1000" step="1" value="{{ category.sortOrder }}"></td>
               <td>{{ category.productCount }}</td>
-              <td class="admin-row-actions">
-                <button form="kategorie-{{ category.id }}" class="btn btn-secondary btn-small" type="submit">Speichern</button>
-                <form method="post" action="/admin/kategorien/{{ category.id }}/loeschen/" onsubmit="return confirm('Kategorie „{{ category.name }}“ wirklich löschen? Die Zuordnungen zu Produkten werden entfernt.');">
-                  <input type="hidden" name="_csrf" value="{{ csrf }}">
-                  <button class="btn btn-danger btn-small" type="submit">Löschen</button>
-                </form>
+              <td>
+                <div class="admin-icon-actions">
+                  <button form="kategorie-{{ category.id }}" class="admin-icon-btn admin-icon-btn--success" type="submit" data-tooltip="Speichern" aria-label="Kategorie {{ category.name }} speichern">{{ icon('save') }}</button>
+                  <form method="post" action="/admin/kategorien/{{ category.id }}/loeschen/" onsubmit="return confirm('Kategorie „{{ category.name }}“ wirklich löschen? Die Zuordnungen zu Produkten werden entfernt.');">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <button class="admin-icon-btn admin-icon-btn--danger" type="submit" data-tooltip="Löschen" aria-label="Kategorie {{ category.name }} löschen">{{ icon('trash') }}</button>
+                  </form>
+                </div>
               </td>
             </tr>
           {% endfor %}
