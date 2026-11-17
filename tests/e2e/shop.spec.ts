@@ -9,8 +9,10 @@ test('Shop: Produkt in den Warenkorb legen und bestellen', async ({ page }) => {
   await page.locator('.product-card', { hasText: 'Recycling-Box' }).getByRole('link', { name: 'Details ansehen' }).first().click();
   await expect(page.locator('h1')).toContainText('Recycling-Box');
 
-  await page.selectOption('#variantId', { index: 1 });
-  // Produkte können optional eine Farbe verlangen; dann die erste Farbe wählen.
+  // Varianten und Farben sind optional; nur auswählen, wenn das Produkt sie anbietet.
+  if (await page.locator('#variantId').count()) {
+    await page.selectOption('#variantId', { index: 1 });
+  }
   if (await page.locator('#color').count()) {
     await page.selectOption('#color', { index: 1 });
   }

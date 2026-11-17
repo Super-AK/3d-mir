@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.41 – 17. November 2026
+
+Lieferhinweis pro Produkt, standardmäßig „Fertigung nach Bezahlung“ und frei
+anpassbar, z. B. „sofort lieferbar“. Die Abholung erscheint nicht mehr in der
+Lieferzeit; wird nur Abholung angeboten, entfällt die Zeile.
+
 ## Release 1.0.0-rc.40 – 17. November 2026
 
 Material pro Produkt sowie passende Angaben zu Versand, Abholung und Lieferzeit

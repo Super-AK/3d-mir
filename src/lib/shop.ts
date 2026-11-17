@@ -81,17 +81,19 @@ export function deliveryDaysText(method: ShippingMethod): string {
 }
 
 /**
- * Fasst die Lieferzeiten der angebotenen Versandarten zusammen. Bei mehreren
- * Versandarten wird jede mit ihrer Bezeichnung genannt.
+ * Fasst die Lieferzeiten der angebotenen Versandarten zusammen. Die Abholung
+ * hat keine Lieferzeit und bleibt außen vor. Bei mehreren Versandarten bzw.
+ * zusätzlicher Abholung wird jede Lieferzeit mit ihrer Bezeichnung genannt.
+ * Ohne Versandart bleibt der Text leer.
  */
 export function deliveryTimeText(methods: ShippingMethod[]): string {
-  if (methods.length === 0) return 'nach Absprache';
-  return methods
+  const shippingMethods = methods.filter((method) => method.id !== PICKUP_SHIPPING_ID);
+  if (shippingMethods.length === 0) return '';
+  const withLabel = shippingMethods.length > 1 || methods.length > shippingMethods.length;
+  return shippingMethods
     .map((method) => {
       const time = deliveryDaysText(method);
-      if (methods.length === 1) return time;
-      const label = method.id === PICKUP_SHIPPING_ID ? 'Abholung' : method.label;
-      return `${label}: ${time}`;
+      return withLabel ? `${method.label}: ${time}` : time;
     })
     .join(' · ');
 }

@@ -32,6 +32,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await page.fill('#slug', slug);
     await page.fill('#priceFrom', '12.50');
     await page.fill('#material', 'PETG');
+    await page.fill('#deliveryNote', 'sofort lieferbar');
     await page.fill('#colorOptions', 'Rot, Blau');
     await page.check('input[name="personalizationEnabled"]');
     await page.fill('#personalizationHint', 'z. B. Wunschname für Anna');
@@ -49,7 +50,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await expect(page.locator('.product-facts')).toContainText('Abholung: nach Absprache in Schömberg möglich');
     await expect(page.locator('.product-facts')).toContainText('Versand: ab 0,00 €, frei ab 50,00 €');
     await expect(page.locator('.product-facts')).toContainText(
-      'Lieferzeit: DHL Paket: 2–5 Werktage · Abholung: nach Absprache, Fertigung nach Bestellung',
+      'Lieferzeit: DHL Paket: 2–5 Werktage, sofort lieferbar',
     );
     await page.selectOption('#color', 'Blau');
     await page.fill('#personalization', 'Für Anna');
@@ -109,7 +110,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await expect(page.locator('.product-facts')).toContainText('Versand: 4,99 €, frei ab 50,00 €');
     await expect(page.locator('.product-facts')).not.toContainText('Versand: ab 4,99 €');
     await expect(page.locator('.product-facts')).toContainText(
-      'Lieferzeit: 2–5 Werktage, Fertigung nach Bestellung',
+      'Lieferzeit: 2–5 Werktage, Fertigung nach Bezahlung',
     );
     await page.selectOption('#variantId', { index: 1 });
     await page.selectOption('#color', 'Grün');

@@ -397,6 +397,7 @@ type ProductRow = {
   personalization_enabled: number;
   personalization_hint: string;
   material: string;
+  delivery_note: string;
   created_at: string;
   updated_at: string;
 };
@@ -431,6 +432,7 @@ type ProductForm = {
   personalizationEnabled: boolean;
   personalizationHint: string;
   material: string;
+  deliveryNote: string;
 };
 
 /** Zerlegt die kommagetrennte Farbliste und entfernt Dubletten. */
@@ -755,6 +757,7 @@ function emptyProductForm(): ProductForm {
     personalizationEnabled: false,
     personalizationHint: '',
     material: 'PLA',
+    deliveryNote: 'Fertigung nach Bezahlung',
   };
 }
 
@@ -778,6 +781,7 @@ function productFormFromRow(product: ProductRow): ProductForm {
     personalizationEnabled: product.personalization_enabled === 1,
     personalizationHint: product.personalization_hint,
     material: product.material,
+    deliveryNote: product.delivery_note,
   };
 }
 
@@ -808,6 +812,7 @@ function readProductForm(body: Record<string, unknown>): ProductForm {
     personalizationEnabled: body.personalizationEnabled === '1' || body.personalizationEnabled === 'on',
     personalizationHint: cleanText(body.personalizationHint, 200),
     material: cleanText(body.material, 100),
+    deliveryNote: cleanText(body.deliveryNote, 200),
   };
 }
 
@@ -830,6 +835,7 @@ type ProductData = {
   personalizationEnabled: boolean;
   personalizationHint: string;
   material: string;
+  deliveryNote: string;
 };
 
 function validateProductForm(form: ProductForm): { data?: ProductData; error?: string } {
@@ -875,6 +881,7 @@ function validateProductForm(form: ProductForm): { data?: ProductData; error?: s
       personalizationEnabled: form.personalizationEnabled,
       personalizationHint: form.personalizationHint,
       material: form.material,
+      deliveryNote: form.deliveryNote,
     },
   };
 }
@@ -1063,6 +1070,7 @@ function exportProducts(ids?: number[]) {
       personalizationEnabled: product.personalization_enabled === 1,
       personalizationHint: product.personalization_hint,
       material: product.material,
+      deliveryNote: product.delivery_note,
       variants: variantsFor(product.id).map((variant) => ({
         label: variant.label,
         priceCents: variant.price_cents,
@@ -1103,6 +1111,7 @@ const importProductSchema = z.object({
   personalizationEnabled: z.boolean().optional().default(false),
   personalizationHint: z.string().max(200).optional().default(''),
   material: z.string().max(100).optional().default('PLA'),
+  deliveryNote: z.string().max(200).optional().default('Fertigung nach Bezahlung'),
   variants: z
     .array(
       z.object({
@@ -1141,8 +1150,8 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
               dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
-              personalization_enabled, personalization_hint, material)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              personalization_enabled, personalization_hint, material, delivery_note)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -1163,6 +1172,7 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
           item.personalizationEnabled ? 1 : 0,
           item.personalizationHint,
           item.material || 'PLA',
+          item.deliveryNote || 'Fertigung nach Bezahlung',
         );
       const productId = Number(info.lastInsertRowid);
 
@@ -3213,8 +3223,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
               dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
-              personalization_enabled, personalization_hint, material)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              personalization_enabled, personalization_hint, material, delivery_note)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -3235,6 +3245,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           product.personalization_enabled,
           product.personalization_hint,
           product.material,
+          product.delivery_note,
         );
       const productId = Number(info.lastInsertRowid);
 
@@ -3438,8 +3449,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const info = db()
         .prepare(
           `INSERT INTO products
-            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options, personalization_enabled, personalization_hint, material)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options, personalization_enabled, personalization_hint, material, delivery_note)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           data.slug,
@@ -3460,6 +3471,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.personalizationEnabled ? 1 : 0,
           data.personalizationHint,
           data.material || 'PLA',
+          data.deliveryNote || 'Fertigung nach Bezahlung',
         );
       saveProductCategories(Number(info.lastInsertRowid), bodyIds(body.productCategories).map(Number));
       writeAudit(request.admin?.email ?? 'admin', 'product.create', { id: info.lastInsertRowid, slug: data.slug });
@@ -3522,7 +3534,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
              slug = ?, name = ?, short_description = ?, description = ?, price_from_cents = ?,
              price_to_cents = ?, sku = ?, weight_g = ?, dimensions = ?, stock = ?, active = ?,
              sort_order = ?, shipping_method_ids = ?, shipping_option_ids = ?, color_options = ?,
-             personalization_enabled = ?, personalization_hint = ?, material = ?, updated_at = datetime('now')
+             personalization_enabled = ?, personalization_hint = ?, material = ?, delivery_note = ?,
+             updated_at = datetime('now')
            WHERE id = ?`,
         )
         .run(
@@ -3544,6 +3557,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.personalizationEnabled ? 1 : 0,
           data.personalizationHint,
           data.material || 'PLA',
+          data.deliveryNote || 'Fertigung nach Bezahlung',
           id,
         );
       saveProductCategories(id, bodyIds(body.productCategories).map(Number));

@@ -3,6 +3,25 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.41] – 2026-11-17
+
+### Hinzugefügt
+
+- **Lieferhinweis pro Produkt:** Im Admin lässt sich der Zusatz zur Lieferzeit
+  frei hinterlegen, z. B. „Fertigung nach Bezahlung“ oder „sofort lieferbar“.
+  Ohne Angabe erscheint kein Zusatz. Neue Produkte starten mit „Fertigung nach
+  Bezahlung“.
+- Export, Import und Kopieren übernehmen den Lieferhinweis.
+
+### Geändert
+
+- **Lieferzeit ohne Abholung:** Die Abholung hat keine Lieferzeit und wird in
+  der Lieferzeitangabe nicht mehr genannt. Wird ausschließlich Abholung
+  angeboten, entfällt die Zeile „Lieferzeit“.
+- „Fertigung nach Bestellung“ heißt jetzt standardmäßig „Fertigung nach
+  Bezahlung“.
+- Unit- und E2E-Tests für Lieferhinweis und Lieferzeit angepasst.
+
 ## [1.0.0-rc.40] – 2026-11-17
 
 ### Hinzugefügt

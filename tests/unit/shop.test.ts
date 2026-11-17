@@ -83,10 +83,15 @@ describe('Produktseite: Versand und Lieferzeit', () => {
 
   it('ergänzt bei reinen Zahlenangaben „Werktage“', () => {
     expect(deliveryTimeText([dhl])).toBe('2–5 Werktage');
-    expect(deliveryTimeText([pickup])).toBe('nach Absprache');
+  });
+
+  it('lässt die Abholung ohne Lieferzeit', () => {
+    expect(deliveryTimeText([pickup])).toBe('');
+    expect(deliveryTimeText([dhl, pickup])).toBe('DHL Paket: 2–5 Werktage');
   });
 
   it('nennt bei mehreren Versandarten jede Lieferzeit mit Bezeichnung', () => {
-    expect(deliveryTimeText([dhl, pickup])).toBe('DHL Paket: 2–5 Werktage · Abholung: nach Absprache');
+    const express = { id: 'express', label: 'Express', price: 9.99, deliveryDays: '1–2' };
+    expect(deliveryTimeText([dhl, express])).toBe('DHL Paket: 2–5 Werktage · Express: 1–2 Werktage');
   });
 });

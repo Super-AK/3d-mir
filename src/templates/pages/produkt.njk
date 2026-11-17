@@ -128,7 +128,9 @@
         </form>
 
         <ul class="product-facts">
-          <li><strong>Lieferzeit:</strong> {{ deliveryTimeText }}{% if showProductionNote %}, Fertigung nach Bestellung{% endif %}</li>
+          {% if deliveryTimeText %}
+            <li><strong>Lieferzeit:</strong> {{ deliveryTimeText }}{% if productDeliveryNote %}, {{ productDeliveryNote }}{% endif %}</li>
+          {% endif %}
           <li><strong>Versand:</strong> {{ shippingPriceText }}{% if showFreeShippingNote %}, frei ab {{ pricing.shipping.freeShippingFrom | euro }}{% endif %}</li>
           {% if pickupShipping %}
             <li><strong>Abholung:</strong> {{ pickupShipping.deliveryDays or 'nach Absprache' }} in {{ site.business.city }} möglich</li>

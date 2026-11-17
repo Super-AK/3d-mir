@@ -51,6 +51,11 @@
         <input id="material" name="material" type="text" maxlength="100" value="{{ form.material }}" placeholder="z. B. PLA">
         <span class="hint">Erscheint auf der Produktseite als Materialangabe. Leer lassen für PLA.</span>
       </div>
+      <div class="field">
+        <label for="deliveryNote">Lieferhinweis</label>
+        <input id="deliveryNote" name="deliveryNote" type="text" maxlength="200" value="{{ form.deliveryNote }}" placeholder="z. B. Fertigung nach Bezahlung">
+        <span class="hint">Ergänzt die Lieferzeit, z. B. „Fertigung nach Bezahlung“ oder „sofort lieferbar“. Leer lassen, um keinen Hinweis anzuzeigen.</span>
+      </div>
     </div>
 
     <fieldset class="admin-fieldset">

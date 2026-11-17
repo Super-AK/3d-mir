@@ -39,7 +39,6 @@ import {
   formatEuro,
   hasPaidShippingMethod,
   orderTotals,
-  PICKUP_SHIPPING_ID,
   pickupShippingMethod,
   shippingCents,
   shippingPriceText,
@@ -67,6 +66,7 @@ type ProductRow = {
   personalization_enabled: number;
   personalization_hint: string;
   material: string;
+  delivery_note: string;
 };
 
 type VariantRow = {
@@ -641,6 +641,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       personalizationEnabled: product.personalization_enabled === 1,
       personalizationHint: product.personalization_hint || 'z. B. Name oder kurzer Text',
       productMaterial: product.material || 'PLA',
+      productDeliveryNote: product.delivery_note,
       productJsonLd: productJsonLd(product, variants),
       maxQuantity: config.shop.maxQuantityPerItem,
       shipping,
@@ -648,8 +649,6 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       pickupShipping: pickupShippingMethod(productShippingMethods),
       shippingPriceText: shippingPriceText(productShippingMethods),
       deliveryTimeText: deliveryTimeText(productShippingMethods),
-      // „Fertigung nach Bestellung“ nur zeigen, wenn auch ein Versand angeboten wird.
-      showProductionNote: productShippingMethods.some((method) => method.id !== PICKUP_SHIPPING_ID),
       showFreeShippingNote: shipping.freeShippingFrom > 0 && hasPaidShippingMethod(productShippingMethods),
       basePriceText: maxPrice > minPrice ? `ab ${formatEuro(minPrice)}` : formatEuro(minPrice),
       categories: categoriesForProduct(product.id),
