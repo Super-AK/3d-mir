@@ -157,7 +157,8 @@ Zahlungsseite, AGB § 5 und Datenschutz § 6 werden aus den hier aktiven Zahlung
 - Bei **Stripe** wird der Status über den Webhook automatisch gesetzt. Die Rückleitungsseite prüft die Zahlung zusätzlich, falls der Webhook verzögert eintrifft.
 - Bei fehlgeschlagener oder abgebrochener Zahlung kann der Kunde die Zahlung über die Bestellübersicht erneut starten.
 - „Erstattung vermerken“ setzt den Zahlungsstatus auf „erstattet“. Die eigentliche Erstattung erfolgt im Stripe-Dashboard bzw. per Überweisung.
-- Die Bestellliste lässt sich nach Zahlungsstatus filtern.
+- Die Bestellliste lässt sich nach Bestellstatus und Zahlungsstatus filtern. Die Auswahl im Dropdown aktualisiert die Ansicht sofort.
+- Der Sammelfilter **Offene** umfasst die Status Neu, Bezahlt und In Druck. Die Kachel **Offene Bestellungen** im Dashboard verlinkt auf genau diese Ansicht.
 
 ### Stripe-Webhook
 

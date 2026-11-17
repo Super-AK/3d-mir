@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.34] – 2026-11-17
+
+### Geändert
+
+- Dashboard-Kachel **Offene Bestellungen** verlinkt auf den Sammelfilter
+  „Offene“ (Neu, Bezahlt, In Druck) statt nur auf „Neu“.
+- Bestellliste: neuer Sammelfilter **Offene** im Status-Dropdown.
+- Status- und Zahlungsfilter aktualisieren die Ansicht sofort bei der Auswahl.
+  Dasselbe gilt für den Statusfilter der Anfragen.
+
 ## [1.0.0-rc.33] – 2026-11-17
 
 ### Hinzugefügt
@@ -524,6 +534,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.34]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.34
 [1.0.0-rc.33]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.33
 [1.0.0-rc.32]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.32
 [1.0.0-rc.31]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.31

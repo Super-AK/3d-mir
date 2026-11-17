@@ -13,7 +13,7 @@
   <form class="admin-filter card" method="get" action="/admin/bestellungen/">
     <div class="field">
       <label for="status">Bestellstatus</label>
-      <select id="status" name="status">
+      <select id="status" name="status" data-auto-submit>
         <option value="">Alle Status</option>
         {% for item in statuses %}
           <option value="{{ item.id }}" {% if status == item.id %}selected{% endif %}>{{ item.label }}</option>
@@ -22,7 +22,7 @@
     </div>
     <div class="field">
       <label for="paymentStatus">Zahlungsstatus</label>
-      <select id="paymentStatus" name="paymentStatus">
+      <select id="paymentStatus" name="paymentStatus" data-auto-submit>
         <option value="">Alle Zahlungsstatus</option>
         {% for item in paymentStatuses %}
           <option value="{{ item.id }}" {% if paymentStatus == item.id %}selected{% endif %}>{{ item.label }}</option>
@@ -38,6 +38,7 @@
       <a class="btn btn-secondary btn-small" href="/admin/bestellungen/">Zurücksetzen</a>
     </div>
   </form>
+  <p class="hint">Die Auswahl in den Listen aktualisiert die Ansicht sofort. „Offene“ umfasst die Status Neu, Bezahlt und In Druck.</p>
 
   {% if orders.length > 0 %}
     <div class="table-wrap">

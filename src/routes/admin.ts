@@ -253,6 +253,15 @@ const orderStatuses = [
   { id: 'storniert', label: 'Storniert' },
 ] as const;
 
+/** Status, die als „offene“ Bestellung gelten (Dashboard und Filter). */
+const openOrderStatuses = ['neu', 'bezahlt', 'in_druck'] as const;
+
+/** Zusätzlicher Sammelfilter für die Bestellliste. */
+const orderFilterStatuses = [
+  { id: 'offen', label: 'Offene' },
+  ...orderStatuses,
+] as const;
+
 const quoteStatuses = [
   { id: 'neu', label: 'Neu' },
   { id: 'geprueft', label: 'Geprüft' },
@@ -1830,7 +1839,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .all() as { status: string; count: number }[];
       const counts = Object.fromEntries(orderCounts.map((row) => [row.status, row.count]));
       const openOrders = orderCounts
-        .filter((row) => ['neu', 'bezahlt', 'in_druck'].includes(row.status))
+        .filter((row) => (openOrderStatuses as readonly string[]).includes(row.status))
         .reduce((sum, row) => sum + row.count, 0);
       const newQuotes = (db().prepare("SELECT COUNT(*) AS count FROM quote_requests WHERE status = 'neu'").get() as { count: number }).count;
       const openMessages = (db().prepare('SELECT COUNT(*) AS count FROM contact_messages WHERE handled = 0').get() as { count: number }).count;
@@ -1883,14 +1892,20 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     // Bestellungen --------------------------------------------------------
     scope.get('/admin/bestellungen/', async (request, reply) => {
       const query = queryObject(request);
-      const status = orderStatuses.some((item) => item.id === query.status) ? String(query.status) : '';
+      const status =
+        query.status === 'offen' || orderStatuses.some((item) => item.id === query.status)
+          ? String(query.status)
+          : '';
       const paymentStatus = paymentStatuses.some((item) => item.id === query.paymentStatus)
         ? String(query.paymentStatus)
         : '';
       const q = cleanText(query.q, 100);
       const where: string[] = [];
       const params: unknown[] = [];
-      if (status) {
+      if (status === 'offen') {
+        where.push(`status IN (${openOrderStatuses.map(() => '?').join(',')})`);
+        params.push(...openOrderStatuses);
+      } else if (status) {
         where.push('status = ?');
         params.push(status);
       }
@@ -1917,7 +1932,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         'admin/orders.njk',
         adminContext(request, {
           orders,
-          statuses: orderStatuses,
+          statuses: orderFilterStatuses,
           paymentStatuses,
           status,
           paymentStatus,

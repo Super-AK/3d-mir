@@ -125,6 +125,13 @@ if (selectAllBoxes.length > 0 && productBoxes.length > 0) {
   });
 }
 
+// Filterformulare: Auswahl im Dropdown lädt die Ansicht sofort neu.
+document.querySelectorAll<HTMLSelectElement>('[data-auto-submit]').forEach((select) => {
+  select.addEventListener('change', () => {
+    select.form?.requestSubmit();
+  });
+});
+
 // Nachrichtenliste: Massenauswahl und Klick auf die Zeile.
 const messageBoxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-select-message]'));
 const messageSelectAll = document.querySelector<HTMLInputElement>('[data-select-all-messages]');

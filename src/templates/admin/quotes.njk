@@ -13,7 +13,7 @@
   <form class="admin-filter card" method="get" action="/admin/anfragen/">
     <div class="field">
       <label for="status">Status</label>
-      <select id="status" name="status">
+      <select id="status" name="status" data-auto-submit>
         <option value="">Alle Status</option>
         {% for item in statuses %}
           <option value="{{ item.id }}" {% if status == item.id %}selected{% endif %}>{{ item.label }}</option>
