@@ -33,6 +33,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await page.fill('#priceFrom', '12.50');
     await page.fill('#colorOptions', 'Rot, Blau');
     await page.check('input[name="personalizationEnabled"]');
+    await page.fill('#personalizationHint', 'z. B. Wunschname für Anna');
     await page.getByRole('button', { name: 'Speichern', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
 
@@ -42,6 +43,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await expect(page.locator('#variantId')).toHaveCount(0);
     await expect(page.locator('#color option')).toHaveCount(3);
     await expect(page.locator('#personalization')).toBeVisible();
+    await expect(page.locator('#personalization')).toHaveAttribute('placeholder', 'z. B. Wunschname für Anna');
     await page.selectOption('#color', 'Blau');
     await page.fill('#personalization', 'Für Anna');
     await page.fill('#quantity', '2');
@@ -93,6 +95,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await expect(page.locator('input[name$="_label"][value="Groß"]')).toBeVisible();
 
     await page.goto(`/shop/${slug}/`);
+    await expect(page.locator('#personalization')).toHaveAttribute('placeholder', 'z. B. Name oder kurzer Text');
     await page.selectOption('#variantId', { index: 1 });
     await page.selectOption('#color', 'Grün');
     // Personalisierung bleibt leer und ist trotzdem gültig.

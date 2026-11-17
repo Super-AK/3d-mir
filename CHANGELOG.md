@@ -3,6 +3,26 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.39] – 2026-11-17
+
+### Hinzugefügt
+
+- **Hinweis im Personalisierungsfeld:** Pro Produkt lässt sich im Admin ein
+  eigener Platzhaltertext für das Personalisierungsfeld hinterlegen, z. B.
+  „z. B. Wunschname für Anna“. Der Text erscheint im Shop als grauer Hinweis im
+  optionalen Textfeld. Ohne Angabe gilt weiterhin der Standardtext
+  „z. B. Name oder kurzer Text“.
+- Export, Import und Kopieren übernehmen den hinterlegten Hinweis.
+- E2E-Test prüft den eigenen Hinweis und den Standardtext.
+
+### Geändert
+
+- Der E2E-Test für die Shop-Bestellung wählt bei mehreren Produkten mit
+  ähnlichem Namen die erste passende Produktkarte und berücksichtigt eine
+  optionale Farbauswahl. Die erwarteten Summen werden aus den aktuellen
+  Produkt- und Versandpreisen berechnet. Damit bleibt der Test unabhängig von
+  den gepflegten Produktdaten.
+
 ## [1.0.0-rc.38] – 2026-11-17
 
 ### Hinzugefügt

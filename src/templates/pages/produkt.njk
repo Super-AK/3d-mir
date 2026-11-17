@@ -114,7 +114,7 @@
           {% if personalizationEnabled %}
             <div class="field">
               <label for="personalization">Personalisierung (optional)</label>
-              <textarea id="personalization" name="personalization" rows="3" maxlength="500" placeholder="z. B. Name oder kurzer Text"></textarea>
+              <textarea id="personalization" name="personalization" rows="3" maxlength="500" placeholder="{{ personalizationHint }}"></textarea>
               <span class="hint">Dieses Feld ist freiwillig. Lassen Sie es leer, wenn keine Personalisierung gewünscht ist.</span>
             </div>
           {% endif %}

@@ -60,6 +60,7 @@ type ProductRow = {
   shipping_option_ids: string;
   color_options: string;
   personalization_enabled: number;
+  personalization_hint: string;
 };
 
 type VariantRow = {
@@ -633,6 +634,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       images,
       colorOptions: productColors(product),
       personalizationEnabled: product.personalization_enabled === 1,
+      personalizationHint: product.personalization_hint || 'z. B. Name oder kurzer Text',
       productJsonLd: productJsonLd(product, variants),
       maxQuantity: config.shop.maxQuantityPerItem,
       shipping,

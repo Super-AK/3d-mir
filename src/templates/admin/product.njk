@@ -147,6 +147,11 @@
         <span>Personalisierung anbieten</span>
       </label>
       <span class="hint">Zeigt im Shop ein optionales Textfeld für eine persönliche Anmerkung. Der Kunde muss es nicht ausfüllen.</span>
+      <div class="field">
+        <label for="personalizationHint">Hinweis im Personalisierungsfeld</label>
+        <input id="personalizationHint" name="personalizationHint" type="text" maxlength="200" value="{{ form.personalizationHint }}" placeholder="z. B. Name oder kurzer Text">
+        <span class="hint">Wird im Shop als grauer Platzhaltertext im Feld angezeigt, z. B. „z. B. Name oder kurzer Text“. Leer lassen für den Standardtext.</span>
+      </div>
     </fieldset>
 
     <div class="form-actions">

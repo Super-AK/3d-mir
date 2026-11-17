@@ -6,10 +6,14 @@ test('Shop: Produkt in den Warenkorb legen und bestellen', async ({ page }) => {
 
   await page.goto('/shop/');
   await expect(page.locator('h1')).toHaveText('Shop');
-  await page.locator('.product-card', { hasText: 'Recycling-Box' }).getByRole('link', { name: 'Details ansehen' }).click();
+  await page.locator('.product-card', { hasText: 'Recycling-Box' }).getByRole('link', { name: 'Details ansehen' }).first().click();
   await expect(page.locator('h1')).toContainText('Recycling-Box');
 
   await page.selectOption('#variantId', { index: 1 });
+  // Produkte können optional eine Farbe verlangen; dann die erste Farbe wählen.
+  if (await page.locator('#color').count()) {
+    await page.selectOption('#color', { index: 1 });
+  }
   await page.fill('#quantity', '1');
   await page.getByRole('button', { name: 'In den Warenkorb' }).click();
 
@@ -22,11 +26,26 @@ test('Shop: Produkt in den Warenkorb legen und bestellen', async ({ page }) => {
   await expect(page).toHaveURL(/\/kasse\/$/);
   await expect(page.locator('button[type="submit"]')).toHaveText('zahlungspflichtig bestellen');
 
-  // Versandwechsel aktualisiert die Summe ohne Neuladen.
+  // Versandwechsel aktualisiert die Summe ohne Neuladen. Die erwarteten Werte
+  // werden aus den aktuellen Produkt- und Versandpreisen abgeleitet, damit der
+  // Test unabhängig von gepflegten Preisen bleibt.
+  const subtotalCents = Number(
+    await page.locator('[data-summary-subtotal]').getAttribute('data-summary-subtotal'),
+  );
   await page.check('input[name="shippingMethod"][value="abholung"]');
-  await expect(page.locator('[data-summary-total]')).toHaveText('11,00 €');
+  await expect(page.locator('[data-summary-total]')).toHaveAttribute(
+    'data-summary-total',
+    String(subtotalCents),
+  );
   await page.check('input[name="shippingMethod"][value="dhl-paket"]');
-  await expect(page.locator('[data-summary-total]')).toHaveText('15,99 €');
+  const shippingCents = Number(
+    await page.locator('[data-summary-shipping]').getAttribute('data-summary-shipping'),
+  );
+  expect(shippingCents).toBeGreaterThan(0);
+  await expect(page.locator('[data-summary-total]')).toHaveAttribute(
+    'data-summary-total',
+    String(subtotalCents + shippingCents),
+  );
 
   await page.fill('#firstName', 'Playwright');
   await page.fill('#lastName', 'Test');

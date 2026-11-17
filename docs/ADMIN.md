@@ -424,6 +424,7 @@ Im Produktformular gibt es die Bereiche **Versandarten** und **Versand-Zusatzopt
 - **Varianten:** Echte Ausführungen wie Größe oder Modell mit eigenem Preis und optionalem Lagerbestand. Varianten werden direkt in der Tabelle bearbeitet, ergänzt oder per Löschmarkierung entfernt. Produkte ohne Varianten sind im Shop direkt kaufbar; die frühere Pflichtvariante „Standard“ ist nicht mehr nötig.
 - **Farbvarianten (kommagetrennt):** Im Produktformular lassen sich Farben als Liste hinterlegen, z. B. `Schwarz, Weiß, Rot`. Die Farben haben keinen eigenen Preis und lassen sich mit Varianten kombinieren. Ist die Liste gefüllt, muss der Kunde im Shop eine Farbe auswählen.
 - **Personalisierung:** Die Checkbox **„Personalisierung anbieten“** blendet im Shop ein optionales Textfeld ein. Der Kunde kann es leer lassen. Der eingegebene Text wird in der Bestellung gespeichert und im Admin sowie in den Bestellmails angezeigt.
+- **Hinweis im Personalisierungsfeld:** Das Feld **„Hinweis im Personalisierungsfeld“** legt den grauen Platzhaltertext im Shop fest, z. B. „z. B. Wunschname für Anna“. So lassen sich pro Produkt passende Beispiele vorgeben. Bleibt das Feld leer, erscheint der Standardtext „z. B. Name oder kurzer Text“.
 - **Lagerbestand:** Ist ein Bestand gesetzt, prüft die Kasse die verfügbare Menge – bei Varianten am Variantenbestand, bei Produkten ohne Varianten am Produktbestand. Reservierter Bestand wird beim Stornieren wieder freigegeben.
 
 ### Bilder
