@@ -118,6 +118,7 @@ function applyCatalog(result: PricingConfig, catalog: PricingCatalog): void {
       label: text(method.label) || text(method.id),
       price: nonNegative(method.price, 0),
       deliveryDays: text(method.deliveryDays),
+      note: text(method.note),
       active: method.active !== false,
     })).filter((method) => method.id !== '');
   }

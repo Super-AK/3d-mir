@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.43] – 2026-11-17
+
+### Hinzugefügt
+
+- **Zusatzinfo pro Versandart:** Unter „Preise → Versand“ lässt sich je
+  Versandart eine kurze Zusatzinformation hinterlegen, z. B. „Versichert bis
+  500 €“. Sie erscheint im Checkout bei der Auswahl der Versandart sowie auf
+  der Produktseite, in der Shop-Übersicht und auf „Versandarten und Kosten“.
+
 ## [1.0.0-rc.42] – 2026-11-17
 
 ### Behoben

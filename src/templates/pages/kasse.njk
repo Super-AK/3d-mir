@@ -95,6 +95,7 @@
                 <span class="radio-card-text">
                   <strong>{{ option.label }}</strong>
                   <span>{{ option.deliveryDays }}</span>
+                  {% if option.note %}<span>{{ option.note }}</span>{% endif %}
                 </span>
                 <span class="radio-card-price">{% if option.cents == 0 %}{% if option.price > 0 %}kostenlos{% else %}0,00 €{% endif %}{% else %}{{ option.cents | price }}{% endif %}</span>
               </label>

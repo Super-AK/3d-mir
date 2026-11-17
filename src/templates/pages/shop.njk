@@ -75,7 +75,7 @@
         <h2>Versand &amp; Abholung</h2>
         <ul class="check-list">
           {% for method in pricing.shipping.methods %}
-            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | euro }}{% else %} · kostenlos{% endif %}</li>
+            <li><strong>{{ method.label }}</strong> · {{ method.deliveryDays }}{% if method.price > 0 %} · {{ method.price | euro }}{% else %} · kostenlos{% endif %}{% if method.note %}<br><span class="text-muted">{{ method.note }}</span>{% endif %}</li>
           {% endfor %}
         </ul>
         {% if pricing.shipping.freeShippingFrom > 0 %}

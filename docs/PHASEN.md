@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.43 – 17. November 2026
+
+Zusatzinfo pro Versandart, z. B. „Versichert bis 500 €“. Sie erscheint im
+Checkout bei der Auswahl der Versandart sowie auf Produktseite, Shop-Übersicht
+und Versandseite.
+
 ## Release 1.0.0-rc.42 – 17. November 2026
 
 Abholung wird auch bei abweichender ID anhand der Bezeichnung erkannt. Damit

@@ -122,8 +122,8 @@
     "status": "FINAL",
     "note": "Versandkosten und Lieferzeiten wurden am 14.11.2026 vom Betreiber bestätigt.",
     "methods": [
-      { "id": "dhl-paket", "label": "DHL Paket", "price": 4.99, "deliveryDays": "2–5" },
-      { "id": "abholung", "label": "Abholung nach Absprache", "price": 0, "deliveryDays": "nach Absprache" }
+      { "id": "dhl-paket", "label": "DHL Paket", "price": 4.99, "deliveryDays": "2–5", "note": "" },
+      { "id": "abholung", "label": "Abholung nach Absprache", "price": 0, "deliveryDays": "nach Absprache", "note": "" }
     ],
     "options": [],
     "freeShippingFrom": 50.0

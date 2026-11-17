@@ -1554,6 +1554,7 @@ function readPricingForm(
         label,
         price: numberField(`shipping_${index}_price`, 0, 1000, `Versandkosten ${label}`),
         deliveryDays: value(`shipping_${index}_days`, 80),
+        note: value(`shipping_${index}_note`, 200),
         active: marked(`shipping_${index}_active`),
       });
       usedShippingIds.add(existing.id);
@@ -1567,6 +1568,7 @@ function readPricingForm(
         label,
         price: optionalNumber(`${base}_price`, 0, 1000, `Preis ${label}`, 0),
         deliveryDays: value(`${base}_days`, 80),
+        note: value(`${base}_note`, 200),
         active: marked(`${base}_active`),
       });
     }

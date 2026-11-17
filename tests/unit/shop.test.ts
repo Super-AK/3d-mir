@@ -16,8 +16,8 @@ const shipping = {
   note: '',
   freeShippingFrom: 50,
   methods: [
-    { id: 'dhl-paket', label: 'DHL Paket', price: 4.99, deliveryDays: '2–5' },
-    { id: 'abholung', label: 'Abholung', price: 0, deliveryDays: 'nach Absprache' },
+    { id: 'dhl-paket', label: 'DHL Paket', price: 4.99, deliveryDays: '2–5', note: '' },
+    { id: 'abholung', label: 'Abholung', price: 0, deliveryDays: 'nach Absprache', note: '' },
   ],
 };
 
@@ -88,6 +88,7 @@ describe('Produktseite: Versand und Lieferzeit', () => {
       label: 'Abholung nach Absprache',
       price: 0,
       deliveryDays: 'nach Absprache',
+      note: '',
     };
     expect(isPickupShippingMethod(labeledPickup)).toBe(true);
     expect(pickupShippingMethod([dhl, labeledPickup])?.id).toBe('abholung-nach-absprache');
@@ -104,7 +105,7 @@ describe('Produktseite: Versand und Lieferzeit', () => {
   });
 
   it('nennt bei mehreren Versandarten jede Lieferzeit mit Bezeichnung', () => {
-    const express = { id: 'express', label: 'Express', price: 9.99, deliveryDays: '1–2' };
+    const express = { id: 'express', label: 'Express', price: 9.99, deliveryDays: '1–2', note: '' };
     expect(deliveryTimeText([dhl, express])).toBe('DHL Paket: 2–5 Werktage · Express: 1–2 Werktage');
   });
 });

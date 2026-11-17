@@ -84,7 +84,7 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 | Materialien | Bezeichnung, Dichte, Preis je Gramm, Maximaltemperatur, Farben, Eigenschaften, Anwendungen, Hinweise | ✓ | ✓ |
 | Drucker | Bezeichnung, Bauraum X/Y/Z, Maschinenstunde, Materialzuordnung, Hinweis | ✓ | ✓ |
 | Nachbearbeitung | Bezeichnung, Zuschlag in Prozent, Preis je Teil | ✓ | ✓ |
-| Versand | Bezeichnung, Preis, Lieferzeit | ✓ | ✓ |
+| Versand | Bezeichnung, Preis, Lieferzeit, Zusatzinfo | ✓ | ✓ |
 | Versandoptionen | Bezeichnung, Preis, Hinweis (z. B. Express, Geschenkverpackung) | ✓ | ✓ |
 | Mengenrabatt | Staffel ab Stückzahl, Rabatt in Prozent | ✓ | ✓ |
 
@@ -142,7 +142,9 @@ Unter **Admin → Kategorien** werden Produktkategorien angelegt, umbenannt, sor
 
 **Aktiv:** Materialien, Drucker, Nachbearbeitung und Versandarten haben eine Checkbox „Aktiv“. Inaktive Einträge bleiben im Admin erhalten, werden aber im Rechner, im Shop, im Checkout und auf der Seite „Versandarten und Kosten“ nicht angezeigt. Mindestens ein Eintrag je Bereich muss aktiv bleiben.
 
-**Versandseite:** Die öffentliche Seite `/versand/` wird aus den Versandarten unter „Preise → Versand“ erzeugt. Bezeichnung, Preis, Lieferzeit und die Schwelle für kostenlosen Versand erscheinen dort automatisch; inaktive Versandarten werden ausgeblendet.
+**Versandseite:** Die öffentliche Seite `/versand/` wird aus den Versandarten unter „Preise → Versand“ erzeugt. Bezeichnung, Preis, Lieferzeit, Zusatzinfo und die Schwelle für kostenlosen Versand erscheinen dort automatisch; inaktive Versandarten werden ausgeblendet.
+
+**Zusatzinfo:** Jede Versandart kann eine kurze Zusatzinformation erhalten, z. B. „Versichert bis 500 €“. Sie erscheint im Checkout bei der Auswahl der Versandart sowie auf der Produktseite, in der Shop-Übersicht und auf `/versand/`.
 
 **Wo liegen die Daten?** `config/pricing.json` bleibt die dokumentierte Grundeinstellung. Änderungen im Admin werden als `pricing.overrides` in der Tabelle `settings` gespeichert und überlagern die JSON-Datei ohne Neustart. Sobald ein Katalog im Admin gespeichert wurde, gilt die Datenbank als führend; „Auf Grundeinstellung zurücksetzen“ löscht die Überlagerung und stellt `config/pricing.json` wieder her.
 
