@@ -45,6 +45,14 @@
       <span class="hint">Leerzeilen erzeugen Absätze. HTML wird nicht ausgeführt.</span>
     </div>
 
+    <div class="form-row">
+      <div class="field">
+        <label for="material">Material</label>
+        <input id="material" name="material" type="text" maxlength="100" value="{{ form.material }}" placeholder="z. B. PLA">
+        <span class="hint">Erscheint auf der Produktseite als Materialangabe. Leer lassen für PLA.</span>
+      </div>
+    </div>
+
     <fieldset class="admin-fieldset">
       <legend>Kategorien</legend>
       {% if categoryOptions.length > 0 %}

@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.40 – 17. November 2026
+
+Material pro Produkt sowie passende Angaben zu Versand, Abholung und Lieferzeit
+auf der Produktseite. Der Versandpreis steht bei einer Versandart ohne „ab“,
+die Abholung erscheint nur bei angebotener Abholung, und die Lieferzeit nennt
+bei mehreren Versandarten jede Variante mit Bezeichnung.
+
 ## Release 1.0.0-rc.39 – 17. November 2026
 
 Eigener Platzhaltertext für das Personalisierungsfeld pro Produkt.

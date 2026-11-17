@@ -35,9 +35,14 @@ import {
   type PaymentOrder,
 } from '../lib/payments/index.js';
 import {
+  deliveryTimeText,
   formatEuro,
+  hasPaidShippingMethod,
   orderTotals,
+  PICKUP_SHIPPING_ID,
+  pickupShippingMethod,
   shippingCents,
+  shippingPriceText,
   subtotalCents,
   type ShippingMethod,
 } from '../lib/shop.js';
@@ -61,6 +66,7 @@ type ProductRow = {
   color_options: string;
   personalization_enabled: number;
   personalization_hint: string;
+  material: string;
 };
 
 type VariantRow = {
@@ -297,6 +303,7 @@ function productJsonLd(product: ProductRow, variants: VariantRow[]) {
       name: product.name,
       description: product.short_description,
       sku: product.sku ?? undefined,
+      material: product.material || undefined,
       image: [`${config.site.baseUrl}/assets/img/gen/product-battery-box-900.jpg`],
       brand: { '@type': 'Brand', name: config.site.business.name },
       manufacturer: {
@@ -626,8 +633,6 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       ? activeMethods.filter((method) => assignedMethods.includes(method.id))
       : activeMethods;
     const productShippingMethods = allowedMethods.length > 0 ? allowedMethods : activeMethods;
-    // Abholung (0 €) mitzählen: Dann beginnt der Versand bei 0 €.
-    const shippingPrices = productShippingMethods.map((method) => method.price);
     render(reply, 'pages/produkt.njk', {
       product,
       variants,
@@ -635,11 +640,17 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       colorOptions: productColors(product),
       personalizationEnabled: product.personalization_enabled === 1,
       personalizationHint: product.personalization_hint || 'z. B. Name oder kurzer Text',
+      productMaterial: product.material || 'PLA',
       productJsonLd: productJsonLd(product, variants),
       maxQuantity: config.shop.maxQuantityPerItem,
       shipping,
       productShippingMethods,
-      shippingFromPrice: shippingPrices.length > 0 ? Math.min(...shippingPrices) : null,
+      pickupShipping: pickupShippingMethod(productShippingMethods),
+      shippingPriceText: shippingPriceText(productShippingMethods),
+      deliveryTimeText: deliveryTimeText(productShippingMethods),
+      // „Fertigung nach Bestellung“ nur zeigen, wenn auch ein Versand angeboten wird.
+      showProductionNote: productShippingMethods.some((method) => method.id !== PICKUP_SHIPPING_ID),
+      showFreeShippingNote: shipping.freeShippingFrom > 0 && hasPaidShippingMethod(productShippingMethods),
       basePriceText: maxPrice > minPrice ? `ab ${formatEuro(minPrice)}` : formatEuro(minPrice),
       categories: categoriesForProduct(product.id),
     });

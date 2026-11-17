@@ -3,6 +3,32 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.40] – 2026-11-17
+
+### Hinzugefügt
+
+- **Material pro Produkt:** Im Admin lässt sich das Material frei hinterlegen,
+  z. B. `PLA`, `PETG` oder `PLA Tough`. Die Produktseite zeigt es unter
+  „Material“ und in „Auf einen Blick“; bei hinterlegten Farben ergänzt sie
+  „in Wunschfarbe“. Ohne Angabe gilt `PLA`.
+- Export, Import und Kopieren übernehmen die Materialangabe.
+
+### Geändert
+
+- **Versandangabe auf der Produktseite:** Bei genau einer angebotenen
+  Versandart steht der genaue Preis ohne „ab“. Bei mehreren Versandarten
+  erscheint weiterhin der günstigste Preis mit „ab“.
+- **Abholung:** Der Hinweis „Abholung … in Schömberg möglich“ erscheint nur,
+  wenn die Abholung für das Produkt angeboten wird.
+- **Lieferzeit:** Die Angabe richtet sich nach den angebotenen Versandarten.
+  Bei mehreren Versandarten werden die jeweiligen Lieferzeiten mit
+  Bezeichnung genannt, z. B. „DHL Paket: 2–5 Werktage · Abholung: nach
+  Absprache“.
+- Der Hinweis „frei ab …“ erscheint nur, wenn mindestens eine
+  kostenpflichtige Versandart angeboten wird.
+- Unit- und E2E-Tests für Material, Versandpreis, Abholung und Lieferzeit
+  ergänzt.
+
 ## [1.0.0-rc.39] – 2026-11-17
 
 ### Hinzugefügt

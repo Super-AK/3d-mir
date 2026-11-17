@@ -59,3 +59,53 @@ export function orderTotals(
 export function formatEuro(cents: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 }
+
+export const PICKUP_SHIPPING_ID = 'abholung';
+
+/** Findet die Abholung unter den für ein Produkt angebotenen Versandarten. */
+export function pickupShippingMethod(methods: ShippingMethod[]): ShippingMethod | null {
+  return methods.find((method) => method.id === PICKUP_SHIPPING_ID) ?? null;
+}
+
+/** Liefert true, wenn mindestens eine kostenpflichtige Versandart angeboten wird. */
+export function hasPaidShippingMethod(methods: ShippingMethod[]): boolean {
+  return methods.some((method) => method.price > 0);
+}
+
+/** Formatiert die Lieferzeit einer Versandart für die Produktseite. */
+export function deliveryDaysText(method: ShippingMethod): string {
+  const days = method.deliveryDays.trim();
+  if (!days) return 'nach Absprache';
+  if (method.id === PICKUP_SHIPPING_ID) return days;
+  return /^\d+(\s*[–-]\s*\d+)?$/.test(days) ? `${days} Werktage` : days;
+}
+
+/**
+ * Fasst die Lieferzeiten der angebotenen Versandarten zusammen. Bei mehreren
+ * Versandarten wird jede mit ihrer Bezeichnung genannt.
+ */
+export function deliveryTimeText(methods: ShippingMethod[]): string {
+  if (methods.length === 0) return 'nach Absprache';
+  return methods
+    .map((method) => {
+      const time = deliveryDaysText(method);
+      if (methods.length === 1) return time;
+      const label = method.id === PICKUP_SHIPPING_ID ? 'Abholung' : method.label;
+      return `${label}: ${time}`;
+    })
+    .join(' · ');
+}
+
+/**
+ * Preistext für die Produktseite: Bei genau einer Versandart steht der genaue
+ * Preis ohne „ab“, bei mehreren der günstigste Preis mit „ab“.
+ */
+export function shippingPriceText(methods: ShippingMethod[]): string {
+  if (methods.length === 0) return 'kostenlos';
+  const prices = methods.map((method) => Math.round(method.price * 100));
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  if (max <= 0) return 'kostenlos';
+  const price = formatEuro(min);
+  return methods.length > 1 ? `ab ${price}` : price;
+}

@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { orderTotals, shippingCents, subtotalCents, type ShippingMethod } from '../../src/lib/shop.js';
+import {
+  deliveryTimeText,
+  formatEuro,
+  orderTotals,
+  pickupShippingMethod,
+  shippingCents,
+  shippingPriceText,
+  subtotalCents,
+  type ShippingMethod,
+} from '../../src/lib/shop.js';
 
 const shipping = {
   status: 'PLATZHALTER',
@@ -54,5 +63,30 @@ describe('Warenkorb-Summen', () => {
     expect(totals.shippingCents).toBe(0);
     expect(totals.freeShipping).toBe(true);
     expect(totals.totalCents).toBe(5000);
+  });
+});
+
+describe('Produktseite: Versand und Lieferzeit', () => {
+  it('zeigt bei einer Versandart den genauen Preis ohne „ab“', () => {
+    expect(shippingPriceText([dhl])).toBe(formatEuro(499));
+    expect(shippingPriceText([pickup])).toBe('kostenlos');
+  });
+
+  it('zeigt bei mehreren Versandarten den günstigsten Preis mit „ab“', () => {
+    expect(shippingPriceText([dhl, pickup])).toBe(`ab ${formatEuro(0)}`);
+  });
+
+  it('erkennt die Abholung nur, wenn sie angeboten wird', () => {
+    expect(pickupShippingMethod([dhl])).toBeNull();
+    expect(pickupShippingMethod([dhl, pickup])?.id).toBe('abholung');
+  });
+
+  it('ergänzt bei reinen Zahlenangaben „Werktage“', () => {
+    expect(deliveryTimeText([dhl])).toBe('2–5 Werktage');
+    expect(deliveryTimeText([pickup])).toBe('nach Absprache');
+  });
+
+  it('nennt bei mehreren Versandarten jede Lieferzeit mit Bezeichnung', () => {
+    expect(deliveryTimeText([dhl, pickup])).toBe('DHL Paket: 2–5 Werktage · Abholung: nach Absprache');
   });
 });

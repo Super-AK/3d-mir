@@ -128,10 +128,12 @@
         </form>
 
         <ul class="product-facts">
-          <li><strong>Lieferzeit:</strong> 2–5 Werktage, Fertigung nach Bestellung</li>
-          <li><strong>Versand:</strong> {% if shippingFromPrice is not null %}ab {{ shippingFromPrice | euro }}{% else %}kostenlos{% endif %}{% if pricing.shipping.freeShippingFrom > 0 %}, frei ab {{ pricing.shipping.freeShippingFrom | euro }}{% endif %}</li>
-          <li><strong>Abholung:</strong> nach Absprache in Schömberg möglich</li>
-          <li><strong>Material:</strong> PLA, in Wunschfarbe</li>
+          <li><strong>Lieferzeit:</strong> {{ deliveryTimeText }}{% if showProductionNote %}, Fertigung nach Bestellung{% endif %}</li>
+          <li><strong>Versand:</strong> {{ shippingPriceText }}{% if showFreeShippingNote %}, frei ab {{ pricing.shipping.freeShippingFrom | euro }}{% endif %}</li>
+          {% if pickupShipping %}
+            <li><strong>Abholung:</strong> {{ pickupShipping.deliveryDays or 'nach Absprache' }} in {{ site.business.city }} möglich</li>
+          {% endif %}
+          <li><strong>Material:</strong> {{ productMaterial }}{% if colorOptions.length > 0 %}, in Wunschfarbe{% endif %}</li>
         </ul>
 
         {% if publication.pricingStatus != 'FINAL' %}
@@ -157,7 +159,7 @@
           <div><dt>Kategorie</dt><dd>{% for category in categories %}<a href="/shop/?kategorie={{ category.slug }}">{{ category.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</dd></div>
         {% endif %}
         {% if product.dimensions %}<div><dt>Maße</dt><dd>{{ product.dimensions }}</dd></div>{% endif %}
-        <div><dt>Material</dt><dd>PLA</dd></div>
+        <div><dt>Material</dt><dd>{{ productMaterial }}</dd></div>
         <div><dt>Verfahren</dt><dd>FDM-3D-Druck</dd></div>
         <div><dt>Auswahl</dt><dd>{% if variants.length > 0 %}{{ variants.length }} Variante(n){% endif %}{% if variants.length > 0 and colorOptions.length > 0 %} · {% endif %}{% if colorOptions.length > 0 %}{{ colorOptions.length }} Farbe(n){% endif %}{% if variants.length == 0 and colorOptions.length == 0 %}Standard{% endif %}</dd></div>
         <div><dt>Artikelnummer</dt><dd>{{ product.sku or '–' }}</dd></div>

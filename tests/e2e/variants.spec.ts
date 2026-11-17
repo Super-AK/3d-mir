@@ -31,6 +31,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await page.fill('#name', name);
     await page.fill('#slug', slug);
     await page.fill('#priceFrom', '12.50');
+    await page.fill('#material', 'PETG');
     await page.fill('#colorOptions', 'Rot, Blau');
     await page.check('input[name="personalizationEnabled"]');
     await page.fill('#personalizationHint', 'z. B. Wunschname für Anna');
@@ -44,6 +45,12 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await expect(page.locator('#color option')).toHaveCount(3);
     await expect(page.locator('#personalization')).toBeVisible();
     await expect(page.locator('#personalization')).toHaveAttribute('placeholder', 'z. B. Wunschname für Anna');
+    await expect(page.locator('.product-facts')).toContainText('Material: PETG, in Wunschfarbe');
+    await expect(page.locator('.product-facts')).toContainText('Abholung: nach Absprache in Schömberg möglich');
+    await expect(page.locator('.product-facts')).toContainText('Versand: ab 0,00 €, frei ab 50,00 €');
+    await expect(page.locator('.product-facts')).toContainText(
+      'Lieferzeit: DHL Paket: 2–5 Werktage · Abholung: nach Absprache, Fertigung nach Bestellung',
+    );
     await page.selectOption('#color', 'Blau');
     await page.fill('#personalization', 'Für Anna');
     await page.fill('#quantity', '2');
@@ -85,6 +92,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await page.fill('#priceFrom', '20.00');
     await page.fill('#colorOptions', 'Grün, Schwarz');
     await page.check('input[name="personalizationEnabled"]');
+    await page.check('input[name="shippingMethodIds"][value="dhl-paket"]');
     await page.getByRole('button', { name: 'Speichern', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
 
@@ -96,6 +104,13 @@ test.describe('Varianten, Farben und Personalisierung', () => {
 
     await page.goto(`/shop/${slug}/`);
     await expect(page.locator('#personalization')).toHaveAttribute('placeholder', 'z. B. Name oder kurzer Text');
+    await expect(page.locator('.product-facts')).toContainText('Material: PLA, in Wunschfarbe');
+    await expect(page.locator('.product-facts')).not.toContainText('Abholung:');
+    await expect(page.locator('.product-facts')).toContainText('Versand: 4,99 €, frei ab 50,00 €');
+    await expect(page.locator('.product-facts')).not.toContainText('Versand: ab 4,99 €');
+    await expect(page.locator('.product-facts')).toContainText(
+      'Lieferzeit: 2–5 Werktage, Fertigung nach Bestellung',
+    );
     await page.selectOption('#variantId', { index: 1 });
     await page.selectOption('#color', 'Grün');
     // Personalisierung bleibt leer und ist trotzdem gültig.
