@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.32 – 17. November 2026
+
+Absenderkennung nur noch bei Nachrichten im Prüfmodus gespeichert
+(Datenminimierung).
+
 ## Release 1.0.0-rc.31 – 17. November 2026
 
 Automatische Absender-Sperre nach 3/5 Spam-Versuchen, pseudonyme

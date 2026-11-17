@@ -493,6 +493,8 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const reviewStatus = assessment.decision === 'review' ? 'pruefen' : 'ok';
+      // Absenderkennung nur bei Prüffällen speichern (Datenminimierung).
+      const storeSenderIdentity = reviewStatus === 'pruefen';
       const result = getDb()
         .prepare(
           `INSERT INTO contact_messages
@@ -509,9 +511,9 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           assessment.country,
           reviewStatus,
           assessment.reasons.join(' '),
-          ipHash,
-          ipPrefix,
-          userAgent,
+          storeSenderIdentity ? ipHash : '',
+          storeSenderIdentity ? ipPrefix : '',
+          storeSenderIdentity ? userAgent : '',
         );
 
       if (reviewStatus === 'pruefen') {

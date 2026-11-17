@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.32] – 2026-11-17
+
+### Geändert
+
+- Absenderkennung (IP-Prüfsumme, gekürzte IP-Adresse und Browser) wird nur
+  noch bei Nachrichten im Prüfmodus gespeichert. Normale Kontaktanfragen
+  bleiben ohne diese Angaben (Datenminimierung).
+
 ## [1.0.0-rc.31] – 2026-11-17
 
 ### Hinzugefügt
@@ -498,6 +506,7 @@ vor allem betriebliche und fachliche Freigaben (siehe unten).
 - Portkonflikt auf dem Zielserver `kap-srv` beheben.
 - Abnahme auf frischer VM anhand `docs/INSTALLATION.md`.
 
+[1.0.0-rc.32]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.32
 [1.0.0-rc.31]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.31
 [1.0.0-rc.30]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.30
 [1.0.0-rc.29]: https://github.com/Super-AK/3d-mir/releases/tag/v1.0.0-rc.29
