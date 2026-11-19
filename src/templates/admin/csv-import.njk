@@ -1,0 +1,55 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Produkte aus CSV importieren – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <nav class="breadcrumb" aria-label="Brotkrumen">
+    <ol><li><a href="/admin/produkte/">Produkte</a></li><li aria-current="page">CSV-Import</li></ol>
+  </nav>
+
+  <div class="admin-page-head">
+    <div>
+      <h1>Produkte aus CSV importieren</h1>
+      <p>Stammdaten, Varianten, Farben, Kategorien und Versandzuordnungen in einer Tabelle bearbeiten.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info" role="status">
+    <p><strong>Format:</strong> UTF-8-Datei mit Semikolon als Trennzeichen und einer Kopfzeile. Am einfachsten über <a href="/admin/produkte/csv/export/">CSV-Export</a> erzeugen, in Excel oder LibreOffice bearbeiten und hier wieder hochladen. Kommas als Dezimalzeichen sind erlaubt.</p>
+  </div>
+
+  <form class="form card admin-panel" method="post" action="/admin/produkte/csv/import/" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="field">
+      <label for="csv_file">CSV-Datei</label>
+      <input id="csv_file" name="file" type="file" accept=".csv,text/csv" required>
+      <span class="hint">Maximal 20 MB und 500 Produktzeilen.</span>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit">Import starten</button>
+      <a class="btn btn-secondary" href="/admin/produkte/">Zurück</a>
+    </div>
+  </form>
+
+  <div class="card admin-panel">
+    <h2>Spalten</h2>
+    <p class="hint">Die ersten drei Spalten sind <code>sku</code>, <code>slug</code> und <code>name</code>. Danach folgen <code>kategorien</code>, <code>kurzbeschreibung</code>, <code>beschreibung</code>, <code>preisAb</code>, <code>preisBis</code>, <code>material</code>, <code>lieferhinweis</code>, <code>gewichtG</code>, <code>abmessungen</code>, <code>lagerbestand</code>, <code>sortierung</code>, <code>aktiv</code>, <code>varianten</code>, <code>farben</code>, <code>personalisierung</code>, <code>personalisierungshinweis</code>, <code>versandarten</code> und <code>versandoptionen</code>. Die Reihenfolge ist frei, die Namen müssen stimmen.</p>
+
+    <h2>Listenwerte</h2>
+    <ul class="check-list">
+      <li>Mehrere Varianten: <code>Bezeichnung|Preis|Bestand||Bezeichnung|Preis|Bestand</code>, z. B. <code>Klein|12,90|5||Groß|19,90|2</code>.</li>
+      <li>Farben, Kategorien und Versand IDs stehen in einer Zelle und werden mit <code>|</code> getrennt, z. B. <code>schwarz|weiß</code>.</li>
+      <li><code>aktiv</code> und <code>personalisierung</code> sind <code>1</code> oder <code>0</code> (auch <code>ja</code>/<code>nein</code> werden erkannt).</li>
+    </ul>
+
+    <h2>Importverhalten</h2>
+    <ul class="check-list">
+      <li>Die SKU ist der Schlüssel: Gleiche SKUs werden aktualisiert, neue SKUs angelegt. Ohne SKU wird der Slug als Schlüssel verwendet.</li>
+      <li>Leere Zellen übernehmen beim Aktualisieren die bisherigen Werte. Eine angegebene Variantenliste ersetzt die vorhandenen Varianten vollständig.</li>
+      <li>Unbekannte Kategorien werden übersprungen und gemeldet; das Produkt wird trotzdem gespeichert.</li>
+      <li>Bilder sind nicht Teil der CSV. Für Bilder bitte den <a href="/admin/produkte/import/">JSON-Import</a> oder die Produktseite nutzen.</li>
+    </ul>
+
+    <p class="hint">Beispielzeile: <code>e2e-csv-1;beispiel-produkt;Beispielprodukt;kueche;Kurzbeschreibung;Beschreibung;12,90;;PLA;Fertigung nach Bezahlung;150;10 x 10 x 5 cm;7;0;1;Klein|12,90|7;;schwarz|weiß;0;;standard;</code></p>
+  </div>
+{% endblock %}

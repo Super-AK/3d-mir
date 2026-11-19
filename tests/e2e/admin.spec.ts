@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 
 /**
@@ -36,6 +37,7 @@ test.describe('Admin', () => {
       ['/admin/nachrichten/', 'Nachrichten'],
       ['/admin/besucherstatistik/', 'Besucherstatistik'],
       ['/admin/produkte/', 'Produkte'],
+      ['/admin/produkte/csv/import/', 'Produkte aus CSV importieren'],
       ['/admin/kategorien/', 'Kategorien'],
       ['/admin/preise/', 'Preise und Kalkulation'],
       ['/admin/zahlungen/', 'Zahlungen'],
@@ -120,7 +122,65 @@ test.describe('Admin', () => {
     await page.goto('/admin/produkte/');
     await expect(page.getByRole('link', { name: 'Importieren', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Exportieren', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'CSV-Import' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'CSV-Export' })).toBeVisible();
     await expect(page.locator('[data-select-product]').first()).toBeVisible();
+
+    // CSV-Export liefert eine Datei mit BOM und bekannter Kopfzeile.
+    const [csvDownload] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('link', { name: 'CSV-Export' }).click(),
+    ]);
+    expect(csvDownload.suggestedFilename()).toMatch(/^3d-mir-produkte-\d{4}-\d{2}-\d{2}\.csv$/);
+    const csvFile = '/tmp/opencode/e2e-produkte.csv';
+    await csvDownload.saveAs(csvFile);
+    expect(readFileSync(csvFile, 'utf8').startsWith('\uFEFFsku;slug;name;')).toBeTruthy();
+
+    // CSV-Import legt ein Produkt an; die gleiche SKU aktualisiert es danach.
+    const csv = [
+      '\uFEFFsku;slug;name;kategorien;preisAb;varianten;farben',
+      'e2e-csv-2026;e2e-csv-2026;E2E CSV Produkt;kueche;9,90;Standard|9,90|3;rot',
+    ].join('\n');
+    await page.goto('/admin/produkte/csv/import/');
+    await page.setViewportSize({ width: 390, height: 844 });
+    const csvOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(csvOverflow).toBeLessThanOrEqual(1);
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.locator('#csv_file').setInputFiles({
+      name: 'produkte.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(csv, 'utf8'),
+    });
+    await page.getByRole('button', { name: 'Import starten' }).click();
+    await expect(page).toHaveURL(/\/admin\/produkte\/\?gespeichert=1/);
+    await expect(page.getByText('1 Produkt(e) wurden importiert oder aktualisiert.')).toBeVisible();
+
+    await page.goto('/admin/produkte/csv/import/');
+    const updatedCsv = csv
+      .replace('E2E CSV Produkt', 'E2E CSV Produkt Aktualisiert')
+      .replace('9,90;Standard|9,90|3', '12,50;Standard|12,50|3');
+    await page.locator('#csv_file').setInputFiles({
+      name: 'produkte.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(updatedCsv, 'utf8'),
+    });
+    await page.getByRole('button', { name: 'Import starten' }).click();
+    await expect(page).toHaveURL(/\/admin\/produkte\/\?gespeichert=1/);
+    await expect(page.locator('[data-filter-results]')).toContainText('E2E CSV Produkt Aktualisiert');
+
+    // Testdaten wieder entfernen, damit der Lauf wiederholbar ist.
+    await page.locator('#q').fill('e2e-csv-2026');
+    await expect(page).toHaveURL(/[?&]q=e2e-csv-2026/);
+    await expect(page.locator('[data-filter-results] tbody tr')).toHaveCount(1);
+    await page.locator('[data-select-product]').first().check();
+    await page.getByRole('button', { name: 'Ausgewählte löschen' }).click();
+    await expect(page.getByRole('heading', { name: 'Produkte löschen' })).toBeVisible();
+    await page.getByRole('button', { name: 'Endgültig löschen' }).click();
+    await expect(page).toHaveURL(/\/admin\/produkte\/\?geloescht=1/);
+
     await page.locator('table tbody tr a').first().click();
     await expect(page.getByRole('heading', { name: 'Bilder', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Bild hinzufügen', exact: true })).toBeVisible();

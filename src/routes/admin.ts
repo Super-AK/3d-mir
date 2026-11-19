@@ -125,12 +125,20 @@ import {
 import { geoipStatus } from '../lib/geoip.js';
 import {
   allCategories,
+  categoriesForProduct,
   categoryIdsForProduct,
   createCategory,
   deleteCategory,
+  findCategoryBySlug,
   saveProductCategories,
   updateCategory,
 } from '../lib/categories.js';
+import {
+  parseProductCsv,
+  productCsv,
+  type CsvProductInput,
+  type CsvProductRow,
+} from '../lib/product-csv.js';
 import { getSiteSettings, saveSiteImages, saveSiteSettings } from '../lib/site-settings.js';
 import {
   getPlaceholderValues,
@@ -1089,6 +1097,194 @@ function exportProducts(ids?: number[]) {
         .filter((image): image is ExportedImage => image !== null),
     })),
   };
+}
+
+/** Wandelt ein Produkt inklusive Kategorien und Varianten in eine CSV-Zeile um. */
+function productForCsv(product: ProductRow): CsvProductInput {
+  return {
+    sku: product.sku ?? '',
+    slug: product.slug,
+    name: product.name,
+    categorySlugs: categoriesForProduct(product.id).map((category) => category.slug),
+    shortDescription: product.short_description,
+    description: product.description,
+    priceFromCents: product.price_from_cents,
+    priceToCents: product.price_to_cents,
+    material: product.material,
+    deliveryNote: product.delivery_note,
+    weightG: product.weight_g,
+    dimensions: product.dimensions ?? '',
+    stock: product.stock,
+    sortOrder: product.sort_order,
+    active: product.active === 1,
+    variants: variantsFor(product.id).map((variant) => ({
+      label: variant.label,
+      priceCents: variant.price_cents,
+      stock: variant.stock,
+      sortOrder: variant.sort_order,
+    })),
+    colorOptions: parseColorOptions(product.color_options),
+    personalizationEnabled: product.personalization_enabled === 1,
+    personalizationHint: product.personalization_hint,
+    shippingMethodIds: parseIdJson(product.shipping_method_ids),
+    shippingOptionIds: parseIdJson(product.shipping_option_ids),
+  };
+}
+
+/**
+ * legt neue Produkte an und aktualisiert vorhandene (SKU vor Slug).
+ * Leere Zellen übernehmen beim Aktualisieren die vorhandenen Werte.
+ */
+function importProductsCsv(rows: CsvProductRow[]): {
+  imported: number;
+  updated: number;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  let imported = 0;
+  let updated = 0;
+
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index]!;
+    const label = `Zeile ${index + 2}`;
+    try {
+      const sku = row.sku?.trim() ?? '';
+      const slug = row.slug?.trim() ?? '';
+      const bySku = sku
+        ? (db().prepare('SELECT * FROM products WHERE sku = ? ORDER BY id LIMIT 1').get(sku) as ProductRow | undefined)
+        : undefined;
+      const bySlug = slug
+        ? (db().prepare('SELECT * FROM products WHERE slug = ?').get(slug) as ProductRow | undefined)
+        : undefined;
+      if (bySku && bySlug && bySku.id !== bySlug.id) {
+        throw new Error('SKU und Slug treffen auf unterschiedliche Produkte zu.');
+      }
+      const existing = bySku ?? bySlug;
+      const name = (row.name ?? existing?.name ?? '').trim();
+      if (!name) throw new Error('Bitte einen Namen angeben.');
+      if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+        throw new Error(`Ungültiger Slug: ${slug}`);
+      }
+      if (slug && productExists(slug, existing?.id)) {
+        throw new Error(`Der Slug „${slug}“ wird bereits verwendet.`);
+      }
+
+      const variants = row.variants;
+      const priceFromCents = row.priceFromCents
+        ?? existing?.price_from_cents
+        ?? (variants && variants.length > 0 ? Math.min(...variants.map((variant) => variant.priceCents)) : 0);
+      if (!Number.isInteger(priceFromCents) || priceFromCents < 0 || priceFromCents > 100_000_000) {
+        throw new Error('Ungültiger Preis in „preisAb“.');
+      }
+      const priceToCents = row.priceToCents === undefined
+        ? existing?.price_to_cents ?? null
+        : row.priceToCents;
+      const categorySlugs = row.categorySlugs ?? [];
+      const categoryIds = categorySlugs
+        .map((categorySlug) => findCategoryBySlug(categorySlug)?.id)
+        .filter((id): id is number => typeof id === 'number');
+      for (const categorySlug of categorySlugs) {
+        if (!findCategoryBySlug(categorySlug)) {
+          errors.push(`${label}: Unbekannte Kategorie „${categorySlug}“ wurde übersprungen.`);
+        }
+      }
+      const shippingMethodIds = (row.shippingMethodIds ?? (existing ? parseIdJson(existing.shipping_method_ids) : []))
+        .filter((id) => /^[a-z0-9-]+$/.test(id))
+        .slice(0, 50);
+      const shippingOptionIds = (row.shippingOptionIds ?? (existing ? parseIdJson(existing.shipping_option_ids) : []))
+        .filter((id) => /^[a-z0-9-]+$/.test(id))
+        .slice(0, 50);
+      const maxSort = (db()
+        .prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM products')
+        .get() as { value: number }).value;
+      const values = {
+        slug: slug || existing?.slug || uniqueProductSlug(name, existing?.id),
+        name,
+        shortDescription: row.shortDescription ?? existing?.short_description ?? '',
+        description: row.description ?? existing?.description ?? '',
+        priceFromCents,
+        priceToCents,
+        sku: sku || existing?.sku || null,
+        weightG: row.weightG === undefined ? existing?.weight_g ?? null : row.weightG,
+        dimensions: row.dimensions ?? existing?.dimensions ?? '',
+        stock: row.stock === undefined ? existing?.stock ?? null : row.stock,
+        active: row.active ?? (existing ? existing.active === 1 : true),
+        sortOrder: row.sortOrder ?? existing?.sort_order ?? maxSort + 1,
+        shippingMethodIds: JSON.stringify(shippingMethodIds),
+        shippingOptionIds: JSON.stringify(shippingOptionIds),
+        colorOptions: row.colorOptions
+          ? parseColorOptions(row.colorOptions.join(', ')).join(', ')
+          : existing?.color_options ?? '',
+        personalizationEnabled: row.personalizationEnabled ?? (existing ? existing.personalization_enabled === 1 : false),
+        personalizationHint: row.personalizationHint ?? existing?.personalization_hint ?? '',
+        material: row.material || existing?.material || 'PLA',
+        deliveryNote: row.deliveryNote || existing?.delivery_note || 'Fertigung nach Bezahlung',
+      };
+
+      db().transaction(() => {
+        let id: number;
+        if (existing) {
+          db().prepare(
+            `UPDATE products SET
+               slug = ?, name = ?, short_description = ?, description = ?, price_from_cents = ?,
+               price_to_cents = ?, sku = ?, weight_g = ?, dimensions = ?, stock = ?, active = ?,
+               sort_order = ?, shipping_method_ids = ?, shipping_option_ids = ?, color_options = ?,
+               personalization_enabled = ?, personalization_hint = ?, material = ?, delivery_note = ?,
+               updated_at = datetime('now')
+             WHERE id = ?`,
+          ).run(
+            values.slug, values.name, values.shortDescription, values.description,
+            values.priceFromCents, values.priceToCents, values.sku, values.weightG,
+            values.dimensions, values.stock, values.active ? 1 : 0, values.sortOrder,
+            values.shippingMethodIds, values.shippingOptionIds, values.colorOptions,
+            values.personalizationEnabled ? 1 : 0, values.personalizationHint,
+            values.material, values.deliveryNote, existing.id,
+          );
+          id = existing.id;
+        } else {
+          const info = db().prepare(
+            `INSERT INTO products
+               (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
+                dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
+                personalization_enabled, personalization_hint, material, delivery_note)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ).run(
+            values.slug, values.name, values.shortDescription, values.description,
+            values.priceFromCents, values.priceToCents, values.sku, values.weightG,
+            values.dimensions, values.stock, values.active ? 1 : 0, values.sortOrder,
+            values.shippingMethodIds, values.shippingOptionIds, values.colorOptions,
+            values.personalizationEnabled ? 1 : 0, values.personalizationHint,
+            values.material, values.deliveryNote,
+          );
+          id = Number(info.lastInsertRowid);
+        }
+
+        if (variants !== undefined) {
+          db().prepare('DELETE FROM product_variants WHERE product_id = ?').run(id);
+          const insert = db().prepare(
+            'INSERT INTO product_variants (product_id, label, price_cents, stock, sort_order) VALUES (?, ?, ?, ?, ?)',
+          );
+          variants.forEach((variant, variantIndex) => {
+            insert.run(
+              id,
+              variant.label || 'Standard',
+              variant.priceCents,
+              variant.stock,
+              variant.sortOrder || variantIndex + 1,
+            );
+          });
+        }
+        if (row.categorySlugs !== undefined) saveProductCategories(id, categoryIds);
+        return id;
+      })();
+
+      if (existing) updated += 1;
+      else imported += 1;
+    } catch (error) {
+      errors.push(`${label}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  return { imported, updated, errors };
 }
 
 const importImageSchema = z.object({
@@ -3218,6 +3414,82 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         ? `&fehler=${encodeURIComponent(result.errors[0] ?? 'Ein Produkt konnte nicht vollständig importiert werden.')}`
         : '';
       return reply.redirect(`/admin/produkte/?gespeichert=1&importiert=${result.imported}${warning}`, 303);
+    });
+
+    // CSV-Import / -Export ------------------------------------------------
+    scope.get('/admin/produkte/csv/export/', async (_request, reply) => {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const products = (db()
+        .prepare('SELECT * FROM products ORDER BY sort_order, id')
+        .all() as ProductRow[]).map(productForCsv);
+      return reply
+        .type('text/csv; charset=utf-8')
+        .header('Content-Disposition', `attachment; filename="3d-mir-produkte-${stamp}.csv"`)
+        .send(productCsv(products));
+    });
+
+    scope.get<{ Params: { id: string } }>('/admin/produkte/:id/csv/export/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+      const stamp = new Date().toISOString().slice(0, 10);
+      return reply
+        .type('text/csv; charset=utf-8')
+        .header('Content-Disposition', `attachment; filename="3d-mir-${product.slug}-${stamp}.csv"`)
+        .send(productCsv([productForCsv(product)]));
+    });
+
+    scope.get('/admin/produkte/csv/import/', async (request, reply) => {
+      render(reply, 'admin/csv-import.njk', adminContext(request, {}));
+    });
+
+    scope.post('/admin/produkte/csv/import/', async (request, reply) => {
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+
+      let upload;
+      try {
+        upload = await readImportUpload(request);
+      } catch (error) {
+        request.log.warn({ err: error }, 'CSV-Datei konnte nicht gelesen werden');
+        return reply.redirect(
+          `/admin/produkte/csv/import/?fehler=${encodeURIComponent('Die Datei ist zu groß oder konnte nicht gelesen werden (maximal 20 MB).')}`,
+          303,
+        );
+      }
+      if (!verifyCsrfToken(session, upload.fields._csrf)) {
+        return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte laden Sie die Seite neu.');
+      }
+      if (!upload.file) {
+        return reply.redirect(
+          `/admin/produkte/csv/import/?fehler=${encodeURIComponent('Bitte wählen Sie eine CSV-Datei aus.')}`,
+          303,
+        );
+      }
+
+      const parsed = parseProductCsv(upload.file.buffer.toString('utf8'));
+      if (parsed.rows.length === 0) {
+        const message = parsed.errors[0] ?? 'Die CSV-Datei enthält keine Produkte.';
+        return reply.redirect(`/admin/produkte/csv/import/?fehler=${encodeURIComponent(message)}`, 303);
+      }
+
+      const result = importProductsCsv(parsed.rows);
+      const warnings = [...parsed.errors, ...result.errors];
+      writeAudit(request.admin?.email ?? 'admin', 'product.csv.import', {
+        file: upload.file.filename,
+        imported: result.imported,
+        updated: result.updated,
+        errors: warnings.length,
+      });
+      const total = result.imported + result.updated;
+      if (total === 0) {
+        const message = warnings[0] ?? 'Es wurden keine Produkte importiert.';
+        return reply.redirect(`/admin/produkte/csv/import/?fehler=${encodeURIComponent(message)}`, 303);
+      }
+      const warning = warnings.length > 0
+        ? `&fehler=${encodeURIComponent(warnings[0]!)}`
+        : '';
+      return reply.redirect(`/admin/produkte/?gespeichert=1&importiert=${total}${warning}`, 303);
     });
 
     // Löschen / Kopieren / Massenlöschung --------------------------------

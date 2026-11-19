@@ -425,6 +425,14 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.46 – 19. November 2026
+
+Produkte lassen sich zusätzlich zum JSON-Format als CSV exportieren und
+importieren. Der CSV-Import aktualisiert vorhandene SKUs und legt neue Produkte
+an; Varianten, Farben, Kategorien und Versandzuordnungen werden mitgenommen.
+Die CSV ist Excel-freundlich (UTF-8 mit BOM, Semikolon) und gegen
+Formel-Einschleusung abgesichert.
+
 ## Release 1.0.0-rc.45 – 19. November 2026
 
 Serverseitige Besucherstatistik ergänzt: Auswertung von Aufrufen, Ländern und

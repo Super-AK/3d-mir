@@ -211,6 +211,10 @@
 }
 /* Tabellen in den Karten dürfen die Spalte nicht breiter machen als den Viewport. */
 .admin-grid-2 > * { min-width: 0; }
+/* Lange CSV-Beispielzeilen dürfen auf kleinen Bildschirmen umbrechen. */
+.admin-panel .check-list li { min-width: 0; overflow-wrap: anywhere; }
+.admin-panel .check-list code,
+.admin-panel .hint code { overflow-wrap: anywhere; }
 .admin-grid-wide { grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.8fr); }
 .admin-panel { margin-bottom: 1.25rem; }
 .admin-panel:last-child { margin-bottom: 0; }

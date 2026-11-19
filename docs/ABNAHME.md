@@ -1,6 +1,6 @@
 # Abnahme
 
-Stand: 13. November 2026 · Version 1.0.0-rc.45
+Stand: 13. November 2026 · Version 1.0.0-rc.46
 
 Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage für die Abnahme durch den Auftraggeber. Sie ersetzt keine rechtliche Prüfung der Texte und keine Freigabe der Preise.
 
@@ -50,6 +50,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 | Keine externen CDNs, Fonts, Tracker | ✅ | Schriften und Skripte lokal; CSP ohne externe Quellen |
 | Nur technisch notwendige Cookies | ✅ | Warenkorb und Admin-Sitzung; Reichweitenmessung cookie-frei |
 | Besucherstatistik im Admin | ✅ | Aufrufe, Länder, Tag/Woche/Monat; Dashboard-Zusammenfassung; 12 Monate Aufbewahrung |
+| Produkte als CSV importieren/exportieren | ✅ | Zusätzlich zum JSON-Format; SKU-Update, Varianten/Farben/Kategorien; E2E geprüft |
 | Rechtstexte unverändert übernommen, Prüfhinweis | ✅ | redaktionelle Prüfung durch Auftraggeber offen |
 | Preise und Kalkulation bestätigt | ✅ | F1–F8, F66 (14.11.2026) |
 | Versand bestätigt | ✅ | F14–F20 (14.11.2026) |
@@ -76,7 +77,7 @@ Diese Checkliste fasst den technischen Stand zusammen und dient als Grundlage f�
 
 ## Abnahmeerklärung
 
-Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.45 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
+Hiermit wird die technische Umsetzung gemäß den vereinbarten Phasen 1–8 in Version 1.0.0-rc.46 abgenommen. Offene Punkte bleiben bis zur Klärung ausdrücklich zurückgestellt.
 
 | | Auftraggeber | Auftragnehmer |
 | --- | --- | --- |

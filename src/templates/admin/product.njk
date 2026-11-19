@@ -14,6 +14,8 @@
     </div>
     {% if not isNew %}
       <div class="admin-page-actions">
+        <a class="btn btn-secondary btn-small" href="/admin/produkte/{{ product.id }}/export/">JSON</a>
+        <a class="btn btn-secondary btn-small" href="/admin/produkte/{{ product.id }}/csv/export/">CSV</a>
         <a class="btn btn-secondary btn-small" href="/shop/{{ product.slug }}/" target="_blank" rel="noopener">Im Shop ansehen</a>
       </div>
     {% endif %}

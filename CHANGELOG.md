@@ -3,6 +3,25 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.46] – 2026-11-19
+
+### Hinzugefügt
+
+- **CSV-Export und -Import für Produkte** unter **Produkte → CSV-Export/CSV-Import**
+  als zweiter Weg neben dem JSON-Format. Die Datei enthält Stammdaten,
+  Kategorien, Varianten, Farben und Versandzuordnungen; Bilder bleiben beim
+  JSON-Export.
+- Die CSV ist eine UTF-8-Semikolon-Datei mit BOM für Excel. Listenwerte stehen
+  in einer Zelle (`|`, Varianten `||`); deutsche und englische Spaltennamen
+  werden erkannt.
+- Beim Import ist die SKU der Schlüssel: vorhandene SKUs werden aktualisiert,
+  neue angelegt. Leere Zellen übernehmen die bisherigen Werte; eine
+  angegebene Variantenliste ersetzt die vorhandenen Varianten.
+- Einzel-Export einer Produktzeile als CSV, CSRF-Prüfung und Audit-Eintrag
+  `product.csv.import`.
+- Unit-Tests für Parser/Schreiber und E2E-Prüfung von Export, Anlegen,
+  Aktualisieren und Löschen des Testprodukts.
+
 ## [1.0.0-rc.45] – 2026-11-19
 
 ### Hinzugefügt

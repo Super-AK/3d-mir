@@ -379,8 +379,14 @@ Die Produktliste lässt sich nach **Name**, **SKU** und **Slug** durchsuchen. Di
 - **Kopieren:** Legt eine vollständige Kopie inklusive Material, Lieferhinweis, Varianten, Farben, Personalisierung und Bildern an. Name erhält „(Kopie)“, der Slug ein eindeutiges Suffix; die Kopie ist zunächst **inaktiv**.
 - **Exportieren:** „Exportieren“ lädt alle Produkte als JSON herunter; pro Zeile gibt es zusätzlich einen Einzel-Export. Enthalten sind Produktdaten inklusive Material, Lieferhinweis, Varianten, Farben, Personalisierung und Bilder (hochgeladene Bilder als Base64-JPG).
 - **Importieren:** JSON-Datei über „Importieren“ hochladen (max. 20 MB). Produkte werden neu angelegt, vorhandene Slugs automatisch durchnummeriert (`-2`, `-3`, …). Bilder werden beim Import erneut in AVIF/WebP/JPG umgewandelt. Der Import überschreibt keine bestehenden Produkte.
+- **CSV-Export:** „CSV-Export“ lädt alle Produkte als Semikolon-CSV (UTF-8 mit BOM) herunter; auf der Produktseite und in der Produktliste gibt es auch einen Einzel-Export. Enthalten sind Stammdaten, Kategorien, Varianten, Farben und Versandzuordnungen – keine Bilder.
+- **CSV-Import:** CSV-Datei über „CSV-Import“ hochladen (max. 20 MB, 500 Zeilen). Die SKU ist der Schlüssel: gleiche SKUs werden aktualisiert, neue angelegt; ohne SKU gilt der Slug. Leere Zellen übernehmen beim Aktualisieren die bisherigen Werte. Eine angegebene Variantenliste ersetzt die vorhandenen Varianten.
 
 Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `products` mit Produkt-, Varianten- und Bilddaten. Ein Export kann unverändert wieder importiert werden (erzeugt dann Kopien mit neuen Slugs).
+
+Die CSV hat die Spalten `sku`, `slug`, `name`, `kategorien`, `kurzbeschreibung`, `beschreibung`, `preisAb`, `preisBis`, `material`, `lieferhinweis`, `gewichtG`, `abmessungen`, `lagerbestand`, `sortierung`, `aktiv`, `varianten`, `farben`, `personalisierung`, `personalisierungshinweis`, `versandarten`, `versandoptionen`. Die Reihenfolge ist frei; deutsche und englische Spaltennamen werden erkannt. Listen stehen in einer Zelle und werden mit `|` getrennt, mehrere Varianten mit `||` (z. B. `Klein|12,90|5||Groß|19,90|2`). Preise sind Euro-Werte mit Komma oder Punkt, `aktiv` und `personalisierung` sind `1`/`0`. Unbekannte Kategorien werden übersprungen und gemeldet. Bilder bleiben beim JSON-Import bzw. werden direkt auf der Produktseite hochgeladen.
+
+Für den CSV-Import gilt dieselbe CSRF-Prüfung wie für alle Admin-Formulare; der Import wird im Audit-Protokoll als `product.csv.import` erfasst. Bei teilweise fehlerhaften Dateien werden die betroffenen Zeilen gemeldet, gültige Zeilen aber trotzdem verarbeitet.
 
 ### Produkte aus Etsy übernehmen
 
