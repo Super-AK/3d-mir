@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
+import { clearVisitorStats } from './visitor-stats.js';
 
 /**
  * Zusammenfassung der Daten, die vor dem Livegang zurückgesetzt werden können.
@@ -16,6 +17,7 @@ export interface TestDataSummary {
   quoteFiles: number;
   messages: number;
   blocks: number;
+  visitors: number;
 }
 
 export interface TestDataResetResult {
@@ -26,6 +28,7 @@ export interface TestDataResetResult {
   quoteFiles: number;
   messages: number;
   blocks: number;
+  visitors: number;
 }
 
 /** Liest die Anzahl der Testdatensätze und den erfassten Umsatz. */
@@ -52,6 +55,9 @@ export function getTestDataSummary(): TestDataSummary {
     ),
     messages: count('SELECT COUNT(*) AS count FROM contact_messages'),
     blocks: count('SELECT COUNT(*) AS count FROM contact_blocks'),
+    visitors:
+      count('SELECT COUNT(*) AS count FROM visitor_stats') +
+      count('SELECT COUNT(*) AS count FROM visitor_pages'),
   };
 }
 
@@ -84,8 +90,8 @@ function quoteFiles(): string[] {
 /**
  * Löscht Bestellungen samt Positionen, Zahlungen und Verlauf, Zahlungsereignisse,
  * Angebotsanfragen samt Modelldateien sowie Kontaktnachrichten und
- * Spam-Beobachtungen. Der Vorgang läuft in einer Transaktion; Dateien werden
- * anschließend entfernt.
+ * Spam-Beobachtungen sowie Besucherstatistiken. Der Vorgang läuft in einer
+ * Transaktion; Dateien werden anschließend entfernt.
  */
 export function resetTestData(): TestDataResetResult {
   const db = getDb();
@@ -98,6 +104,7 @@ export function resetTestData(): TestDataResetResult {
     db.prepare('DELETE FROM quote_requests').run();
     db.prepare('DELETE FROM contact_messages').run();
     db.prepare('DELETE FROM contact_blocks').run();
+    clearVisitorStats();
   })();
 
   let removedFiles = 0;
@@ -120,5 +127,6 @@ export function resetTestData(): TestDataResetResult {
     quoteFiles: removedFiles,
     messages: summary.messages,
     blocks: summary.blocks,
+    visitors: summary.visitors,
   };
 }

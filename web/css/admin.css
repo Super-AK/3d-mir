@@ -157,6 +157,51 @@
 .admin-stat-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
 .admin-stat-note { margin-top: 0.25rem; font-size: 0.78rem; color: var(--text-muted); }
 
+/* Besucherstatistik: Balken ohne externe Bibliothek, rein mit CSS. */
+.admin-visitor-panel { margin-bottom: 1.25rem; }
+.admin-visitor-bars { display: grid; gap: 0.55rem; }
+.admin-visitor-bar {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) 11rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+}
+.admin-visitor-bar-track {
+  display: block;
+  height: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.admin-visitor-bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: inherit;
+  background: var(--accent);
+}
+.admin-visitor-bar-value { text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.admin-visitor-countries { margin: 0.9rem 0 0; font-size: 0.82rem; color: var(--text-muted); }
+.admin-mini-track {
+  display: inline-block;
+  width: 4.5rem;
+  height: 0.45rem;
+  vertical-align: middle;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.admin-mini-fill { display: block; height: 100%; min-width: 2px; border-radius: inherit; background: var(--accent); }
+.admin-visitor-path { max-width: 16rem; overflow-wrap: anywhere; font-size: 0.82rem; }
+
+@media (max-width: 760px) {
+  .admin-visitor-bar { grid-template-columns: 4rem minmax(0, 1fr) 7rem; gap: 0.4rem; font-size: 0.76rem; }
+  .admin-visitor-bar-value { overflow-wrap: anywhere; }
+  .admin-visitor-path { max-width: none; }
+}
+
 .admin-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -164,6 +209,8 @@
   margin-bottom: 1.25rem;
   align-items: start;
 }
+/* Tabellen in den Karten dürfen die Spalte nicht breiter machen als den Viewport. */
+.admin-grid-2 > * { min-width: 0; }
 .admin-grid-wide { grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.8fr); }
 .admin-panel { margin-bottom: 1.25rem; }
 .admin-panel:last-child { margin-bottom: 0; }
@@ -343,7 +390,7 @@
   .admin-shell { width: min(100% - 1.5rem, 1400px); }
   .admin-header-inner { width: min(100% - 1.5rem, 1400px); }
   .admin-main { padding-top: 0; }
-  .admin-grid-2 { grid-template-columns: 1fr; }
+  .admin-grid-2 { grid-template-columns: minmax(0, 1fr); }
   .admin-stats { grid-template-columns: 1fr; }
   .admin-dl div { grid-template-columns: 1fr; gap: 0.15rem; }
   .admin-message-actions { width: 100%; }

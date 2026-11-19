@@ -6,7 +6,7 @@
   <div class="admin-page-head">
     <div>
       <h1>Dashboard</h1>
-      <p>Überblick über Bestellungen, Anfragen und Nachrichten.</p>
+      <p>Überblick über Bestellungen, Anfragen, Nachrichten und Besucher.</p>
     </div>
     <div class="admin-page-actions">
       <a class="btn btn-small" href="/admin/bestellungen/">Bestellungen</a>
@@ -35,12 +35,46 @@
       <strong>{{ openMessages }}</strong>
       <span class="admin-stat-note">Kontaktformular</span>
     </a>
+    <a class="admin-stat card card-hover" href="/admin/besucherstatistik/">
+      <span class="admin-stat-label">Aufrufe heute</span>
+      <strong>{{ visitorStats.todayViews }}</strong>
+      <span class="admin-stat-note">{{ visitorStats.weekViews }} Aufrufe in 7 Tagen</span>
+    </a>
+    <a class="admin-stat card card-hover" href="/admin/besucherstatistik/">
+      <span class="admin-stat-label">Besucher heute</span>
+      <strong>{{ visitorStats.todayVisitors }}</strong>
+      <span class="admin-stat-note">täglich eindeutig, ohne Cookies</span>
+    </a>
     <div class="admin-stat card">
       <span class="admin-stat-label">Erfasster Umsatz</span>
       <strong>{{ revenue | price }}</strong>
       <span class="admin-stat-note">Bezahlte, gedruckte, versandte und abgeschlossene Bestellungen</span>
     </div>
   </div>
+
+  <section class="card admin-panel admin-visitor-panel">
+    <div class="admin-panel-head">
+      <h2>Besucher der letzten 7 Tage</h2>
+      <a href="/admin/besucherstatistik/">Auswertung öffnen</a>
+    </div>
+    {% if visitorStats.hasData %}
+      <p class="text-muted">{{ visitorStats.weekViews }} Aufrufe · {{ visitorStats.weekVisitors }} Besucher (täglich eindeutig) · heute {{ visitorStats.todayViews }} Aufrufe</p>
+      <div class="admin-visitor-bars">
+        {% for item in visitorStats.series %}
+          <div class="admin-visitor-bar">
+            <span>{{ item.label }}</span>
+            <span class="admin-visitor-bar-track"><span class="admin-visitor-bar-fill" style="width: {{ item.percent }}%"></span></span>
+            <span class="admin-visitor-bar-value">{{ item.views }} Aufrufe</span>
+          </div>
+        {% endfor %}
+      </div>
+      {% if visitorStats.countries.length > 0 %}
+        <p class="admin-visitor-countries">Häufigste Länder: {% for country in visitorStats.countries %}{{ country.name }} ({{ country.views }}){% if not loop.last %} · {% endif %}{% endfor %}</p>
+      {% endif %}
+    {% else %}
+      <p class="text-muted">Noch keine Besucherdaten vorhanden. Gezählt wird ab dem ersten Aufruf.</p>
+    {% endif %}
+  </section>
 
   <section class="card admin-panel admin-monitor-panel">
     <div class="admin-panel-head">

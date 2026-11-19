@@ -2,7 +2,7 @@
 
 Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, Sofort-Preisrechner mit 3D-Vorschau, kleiner Shop und Admin-Bereich.
 
-> **Version:** 1.0.0-rc.44 · **Status:** Release-Kandidat; alle geplanten Funktionen umgesetzt, Abnahme und Livegang offen. Preise, Kalkulation und Versand sind bestätigt; Rechtstexte sind anwaltlich geprüft. Offen sind Stripe-Live, externes Backup-Ziel und der Shop-Livegang – siehe `docs/OFFENE-FRAGEN.md`.
+> **Version:** 1.0.0-rc.45 · **Status:** Release-Kandidat; alle geplanten Funktionen umgesetzt, Abnahme und Livegang offen. Preise, Kalkulation und Versand sind bestätigt; Rechtstexte sind anwaltlich geprüft. Offen sind Stripe-Live, externes Backup-Ziel und der Shop-Livegang – siehe `docs/OFFENE-FRAGEN.md`.
 
 Änderungen und Versionshistorie: [`CHANGELOG.md`](CHANGELOG.md).
 
@@ -20,7 +20,7 @@ Neue Webseite für **3D-MIR, 3D-Druck Service** (Schömberg): Leistungsseite, So
 | Benachrichtigungen | E-Mail (SMTP) und Telegram, Kanal im Admin wählbar |
 | Tests | Vitest (Unit), Playwright (E2E) |
 
-**Grundsätze:** keine externen CDNs, keine Google Fonts, kein Tracking, keine Social-Media-Einbettungen. Schriften und Skripte werden lokal ausgeliefert. Es werden nur technisch notwendige Cookies gesetzt (Session/Warenkorb).
+**Grundsätze:** keine externen CDNs, keine Google Fonts, keine externen Tracker und keine Social-Media-Einbettungen. Schriften und Skripte werden lokal ausgeliefert. Es werden nur technisch notwendige Cookies gesetzt (Session/Warenkorb). Die Reichweitenmessung läuft serverseitig ohne Cookies und ohne Speicherung vollständiger IP-Adressen.
 
 ## Verzeichnisse
 

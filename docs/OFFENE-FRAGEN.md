@@ -192,6 +192,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F83 | ✅ Erledigt | **Bestätigt:** Die gesetzlichen Aufbewahrungsfristen (in der Regel 6 bzw. 10 Jahre) wurden vom Steuerberater bestätigt.<br>*(15.11.2026)* |
 | F84 | ✅ Erledigt | **Erledigt:** Der WordPress-Altbestand wurde entfernt und der Mischbetrieb beendet; die neuen Routen werden vollständig von der Anwendung ausgeliefert.<br>*(15.11.2026)* |
 | F85 | 🟡 In Arbeit | **Neue Spam-Abwehr:** Die Datenschutzerklärung wurde um die Speicherung einer gekürzten IP-Adresse, einer nicht rückführbaren Prüfsumme und der Browserkennung ergänzt (Nachricht bis 24 Monate, reine Beobachtungen 30 Tage). Bitte bei der nächsten rechtlichen Prüfung bestätigen. |
+| F86 | 🟡 Offen | **Besucherstatistik:** Die neue Auswertung im Admin zählt Aufrufe cookie-frei über einen täglich wechselnden, nicht rückführbaren HMAC aus gekürzter IP (IPv4 /24, IPv6 /48) und Datum. Die Datenschutzerklärung wurde entsprechend ergänzt (Abschnitt 7a, Aufbewahrung 12 Monate). Bitte bei der nächsten rechtlichen Prüfung bestätigen – insbesondere die Annahme, dass die täglichen Zähler ohne Einwilligung nach Art. 6 Abs. 1 lit. f DSGVO zulässig sind. |
 
 ## 13. Nächste Schritte bis zum Livegang
 

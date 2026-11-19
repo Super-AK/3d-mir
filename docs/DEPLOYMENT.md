@@ -164,7 +164,7 @@ Vorgehen auf dem Produktivserver:
    curl -I https://www.3d-mir.de/wp-content/    # muss 404 sein
    curl -I https://www.3d-mir.de/shop/          # muss 200 vom Node-Dienst sein
    ```
-4. Cookie-Banner, Tracking- und Marketing-Plugins entfallen mit WordPress. Die neue Seite setzt nur technisch notwendige Cookies (`warenkorb`, `mir3d_admin`, `mir3d_admin_pending`) und benötigt keinen Consent-Banner.
+4. Cookie-Banner und Marketing-Plugins entfallen mit WordPress. Die neue Seite setzt nur technisch notwendige Cookies (`warenkorb`, `mir3d_admin`, `mir3d_admin_pending`) und benötigt keinen Consent-Banner. Reichweitenstatistiken werden serverseitig ohne Cookies und ohne vollständige IP-Adressen erhoben.
 5. `sudo deploy/verify.sh` prüft die Weiterleitungen und dass `/wp-content/...` nicht mehr ausgeliefert wird.
 
 **Wichtig:** WordPress-Datenbank und Uploads erst löschen, wenn das Backup geprüft ist und keine alten Inhalte mehr benötigt werden.
@@ -285,16 +285,17 @@ Der Timer `3d-mir-cleanup.timer` läuft täglich um 03:30 Uhr:
 - **Modelldateien** aus Angebotsanfragen werden nach **90 Tagen** gelöscht.
 - **Angebotsanfragen** und **Kontaktnachrichten** werden nach **24 Monaten** gelöscht.
 - **Spam-Beobachtungen und abgelaufene Absender-Sperren** werden nach **30 Tagen** ohne Aktivität entfernt.
+- **Besucherstatistiken** (pseudonyme Zähler) werden nach **12 Monaten** gelöscht.
 - Verwaiste Dateien im Upload-Verzeichnis werden mit aufgeräumt.
 
-Die Fristen entsprechen der Datenschutzerklärung („Modell-Uploads bis zu 90 Tage“, „Kontaktanfragen bis zu 24 Monate“). Steuerlich relevante Bestelldaten sind davon nicht betroffen; diese liegen in der Bestelltabelle.
+Die Fristen entsprechen der Datenschutzerklärung („Modell-Uploads bis zu 90 Tage“, „Kontaktanfragen bis zu 24 Monate“, „Besucherstatistik 12 Monate“). Steuerlich relevante Bestelldaten sind davon nicht betroffen; diese liegen in der Bestelltabelle.
 
 ```bash
 systemctl status 3d-mir-cleanup.timer
 systemctl list-timers '3d-mir-*'
 journalctl -u 3d-mir-cleanup.service -n 50 --no-pager
 npm run uploads:cleanup -- --dry-run
-npm run uploads:cleanup -- --days 90 --inquiry-months 24
+npm run uploads:cleanup -- --days 90 --inquiry-months 24 --visitor-months 12
 ```
 
 ## Backup

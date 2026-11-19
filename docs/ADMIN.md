@@ -12,7 +12,7 @@ Das Passwort wird interaktiv gesetzt oder einmalig über `ADMIN_PASSWORD` überg
 
 Die Verwaltung nutzt eine feste Seitenleiste, die nach Aufgaben gruppiert ist:
 
-- **Übersicht:** Dashboard
+- **Übersicht:** Dashboard, Besucherstatistik
 - **Verkauf:** Bestellungen, Anfragen, Nachrichten
 - **Katalog:** Produkte, Kategorien, Preise
 - **Website:** Stammdaten, Rechtstexte, Veröffentlichung
@@ -29,6 +29,14 @@ In den Listen unter **Produkte**, **Kategorien** und **Nachrichten** stehen die 
 - Rote Symbole kennzeichnen löschende oder ablehnende Aktionen wie Löschen oder Spam.
 
 Die Symbole tragen zusätzlich einen unsichtbaren Beschreibungstext für Screenreader.
+
+## Besucherstatistik
+
+Unter **Admin → Besucherstatistik** werden Aufrufe, Herkunftsländer und die häufigsten Pfade ausgewertet. Zeitraum (7/30/90 Tage oder 12 Monate) und Zusammenfassung (täglich, wöchentlich oder monatlich) lassen sich über zwei Auswahlfelder ändern; die Seite lädt sofort neu. Das Dashboard zeigt zusätzlich eine kompakte Zusammenfassung der letzten sieben Tage.
+
+Gezählt werden alle Anfragen, die die Anwendung erreichen, einschließlich API- und Admin-Aufrufen. Der Health-Check des Monitorings ist ausgenommen, statische Dateien werden von NGINX direkt ausgeliefert. Pfade werden ohne Query-Parameter und ohne numerische Segmente gespeichert.
+
+Für eindeutige Besucher wird ein täglich wechselnder HMAC aus gekürzter IP-Adresse (IPv4 /24, IPv6 /48) und Datum gebildet. Es werden keine Cookies, keine vollständigen IP-Adressen und keine Browserkennungen gespeichert. Ein Besucher zählt an jedem Tag neu. Die pseudonymen Zähler werden nach 12 Monaten automatisch gelöscht (siehe `docs/DEPLOYMENT.md`).
 
 ## Stammdaten
 
@@ -120,6 +128,7 @@ Unter **Admin → Testdaten** lassen sich die Daten aus der Testphase vor dem Li
 | Anfragen | Angebotsanfragen mit Statusverlauf und hochgeladenen Modelldateien |
 | Nachrichten | Kontaktnachrichten |
 | Spam-Schutz | Beobachtete Absender und aktive Sperren |
+| Besucherstatistik | Pseudonyme Aufruf- und Pfad-Zähler |
 
 Damit werden auch der erfasste Umsatz und die Listen „Letzte Bestellungen“, „Letzte Anfragen“ und „Letzte Nachrichten“ im Dashboard zurückgesetzt, weil diese Werte aus den Bestell- und Anfragedaten berechnet werden.
 

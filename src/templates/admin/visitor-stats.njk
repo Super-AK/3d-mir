@@ -1,0 +1,134 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Besucherstatistik – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Besucherstatistik</h1>
+      <p>Aufrufe, Herkunftsländer und Entwicklung pro Tag, Woche oder Monat – ohne Cookies und ohne gespeicherte IP-Adressen.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-secondary btn-small" href="/admin/">Zum Dashboard</a>
+    </div>
+  </div>
+
+  <form class="admin-filter card" method="get" action="/admin/besucherstatistik/">
+    <div class="field">
+      <label for="zeitraum">Zeitraum</label>
+      <select id="zeitraum" name="zeitraum" data-auto-submit>
+        {% for period in periods %}<option value="{{ period.days }}" {% if days == period.days %}selected{% endif %}>{{ period.label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="gruppe">Zusammenfassung</label>
+      <select id="gruppe" name="gruppe" data-auto-submit>
+        {% for item in groups %}<option value="{{ item.id }}" {% if group == item.id %}selected{% endif %}>{{ item.label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="admin-filter-actions">
+      <button class="btn btn-small" type="submit" data-filter-submit>Auswerten</button>
+      <a class="btn btn-secondary btn-small" href="/admin/besucherstatistik/">Zurücksetzen</a>
+    </div>
+  </form>
+
+  <div class="admin-stats">
+    <div class="admin-stat card">
+      <span class="admin-stat-label">Aufrufe</span>
+      <strong>{{ stats.views }}</strong>
+      <span class="admin-stat-note">{{ stats.from | date }} bis {{ stats.to | date }}</span>
+    </div>
+    <div class="admin-stat card">
+      <span class="admin-stat-label">Besucher</span>
+      <strong>{{ stats.visitors }}</strong>
+      <span class="admin-stat-note">Summe der täglich eindeutigen Besucher</span>
+    </div>
+    <div class="admin-stat card">
+      <span class="admin-stat-label">Länder</span>
+      <strong>{{ stats.countryCount }}</strong>
+      <span class="admin-stat-note">nach lokaler GeoIP-Datenbank</span>
+    </div>
+    <div class="admin-stat card">
+      <span class="admin-stat-label">Ø Aufrufe pro Tag</span>
+      <strong>{{ stats.avgViews | number(1) }}</strong>
+      <span class="admin-stat-note">{{ stats.avgVisitors | number(1) }} Besucher pro Tag</span>
+    </div>
+  </div>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head">
+      <h2>Aufrufe im Zeitverlauf</h2>
+      <span class="badge badge-neutral">{{ stats.buckets.length }} Zeiträume</span>
+    </div>
+    {% if stats.hasData %}
+      <div class="admin-visitor-bars">
+        {% for bucket in stats.buckets %}
+          <div class="admin-visitor-bar">
+            <span>{{ bucket.label }}</span>
+            <span class="admin-visitor-bar-track"><span class="admin-visitor-bar-fill" style="width: {{ bucket.percent }}%"></span></span>
+            <span class="admin-visitor-bar-value">{{ bucket.views }} Aufrufe · {{ bucket.visitors }} Besucher</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">Für diesen Zeitraum liegen noch keine Besucherdaten vor.</p>
+    {% endif %}
+  </section>
+
+  <div class="admin-grid-2">
+    <section class="card admin-panel">
+      <div class="admin-panel-head">
+        <h2>Herkunftsländer</h2>
+      </div>
+      {% if stats.countries.length > 0 %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Land</th><th>Aufrufe</th><th>Besucher</th><th>Anteil</th></tr></thead>
+            <tbody>
+              {% for country in stats.countries %}
+                <tr>
+                  <td>{{ country.name }}{% if country.code %} <small class="text-muted">{{ country.code }}</small>{% endif %}</td>
+                  <td>{{ country.views }}</td>
+                  <td>{{ country.visitors }}</td>
+                  <td><span class="admin-mini-track"><span class="admin-mini-fill" style="width: {{ country.percent }}%"></span></span> <span class="text-muted">{{ country.percent }} %</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Keine Länderdaten vorhanden.</p>
+      {% endif %}
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head">
+        <h2>Häufigste Pfade</h2>
+      </div>
+      {% if stats.pages.length > 0 %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pfad</th><th>Aufrufe</th><th>Anteil</th></tr></thead>
+            <tbody>
+              {% for page in stats.pages %}
+                <tr>
+                  <td class="admin-visitor-path">{{ page.path }}</td>
+                  <td>{{ page.views }}</td>
+                  <td><span class="admin-mini-track"><span class="admin-mini-fill" style="width: {{ page.percent }}%"></span></span> <span class="text-muted">{{ page.percent }} %</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Keine Pfaddaten vorhanden.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="card admin-panel">
+    <h2>Hinweis zur Zählung</h2>
+    <p class="text-muted">Gezählt werden alle Anfragen, die die Anwendung erreichen – einschließlich API- und Admin-Aufrufe. Der Health-Check des Monitorings sowie statische Dateien, die NGINX direkt ausliefert, zählen nicht mit. Parameter in der URL und numerische Segmente werden nicht als eigene Pfade gespeichert.</p>
+    <p class="text-muted">Für eindeutige Besucher wird ein täglich wechselnder, nicht rückführbarer Hash aus einer gekürzten IP-Adresse gebildet. Es werden keine Cookies gesetzt, keine vollständigen IP-Adressen und keine Browserkennungen gespeichert. Ein Besucher, der an mehreren Tagen kommt, zählt an jedem Tag erneut. Die Statistikdaten werden nach 12 Monaten automatisch gelöscht.</p>
+  </section>
+{% endblock %}

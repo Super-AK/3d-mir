@@ -3,6 +3,7 @@ import path from 'node:path';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { writeAudit } from '../lib/auth.js';
+import { pruneVisitorStats } from '../lib/visitor-stats.js';
 
 /**
  * Löscht hochgeladene Modelldateien aus Angebotsanfragen nach der
@@ -11,11 +12,14 @@ import { writeAudit } from '../lib/auth.js';
  * Modelldateien werden nach 90 Tagen entfernt. Angebotsanfragen und
  * Kontaktnachrichten werden nach 24 Monaten gelöscht. Spam-Beobachtungen und
  * abgelaufene Absender-Sperren werden nach 30 Tagen ohne Aktivität entfernt.
- * Zusätzlich werden verwaiste Dateien im Quotes-Upload-Verzeichnis aufgeräumt.
+ * Besucherstatistiken werden nach 12 Monaten gelöscht. Zusätzlich werden
+ * verwaiste Dateien im Quotes-Upload-Verzeichnis aufgeräumt.
  *
  * Aufruf:
  *   npm run uploads:cleanup
  *   npm run uploads:cleanup -- --days 90
+ *   npm run uploads:cleanup -- --inquiry-months 24
+ *   npm run uploads:cleanup -- --visitor-months 12
  *   npm run uploads:cleanup -- --dry-run
  */
 
@@ -25,6 +29,11 @@ const days =
 const monthsArg = process.argv.indexOf('--inquiry-months');
 const inquiryMonths =
   monthsArg >= 0 ? Math.max(1, Math.trunc(Number(process.argv[monthsArg + 1]))) : 24;
+const visitorMonthsArg = process.argv.indexOf('--visitor-months');
+const visitorMonths =
+  visitorMonthsArg >= 0
+    ? Math.max(1, Math.trunc(Number(process.argv[visitorMonthsArg + 1])))
+    : 12;
 const dryRun = process.argv.includes('--dry-run');
 
 if (!Number.isFinite(days) || days < 1) {
@@ -33,6 +42,10 @@ if (!Number.isFinite(days) || days < 1) {
 }
 if (!Number.isFinite(inquiryMonths) || inquiryMonths < 1) {
   console.error('Ungültiger Wert für --inquiry-months.');
+  process.exit(1);
+}
+if (!Number.isFinite(visitorMonths) || visitorMonths < 1) {
+  console.error('Ungültiger Wert für --visitor-months.');
   process.exit(1);
 }
 
@@ -175,9 +188,22 @@ if (deletedBlocks > 0) {
   );
 }
 
+// Besucherstatistiken: pseudonyme Zähler werden nach 12 Monaten entfernt.
+const deletedVisitors = pruneVisitorStats(visitorMonths, dryRun);
+if (deletedVisitors > 0) {
+  console.log(
+    `${dryRun ? 'Würde löschen' : 'Gelöscht'}: ${deletedVisitors} Besucherstatistik-Eintrag/-Einträge (älter als ${visitorMonths} Monate)`,
+  );
+}
+
 if (
   !dryRun &&
-  (removed > 0 || orphans > 0 || deletedQuotes > 0 || deletedContacts > 0 || deletedBlocks > 0)
+  (removed > 0 ||
+    orphans > 0 ||
+    deletedQuotes > 0 ||
+    deletedContacts > 0 ||
+    deletedBlocks > 0 ||
+    deletedVisitors > 0)
 ) {
   writeAudit('system', 'data.cleanup', {
     fileDays: days,
@@ -187,9 +213,10 @@ if (
     quotes: deletedQuotes,
     contacts: deletedContacts,
     blocks: deletedBlocks,
+    visitors: deletedVisitors,
   });
 }
 
 console.log(
-  `${dryRun ? 'Testlauf' : 'Aufräumen'} abgeschlossen: ${removed} Modelldatei(en), ${orphans} verwaiste Datei(en), ${deletedQuotes} Anfrage(n), ${deletedContacts} Kontaktnachricht(en), ${deletedBlocks} Absender-Beobachtung(en) (Dateien: ${days} Tage, Anfragen: ${inquiryMonths} Monate).`,
+  `${dryRun ? 'Testlauf' : 'Aufräumen'} abgeschlossen: ${removed} Modelldatei(en), ${orphans} verwaiste Datei(en), ${deletedQuotes} Anfrage(n), ${deletedContacts} Kontaktnachricht(en), ${deletedBlocks} Absender-Beobachtung(en), ${deletedVisitors} Besucherstatistik-Eintrag/-Einträge (Dateien: ${days} Tage, Anfragen: ${inquiryMonths} Monate, Statistik: ${visitorMonths} Monate).`,
 );

@@ -14,8 +14,9 @@
     <div class="alert alert-success" role="status">
       <p><strong>Testdaten gelöscht.</strong>
         {{ resetCounts.orders }} Bestellung(en), {{ resetCounts.paymentEvents }} Zahlungsereignis(se),
-        {{ resetCounts.quotes }} Anfrage(n) und {{ resetCounts.messages }} Nachricht(en) wurden entfernt.
-        Umsatz, letzte Bestellungen, letzte Anfragen und letzte Nachrichten sind damit zurückgesetzt.</p>
+        {{ resetCounts.quotes }} Anfrage(n), {{ resetCounts.messages }} Nachricht(en) und
+        {{ resetCounts.visitors }} Besucherstatistik-Eintrag/-Einträge wurden entfernt.
+        Umsatz, letzte Bestellungen, letzte Anfragen, letzte Nachrichten und die Besucherstatistik sind damit zurückgesetzt.</p>
     </div>
   {% endif %}
 
@@ -26,7 +27,7 @@
   {% endif %}
 
   <div class="alert alert-warning" role="status">
-    <p><strong>Dieser Vorgang ist endgültig.</strong> Gelöscht werden Bestellungen mit Positionen, Zahlungen und Verlauf, Zahlungsereignisse, Angebotsanfragen mit Modelldateien, Kontaktnachrichten sowie Spam-Beobachtungen und Absender-Sperren.</p>
+    <p><strong>Dieser Vorgang ist endgültig.</strong> Gelöscht werden Bestellungen mit Positionen, Zahlungen und Verlauf, Zahlungsereignisse, Angebotsanfragen mit Modelldateien, Kontaktnachrichten, Spam-Beobachtungen und Absender-Sperren sowie die Besucherstatistik.</p>
     <p>Erhalten bleiben Produkte, Preise, Kategorien, Bilder, Stammdaten, Rechtstexte, Einstellungen, Benutzer und das Audit-Protokoll. Der Vorgang wird im Audit-Protokoll vermerkt.</p>
   </div>
 
@@ -38,6 +39,7 @@
       <div><dt>Angebotsanfragen</dt><dd>{{ summary.quotes }} <span class="text-muted">({{ summary.quoteFiles }} Modelldatei(en))</span></dd></div>
       <div><dt>Kontaktnachrichten</dt><dd>{{ summary.messages }}</dd></div>
       <div><dt>Spam-Beobachtungen und Sperren</dt><dd>{{ summary.blocks }}</dd></div>
+      <div><dt>Besucherstatistik-Einträge</dt><dd>{{ summary.visitors }}</dd></div>
     </dl>
 
     {% if not shopLive %}

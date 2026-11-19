@@ -36,6 +36,7 @@
       <nav class="admin-nav" aria-label="Admin-Navigation">
         <p class="admin-nav-title">Übersicht</p>
         <a href="/admin/" {% if currentPath == '/admin/' %}aria-current="page"{% endif %}>Dashboard</a>
+        <a href="/admin/besucherstatistik/" {% if currentPath.startsWith('/admin/besucherstatistik') %}aria-current="page"{% endif %}>Besucherstatistik</a>
 
         <p class="admin-nav-title">Verkauf</p>
         <a href="/admin/bestellungen/" {% if currentPath.startsWith('/admin/bestellungen') %}aria-current="page"{% endif %}>Bestellungen</a>

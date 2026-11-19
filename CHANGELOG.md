@@ -3,6 +3,23 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.45] – 2026-11-19
+
+### Hinzugefügt
+
+- **Besucherstatistik** unter **Admin → Besucherstatistik**: Aufrufe,
+  Herkunftsländer und häufigste Pfade, filterbar für 7/30/90 Tage oder
+  12 Monate und zusammengefasst pro Tag, Woche oder Monat.
+- **Dashboard-Zusammenfassung** mit Aufrufen und Besuchern von heute sowie
+  einem sieben-Tage-Verlauf und den häufigsten Ländern.
+- Besucherzähler ohne Cookies und ohne Speicherung vollständiger IP-Adressen;
+  eindeutige Besucher werden über einen täglich wechselnden, nicht
+  rückführbaren HMAC aus gekürzter IP und Datum gezählt.
+- Migration `018_visitor_stats.sql`, Löschung nach 12 Monaten im bestehenden
+  Cleanup und Mitaufnahme in den Testdaten-Reset.
+- Datenschutzerklärung und Cookie-Hinweis um die cookie-freie
+  Reichweitenmessung ergänzt; offene rechtliche Prüfung als F86 dokumentiert.
+
 ## [1.0.0-rc.44] – 2026-11-19
 
 ### Behoben

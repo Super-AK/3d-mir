@@ -16,6 +16,8 @@ import { paymentRoutes } from './routes/payments.js';
 import { adminRoutes } from './routes/admin.js';
 import { migrate } from './db/migrate.js';
 import { applySiteSettings } from './lib/site-settings.js';
+import { isTrustedProxyPeer, resolveContactCountry } from './lib/contact-protection.js';
+import { recordVisit } from './lib/visitor-stats.js';
 
 const CSP = [
   "default-src 'self'",
@@ -111,6 +113,27 @@ export async function buildApp() {
       reply.header('X-Robots-Tag', 'noindex, nofollow');
     }
     return payload;
+  });
+
+  /**
+   * Besucherstatistik: zählt alle Anfragen, die die Anwendung erreichen.
+   * Der Health-Check des Monitoring-Timers zählt nicht als Besuch; statische
+   * Dateien werden von NGINX direkt ausgeliefert und erreichen die Anwendung
+   * gar nicht. Es werden keine Cookies gesetzt und keine IP-Adressen gespeichert.
+   */
+  app.addHook('onResponse', async (request) => {
+    try {
+      const path = request.url.split(/[?#]/, 1)[0] ?? '/';
+      if (path === '/api/health') return;
+      const country = await resolveContactCountry({
+        ip: request.ip,
+        headers: request.headers,
+        trustedProxy: isTrustedProxyPeer(request.raw.socket.remoteAddress),
+      });
+      recordVisit({ ip: request.ip, country: country.country, path });
+    } catch (error) {
+      request.log.debug({ err: error }, 'Besucherstatistik konnte nicht geschrieben werden');
+    }
   });
 
   await app.register(publicRoutes);

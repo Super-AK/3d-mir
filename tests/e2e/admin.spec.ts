@@ -27,12 +27,14 @@ test.describe('Admin', () => {
 
     await expect(page).toHaveURL(/\/admin\/$/);
     await expect(page.locator('h1')).toHaveText('Dashboard');
+    await expect(page.getByText('Besucher der letzten 7 Tage')).toBeVisible();
 
     for (const [path, heading] of [
       ['/admin/stammdaten/', 'Stammdaten'],
       ['/admin/bestellungen/', 'Bestellungen'],
       ['/admin/anfragen/', 'Anfragen'],
       ['/admin/nachrichten/', 'Nachrichten'],
+      ['/admin/besucherstatistik/', 'Besucherstatistik'],
       ['/admin/produkte/', 'Produkte'],
       ['/admin/kategorien/', 'Kategorien'],
       ['/admin/preise/', 'Preise und Kalkulation'],
@@ -46,6 +48,21 @@ test.describe('Admin', () => {
       expect(response?.status()).toBe(200);
       await expect(page.locator('h1')).toContainText(heading);
     }
+
+    // Besucherstatistik: Zeitraum und Gruppierung werden aus der URL gelesen.
+    await page.goto('/admin/besucherstatistik/?zeitraum=7&gruppe=woche');
+    await expect(page.locator('#zeitraum')).toHaveValue('7');
+    await expect(page.locator('#gruppe')).toHaveValue('woche');
+    await expect(page.getByRole('heading', { name: 'Aufrufe im Zeitverlauf' })).toBeVisible();
+
+    // Auf dem Handy scrollen die Tabellen innerhalb ihrer Karten.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/admin/besucherstatistik/');
+    const statsOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(statsOverflow).toBeLessThanOrEqual(1);
+    await page.setViewportSize({ width: 1280, height: 720 });
 
     // Live-Suche in der Bestellliste: tippen aktualisiert die Ergebnisse,
     // ohne die Seite neu zu laden (der Fokus bleibt im Suchfeld).

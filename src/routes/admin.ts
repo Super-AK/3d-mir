@@ -144,6 +144,13 @@ import {
   type PublicationSettings,
 } from '../lib/publication-settings.js';
 import { getTestDataSummary, resetTestData } from '../lib/test-data.js';
+import {
+  visitorDashboard,
+  visitorGroups,
+  visitorPeriods,
+  visitorReport,
+  type VisitorGroup,
+} from '../lib/visitor-stats.js';
 
 const db = () => getDb();
 
@@ -1957,6 +1964,30 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
             .prepare('SELECT * FROM contact_messages ORDER BY created_at DESC, id DESC LIMIT 6')
             .all() as ContactRow[],
           monitor: getMonitorStatus(),
+          visitorStats: visitorDashboard(),
+        }),
+      );
+    });
+
+    // Besucherstatistik ---------------------------------------------------
+    scope.get('/admin/besucherstatistik/', async (request, reply) => {
+      const query = queryObject(request);
+      const days = visitorPeriods.some((period) => period.days === Number(query.zeitraum))
+        ? Number(query.zeitraum)
+        : 30;
+      const group: VisitorGroup = visitorGroups.some((item) => item.id === query.gruppe)
+        ? (query.gruppe as VisitorGroup)
+        : 'tag';
+
+      render(
+        reply,
+        'admin/visitor-stats.njk',
+        adminContext(request, {
+          stats: visitorReport(days, group),
+          days,
+          group,
+          periods: visitorPeriods,
+          groups: visitorGroups,
         }),
       );
     });
@@ -3819,6 +3850,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           quotes: count(query.anfragen),
           messages: count(query.nachrichten),
           paymentEvents: count(query.zahlungen),
+          visitors: count(query.besucher),
         },
       }));
     });
@@ -3855,7 +3887,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const result = resetTestData();
       writeAudit(request.admin?.email ?? 'admin', 'testdata.reset', result);
       return reply.redirect(
-        `/admin/testdaten/?reset=1&bestellungen=${result.orders}&anfragen=${result.quotes}&nachrichten=${result.messages}&zahlungen=${result.paymentEvents}`,
+        `/admin/testdaten/?reset=1&bestellungen=${result.orders}&anfragen=${result.quotes}&nachrichten=${result.messages}&zahlungen=${result.paymentEvents}&besucher=${result.visitors}`,
         303,
       );
     });

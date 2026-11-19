@@ -1,7 +1,7 @@
 {% extends "layouts/base.njk" %}
 
 {% block title %}Cookie-Hinweis – 3D-MIR{% endblock %}
-{% block description %}Diese Website verwendet nur technisch notwendige Cookies. Kein Tracking, keine Werbung, keine Drittanbieter.{% endblock %}
+{% block description %}Diese Website verwendet nur technisch notwendige Cookies. Keine Tracking-Cookies, keine Werbung, keine Drittanbieter.{% endblock %}
 
 {% block content %}
 <section class="page-head">
@@ -14,16 +14,16 @@
 <section class="section">
   <div class="container prose">
     <h2>Kein Cookie-Banner nötig</h2>
-    <p>Diese Website verwendet <strong>keine</strong> Analyse-, Werbe- oder Tracking-Cookies und bindet keine externen Dienste ein. Schriften, Skripte und Bilder werden von unserem eigenen Server geladen. Deshalb ist kein Einwilligungsbanner erforderlich.</p>
+    <p>Diese Website verwendet <strong>keine</strong> Analyse-, Werbe- oder Tracking-Cookies und bindet keine externen Dienste ein. Schriften, Skripte und Bilder werden von unserem eigenen Server geladen. Die Reichweite wird serverseitig ohne Cookies und ohne Speicherung vollständiger IP-Adressen gezählt; Details stehen in der <a href="/datenschutz/#reichweite">Datenschutzerklärung</a>. Deshalb ist kein Einwilligungsbanner erforderlich.</p>
 
     <h2>Technisch notwendige Cookies</h2>
     <div class="table-wrap">
       <table>
         <thead><tr><th scope="col">Name</th><th scope="col">Zweck</th><th scope="col">Dauer</th></tr></thead>
         <tbody>
-          <tr><td><code>mir3d_sid</code></td><td>Sitzung (Warenkorb, Anmeldung)</td><td>bis zu 30 Tage</td></tr>
-          <tr><td><code>mir3d_cart</code></td><td>Inhalt des Warenkorbs</td><td>bis zu 30 Tage</td></tr>
-          <tr><td><code>mir3d_admin</code></td><td>Admin-Anmeldung</td><td>Sitzung</td></tr>
+          <tr><td><code>warenkorb</code></td><td>Inhalt des Warenkorbs</td><td>bis zu 30 Tage</td></tr>
+          <tr><td><code>mir3d_admin</code></td><td>Admin-Anmeldung</td><td>8 Stunden</td></tr>
+          <tr><td><code>mir3d_admin_pending</code></td><td>Zwischenschritt der Zwei-Faktor-Anmeldung</td><td>5 Minuten</td></tr>
         </tbody>
       </table>
     </div>

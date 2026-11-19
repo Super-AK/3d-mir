@@ -1,12 +1,12 @@
 # Abschlussbericht
 
 **Projekt:** Neuaufbau der Website 3D-MIR (3D-Druck Service, Schömberg)
-**Stand:** 14. November 2026 · **Version:** 1.0.0-rc.44
+**Stand:** 19. November 2026 · **Version:** 1.0.0-rc.45
 **Technischer Status:** Release-Kandidat, alle geplanten Funktionen umgesetzt; Abnahme und Livegang offen
 
 ## 1. Ausgangslage und Ziel
 
-Die bisherige WordPress-Seite wurde vollständig ausgelesen und durch eine eigene Anwendung ersetzt. Ziel war ein schneller, datenschutzfreundlicher Auftritt mit Sofort-Preisrechner, kleinerem Shop und einem Admin-Bereich, der ohne externe Dienste und ohne Tracking auskommt.
+Die bisherige WordPress-Seite wurde vollständig ausgelesen und durch eine eigene Anwendung ersetzt. Ziel war ein schneller, datenschutzfreundlicher Auftritt mit Sofort-Preisrechner, kleinerem Shop und einem Admin-Bereich, der ohne externe Dienste und ohne externe Tracker auskommt.
 
 Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtstexte wurden inhaltlich unverändert übernommen und als „rechtlich zu prüfen“ gekennzeichnet. Preise, Kalkulation, Versandkosten und Lieferzeiten wurden am 14.11.2026 bestätigt; die Live-Schaltung der Zahlungsarten ist noch offen.
 
@@ -32,7 +32,7 @@ Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtste
 - **Frontend:** eigenes CSS, Vanilla TypeScript, Vite; three.js lokal gebündelt.
 - **Betrieb:** NGINX als Reverse Proxy, systemd-Dienst `3d-mir` (gehärtet), UFW nur 22/80/443.
 - **Tests:** Vitest (Unit) und Playwright (E2E).
-- **Keine externen Laufzeitabhängigkeiten:** keine CDNs, keine Google Fonts, kein Tracking, keine Social-Plugins.
+- **Keine externen Laufzeitabhängigkeiten:** keine CDNs, keine Google Fonts, keine externen Tracker, keine Social-Plugins. Die Reichweitenmessung erfolgt serverseitig pseudonym und cookie-frei.
 
 ## 4. Phasen
 

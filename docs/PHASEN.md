@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.45 – 19. November 2026
+
+Serverseitige Besucherstatistik ergänzt: Auswertung von Aufrufen, Ländern und
+Pfade pro Tag/Woche/Monat im Admin sowie Zusammenfassung im Dashboard. Die
+Zählung erfolgt cookie-frei mit täglich wechselndem, nicht rückführbarem Hash;
+Aufbewahrung 12 Monate. Neue offene Frage F86 (rechtliche Prüfung).
+
 ## Release 1.0.0-rc.44 – 19. November 2026
 
 Mobile Anzeige der Nachrichtenliste korrigiert: Die Tabelle liegt in einer
