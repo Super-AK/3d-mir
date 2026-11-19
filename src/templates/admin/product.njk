@@ -42,7 +42,7 @@
       <span class="hint">Erscheint in der Shop-Übersicht und in Suchmaschinen.</span>
     </div>
 
-    <details class="admin-field-collapse">
+    <details class="admin-field-collapse" data-collapse="description">
       <summary>
         <span>Beschreibung</span>
         {% if form.description %}
@@ -71,22 +71,31 @@
       </div>
     </div>
 
-    <fieldset class="admin-fieldset">
-      <legend>Kategorien</legend>
-      {% if categoryOptions.length > 0 %}
-        <div class="admin-check-list">
-          {% for category in categoryOptions %}
-            <label class="admin-check admin-check-inline">
-              <input type="checkbox" name="productCategories" value="{{ category.id }}" {% if category.id in categoryIds %}checked{% endif %}>
-              <span>{{ category.name }}</span>
-            </label>
-          {% endfor %}
-        </div>
-        <span class="hint">Mehrfachauswahl möglich. Kategorien unter <a href="/admin/kategorien/">Kategorien</a> verwalten.</span>
-      {% else %}
-        <p class="text-muted">Noch keine Kategorien vorhanden. <a href="/admin/kategorien/">Kategorie anlegen</a>.</p>
-      {% endif %}
-    </fieldset>
+    <details class="admin-field-collapse" data-collapse="categories">
+      <summary>
+        <span>Kategorien</span>
+        {% if categoryIds.length > 0 %}
+          <span class="admin-collapse-preview">{{ categoryIds.length }} ausgewählt</span>
+        {% else %}
+          <span class="admin-collapse-preview">Keine Kategorien</span>
+        {% endif %}
+      </summary>
+      <div class="admin-collapse-body">
+        {% if categoryOptions.length > 0 %}
+          <div class="admin-check-list">
+            {% for category in categoryOptions %}
+              <label class="admin-check admin-check-inline">
+                <input type="checkbox" name="productCategories" value="{{ category.id }}" {% if category.id in categoryIds %}checked{% endif %}>
+                <span>{{ category.name }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          <span class="hint">Mehrfachauswahl möglich. Kategorien unter <a href="/admin/kategorien/">Kategorien</a> verwalten.</span>
+        {% else %}
+          <p class="text-muted">Noch keine Kategorien vorhanden. <a href="/admin/kategorien/">Kategorie anlegen</a>.</p>
+        {% endif %}
+      </div>
+    </details>
 
     <div class="form-row form-row-3">
       <div class="field">
@@ -132,59 +141,84 @@
       </label>
     </div>
 
-    <fieldset class="admin-fieldset">
-      <legend>Versandarten für dieses Produkt</legend>
-      <p class="hint">Nur ausgewählte Versandarten werden im Checkout angeboten. Keine Auswahl = alle aktiven Versandarten.</p>
-      <div class="admin-check-list">
-        {% for method in shippingMethods %}
-          <label class="admin-check admin-check-inline">
-            <input type="checkbox" name="shippingMethodIds" value="{{ method.id }}" {% if method.id in form.shippingMethodIds %}checked{% endif %}>
-            <span>{{ method.label }}{% if method.active == false %} (inaktiv){% endif %}</span>
-          </label>
+    <details class="admin-field-collapse" data-collapse="shipping-methods">
+      <summary>
+        <span>Versandarten für dieses Produkt</span>
+        {% if form.shippingMethodIds.length > 0 %}
+          <span class="admin-collapse-preview">{{ form.shippingMethodIds.length }} ausgewählt</span>
         {% else %}
-          <p class="text-muted">Keine Versandarten vorhanden. Bitte unter „Preise → Versand“ anlegen.</p>
-        {% endfor %}
+          <span class="admin-collapse-preview">Alle aktiven Versandarten</span>
+        {% endif %}
+      </summary>
+      <div class="admin-collapse-body">
+        <p class="hint">Nur ausgewählte Versandarten werden im Checkout angeboten. Keine Auswahl = alle aktiven Versandarten.</p>
+        <div class="admin-check-list">
+          {% for method in shippingMethods %}
+            <label class="admin-check admin-check-inline">
+              <input type="checkbox" name="shippingMethodIds" value="{{ method.id }}" {% if method.id in form.shippingMethodIds %}checked{% endif %}>
+              <span>{{ method.label }}{% if method.active == false %} (inaktiv){% endif %}</span>
+            </label>
+          {% else %}
+            <p class="text-muted">Keine Versandarten vorhanden. Bitte unter „Preise → Versand“ anlegen.</p>
+          {% endfor %}
+        </div>
       </div>
-    </fieldset>
+    </details>
 
-    <fieldset class="admin-fieldset">
-      <legend>Versand-Zusatzoptionen</legend>
-      <p class="hint">Optionen wie Expressversand oder Geschenkverpackung, die für dieses Produkt im Checkout wählbar sind. Preise werden unter „Preise → Versandoptionen“ gepflegt.</p>
-      <div class="admin-check-list">
-        {% for option in shippingOptions %}
-          <label class="admin-check admin-check-inline">
-            <input type="checkbox" name="shippingOptionIds" value="{{ option.id }}" {% if option.id in form.shippingOptionIds %}checked{% endif %}>
-            <span>{{ option.label }}{% if option.price > 0 %} (+ {{ option.price | euro }}){% endif %}{% if option.active == false %} (inaktiv){% endif %}</span>
-          </label>
+    <details class="admin-field-collapse" data-collapse="shipping-options">
+      <summary>
+        <span>Versand-Zusatzoptionen</span>
+        {% if form.shippingOptionIds.length > 0 %}
+          <span class="admin-collapse-preview">{{ form.shippingOptionIds.length }} ausgewählt</span>
         {% else %}
-          <p class="text-muted">Keine Versandoptionen vorhanden. Bitte unter „Preise → Versandoptionen“ anlegen.</p>
-        {% endfor %}
+          <span class="admin-collapse-preview">Keine Zusatzoptionen</span>
+        {% endif %}
+      </summary>
+      <div class="admin-collapse-body">
+        <p class="hint">Optionen wie Expressversand oder Geschenkverpackung, die für dieses Produkt im Checkout wählbar sind. Preise werden unter „Preise → Versandoptionen“ gepflegt.</p>
+        <div class="admin-check-list">
+          {% for option in shippingOptions %}
+            <label class="admin-check admin-check-inline">
+              <input type="checkbox" name="shippingOptionIds" value="{{ option.id }}" {% if option.id in form.shippingOptionIds %}checked{% endif %}>
+              <span>{{ option.label }}{% if option.price > 0 %} (+ {{ option.price | euro }}){% endif %}{% if option.active == false %} (inaktiv){% endif %}</span>
+            </label>
+          {% else %}
+            <p class="text-muted">Keine Versandoptionen vorhanden. Bitte unter „Preise → Versandoptionen“ anlegen.</p>
+          {% endfor %}
+        </div>
       </div>
-    </fieldset>
+    </details>
 
-    <fieldset class="admin-fieldset">
-      <legend>Varianten, Farben und Personalisierung</legend>
-      <div class="field">
-        <label for="colorOptions">Farbvarianten (kommagetrennt)</label>
-        <input id="colorOptions" name="colorOptions" type="text" maxlength="1000" value="{{ form.colorOptions }}" placeholder="z. B. Schwarz, Weiß, Rot, Blau">
-        <span class="hint">Zusätzliche Farbauswahl ohne Preisunterschied. Leer lassen, wenn das Produkt keine Farbauswahl hat. Farben lassen sich mit Varianten kombinieren.</span>
+    <details class="admin-field-collapse" data-collapse="product-options">
+      <summary>
+        <span>Varianten, Farben und Personalisierung</span>
+        <span class="admin-collapse-preview">
+          {% if form.colorOptions %}Farben: {{ form.colorOptions | truncate(50) }}{% else %}Keine Farben{% endif %}{% if form.personalizationEnabled %} · Personalisierung an{% endif %}
+        </span>
+      </summary>
+      <div class="admin-collapse-body">
+        <div class="field">
+          <label for="colorOptions">Farbvarianten (kommagetrennt)</label>
+          <input id="colorOptions" name="colorOptions" type="text" maxlength="1000" value="{{ form.colorOptions }}" placeholder="z. B. Schwarz, Weiß, Rot, Blau">
+          <span class="hint">Zusätzliche Farbauswahl ohne Preisunterschied. Leer lassen, wenn das Produkt keine Farbauswahl hat. Farben lassen sich mit Varianten kombinieren.</span>
+        </div>
+        <label class="admin-check">
+          <input type="checkbox" name="personalizationEnabled" value="1" {% if form.personalizationEnabled %}checked{% endif %}>
+          <span>Personalisierung anbieten</span>
+        </label>
+        <span class="hint">Zeigt im Shop ein optionales Textfeld für eine persönliche Anmerkung. Der Kunde muss es nicht ausfüllen.</span>
+        <div class="field">
+          <label for="personalizationHint">Hinweis im Personalisierungsfeld</label>
+          <input id="personalizationHint" name="personalizationHint" type="text" maxlength="200" value="{{ form.personalizationHint }}" placeholder="z. B. Name oder kurzer Text">
+          <span class="hint">Wird im Shop als grauer Platzhaltertext im Feld angezeigt, z. B. „z. B. Name oder kurzer Text“. Leer lassen für den Standardtext.</span>
+        </div>
+        <div class="field">
+          <label for="personalizationPrice">Aufpreis bei Personalisierung (€ pro Stück)</label>
+          <input id="personalizationPrice" name="personalizationPrice" type="number" min="0" max="1000000" step="0.01" value="{{ form.personalizationPrice }}" inputmode="decimal">
+          <span class="hint">Wird nur berechnet, wenn der Kunde tatsächlich einen Text eingibt. Dann gilt der Aufpreis für jedes Stück der Position. Leer lassen oder 0,00 € für keinen Aufpreis.</span>
+        </div>
       </div>
-      <label class="admin-check">
-        <input type="checkbox" name="personalizationEnabled" value="1" {% if form.personalizationEnabled %}checked{% endif %}>
-        <span>Personalisierung anbieten</span>
-      </label>
-      <span class="hint">Zeigt im Shop ein optionales Textfeld für eine persönliche Anmerkung. Der Kunde muss es nicht ausfüllen.</span>
-      <div class="field">
-        <label for="personalizationHint">Hinweis im Personalisierungsfeld</label>
-        <input id="personalizationHint" name="personalizationHint" type="text" maxlength="200" value="{{ form.personalizationHint }}" placeholder="z. B. Name oder kurzer Text">
-        <span class="hint">Wird im Shop als grauer Platzhaltertext im Feld angezeigt, z. B. „z. B. Name oder kurzer Text“. Leer lassen für den Standardtext.</span>
-      </div>
-      <div class="field">
-        <label for="personalizationPrice">Aufpreis bei Personalisierung (€ pro Stück)</label>
-        <input id="personalizationPrice" name="personalizationPrice" type="number" min="0" max="1000000" step="0.01" value="{{ form.personalizationPrice }}" inputmode="decimal">
-        <span class="hint">Wird nur berechnet, wenn der Kunde tatsächlich einen Text eingibt. Dann gilt der Aufpreis für jedes Stück der Position. Leer lassen oder 0,00 € für keinen Aufpreis.</span>
-      </div>
-    </fieldset>
+    </details>
 
     <div class="form-actions">
       <button class="btn" type="submit">Speichern</button>
@@ -194,39 +228,59 @@
 
   {% if not isNew %}
     <section class="card admin-panel">
-      <h2>Varianten</h2>
-      <p class="text-muted">Varianten sind echte Ausführungen wie Größe oder Modell mit eigenem Preis und Bestand. Produkte ohne Varianten sind direkt kaufbar. Farben werden oben als kommagetrennte Liste gepflegt.</p>
-      <form method="post" action="/admin/produkte/{{ product.id }}/varianten/">
-        <input type="hidden" name="_csrf" value="{{ csrf }}">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Bestand</th><th>Löschen</th></tr></thead>
-            <tbody>
-              {% for variant in variants %}
-                <tr>
-                  <td><input name="variant_{{ variant.id }}_label" type="text" maxlength="80" required value="{{ variant.label }}"></td>
-                  <td><input name="variant_{{ variant.id }}_price" type="number" min="0" step="0.01" required value="{{ variant.priceValue }}"></td>
-                  <td><input name="variant_{{ variant.id }}_stock" type="number" min="0" step="1" value="{{ variant.stockValue }}"></td>
-                  <td><label class="admin-check admin-check-inline"><input type="checkbox" name="variant_{{ variant.id }}_delete" value="1"><span>löschen</span></label></td>
-                </tr>
-              {% endfor %}
-              <tr>
-                <td><input name="new_label" type="text" maxlength="80" placeholder="Neue Variante"></td>
-                <td><input name="new_price" type="number" min="0" step="0.01" placeholder="0.00"></td>
-                <td><input name="new_stock" type="number" min="0" step="1" placeholder="optional"></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
+      <details class="admin-field-collapse" data-collapse="variants">
+        <summary>
+          <h2>Varianten</h2>
+          {% if variants.length > 0 %}
+            <span class="admin-collapse-preview">{{ variants.length }} {% if variants.length == 1 %}Variante{% else %}Varianten{% endif %}</span>
+          {% else %}
+            <span class="admin-collapse-preview">Keine Varianten – direkt kaufbar</span>
+          {% endif %}
+        </summary>
+        <div class="admin-collapse-body">
+          <p class="text-muted">Varianten sind echte Ausführungen wie Größe oder Modell mit eigenem Preis und Bestand. Produkte ohne Varianten sind direkt kaufbar. Farben werden oben als kommagetrennte Liste gepflegt.</p>
+          <form method="post" action="/admin/produkte/{{ product.id }}/varianten/">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Bezeichnung</th><th>Preis (€)</th><th>Bestand</th><th>Löschen</th></tr></thead>
+                <tbody>
+                  {% for variant in variants %}
+                    <tr>
+                      <td><input name="variant_{{ variant.id }}_label" type="text" maxlength="80" required value="{{ variant.label }}"></td>
+                      <td><input name="variant_{{ variant.id }}_price" type="number" min="0" step="0.01" required value="{{ variant.priceValue }}"></td>
+                      <td><input name="variant_{{ variant.id }}_stock" type="number" min="0" step="1" value="{{ variant.stockValue }}"></td>
+                      <td><label class="admin-check admin-check-inline"><input type="checkbox" name="variant_{{ variant.id }}_delete" value="1"><span>löschen</span></label></td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td><input name="new_label" type="text" maxlength="80" placeholder="Neue Variante"></td>
+                    <td><input name="new_price" type="number" min="0" step="0.01" placeholder="0.00"></td>
+                    <td><input name="new_stock" type="number" min="0" step="1" placeholder="optional"></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="form-actions">
+              <button class="btn" type="submit">Varianten speichern</button>
+            </div>
+          </form>
         </div>
-        <div class="form-actions">
-          <button class="btn" type="submit">Varianten speichern</button>
-        </div>
-      </form>
+      </details>
     </section>
 
     <section class="card admin-panel">
-      <h2>Bilder</h2>
+      <details class="admin-field-collapse" data-collapse="images">
+        <summary>
+          <h2>Bilder</h2>
+          {% if images.length > 0 %}
+            <span class="admin-collapse-preview">{{ images.length }} {% if images.length == 1 %}Bild{% else %}Bilder{% endif %}</span>
+          {% else %}
+            <span class="admin-collapse-preview">Noch keine Bilder</span>
+          {% endif %}
+        </summary>
+        <div class="admin-collapse-body">
       <p class="text-muted">JPG, PNG, WebP oder AVIF, maximal 12 MB und 12 Bilder pro Produkt. Beim Hochladen werden automatisch AVIF-, WebP- und JPG-Varianten erzeugt und Metadaten entfernt.</p>
 
       {% if images.length > 0 %}
@@ -341,6 +395,8 @@
           </div>
         </form>
       </div>
+        </div>
+      </details>
     </section>
   {% endif %}
 {% endblock %}

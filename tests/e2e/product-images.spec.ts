@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Produktbilder: Sortierung, kleine Miniaturen und Zuschnitt werden über den
@@ -10,6 +10,17 @@ const password = process.env.E2E_ADMIN_PASSWORD ?? '';
 
 const solidImage = (color: { r: number; g: number; b: number }): Promise<Buffer> =>
   sharp({ create: { width: 400, height: 300, channels: 3, background: color } }).png().toBuffer();
+
+/** Öffnet den initial eingeklappten Bilderbereich. */
+const openImages = async (page: Page): Promise<void> => {
+  // Nach Formular-Redirects kann toHaveURL vor dem neuen Dokument auflösen.
+  await page.waitForLoadState('domcontentloaded');
+  const section = page.locator('[data-collapse="images"]');
+  if ((await section.getAttribute('open')) === null) {
+    await section.locator('summary').click();
+  }
+  await expect(section).toHaveAttribute('open', '');
+};
 
 test.describe('Produktbilder', () => {
   test.skip(!email || !password, 'E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD nicht gesetzt');
@@ -35,13 +46,18 @@ test.describe('Produktbilder', () => {
     await page.fill('#priceFrom', '10.00');
     await page.getByRole('button', { name: 'Speichern', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
+    await openImages(page);
 
     await page.setInputFiles('#image_file', [
       { name: 'e2e-rot.png', mimeType: 'image/png', buffer: await solidImage({ r: 210, g: 40, b: 40 }) },
       { name: 'e2e-blau.png', mimeType: 'image/png', buffer: await solidImage({ r: 40, g: 90, b: 220 }) },
     ]);
-    await page.getByRole('button', { name: 'Bilder hochladen' }).click();
+    await Promise.all([
+      page.waitForNavigation(),
+      page.getByRole('button', { name: 'Bilder hochladen' }).click(),
+    ]);
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
+    await openImages(page);
 
     const cards = page.locator('.admin-image-card[data-image-id]');
     await expect(cards).toHaveCount(2);
@@ -51,8 +67,12 @@ test.describe('Produktbilder', () => {
     expect(files[0]).not.toBe(files[1]);
 
     // Pfeil nach unten tauscht die Reihenfolge; die Nummern bleiben eindeutig.
-    await cards.first().getByRole('button', { name: /nach unten verschieben/ }).click();
+    await Promise.all([
+      page.waitForNavigation(),
+      cards.first().getByRole('button', { name: /nach unten verschieben/ }).click(),
+    ]);
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?sortiert=1/);
+    await openImages(page);
     await expect(cards.first().locator('code.admin-code')).toHaveText(files[1]!);
     await expect(cards.nth(1).locator('code.admin-code')).toHaveText(files[0]!);
     await expect(cards.first().locator('.admin-sort-number')).toHaveText('1');
@@ -68,8 +88,11 @@ test.describe('Produktbilder', () => {
     await page.mouse.move(source!.x + 20, source!.y + 12);
     await page.mouse.down();
     await page.mouse.move(target!.x + target!.width / 2, target!.y + target!.height - 10, { steps: 15 });
+    const dragNavigation = page.waitForNavigation();
     await page.mouse.up();
+    await dragNavigation;
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?sortiert=1/);
+    await openImages(page);
     await expect(cards.first().locator('code.admin-code')).toHaveText(files[0]!);
 
     // Zuschnitt: Dialog öffnen, Ausschnitt verkleinern und speichern.
@@ -85,8 +108,12 @@ test.describe('Produktbilder', () => {
     await page.mouse.down();
     await page.mouse.move(box!.x - 90, box!.y - 70, { steps: 10 });
     await page.mouse.up();
-    await dialog.getByRole('button', { name: 'Zuschnitt speichern' }).click();
+    await Promise.all([
+      page.waitForNavigation(),
+      dialog.getByRole('button', { name: 'Zuschnitt speichern' }).click(),
+    ]);
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
+    await openImages(page);
 
     const croppedFile = await cards.first().locator('code.admin-code').innerText();
     expect(croppedFile).not.toBe(files[0]);

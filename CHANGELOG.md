@@ -3,6 +3,20 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.51] – 2026-11-19
+
+### Geändert
+
+- Weitere Bereiche im Admin-Produktformular sind jetzt standardmäßig
+  eingeklappt: **Kategorien**, **Versandarten**, **Versand-Zusatzoptionen**,
+  **Varianten, Farben und Personalisierung**, die **Varianten-Tabelle** und die
+  **Bilder** inklusive Upload. Die Zeile zeigt jeweils eine kurze Vorschau
+  (Anzahl bzw. hinterlegte Werte) und lässt sich per Klick öffnen.
+- Name, Slug, Kurzbeschreibung, Preise, Artikelnummer, Maße, Lagerbestand,
+  Sortierung und Sichtbarkeit bleiben sofort sichtbar. Pflichtfelder in
+  geschlossenen Bereichen werden vom Browser beim Speichern automatisch
+  aufgeklappt. Funktioniert ohne JavaScript und per Tastatur.
+
 ## [1.0.0-rc.50] – 2026-11-19
 
 ### Geändert

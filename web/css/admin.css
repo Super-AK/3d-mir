@@ -222,6 +222,7 @@
 
 /* Produktbeschreibung: initial eingeklappt, per Klick erweiterbar. */
 .admin-field-collapse { margin-bottom: 1rem; }
+.card > .admin-field-collapse { margin-bottom: 0; }
 .admin-field-collapse > summary {
   display: flex;
   align-items: center;
@@ -246,6 +247,8 @@
 .admin-field-collapse[open] > summary::after { content: '\2212'; }
 .admin-field-collapse > summary:hover { border-color: var(--accent); }
 .admin-field-collapse > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.admin-field-collapse > summary h2 { margin: 0; font-size: 1.12rem; }
+.admin-field-collapse .admin-check-list { max-width: none; }
 .admin-collapse-preview {
   min-width: 0;
   overflow: hidden;

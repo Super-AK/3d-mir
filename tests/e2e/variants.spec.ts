@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Varianten, Farben und Personalisierung: Produkte ohne Varianten sind direkt
@@ -8,6 +8,17 @@ import { expect, test } from '@playwright/test';
  */
 const email = process.env.E2E_ADMIN_EMAIL ?? '';
 const password = process.env.E2E_ADMIN_PASSWORD ?? '';
+
+/** Öffnet einen initial eingeklappten Bereich des Produktformulars. */
+const openSection = async (page: Page, name: string): Promise<void> => {
+  // Nach Formular-Redirects kann toHaveURL vor dem neuen Dokument auflösen.
+  await page.waitForLoadState('domcontentloaded');
+  const section = page.locator(`[data-collapse="${name}"]`);
+  if ((await section.getAttribute('open')) === null) {
+    await section.locator('summary').click();
+  }
+  await expect(section).toHaveAttribute('open', '');
+};
 
 test.describe('Varianten, Farben und Personalisierung', () => {
   test.skip(!email || !password, 'E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD nicht gesetzt');
@@ -33,6 +44,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await page.fill('#priceFrom', '12.50');
     await page.fill('#material', 'PETG');
     await page.fill('#deliveryNote', 'sofort lieferbar');
+    await openSection(page, 'product-options');
     await page.fill('#colorOptions', 'Rot, Blau');
     await page.check('input[name="personalizationEnabled"]');
     await page.fill('#personalizationHint', 'z. B. Wunschname für Anna');
@@ -93,16 +105,23 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await page.fill('#name', name);
     await page.fill('#slug', slug);
     await page.fill('#priceFrom', '20.00');
+    await openSection(page, 'product-options');
     await page.fill('#colorOptions', 'Grün, Schwarz');
     await page.check('input[name="personalizationEnabled"]');
+    await openSection(page, 'shipping-methods');
     await page.check('input[name="shippingMethodIds"][value="dhl-paket"]');
     await page.getByRole('button', { name: 'Speichern', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
 
     // Echte Variante mit eigenem Preis ergänzen.
+    await openSection(page, 'variants');
     await page.fill('input[name="new_label"]', 'Groß');
     await page.fill('input[name="new_price"]', '25.00');
-    await page.getByRole('button', { name: 'Varianten speichern' }).click();
+    await Promise.all([
+      page.waitForNavigation(),
+      page.getByRole('button', { name: 'Varianten speichern' }).click(),
+    ]);
+    await openSection(page, 'variants');
     await expect(page.locator('input[name$="_label"][value="Groß"]')).toBeVisible();
 
     await page.goto(`/shop/${slug}/`);

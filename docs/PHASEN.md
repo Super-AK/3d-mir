@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.51 – 19. November 2026
+
+Neben der Beschreibung sind auch Kategorien, Versandarten, Versand-Zusatzoptionen,
+Farben/Personalisierung, die Varianten-Tabelle und der Bilderbereich initial
+eingeklappt. Jede Zeile trägt eine Vorschau des hinterlegten Inhalts; die
+wesentlichen Produktfelder bleiben sofort sichtbar.
+
 ## Release 1.0.0-rc.50 – 19. November 2026
 
 Das Beschreibungsfeld im Admin-Produktformular ist initial eingeklappt und

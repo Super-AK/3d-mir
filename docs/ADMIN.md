@@ -433,6 +433,8 @@ Name, Slug, Kurz- und Langbeschreibung, **Material**, **Lieferhinweis**, Preise,
 
 Die **Beschreibung** ist im Formular zunächst eingeklappt; ein Klick auf die Zeile „Beschreibung“ öffnet das Textfeld. Bereits hinterlegter Text erscheint dort als kurze Vorschau. Der Text wird unverändert gespeichert, auch wenn das Feld wieder geschlossen ist.
 
+Aus Gründen der Übersichtlichkeit sind außerdem **Kategorien**, **Versandarten**, **Versand-Zusatzoptionen**, **Varianten, Farben und Personalisierung**, die **Varianten-Tabelle** und der **Bilder**-Bereich zunächst eingeklappt. Jede Zeile zeigt eine kurze Vorschau (etwa die Anzahl ausgewählter Kategorien oder Bilder). Ein Klick auf die Zeile öffnet den Bereich; die Angaben bleiben unverändert erhalten. Name, Slug, Kurzbeschreibung, Preise, Artikelnummer, Maße, Lagerbestand, Sortierung und Sichtbarkeit sind sofort sichtbar. Das Ein-/Ausklappen funktioniert ohne JavaScript und per Tastatur.
+
 Bei aktivierter Personalisierung kann ein **Aufpreis in Euro pro Stück** hinterlegt werden. Er wird nur berechnet, wenn der Kunde das Textfeld tatsächlich ausfüllt; bei mehreren Stücken gilt er entsprechend oft. Der Aufpreis erscheint auf der Produktseite als Hinweis, in Warenkorb und Kasse sowie in der Bestellübersicht und ist im Zahlbetrag enthalten. `0,00 €` bedeutet keinen Aufpreis.
 
 Das **Material** wird pro Produkt im Admin gepflegt und auf der Produktseite unter „Material“ sowie in „Auf einen Blick“ angezeigt. Bleibt das Feld leer, erscheint `PLA`. Sind Farben hinterlegt, ergänzt die Produktseite den Hinweis „in Wunschfarbe“.

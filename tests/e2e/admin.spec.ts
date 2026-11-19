@@ -216,17 +216,35 @@ test.describe('Admin', () => {
 
     await page.locator('table tbody tr a').first().click();
     await expect(page.getByRole('heading', { name: 'Bilder', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Bild hinzufügen', exact: true })).toBeVisible();
     await expect(page.locator('#personalizationPrice')).toHaveAttribute('type', 'number');
     await expect(page.locator('#image_file')).toHaveAttribute('multiple', '');
 
-    // Beschreibung ist initial eingeklappt und lässt sich per Klick öffnen.
-    const description = page.locator('.admin-field-collapse');
-    await expect(description).not.toHaveAttribute('open', '');
+    // Sekundäre Bereiche sind initial eingeklappt und lassen sich einzeln öffnen.
+    const sections = [
+      'description', 'categories', 'shipping-methods', 'shipping-options',
+      'product-options', 'variants', 'images',
+    ];
+    for (const name of sections) {
+      await expect(page.locator(`[data-collapse="${name}"]`)).not.toHaveAttribute('open', '');
+    }
     await expect(page.locator('#description')).toBeHidden();
+    await expect(page.locator('#colorOptions')).toBeHidden();
+    await expect(page.locator('input[name="new_label"]')).toBeHidden();
+    await expect(page.locator('#image_file')).toBeHidden();
+
+    const description = page.locator('[data-collapse="description"]');
     await description.locator('summary').click();
     await expect(description).toHaveAttribute('open', '');
     await expect(page.locator('#description')).toBeVisible();
+
+    const options = page.locator('[data-collapse="product-options"]');
+    await options.locator('summary').click();
+    await expect(page.locator('#colorOptions')).toBeVisible();
+
+    const images = page.locator('[data-collapse="images"]');
+    await images.locator('summary').click();
+    await expect(page.getByRole('heading', { name: 'Bild hinzufügen', exact: true })).toBeVisible();
+    await expect(page.locator('#image_file')).toBeVisible();
 
     // Nachrichtenliste auf dem Handy: Die Tabelle bleibt in einer Karte und
     // scrollt dort, statt die gesamte Seite zu verschieben.
