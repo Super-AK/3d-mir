@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.50] – 2026-11-19
+
+### Geändert
+
+- Das Feld **Beschreibung** im Admin-Produktformular ist standardmäßig
+  eingeklappt. Ein Klick auf die Zeile öffnet das Textfeld zum Bearbeiten;
+  vorhandener Text wird als kurze Vorschau angezeigt. Funktioniert ohne
+  JavaScript, der Text wird unverändert gespeichert.
+
 ## [1.0.0-rc.49] – 2026-11-19
 
 ### Hinzugefügt

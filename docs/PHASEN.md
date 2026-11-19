@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.50 – 19. November 2026
+
+Das Beschreibungsfeld im Admin-Produktformular ist initial eingeklappt und
+wird erst bei Bedarf durch Klick aufgeklappt. Bestehender Text bleibt als
+Vorschau sichtbar; das Speichern ist unverändert.
+
 ## Release 1.0.0-rc.49 – 19. November 2026
 
 Produktbilder lassen sich per Pfeilen oder Drag & Drop sortieren und über einen

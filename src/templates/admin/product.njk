@@ -42,11 +42,21 @@
       <span class="hint">Erscheint in der Shop-Übersicht und in Suchmaschinen.</span>
     </div>
 
-    <div class="field">
-      <label for="description">Beschreibung</label>
-      <textarea id="description" name="description" rows="12" maxlength="10000">{{ form.description }}</textarea>
-      <span class="hint">Leerzeilen erzeugen Absätze. HTML wird nicht ausgeführt.</span>
-    </div>
+    <details class="admin-field-collapse">
+      <summary>
+        <span>Beschreibung</span>
+        {% if form.description %}
+          <span class="admin-collapse-preview">{{ form.description | truncate(90) }}</span>
+        {% else %}
+          <span class="admin-collapse-preview">Noch kein Text – klicken zum Bearbeiten</span>
+        {% endif %}
+      </summary>
+      <div class="field admin-collapse-body">
+        <label for="description">Beschreibung bearbeiten</label>
+        <textarea id="description" name="description" rows="12" maxlength="10000">{{ form.description }}</textarea>
+        <span class="hint">Leerzeilen erzeugen Absätze. HTML wird nicht ausgeführt.</span>
+      </div>
+    </details>
 
     <div class="form-row">
       <div class="field">

@@ -219,6 +219,43 @@
 .admin-panel { margin-bottom: 1.25rem; }
 .admin-panel:last-child { margin-bottom: 0; }
 .admin-panel h2 { margin: 0 0 0.85rem; font-size: 1.12rem; }
+
+/* Produktbeschreibung: initial eingeklappt, per Klick erweiterbar. */
+.admin-field-collapse { margin-bottom: 1rem; }
+.admin-field-collapse > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.admin-field-collapse > summary::-webkit-details-marker { display: none; }
+.admin-field-collapse > summary::after {
+  content: '+';
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.admin-field-collapse[open] > summary::after { content: '\2212'; }
+.admin-field-collapse > summary:hover { border-color: var(--accent); }
+.admin-field-collapse > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.admin-collapse-preview {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-collapse-body { margin-top: 0.6rem; }
 .admin-panel-narrow { max-width: 620px; }
 .admin-panel-head {
   display: flex;

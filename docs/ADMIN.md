@@ -431,6 +431,8 @@ Der Schlüssel wird nur für den Importprozess übergeben und nicht im Repositor
 
 Name, Slug, Kurz- und Langbeschreibung, **Material**, **Lieferhinweis**, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.
 
+Die **Beschreibung** ist im Formular zunächst eingeklappt; ein Klick auf die Zeile „Beschreibung“ öffnet das Textfeld. Bereits hinterlegter Text erscheint dort als kurze Vorschau. Der Text wird unverändert gespeichert, auch wenn das Feld wieder geschlossen ist.
+
 Bei aktivierter Personalisierung kann ein **Aufpreis in Euro pro Stück** hinterlegt werden. Er wird nur berechnet, wenn der Kunde das Textfeld tatsächlich ausfüllt; bei mehreren Stücken gilt er entsprechend oft. Der Aufpreis erscheint auf der Produktseite als Hinweis, in Warenkorb und Kasse sowie in der Bestellübersicht und ist im Zahlbetrag enthalten. `0,00 €` bedeutet keinen Aufpreis.
 
 Das **Material** wird pro Produkt im Admin gepflegt und auf der Produktseite unter „Material“ sowie in „Auf einen Blick“ angezeigt. Bleibt das Feld leer, erscheint `PLA`. Sind Farben hinterlegt, ergänzt die Produktseite den Hinweis „in Wunschfarbe“.

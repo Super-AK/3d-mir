@@ -220,6 +220,14 @@ test.describe('Admin', () => {
     await expect(page.locator('#personalizationPrice')).toHaveAttribute('type', 'number');
     await expect(page.locator('#image_file')).toHaveAttribute('multiple', '');
 
+    // Beschreibung ist initial eingeklappt und lässt sich per Klick öffnen.
+    const description = page.locator('.admin-field-collapse');
+    await expect(description).not.toHaveAttribute('open', '');
+    await expect(page.locator('#description')).toBeHidden();
+    await description.locator('summary').click();
+    await expect(description).toHaveAttribute('open', '');
+    await expect(page.locator('#description')).toBeVisible();
+
     // Nachrichtenliste auf dem Handy: Die Tabelle bleibt in einer Karte und
     // scrollt dort, statt die gesamte Seite zu verschieben.
     await page.setViewportSize({ width: 390, height: 844 });
