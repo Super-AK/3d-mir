@@ -3,6 +3,25 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.47] – 2026-11-19
+
+### Behoben
+
+- **Kollisionen bei Sortiernummern:** Wird einem Produkt eine bereits vergebene
+  Nummer zugewiesen, rücken die folgenden Produkte auf. Die Nummern werden
+  nach jeder Änderung fortlaufend auf `1..n` normalisiert; Admin, Shop und
+  Sitemap verwenden dieselbe Reihenfolge (Sortiernummer, dann ID).
+- Migration `019_product_sort_order.sql` bereinigt bestehende doppelte Werte,
+  ohne die bisherige Reihenfolge zu verändern.
+- JSON- und CSV-Import normalisieren die Sortierung nach dem Import.
+
+### Hinzugefügt
+
+- **Sortierung in der Produktliste** mit Pfeilen und Drag & Drop inklusive
+  CSRF-Prüfung, Audit-Eintrag `product.reorder` und Taste bedienbare Pfeile.
+- Unit-Tests für die Verschiebe- und Einfügelogik sowie E2E-Prüfung der
+  Pfeile und der eindeutigen Nummern.
+
 ## [1.0.0-rc.46] – 2026-11-19
 
 ### Hinzugefügt

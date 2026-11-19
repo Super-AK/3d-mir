@@ -368,6 +368,12 @@ Bot-Token und SMTP-Passwort sind Geheimnisse. Sie werden in der SQLite-Datenbank
 
 Unter **Admin → Produkte** lassen sich Produkte, Varianten, Farben, Personalisierung und Bilder pflegen.
 
+### Sortierung
+
+In der Produktliste steht eine Spalte **Sortierung**. Mit den Pfeilen lässt sich ein Produkt eine Position nach oben oder unten verschieben; alternativ können die Zeilen mit der Maus gezogen werden. Beide Wege funktionieren ohne zusätzliche Eingaben und schreiben die Reihenfolge fortlaufend (`1`, `2`, `3`, …) zurück. Bei aktiver Suche wird die Sortiersteuerung ausgeblendet, weil sich die Reihenfolge immer auf alle Produkte bezieht.
+
+Die Sortiernummer im Produktformular bleibt erhalten. Wird dort eine bereits vergebene Nummer eingetragen, rücken die Produkte ab dieser Position auf, statt dass zwei Produkte dieselbe Nummer behalten. Denselben Effekt hat die Spalte `sortierung` beim CSV-Import. Admin-Liste, Shop und Sitemap verwenden anschließend dieselbe Reihenfolge (Sortiernummer, dann ID). Die Änderungen werden im Audit-Protokoll als `product.reorder` erfasst.
+
 ### Suche
 
 Die Produktliste lässt sich nach **Name**, **SKU** und **Slug** durchsuchen. Die Suche startet automatisch beim Tippen und tauscht nur den Ergebnisbereich aus; die Seite wird nicht neu geladen und der Fokus bleibt im Suchfeld. Bei aktivem JavaScript entfällt der Button **Filtern**; ohne JavaScript bleibt er als Absenden-Funktion erhalten. Der Suchbegriff steht in der URL (`?q=…`) und lässt sich daher teilen oder neu laden. „Alle auswählen“ und die Massenlöschung funktionieren auch nach einer Suche.

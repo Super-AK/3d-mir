@@ -139,6 +139,12 @@ import {
   type CsvProductInput,
   type CsvProductRow,
 } from '../lib/product-csv.js';
+import {
+  applyProductOrder,
+  assignProductSortOrder,
+  moveProduct,
+  normalizeProductOrder,
+} from '../lib/product-order.js';
 import { getSiteSettings, saveSiteImages, saveSiteSettings } from '../lib/site-settings.js';
 import {
   getPlaceholderValues,
@@ -560,6 +566,7 @@ function flash(request: FastifyRequest) {
   return {
     gespeichert: query.gespeichert === '1',
     geloescht: query.geloescht === '1',
+    sortiert: query.sortiert === '1',
     zurueckgesetzt: query.zurueckgesetzt === '1',
     importiert: typeof query.importiert === 'string' ? Number.parseInt(query.importiert, 10) || 0 : 0,
     anzahl: typeof query.anzahl === 'string' ? Number.parseInt(query.anzahl, 10) || 0 : 0,
@@ -1221,7 +1228,7 @@ function importProductsCsv(rows: CsvProductRow[]): {
         deliveryNote: row.deliveryNote || existing?.delivery_note || 'Fertigung nach Bezahlung',
       };
 
-      db().transaction(() => {
+      const productId = db().transaction(() => {
         let id: number;
         if (existing) {
           db().prepare(
@@ -1278,12 +1285,14 @@ function importProductsCsv(rows: CsvProductRow[]): {
         return id;
       })();
 
+      if (row.sortOrder !== undefined) assignProductSortOrder(productId, row.sortOrder);
       if (existing) updated += 1;
       else imported += 1;
     } catch (error) {
       errors.push(`${label}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+  normalizeProductOrder();
   return { imported, updated, errors };
 }
 
@@ -1423,6 +1432,7 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
     }
   }
 
+  normalizeProductOrder();
   return { imported, errors };
 }
 
@@ -3319,7 +3329,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
                (SELECT COUNT(*) FROM product_variants v WHERE v.product_id = p.id) AS variant_count,
                (SELECT MIN(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS min_price,
                (SELECT MAX(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS max_price
-             FROM products p ${where} ORDER BY p.sort_order, p.name`,
+             FROM products p ${where} ORDER BY p.sort_order, p.id`,
           )
           .all(...params) as (ProductRow & { variant_count: number; min_price: number | null; max_price: number | null })[]
       ).map((product) => ({
@@ -3329,6 +3339,42 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         stockEmpty: product.stock === null,
       }));
       render(reply, 'admin/products.njk', adminContext(request, { products, q }));
+    });
+
+    // Sortierung ----------------------------------------------------------
+    scope.post<{ Params: { id: string } }>('/admin/produkte/:id/sortierung/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+      const body = bodyObject(request);
+      const direction = body.richtung === 'hoch' ? 'up' : body.richtung === 'runter' ? 'down' : null;
+      if (!direction) {
+        return reply.redirect(
+          `/admin/produkte/?fehler=${encodeURIComponent('Bitte eine Richtung angeben.')}`,
+          303,
+        );
+      }
+      const moved = moveProduct(id, direction);
+      writeAudit(request.admin?.email ?? 'admin', 'product.reorder', { id, direction, moved });
+      return reply.redirect('/admin/produkte/?sortiert=1', 303);
+    });
+
+    scope.post('/admin/produkte/sortierung/', async (request, reply) => {
+      const body = bodyObject(request);
+      const raw = body.ids;
+      const values = Array.isArray(raw) ? raw : [raw];
+      const ids = values
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value) && value > 0);
+      if (ids.length === 0) {
+        return reply.redirect(
+          `/admin/produkte/?fehler=${encodeURIComponent('Keine Produkte für die Sortierung übermittelt.')}`,
+          303,
+        );
+      }
+      const moved = applyProductOrder(ids);
+      writeAudit(request.admin?.email ?? 'admin', 'product.reorder', { count: ids.length, moved });
+      return reply.redirect('/admin/produkte/?sortiert=1', 303);
     });
 
     // Export / Import -----------------------------------------------------
@@ -3579,7 +3625,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const ids = idList(bodyObject(request).ids);
       const products = ids.length > 0
         ? (db()
-            .prepare(`SELECT * FROM products WHERE id IN (${ids.map(() => '?').join(',')}) ORDER BY sort_order, name`)
+            .prepare(`SELECT * FROM products WHERE id IN (${ids.map(() => '?').join(',')}) ORDER BY sort_order, id`)
             .all(...ids) as ProductRow[])
         : [];
       if (products.length === 0) {
@@ -3778,9 +3824,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.material || 'PLA',
           data.deliveryNote || 'Fertigung nach Bezahlung',
         );
-      saveProductCategories(Number(info.lastInsertRowid), bodyIds(body.productCategories).map(Number));
-      writeAudit(request.admin?.email ?? 'admin', 'product.create', { id: info.lastInsertRowid, slug: data.slug });
-      return reply.redirect(`/admin/produkte/${info.lastInsertRowid}/?gespeichert=1`, 303);
+      const newId = Number(info.lastInsertRowid);
+      saveProductCategories(newId, bodyIds(body.productCategories).map(Number));
+      assignProductSortOrder(newId, data.sortOrder);
+      writeAudit(request.admin?.email ?? 'admin', 'product.create', { id: newId, slug: data.slug, sortOrder: data.sortOrder });
+      return reply.redirect(`/admin/produkte/${newId}/?gespeichert=1`, 303);
     });
 
     scope.get<{ Params: { id: string } }>('/admin/produkte/:id/', async (request, reply) => {
@@ -3866,7 +3914,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           id,
         );
       saveProductCategories(id, bodyIds(body.productCategories).map(Number));
-      writeAudit(request.admin?.email ?? 'admin', 'product.update', { id, slug: data.slug });
+      assignProductSortOrder(id, data.sortOrder);
+      writeAudit(request.admin?.email ?? 'admin', 'product.update', { id, slug: data.slug, sortOrder: data.sortOrder });
       return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
     });
 

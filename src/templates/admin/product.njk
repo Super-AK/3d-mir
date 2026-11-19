@@ -113,6 +113,7 @@
       <div class="field">
         <label for="sortOrder">Sortierung</label>
         <input id="sortOrder" name="sortOrder" type="number" step="1" value="{{ form.sortOrder }}">
+        <span class="hint">Bei einer bereits vergebenen Nummer rücken die folgenden Produkte auf. Alternativ können Sie die Produkte in der Liste mit Pfeilen oder per Drag & Drop sortieren.</span>
       </div>
       <label class="admin-check">
         <input type="checkbox" name="active" value="1" {% if form.active %}checked{% endif %}>

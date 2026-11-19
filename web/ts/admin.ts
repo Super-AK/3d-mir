@@ -130,6 +130,90 @@ function initProductSelection(): void {
 initProductSelection();
 document.addEventListener('admin:filter-updated', initProductSelection);
 
+/**
+ * Produktliste: Sortierung per Drag & Drop. Die Pfeile in jeder Zeile
+ * funktionieren auch ohne JavaScript; hier wird nur das Ziehen ergänzt.
+ */
+function initProductSorting(): void {
+  const table = document.querySelector<HTMLTableElement>('[data-product-order-table]');
+  const tbody = table?.querySelector<HTMLTableSectionElement>('tbody');
+  const csrf = table?.dataset.csrf;
+  if (!tbody || !csrf || tbody.dataset.sortingBound === '1') return;
+  tbody.dataset.sortingBound = '1';
+
+  let dragged: HTMLTableRowElement | null = null;
+  const rows = (): HTMLTableRowElement[] =>
+    Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr[data-product-id]'));
+  const clearMarks = (): void => {
+    rows().forEach((row) => row.classList.remove('is-dragging', 'is-dragover'));
+  };
+
+  const save = (): void => {
+    const ids = rows()
+      .map((row) => row.dataset.productId)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length < 2) return;
+
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/admin/produkte/sortierung/';
+    const hidden = (name: string, value: string): void => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.append(input);
+    };
+    hidden('_csrf', csrf);
+    ids.forEach((id) => hidden('ids', id));
+    document.body.append(form);
+    form.submit();
+  };
+
+  tbody.addEventListener('dragstart', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('button, input, a, form')) {
+      event.preventDefault();
+      return;
+    }
+    const row = target.closest<HTMLTableRowElement>('tr[data-product-id]');
+    if (!row) return;
+    dragged = row;
+    row.classList.add('is-dragging');
+    event.dataTransfer?.setData('text/plain', row.dataset.productId ?? '');
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  });
+
+  tbody.addEventListener('dragover', (event) => {
+    const row = (event.target as HTMLElement).closest<HTMLTableRowElement>('tr[data-product-id]');
+    if (!dragged || !row) return;
+    // Das Drop muss auch dann erlaubt bleiben, wenn die gezogene Zeile nach
+    // dem Verschieben selbst unter dem Cursor liegt.
+    event.preventDefault();
+    if (row === dragged) return;
+    rows().forEach((item) => item.classList.remove('is-dragover'));
+    row.classList.add('is-dragover');
+    const bounds = row.getBoundingClientRect();
+    const insertAfter = event.clientY > bounds.top + bounds.height / 2;
+    tbody.insertBefore(dragged, insertAfter ? row.nextSibling : row);
+  });
+
+  tbody.addEventListener('drop', (event) => {
+    if (!dragged) return;
+    event.preventDefault();
+    clearMarks();
+    save();
+  });
+
+  tbody.addEventListener('dragend', () => {
+    dragged = null;
+    clearMarks();
+  });
+}
+
+initProductSorting();
+document.addEventListener('admin:filter-updated', initProductSorting);
+
 // Filterformulare: Auswahl im Dropdown lädt die Ansicht sofort neu.
 document.querySelectorAll<HTMLSelectElement>('[data-auto-submit]').forEach((select) => {
   select.addEventListener('change', () => {

@@ -1,7 +1,7 @@
 # Abschlussbericht
 
 **Projekt:** Neuaufbau der Website 3D-MIR (3D-Druck Service, Schömberg)
-**Stand:** 19. November 2026 · **Version:** 1.0.0-rc.46
+**Stand:** 19. November 2026 · **Version:** 1.0.0-rc.47
 **Technischer Status:** Release-Kandidat, alle geplanten Funktionen umgesetzt; Abnahme und Livegang offen
 
 ## 1. Ausgangslage und Ziel
@@ -20,7 +20,7 @@ Alle Alt-URLs werden dauerhaft per 301 auf die neuen Seiten umgeleitet. Rechtste
 | Shop | Produkte (inkl. 13 Etsy-Importe), Kategorien und Filter, Farbvarianten, Warenkorb, Kasse, Bestellbestätigung |
 | Recht | Impressum, Datenschutz, AGB, Widerruf, Versand, Zahlung – mit Prüfhinweis |
 | Kontakt | Formular mit IP-basierter Länderprüfung, Zeit-Token, Honeypot, Rate-Limit und Direktantwort im Admin |
-| Admin | Login, Dashboard mit Besucherstatistik, Stammdaten, Bestellungen, Anfragen, Nachrichten, Produkte, Kategorien, Preise, Zahlungen, Benachrichtigungen, Veröffentlichung, Rechtstexte, Etsy-Import, JSON-/CSV-Import und -Export, Passwort |
+| Admin | Login, Dashboard mit Besucherstatistik, Stammdaten, Bestellungen, Anfragen, Nachrichten, Produkte inkl. Sortierung per Pfeilen/Drag & Drop, Kategorien, Preise, Zahlungen, Benachrichtigungen, Veröffentlichung, Rechtstexte, Etsy-Import, JSON-/CSV-Import und -Export, Passwort |
 | SEO | Sitemap, robots.txt, Canonicals, JSON-LD, 301-Weiterleitungen, sprechende URLs |
 | Betrieb | NGINX, systemd, SQLite WAL, Backups, Update/Rollback, Verify-Skript, Dokumentation |
 

@@ -178,7 +178,7 @@ function listProducts(categorySlug?: string): ProductListItem[] {
          WHERE l.product_id = p.id ORDER BY c.sort_order, c.name LIMIT 1) AS category_name
        FROM products p
        WHERE p.active = 1 ${categoryFilter}
-       ORDER BY p.sort_order, p.name`,
+       ORDER BY p.sort_order, p.id`,
     )
     .all(...(categorySlug ? [categorySlug] : [])) as (ProductRow & {
     image: string | null;

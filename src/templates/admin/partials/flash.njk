@@ -10,6 +10,9 @@
 {% if meldung and meldung.geloescht %}
   <div class="alert alert-success" role="status"><p>{% if meldung.anzahl %}{{ meldung.anzahl }} Nachricht(en) wurden gelöscht.{% else %}Der Eintrag wurde gelöscht.{% endif %}</p></div>
 {% endif %}
+{% if meldung and meldung.sortiert %}
+  <div class="alert alert-success" role="status"><p>Die Sortierung wurde gespeichert.</p></div>
+{% endif %}
 {% if meldung and meldung.zurueckgesetzt %}
   <div class="alert alert-success" role="status"><p>Die Preise wurden auf die Grundeinstellung zurückgesetzt.</p></div>
 {% endif %}

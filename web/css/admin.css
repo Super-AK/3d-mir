@@ -517,6 +517,20 @@
   color: var(--danger);
 }
 
+/* Sortierung der Produktliste: Pfeile und Ziehen der Zeilen. */
+.admin-sort-cell { display: flex; align-items: center; gap: 0.35rem; }
+.admin-sort-grip { display: inline-flex; color: var(--text-muted); cursor: grab; }
+.admin-sort-grip svg { width: 0.9rem; height: 0.9rem; }
+.admin-sort-number { min-width: 1.5rem; text-align: right; font-variant-numeric: tabular-nums; }
+.admin-sort-controls { display: inline-flex; gap: 0.2rem; }
+.admin-sort-controls form { display: inline-flex; margin: 0; }
+.admin-sort-controls .admin-icon-btn { width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; }
+.admin-sort-controls .admin-icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.admin-sort-controls .admin-icon-btn:disabled::after { display: none; }
+table[data-product-order-table] tbody tr[draggable="true"] { cursor: grab; }
+table[data-product-order-table] tbody tr.is-dragging { opacity: 0.45; }
+table[data-product-order-table] tbody tr.is-dragover td { border-top: 2px solid var(--accent); }
+
 /* Tooltip ohne JavaScript; Text kommt aus data-tooltip. */
 .admin-icon-btn::after {
   content: attr(data-tooltip);

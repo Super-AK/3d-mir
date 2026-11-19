@@ -39,8 +39,14 @@
         <input type="hidden" name="_csrf" value="{{ csrf }}">
       </form>
 
+      {% if q %}
+        <p class="hint">Zum Sortieren bitte die Suche zurücksetzen – die Reihenfolge bezieht sich immer auf alle Produkte.</p>
+      {% else %}
+        <p class="hint">Sortierung: Zeilen mit der Maus ziehen oder die Pfeile nutzen. Die Nummern werden dabei fortlaufend vergeben.</p>
+      {% endif %}
+
       <div class="table-wrap">
-        <table>
+        <table data-product-order-table data-csrf="{{ csrf }}">
           <thead>
             <tr>
               <th class="admin-check-cell"><input type="checkbox" data-select-all aria-label="Alle Produkte auswählen"></th>
@@ -50,12 +56,13 @@
               <th>Varianten</th>
               <th>Lager</th>
               <th>Status</th>
+              <th>Sortierung</th>
               <th>Aktionen</th>
             </tr>
           </thead>
           <tbody>
             {% for product in products %}
-              <tr>
+              <tr data-product-id="{{ product.id }}" {% if not q %}draggable="true"{% endif %}>
                 <td class="admin-check-cell">
                   <input type="checkbox" name="ids" value="{{ product.id }}" form="bulk-delete-form" data-select-product aria-label="Produkt {{ product.name }} auswählen">
                 </td>
@@ -65,6 +72,28 @@
                 <td>{{ product.variant_count }}</td>
                 <td><span class="{% if product.stockEmpty %}text-muted{% endif %}">{{ product.stockLabel }}</span></td>
                 <td>{% if product.active %}<span class="badge badge-success">Aktiv</span>{% else %}<span class="badge badge-neutral">Inaktiv</span>{% endif %}</td>
+                <td>
+                  {% if q %}
+                    <span class="text-muted">{{ product.sort_order }}</span>
+                  {% else %}
+                    <div class="admin-sort-cell">
+                      <span class="admin-sort-grip" aria-hidden="true">{{ icon('grip') }}</span>
+                      <span class="admin-sort-number">{{ product.sort_order }}</span>
+                      <span class="admin-sort-controls">
+                        <form method="post" action="/admin/produkte/{{ product.id }}/sortierung/">
+                          <input type="hidden" name="_csrf" value="{{ csrf }}">
+                          <input type="hidden" name="richtung" value="hoch">
+                          <button class="admin-icon-btn" type="submit" data-tooltip="Nach oben" aria-label="Produkt {{ product.name }} nach oben verschieben" {% if loop.first %}disabled{% endif %}>{{ icon('arrow-up') }}</button>
+                        </form>
+                        <form method="post" action="/admin/produkte/{{ product.id }}/sortierung/">
+                          <input type="hidden" name="_csrf" value="{{ csrf }}">
+                          <input type="hidden" name="richtung" value="runter">
+                          <button class="admin-icon-btn" type="submit" data-tooltip="Nach unten" aria-label="Produkt {{ product.name }} nach unten verschieben" {% if loop.last %}disabled{% endif %}>{{ icon('arrow-down') }}</button>
+                        </form>
+                      </span>
+                    </div>
+                  {% endif %}
+                </td>
                 <td>
                   <div class="admin-icon-actions">
                     <form method="post" action="/admin/produkte/{{ product.id }}/kopieren/">

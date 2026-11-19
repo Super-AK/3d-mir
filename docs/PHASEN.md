@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.47 – 19. November 2026
+
+Produkte lassen sich in der Liste per Pfeilen oder Drag & Drop sortieren.
+Sortiernummern werden nach jeder Änderung eindeutig auf `1..n` vergeben; eine
+bereits vergebene Nummer schiebt die folgenden Produkte weiter. Migration
+`019_product_sort_order.sql` bereinigt bestehende Doppelungen.
+
 ## Release 1.0.0-rc.46 – 19. November 2026
 
 Produkte lassen sich zusätzlich zum JSON-Format als CSV exportieren und

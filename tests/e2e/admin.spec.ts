@@ -126,6 +126,38 @@ test.describe('Admin', () => {
     await expect(page.getByRole('link', { name: 'CSV-Export' })).toBeVisible();
     await expect(page.locator('[data-select-product]').first()).toBeVisible();
 
+    // Sortierung: Pfeile verschieben Nachbarn und vergeben eindeutige Nummern.
+    await page.goto('/admin/produkte/');
+    const orderRows = page.locator('table[data-product-order-table] tbody tr');
+    expect(await orderRows.count()).toBeGreaterThan(1);
+    await expect(page.locator('.admin-sort-grip').first()).toBeVisible();
+    const firstName = await orderRows.first().locator('strong').innerText();
+    const secondName = await orderRows.nth(1).locator('strong').innerText();
+    await orderRows.first().getByRole('button', { name: /nach unten verschieben/ }).click();
+    await expect(page).toHaveURL(/\/admin\/produkte\/\?sortiert=1/);
+    await expect(page.getByText('Die Sortierung wurde gespeichert.')).toBeVisible();
+    await expect(orderRows.first().locator('strong')).toHaveText(secondName);
+    await expect(orderRows.nth(1).locator('strong')).toHaveText(firstName);
+    const orderNumbers = await page.locator('.admin-sort-number').allInnerTexts();
+    expect(new Set(orderNumbers).size).toBe(orderNumbers.length);
+
+    // Ausgangsreihenfolge wiederherstellen, damit der Lauf wiederholbar ist.
+    await orderRows.nth(1).getByRole('button', { name: /nach oben verschieben/ }).click();
+    await expect(orderRows.first().locator('strong')).toHaveText(firstName);
+
+    // Drag & Drop: erste Zeile unter die zweite ziehen und wieder zurück.
+    await orderRows.nth(1).scrollIntoViewIfNeeded();
+    const sourceBox = await orderRows.first().boundingBox();
+    const targetBox = await orderRows.nth(1).boundingBox();
+    if (!sourceBox || !targetBox) throw new Error('Produktzeilen sind nicht sichtbar.');
+    await page.mouse.move(sourceBox.x + 600, sourceBox.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(targetBox.x + 600, targetBox.y + targetBox.height - 10, { steps: 15 });
+    await page.mouse.up();
+    await expect(orderRows.first().locator('strong')).toHaveText(secondName);
+    await orderRows.nth(1).getByRole('button', { name: /nach oben verschieben/ }).click();
+    await expect(orderRows.first().locator('strong')).toHaveText(firstName);
+
     // CSV-Export liefert eine Datei mit BOM und bekannter Kopfzeile.
     const [csvDownload] = await Promise.all([
       page.waitForEvent('download'),
