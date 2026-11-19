@@ -18,16 +18,19 @@ import {
 import { z } from 'zod';
 import { config, webauthn, type PricingConfig } from '../config.js';
 import { getDb } from '../db/index.js';
-import { render, imagePreview, UPLOAD_PREFIX } from '../lib/render.js';
+import { render, imagePreview, imageSourceFile, UPLOAD_PREFIX } from '../lib/render.js';
+import { applyImageOrder, assignImageSortOrder, moveImage } from '../lib/image-order.js';
 import {
   ALLOWED_IMAGE_TYPES,
   MAX_PRODUCT_IMAGE_BYTES,
   MAX_PRODUCT_IMAGES,
   ProductImageError,
+  cropProductImage,
   deleteProductImageFiles,
   mediaFile,
   storeProductImage,
   storeSiteImage,
+  type CropRect,
   type UploadedImage,
 } from '../lib/product-images.js';
 import { resetMailTransporter, sendMail } from '../lib/mailer.js';
@@ -980,9 +983,28 @@ function imagesFor(productId: number): ImageRow[] {
 function imageRowsFor(productId: number) {
   return imagesFor(productId).map((image) => ({
     ...image,
-    previewUrl: imagePreview(image.file, 400),
+    // Kleine Datei für die Miniatur, große Vorschau für den Zuschnitt.
+    previewUrl: imagePreview(image.file, 200),
+    cropUrl: imagePreview(image.file, 1200),
+    canCrop: Boolean(imageSourceFile(image.file)),
     isUpload: image.file.startsWith(UPLOAD_PREFIX),
   }));
+}
+
+/** Liest die normalisierten Zuschnitt-Koordinaten aus einem Formular. */
+function cropRectFrom(body: Record<string, unknown>): CropRect | null {
+  const values = ['x', 'y', 'width', 'height'].map((key) => Number(body[key]));
+  if (values.some((value) => !Number.isFinite(value))) return null;
+  const [x, y, width, height] = values as [number, number, number, number];
+  if (x < 0 || y < 0 || width <= 0 || height <= 0 || x + width > 1.001 || y + height > 1.001) {
+    return null;
+  }
+  return {
+    x: Math.min(1, x),
+    y: Math.min(1, y),
+    width: Math.min(width, 1 - x),
+    height: Math.min(height, 1 - y),
+  };
 }
 
 async function readImageUpload(request: FastifyRequest): Promise<{
@@ -4084,15 +4106,105 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         }
 
         const alt = cleanText(body.alt, 200);
-        const sortOrder = intOrNull(body.sortOrder);
-        if (sortOrder === null || sortOrder < 0 || sortOrder > 1000) {
-          return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte eine Sortierung zwischen 0 und 1000 angeben.')}`, 303);
+        if (body.sortOrder !== undefined && body.sortOrder !== '') {
+          const sortOrder = intOrNull(body.sortOrder);
+          if (sortOrder === null || sortOrder < 0 || sortOrder > 1000) {
+            return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte eine Sortierung zwischen 0 und 1000 angeben.')}`, 303);
+          }
+          assignImageSortOrder(id, imageId, sortOrder);
         }
         db()
-          .prepare('UPDATE product_images SET alt = ?, sort_order = ? WHERE id = ? AND product_id = ?')
-          .run(alt, sortOrder, imageId, id);
+          .prepare('UPDATE product_images SET alt = ? WHERE id = ? AND product_id = ?')
+          .run(alt, imageId, id);
         writeAudit(request.admin?.email ?? 'admin', 'product.image.update', { product: id, image: imageId });
         return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
+      },
+    );
+
+    // Bildsortierung ------------------------------------------------------
+    scope.post<{ Params: { id: string; imageId: string } }>(
+      '/admin/produkte/:id/bilder/:imageId/sortierung/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        const imageId = Number(request.params.imageId);
+        const product = Number.isInteger(id) ? findProduct(id) : undefined;
+        const image = Number.isInteger(imageId)
+          ? db().prepare('SELECT id FROM product_images WHERE id = ? AND product_id = ?').get(imageId, id)
+          : undefined;
+        if (!product || !image) return adminError(request, reply, 404, 'Dieses Bild wurde nicht gefunden.');
+        const body = bodyObject(request);
+        const direction = body.richtung === 'hoch' ? 'up' : body.richtung === 'runter' ? 'down' : null;
+        if (!direction) {
+          return reply.redirect(
+            `/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte eine Richtung angeben.')}`,
+            303,
+          );
+        }
+        const moved = moveImage(id, imageId, direction);
+        writeAudit(request.admin?.email ?? 'admin', 'product.image.reorder', { product: id, image: imageId, direction, moved });
+        return reply.redirect(`/admin/produkte/${id}/?sortiert=1`, 303);
+      },
+    );
+
+    scope.post<{ Params: { id: string } }>(
+      '/admin/produkte/:id/bilder/sortierung/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        const product = Number.isInteger(id) ? findProduct(id) : undefined;
+        if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+        const body = bodyObject(request);
+        const raw = body.ids;
+        const values = Array.isArray(raw) ? raw : [raw];
+        const ids = values
+          .map((value) => Number(value))
+          .filter((value) => Number.isInteger(value) && value > 0);
+        if (ids.length === 0) {
+          return reply.redirect(
+            `/admin/produkte/${id}/?fehler=${encodeURIComponent('Keine Bilder für die Sortierung übermittelt.')}`,
+            303,
+          );
+        }
+        const moved = applyImageOrder(id, ids);
+        writeAudit(request.admin?.email ?? 'admin', 'product.image.reorder', { product: id, count: ids.length, moved });
+        return reply.redirect(`/admin/produkte/${id}/?sortiert=1`, 303);
+      },
+    );
+
+    // Bild zuschneiden ----------------------------------------------------
+    scope.post<{ Params: { id: string; imageId: string } }>(
+      '/admin/produkte/:id/bilder/:imageId/zuschneiden/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        const imageId = Number(request.params.imageId);
+        const product = Number.isInteger(id) ? findProduct(id) : undefined;
+        const image = Number.isInteger(imageId)
+          ? db().prepare('SELECT * FROM product_images WHERE id = ? AND product_id = ?').get(imageId, id) as ImageRow | undefined
+          : undefined;
+        if (!product || !image) return adminError(request, reply, 404, 'Dieses Bild wurde nicht gefunden.');
+
+        const rect = cropRectFrom(bodyObject(request));
+        if (!rect) {
+          return reply.redirect(
+            `/admin/produkte/${id}/?fehler=${encodeURIComponent('Der Ausschnitt ist ungültig. Bitte erneut versuchen.')}`,
+            303,
+          );
+        }
+
+        try {
+          const stored = await cropProductImage(id, image.file, rect);
+          db().transaction(() => {
+            db()
+              .prepare('UPDATE product_images SET file = ? WHERE id = ? AND product_id = ?')
+              .run(stored, imageId, id);
+            if (image.file.startsWith(UPLOAD_PREFIX)) deleteProductImageFiles(image.file);
+          })();
+          writeAudit(request.admin?.email ?? 'admin', 'product.image.crop', { product: id, image: imageId, rect });
+          return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
+        } catch (error) {
+          const message = error instanceof ProductImageError ? error.message : 'Das Bild konnte nicht zugeschnitten werden.';
+          request.log.warn({ err: error, product: id, image: imageId }, 'Produktbild konnte nicht zugeschnitten werden');
+          return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent(message)}`, 303);
+        }
       },
     );
 

@@ -1,4 +1,5 @@
 {% extends "layouts/admin.njk" %}
+{% from "admin/partials/icons.njk" import icon %}
 
 {% block title %}{% if isNew %}Neues Produkt{% else %}{{ product.name }}{% endif %} – 3D-MIR Admin{% endblock %}
 
@@ -219,34 +220,88 @@
       <p class="text-muted">JPG, PNG, WebP oder AVIF, maximal 12 MB und 12 Bilder pro Produkt. Beim Hochladen werden automatisch AVIF-, WebP- und JPG-Varianten erzeugt und Metadaten entfernt.</p>
 
       {% if images.length > 0 %}
-        <div class="admin-image-grid">
+        <p class="hint">Reihenfolge: Karten ziehen oder die Pfeile nutzen. Mit dem Stift lässt sich jedes Bild zuschneiden. Die Nummern werden fortlaufend vergeben.</p>
+        <div class="admin-image-grid" data-image-order-list data-product-id="{{ product.id }}" data-csrf="{{ csrf }}">
           {% for image in images %}
-            <form class="admin-image-card" method="post" action="/admin/produkte/{{ product.id }}/bilder/{{ image.id }}/">
-              <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <div class="admin-image-card" data-image-id="{{ image.id }}" data-crop-url="{{ image.cropUrl }}" data-crop-label="{{ image.alt or product.name }}" {% if images.length > 1 %}draggable="true"{% endif %}>
+              <div class="admin-image-card-head">
+                <span class="admin-sort-grip" aria-hidden="true">{{ icon('grip') }}</span>
+                <span class="admin-sort-number">{{ loop.index }}</span>
+                <span class="admin-sort-controls">
+                  <form method="post" action="/admin/produkte/{{ product.id }}/bilder/{{ image.id }}/sortierung/">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <input type="hidden" name="richtung" value="hoch">
+                    <button class="admin-icon-btn" type="submit" data-tooltip="Nach oben" aria-label="Bild {{ loop.index }} nach oben verschieben" {% if loop.first %}disabled{% endif %}>{{ icon('arrow-up') }}</button>
+                  </form>
+                  <form method="post" action="/admin/produkte/{{ product.id }}/bilder/{{ image.id }}/sortierung/">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <input type="hidden" name="richtung" value="runter">
+                    <button class="admin-icon-btn" type="submit" data-tooltip="Nach unten" aria-label="Bild {{ loop.index }} nach unten verschieben" {% if loop.last %}disabled{% endif %}>{{ icon('arrow-down') }}</button>
+                  </form>
+                </span>
+              </div>
+              {% if image.canCrop %}
+                <button type="button" class="admin-image-edit" data-product-image-crop aria-label="Bild zuschneiden: {{ image.alt or product.name }}" title="Bild zuschneiden">
+                  <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 16h3l8.5-8.5a1.8 1.8 0 0 0-2.5-2.5L4.5 13.5V16Z"/></svg>
+                </button>
+              {% endif %}
               {% if image.previewUrl %}
-                <img src="{{ image.previewUrl }}" alt="{{ image.alt }}" width="400" height="300" loading="lazy" decoding="async">
+                <img src="{{ image.previewUrl }}" alt="{{ image.alt }}" width="240" height="160" loading="lazy" decoding="async" draggable="false">
               {% else %}
                 <p class="text-muted"><small>Vorschau nicht verfügbar</small></p>
               {% endif %}
-              <div class="field">
-                <label for="image_{{ image.id }}_alt">Alternativtext</label>
-                <input id="image_{{ image.id }}_alt" name="alt" type="text" maxlength="200" value="{{ image.alt }}">
-              </div>
-              <div class="field">
-                <label for="image_{{ image.id }}_sort">Sortierung</label>
-                <input id="image_{{ image.id }}_sort" name="sortOrder" type="number" min="0" max="1000" step="1" value="{{ image.sort_order }}">
-              </div>
-              <div class="admin-image-actions">
-                <label class="admin-check admin-check-inline">
-                  <input type="checkbox" name="delete" value="1">
-                  <span>löschen</span>
-                </label>
-                <button class="btn btn-small" type="submit">Speichern</button>
-              </div>
+              <form class="admin-image-settings" method="post" action="/admin/produkte/{{ product.id }}/bilder/{{ image.id }}/">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <div class="field">
+                  <label for="image_{{ image.id }}_alt">Alternativtext</label>
+                  <input id="image_{{ image.id }}_alt" name="alt" type="text" maxlength="200" value="{{ image.alt }}">
+                </div>
+                <div class="admin-image-actions">
+                  <label class="admin-check admin-check-inline">
+                    <input type="checkbox" name="delete" value="1">
+                    <span>löschen</span>
+                  </label>
+                  <button class="btn btn-small" type="submit">Speichern</button>
+                </div>
+              </form>
               <small class="text-muted"><code class="admin-code">{{ image.file }}</code></small>
-            </form>
+            </div>
           {% endfor %}
         </div>
+
+        <dialog class="admin-modal" data-product-crop-modal>
+          <form class="admin-modal-form" method="post" data-product-crop-form>
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="x" value="0" data-crop-x>
+            <input type="hidden" name="y" value="0" data-crop-y>
+            <input type="hidden" name="width" value="1" data-crop-width>
+            <input type="hidden" name="height" value="1" data-crop-height>
+            <div class="admin-modal-head">
+              <h2>Bild zuschneiden</h2>
+              <button type="button" class="admin-modal-close" data-modal-close aria-label="Schließen">&times;</button>
+            </div>
+            <p class="text-muted" data-product-crop-name></p>
+            <div class="admin-crop">
+              <div class="admin-crop-stage" data-product-crop-stage>
+                <img data-product-crop-image alt="Vorschau mit Zuschnitt">
+                <div class="admin-crop-box" data-product-crop-box>
+                  <span class="admin-crop-handle" data-crop-handle="nw"></span>
+                  <span class="admin-crop-handle" data-crop-handle="ne"></span>
+                  <span class="admin-crop-handle" data-crop-handle="sw"></span>
+                  <span class="admin-crop-handle" data-crop-handle="se"></span>
+                </div>
+              </div>
+              <div class="admin-crop-actions">
+                <button type="button" class="btn btn-secondary btn-small" data-product-crop-reset>Ausschnitt zurücksetzen</button>
+                <span class="hint">Ziehen zum Verschieben, an den Ecken ziehen zum Verkleinern.</span>
+              </div>
+            </div>
+            <div class="admin-modal-actions">
+              <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+              <button type="submit" class="btn">Zuschnitt speichern</button>
+            </div>
+          </form>
+        </dialog>
       {% else %}
         <p class="text-muted">Für dieses Produkt ist noch kein Bild hinterlegt.</p>
       {% endif %}

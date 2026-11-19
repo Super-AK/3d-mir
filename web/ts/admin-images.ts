@@ -641,6 +641,132 @@ function initGalleryOrder(): void {
   }
 }
 
+/** Zuschneiden eines vorhandenen Produktbilds im Modalfenster. */
+function initProductImageCrop(): void {
+  const dialog = document.querySelector<HTMLDialogElement>('[data-product-crop-modal]');
+  if (!dialog) return;
+
+  const form = dialog.querySelector<HTMLFormElement>('[data-product-crop-form]');
+  const image = dialog.querySelector<HTMLImageElement>('[data-product-crop-image]');
+  const box = dialog.querySelector<HTMLElement>('[data-product-crop-box]');
+  const name = dialog.querySelector<HTMLElement>('[data-product-crop-name]');
+  const resetButton = dialog.querySelector<HTMLButtonElement>('[data-product-crop-reset]');
+  const xField = dialog.querySelector<HTMLInputElement>('[data-crop-x]');
+  const yField = dialog.querySelector<HTMLInputElement>('[data-crop-y]');
+  const widthField = dialog.querySelector<HTMLInputElement>('[data-crop-width]');
+  const heightField = dialog.querySelector<HTMLInputElement>('[data-crop-height]');
+  const productId = document.querySelector<HTMLElement>('[data-image-order-list]')?.dataset.productId;
+
+  if (!form || !image || !box || !name || !resetButton || !productId ||
+      !xField || !yField || !widthField || !heightField) {
+    return;
+  }
+
+  let rect = { x: 0, y: 0, w: 0, h: 0 };
+  let card: HTMLElement | null = null;
+
+  const applyRect = (): void => {
+    box.style.left = `${Math.round(rect.x)}px`;
+    box.style.top = `${Math.round(rect.y)}px`;
+    box.style.width = `${Math.round(rect.w)}px`;
+    box.style.height = `${Math.round(rect.h)}px`;
+  };
+
+  const resetRect = (): void => {
+    if (!image.clientWidth || !image.clientHeight) return;
+    rect = { x: 0, y: 0, w: image.clientWidth, h: image.clientHeight };
+    applyRect();
+  };
+
+  const startDrag = (event: PointerEvent, mode: 'move' | string): void => {
+    if (image.clientWidth === 0) return;
+    event.preventDefault();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startRect = { ...rect };
+    const boundsW = image.clientWidth;
+    const boundsH = image.clientHeight;
+    const minSize = 24;
+
+    const onMove = (moveEvent: PointerEvent): void => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      if (mode === 'move') {
+        rect.x = Math.min(Math.max(0, startRect.x + dx), Math.max(0, boundsW - startRect.w));
+        rect.y = Math.min(Math.max(0, startRect.y + dy), Math.max(0, boundsH - startRect.h));
+      } else {
+        const right = startRect.x + startRect.w;
+        const bottom = startRect.y + startRect.h;
+        if (mode.includes('w')) {
+          const nextX = Math.min(Math.max(0, startRect.x + dx), right - minSize);
+          rect.x = nextX;
+          rect.w = right - nextX;
+        }
+        if (mode.includes('e')) rect.w = Math.min(Math.max(minSize, startRect.w + dx), boundsW - startRect.x);
+        if (mode.includes('n')) {
+          const nextY = Math.min(Math.max(0, startRect.y + dy), bottom - minSize);
+          rect.y = nextY;
+          rect.h = bottom - nextY;
+        }
+        if (mode.includes('s')) rect.h = Math.min(Math.max(minSize, startRect.h + dy), boundsH - startRect.y);
+      }
+      applyRect();
+    };
+
+    const onUp = (): void => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
+  box.addEventListener('pointerdown', (event) => {
+    const handle = (event.target as HTMLElement).closest<HTMLElement>('[data-crop-handle]');
+    startDrag(event, handle?.dataset.cropHandle ?? 'move');
+  });
+  resetButton.addEventListener('click', resetRect);
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-product-image-crop]')) {
+    button.addEventListener('click', () => {
+      card = button.closest<HTMLElement>('.admin-image-card[data-image-id]');
+      const url = card?.dataset.cropUrl;
+      const imageId = card?.dataset.imageId;
+      if (!card || !url || !imageId) return;
+
+      form.action = `/admin/produkte/${productId}/bilder/${imageId}/zuschneiden/`;
+      name.textContent = card.dataset.cropLabel ?? '';
+      image.onload = resetRect;
+      openDialog(dialog);
+      image.src = url;
+      if (image.complete && image.naturalWidth > 0) resetRect();
+    });
+  }
+
+  for (const closer of dialog.querySelectorAll<HTMLElement>('[data-modal-close]')) {
+    closer.addEventListener('click', () => closeDialog(dialog));
+  }
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) closeDialog(dialog);
+  });
+  dialog.addEventListener('close', () => {
+    card = null;
+  });
+
+  form.addEventListener('submit', () => {
+    const width = image.clientWidth;
+    const height = image.clientHeight;
+    if (!width || !height || rect.w < 1 || rect.h < 1) return;
+    // Der Server rechnet mit Anteilen, damit auch alte Bilder ohne
+    // Originaldatei (nur mit Varianten) zugeschnitten werden können.
+    xField.value = (rect.x / width).toFixed(6);
+    yField.value = (rect.y / height).toFixed(6);
+    widthField.value = (rect.w / width).toFixed(6);
+    heightField.value = (rect.h / height).toFixed(6);
+  });
+}
+
 initImageModal();
 initGalleryModal();
 initGalleryOrder();
+initProductImageCrop();

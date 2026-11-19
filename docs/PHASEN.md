@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.49 – 19. November 2026
+
+Produktbilder lassen sich per Pfeilen oder Drag & Drop sortieren und über einen
+Dialog zuschneiden. Die Miniaturen im Admin sind kleiner; die Sortiernummern
+bleiben eindeutig. Für bestehende Bilder ohne gespeichertes Original wird die
+größte vorhandene Variante als Quelle verwendet.
+
 ## Release 1.0.0-rc.48 – 19. November 2026
 
 Optionaler Personalisierungs-Aufpreis pro Produkt und Stück. Er wird nur bei

@@ -3,6 +3,23 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.49] – 2026-11-19
+
+### Hinzugefügt
+
+- **Produktbilder einfach sortieren:** Die Bilderkarte zeigt die laufende Nummer
+  sowie Pfeile nach oben/unten; außerdem lassen sich die Karten per Drag & Drop
+  ziehen. Die Nummern werden nach jeder Änderung eindeutig auf `1..n`
+  normalisiert. Pfeile funktionieren ohne JavaScript, Drag & Drop als
+  progressive Enhancement.
+- **Zuschneiden von Produktbildern:** Über den Stift auf einer Bilderkarte
+  öffnet sich ein Dialog mit verschiebbarem Ausschnitt. Beim Speichern wird aus dem
+  metadatenfreien Original ein neues Bild erzeugt; bestehende Bilder ohne
+  Originaldatei nutzen die größte gespeicherte Variante. Audit-Eintrag
+  `product.image.crop`.
+- Kleinere Miniaturen in der Admin-Bildverwaltung (240 px-Variante, 112 px hoch)
+  und kompaktere Karten.
+
 ## [1.0.0-rc.48] – 2026-11-19
 
 ### Hinzugefügt

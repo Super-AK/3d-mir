@@ -214,6 +214,89 @@ function initProductSorting(): void {
 initProductSorting();
 document.addEventListener('admin:filter-updated', initProductSorting);
 
+/**
+ * Produktbilder: Sortierung per Drag & Drop. Die Pfeile in den Karten
+ * funktionieren auch ohne JavaScript; hier wird nur das Ziehen ergänzt.
+ */
+function initProductImageSorting(): void {
+  const list = document.querySelector<HTMLElement>('[data-image-order-list]');
+  const csrf = list?.dataset.csrf;
+  const productId = list?.dataset.productId;
+  if (!list || !csrf || !productId || list.dataset.sortingBound === '1') return;
+  list.dataset.sortingBound = '1';
+
+  let dragged: HTMLElement | null = null;
+  const cards = (): HTMLElement[] =>
+    Array.from(list.querySelectorAll<HTMLElement>('.admin-image-card[data-image-id]'));
+  const clearMarks = (): void => {
+    cards().forEach((card) => card.classList.remove('is-dragging', 'is-dragover'));
+  };
+
+  const save = (): void => {
+    const ids = cards()
+      .map((card) => card.dataset.imageId)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length < 2) return;
+
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = `/admin/produkte/${productId}/bilder/sortierung/`;
+    const hidden = (name: string, value: string): void => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.append(input);
+    };
+    hidden('_csrf', csrf);
+    ids.forEach((id) => hidden('ids', id));
+    document.body.append(form);
+    form.submit();
+  };
+
+  list.addEventListener('dragstart', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('button, input, textarea, a, form')) {
+      event.preventDefault();
+      return;
+    }
+    const card = target.closest<HTMLElement>('.admin-image-card[data-image-id]');
+    if (!card) return;
+    dragged = card;
+    card.classList.add('is-dragging');
+    event.dataTransfer?.setData('text/plain', card.dataset.imageId ?? '');
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  });
+
+  list.addEventListener('dragover', (event) => {
+    const card = (event.target as HTMLElement).closest<HTMLElement>('.admin-image-card[data-image-id]');
+    if (!dragged || !card) return;
+    // Auch über der gezogenen Karte muss das Drop erlaubt bleiben.
+    event.preventDefault();
+    if (card === dragged) return;
+    cards().forEach((item) => item.classList.remove('is-dragover'));
+    card.classList.add('is-dragover');
+    const bounds = card.getBoundingClientRect();
+    const after = event.clientY > bounds.top + bounds.height / 2
+      || event.clientX > bounds.left + bounds.width / 2;
+    list.insertBefore(dragged, after ? card.nextSibling : card);
+  });
+
+  list.addEventListener('drop', (event) => {
+    if (!dragged) return;
+    event.preventDefault();
+    clearMarks();
+    save();
+  });
+
+  list.addEventListener('dragend', () => {
+    dragged = null;
+    clearMarks();
+  });
+}
+
+initProductImageSorting();
+
 // Filterformulare: Auswahl im Dropdown lädt die Ansicht sofort neu.
 document.querySelectorAll<HTMLSelectElement>('[data-auto-submit]').forEach((select) => {
   select.addEventListener('change', () => {

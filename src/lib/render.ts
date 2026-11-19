@@ -115,6 +115,34 @@ function uploadedImage(key: string, options: ImageOptions): string {
 }
 
 /** Vorschaubild für Admin-Listen – funktioniert für Manifest- und Upload-Bilder. */
+/**
+ * Lesbare Quelldatei eines Bildes für die Bearbeitung im Admin.
+ *
+ * Bei hochgeladenen Bildern wird das gespeicherte Original bevorzugt. Ältere
+ * Uploads ohne Original nutzen die größte JPG-Variante, Stammdatenbilder die
+ * größte Variante aus dem Manifest.
+ */
+export function imageSourceFile(name: string): string | null {
+  if (name.startsWith(UPLOAD_PREFIX)) {
+    const key = name.slice(UPLOAD_PREFIX.length);
+    const root = path.resolve(config.uploadDir, 'media');
+    const base = path.resolve(root, key);
+    if (!base.startsWith(`${root}${path.sep}`)) return null;
+    const source = `${base}.source`;
+    if (fs.existsSync(source)) return source;
+    const info = loadUploadedImage(key);
+    const largest = info?.variants[info.variants.length - 1];
+    if (!largest) return null;
+    const variant = `${base}-${largest.width}.jpg`;
+    return fs.existsSync(variant) ? variant : null;
+  }
+  const info = loadImageManifest()[name];
+  const largest = info?.variants[info.variants.length - 1];
+  if (!largest) return null;
+  const file = path.join(config.root, 'web', 'static', largest.jpg.replace(/^\//, ''));
+  return fs.existsSync(file) ? file : null;
+}
+
 export function imagePreview(name: string, width = 480): string {
   if (name.startsWith(UPLOAD_PREFIX)) {
     const key = name.slice(UPLOAD_PREFIX.length);
