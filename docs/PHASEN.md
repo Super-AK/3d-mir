@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.44 – 19. November 2026
+
+Mobile Anzeige der Nachrichtenliste korrigiert: Die Tabelle liegt in einer
+Karte und scrollt dort. Gesperrte Absender und Kategorien sind ebenfalls
+betroffen; E2E-Prüfung bei 390 px Breite ergänzt.
+
 ## Release 1.0.0-rc.43 – 17. November 2026
 
 Zusatzinfo pro Versandart, z. B. „Versichert bis 500 €“. Sie erscheint im

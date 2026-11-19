@@ -416,6 +416,9 @@
 .admin-row-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
 .admin-row-actions form { margin: 0; }
 
+/* Tabellen in Admin-Karten: breite Tabellen scrollen nur innerhalb der Karte. */
+.admin-table-wrap { max-width: 100%; overflow-x: auto; }
+
 /* Kompakte Icon-Aktionen in Tabellen */
 .admin-icon-actions {
   display: flex;

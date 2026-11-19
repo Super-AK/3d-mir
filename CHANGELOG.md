@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.44] – 2026-11-19
+
+### Behoben
+
+- **Nachrichtenliste auf dem Handy:** Die Tabelle liegt jetzt wie bei Produkten
+  und Anfragen in einer Karte und scrollt innerhalb dieser. Die gesamte Seite
+  wird nicht mehr seitlich verschoben.
+- Die gleiche Korrektur gilt für die Tabelle „Gesperrte und auffällige
+  Absender“ und für die Kategorieliste.
+- E2E-Prüfung der Nachrichtenliste bei 390 px Breite ergänzt.
+
 ## [1.0.0-rc.43] – 2026-11-17
 
 ### Hinzugefügt

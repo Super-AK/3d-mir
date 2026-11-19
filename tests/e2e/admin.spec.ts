@@ -109,6 +109,18 @@ test.describe('Admin', () => {
     await expect(page.getByRole('heading', { name: 'Bild hinzufügen', exact: true })).toBeVisible();
     await expect(page.locator('#image_file')).toHaveAttribute('multiple', '');
 
+    // Nachrichtenliste auf dem Handy: Die Tabelle bleibt in einer Karte und
+    // scrollt dort, statt die gesamte Seite zu verschieben.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/admin/nachrichten/');
+    if (await page.locator('.admin-message-table').count()) {
+      const wrapper = page.locator('.admin-message-table').locator('xpath=ancestor::div[contains(@class, "table-wrap")]');
+      await expect(wrapper).toHaveCSS('overflow-x', 'auto');
+    }
+    const pageOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(pageOverflow).toBeLessThanOrEqual(1);
+
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/admin/');
     await page.getByRole('button', { name: 'Abmelden' }).click();
     await expect(page).toHaveURL(/\/admin\/login\/\?abgemeldet=1/);
