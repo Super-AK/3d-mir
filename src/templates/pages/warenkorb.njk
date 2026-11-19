@@ -35,7 +35,7 @@
                 <h2><a href="/shop/{{ line.productSlug }}/">{{ line.productName }}</a></h2>
                 {% if line.variantLabel %}<p class="text-muted">Variante: {{ line.variantLabel }}</p>{% endif %}
                 {% if line.color %}<p class="text-muted">Farbe: {{ line.color }}</p>{% endif %}
-                {% if line.personalization %}<p class="text-muted">Personalisierung: {{ line.personalization }}</p>{% endif %}
+                {% if line.personalization %}<p class="text-muted">Personalisierung: {{ line.personalization }}{% if line.personalizationSurchargeCents > 0 %} (+ {{ line.personalizationSurchargeCents | price }} pro Stück){% endif %}</p>{% endif %}
                 <p class="cart-unit-price">{{ line.unitPriceCents | price }} pro Stück</p>
                 {% if line.stock != null and line.stock < line.quantity %}
                   <p class="field-error">Nur noch {{ line.stock }} Stück verfügbar.</p>

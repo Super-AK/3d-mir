@@ -65,6 +65,7 @@ type ProductRow = {
   color_options: string;
   personalization_enabled: number;
   personalization_hint: string;
+  personalization_price_cents: number;
   material: string;
   delivery_note: string;
 };
@@ -96,6 +97,7 @@ type CartLine = {
   variantLabel: string;
   color: string;
   personalization: string;
+  personalizationSurchargeCents: number;
   productId: number;
   productSlug: string;
   productName: string;
@@ -263,7 +265,12 @@ function loadCartLines(cart: Cart): CartLine[] {
 
     const personalization = product.personalization_enabled === 1 ? item.personalization : '';
     const quantity = Math.min(config.shop.maxQuantityPerItem, Math.max(1, item.quantity));
-    const unitPriceCents = variant ? variant.price_cents : product.price_from_cents;
+    // Der Aufpreis gilt nur bei tatsächlicher Eingabe und pro Stück.
+    const personalizationSurchargeCents = personalization
+      ? Math.max(0, product.personalization_price_cents ?? 0)
+      : 0;
+    const basePriceCents = variant ? variant.price_cents : product.price_from_cents;
+    const unitPriceCents = basePriceCents + personalizationSurchargeCents;
     lines.push({
       key: cartLineKey(item),
       variantId: variant ? variant.id : null,
@@ -273,6 +280,7 @@ function loadCartLines(cart: Cart): CartLine[] {
       variantLabel: variant ? variant.label : '',
       color,
       personalization,
+      personalizationSurchargeCents,
       productId: product.id,
       productSlug: product.slug,
       productName: product.name,
@@ -640,6 +648,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       colorOptions: productColors(product),
       personalizationEnabled: product.personalization_enabled === 1,
       personalizationHint: product.personalization_hint || 'z. B. Name oder kurzer Text',
+      personalizationPriceCents: Math.max(0, product.personalization_price_cents ?? 0),
       productMaterial: product.material || 'PLA',
       productDeliveryNote: product.delivery_note,
       productJsonLd: productJsonLd(product, variants),

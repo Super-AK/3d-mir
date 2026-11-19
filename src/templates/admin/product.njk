@@ -168,6 +168,11 @@
         <input id="personalizationHint" name="personalizationHint" type="text" maxlength="200" value="{{ form.personalizationHint }}" placeholder="z. B. Name oder kurzer Text">
         <span class="hint">Wird im Shop als grauer Platzhaltertext im Feld angezeigt, z. B. „z. B. Name oder kurzer Text“. Leer lassen für den Standardtext.</span>
       </div>
+      <div class="field">
+        <label for="personalizationPrice">Aufpreis bei Personalisierung (€ pro Stück)</label>
+        <input id="personalizationPrice" name="personalizationPrice" type="number" min="0" max="1000000" step="0.01" value="{{ form.personalizationPrice }}" inputmode="decimal">
+        <span class="hint">Wird nur berechnet, wenn der Kunde tatsächlich einen Text eingibt. Dann gilt der Aufpreis für jedes Stück der Position. Leer lassen oder 0,00 € für keinen Aufpreis.</span>
+      </div>
     </fieldset>
 
     <div class="form-actions">

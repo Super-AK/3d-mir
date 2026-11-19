@@ -3,6 +3,20 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.48] – 2026-11-19
+
+### Hinzugefügt
+
+- **Aufpreis für Personalisierung pro Produkt:** Im Produktformular lässt sich
+  ein Betrag in Euro je Stück hinterlegen. Er wird nur berechnet, wenn der
+  Kunde tatsächlich einen Personalisierungstext eingibt.
+- Der Aufpreis erscheint als Hinweis auf der Produktseite, in Warenkorb und
+  Kasse und geht in Stückpreis, Zwischensumme, Bestellung und Zahlbetrag ein.
+- Import/Export (JSON und CSV) sowie das Kopieren von Produkten übernehmen den
+  Aufpreis; neue CSV-Spalte `personalisierungspreis`.
+- Migration `020_product_personalization_price.sql` mit Standard `0,00 €` für
+  bestehende Produkte.
+
 ## [1.0.0-rc.47] – 2026-11-19
 
 ### Behoben

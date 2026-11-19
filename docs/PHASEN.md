@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.48 – 19. November 2026
+
+Optionaler Personalisierungs-Aufpreis pro Produkt und Stück. Er wird nur bei
+tatsächlicher Texteingabe berechnet und ist im Admin, in JSON/CSV und in der
+Shop-Kalkulation durchgängig berücksichtigt.
+
 ## Release 1.0.0-rc.47 – 19. November 2026
 
 Produkte lassen sich in der Liste per Pfeilen oder Drag & Drop sortieren.

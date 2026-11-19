@@ -30,6 +30,7 @@ const product: CsvProductInput = {
   colorOptions: ['schwarz', 'weiß'],
   personalizationEnabled: false,
   personalizationHint: 'Wunschtext',
+  personalizationPriceCents: 250,
   shippingMethodIds: ['standard'],
   shippingOptionIds: ['versichert'],
 };
@@ -72,6 +73,7 @@ describe('Produkt-CSV', () => {
       active: true,
       colorOptions: ['schwarz', 'weiß'],
       personalizationEnabled: false,
+      personalizationPriceCents: 250,
       shippingMethodIds: ['standard'],
       shippingOptionIds: ['versichert'],
     });
@@ -94,10 +96,17 @@ describe('Produkt-CSV', () => {
     expect(parsed.rows[0]?.variants?.[0]).toMatchObject({ label: 'Standard', priceCents: 750 });
   });
 
-  it('leere Ja/Nein-Zellen bleiben unverändert', () => {
-    const parsed = parseProductCsv('sku;name;aktiv;personalisierung\nS-3;Test;;');
+  it('leere Ja/Nein- und Preis-Zellen bleiben unverändert', () => {
+    const parsed = parseProductCsv(
+      'sku;name;aktiv;personalisierung;personalisierungspreis\nS-3;Test;;;',
+    );
     expect(parsed.rows[0]?.active).toBeUndefined();
     expect(parsed.rows[0]?.personalizationEnabled).toBeUndefined();
+    expect(parsed.rows[0]?.personalizationPriceCents).toBeUndefined();
+
+    const english = parseProductCsv('sku;name;personalizationPrice\nS-3a;Test;3,50');
+    expect(english.errors).toEqual([]);
+    expect(english.rows[0]?.personalizationPriceCents).toBe(350);
   });
 
   it('meldet ungültige Preise, Varianten und Schlüssel', () => {

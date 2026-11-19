@@ -176,7 +176,7 @@
         <ul class="summary-items">
           {% for line in lines %}
             <li>
-              <span><strong>{{ line.quantity }} ×</strong> {{ line.productName }}{% if line.variantLabel %}<br><span class="text-muted">{{ line.variantLabel }}</span>{% endif %}{% if line.color %}<br><span class="text-muted">Farbe: {{ line.color }}</span>{% endif %}{% if line.personalization %}<br><span class="text-muted">Personalisierung: {{ line.personalization }}</span>{% endif %}</span>
+              <span><strong>{{ line.quantity }} ×</strong> {{ line.productName }}{% if line.variantLabel %}<br><span class="text-muted">{{ line.variantLabel }}</span>{% endif %}{% if line.color %}<br><span class="text-muted">Farbe: {{ line.color }}</span>{% endif %}{% if line.personalization %}<br><span class="text-muted">Personalisierung: {{ line.personalization }}{% if line.personalizationSurchargeCents > 0 %} (+ {{ line.personalizationSurchargeCents | price }} pro Stück){% endif %}</span>{% endif %}</span>
               <span>{{ line.lineTotalCents | price }}</span>
             </li>
           {% endfor %}

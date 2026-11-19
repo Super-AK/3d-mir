@@ -417,6 +417,7 @@ type ProductRow = {
   color_options: string;
   personalization_enabled: number;
   personalization_hint: string;
+  personalization_price_cents: number;
   material: string;
   delivery_note: string;
   created_at: string;
@@ -452,6 +453,7 @@ type ProductForm = {
   colorOptions: string;
   personalizationEnabled: boolean;
   personalizationHint: string;
+  personalizationPrice: string;
   material: string;
   deliveryNote: string;
 };
@@ -778,6 +780,7 @@ function emptyProductForm(): ProductForm {
     colorOptions: '',
     personalizationEnabled: false,
     personalizationHint: '',
+    personalizationPrice: '0.00',
     material: 'PLA',
     deliveryNote: 'Fertigung nach Bezahlung',
   };
@@ -802,6 +805,7 @@ function productFormFromRow(product: ProductRow): ProductForm {
     colorOptions: product.color_options,
     personalizationEnabled: product.personalization_enabled === 1,
     personalizationHint: product.personalization_hint,
+    personalizationPrice: (product.personalization_price_cents / 100).toFixed(2),
     material: product.material,
     deliveryNote: product.delivery_note,
   };
@@ -833,6 +837,7 @@ function readProductForm(body: Record<string, unknown>): ProductForm {
     colorOptions: cleanText(body.colorOptions, 1000),
     personalizationEnabled: body.personalizationEnabled === '1' || body.personalizationEnabled === 'on',
     personalizationHint: cleanText(body.personalizationHint, 200),
+    personalizationPrice: cleanText(body.personalizationPrice, 20) || '0.00',
     material: cleanText(body.material, 100),
     deliveryNote: cleanText(body.deliveryNote, 200),
   };
@@ -856,6 +861,7 @@ type ProductData = {
   colorOptions: string;
   personalizationEnabled: boolean;
   personalizationHint: string;
+  personalizationPriceCents: number;
   material: string;
   deliveryNote: string;
 };
@@ -880,6 +886,14 @@ function validateProductForm(form: ProductForm): { data?: ProductData; error?: s
   if (stock !== null && (stock < 0 || stock > 1_000_000)) {
     return { error: 'Bitte geben Sie einen gültigen Lagerbestand an.' };
   }
+  const personalizationPriceCents = euroToCents(form.personalizationPrice);
+  if (
+    personalizationPriceCents === null
+    || personalizationPriceCents < 0
+    || personalizationPriceCents > 100_000_000
+  ) {
+    return { error: 'Bitte geben Sie einen gültigen Personalisierungs-Aufpreis an.' };
+  }
   const sortOrder = intOrNull(form.sortOrder);
   if (sortOrder === null) return { error: 'Bitte geben Sie eine gültige Sortierung an.' };
 
@@ -902,6 +916,7 @@ function validateProductForm(form: ProductForm): { data?: ProductData; error?: s
       colorOptions: parseColorOptions(form.colorOptions).join(', '),
       personalizationEnabled: form.personalizationEnabled,
       personalizationHint: form.personalizationHint,
+      personalizationPriceCents,
       material: form.material,
       deliveryNote: form.deliveryNote,
     },
@@ -1091,6 +1106,7 @@ function exportProducts(ids?: number[]) {
       colorOptions: parseColorOptions(product.color_options),
       personalizationEnabled: product.personalization_enabled === 1,
       personalizationHint: product.personalization_hint,
+      personalizationPriceCents: product.personalization_price_cents,
       material: product.material,
       deliveryNote: product.delivery_note,
       variants: variantsFor(product.id).map((variant) => ({
@@ -1133,6 +1149,7 @@ function productForCsv(product: ProductRow): CsvProductInput {
     colorOptions: parseColorOptions(product.color_options),
     personalizationEnabled: product.personalization_enabled === 1,
     personalizationHint: product.personalization_hint,
+    personalizationPriceCents: product.personalization_price_cents,
     shippingMethodIds: parseIdJson(product.shipping_method_ids),
     shippingOptionIds: parseIdJson(product.shipping_option_ids),
   };
@@ -1224,6 +1241,7 @@ function importProductsCsv(rows: CsvProductRow[]): {
           : existing?.color_options ?? '',
         personalizationEnabled: row.personalizationEnabled ?? (existing ? existing.personalization_enabled === 1 : false),
         personalizationHint: row.personalizationHint ?? existing?.personalization_hint ?? '',
+        personalizationPriceCents: row.personalizationPriceCents ?? existing?.personalization_price_cents ?? 0,
         material: row.material || existing?.material || 'PLA',
         deliveryNote: row.deliveryNote || existing?.delivery_note || 'Fertigung nach Bezahlung',
       };
@@ -1236,8 +1254,8 @@ function importProductsCsv(rows: CsvProductRow[]): {
                slug = ?, name = ?, short_description = ?, description = ?, price_from_cents = ?,
                price_to_cents = ?, sku = ?, weight_g = ?, dimensions = ?, stock = ?, active = ?,
                sort_order = ?, shipping_method_ids = ?, shipping_option_ids = ?, color_options = ?,
-               personalization_enabled = ?, personalization_hint = ?, material = ?, delivery_note = ?,
-               updated_at = datetime('now')
+               personalization_enabled = ?, personalization_hint = ?, personalization_price_cents = ?,
+               material = ?, delivery_note = ?, updated_at = datetime('now')
              WHERE id = ?`,
           ).run(
             values.slug, values.name, values.shortDescription, values.description,
@@ -1245,7 +1263,7 @@ function importProductsCsv(rows: CsvProductRow[]): {
             values.dimensions, values.stock, values.active ? 1 : 0, values.sortOrder,
             values.shippingMethodIds, values.shippingOptionIds, values.colorOptions,
             values.personalizationEnabled ? 1 : 0, values.personalizationHint,
-            values.material, values.deliveryNote, existing.id,
+            values.personalizationPriceCents, values.material, values.deliveryNote, existing.id,
           );
           id = existing.id;
         } else {
@@ -1253,15 +1271,16 @@ function importProductsCsv(rows: CsvProductRow[]): {
             `INSERT INTO products
                (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
                 dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
-                personalization_enabled, personalization_hint, material, delivery_note)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                personalization_enabled, personalization_hint, personalization_price_cents,
+                material, delivery_note)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           ).run(
             values.slug, values.name, values.shortDescription, values.description,
             values.priceFromCents, values.priceToCents, values.sku, values.weightG,
             values.dimensions, values.stock, values.active ? 1 : 0, values.sortOrder,
             values.shippingMethodIds, values.shippingOptionIds, values.colorOptions,
             values.personalizationEnabled ? 1 : 0, values.personalizationHint,
-            values.material, values.deliveryNote,
+            values.personalizationPriceCents, values.material, values.deliveryNote,
           );
           id = Number(info.lastInsertRowid);
         }
@@ -1322,6 +1341,7 @@ const importProductSchema = z.object({
   colorOptions: z.array(z.string().max(60)).max(40).optional().default([]),
   personalizationEnabled: z.boolean().optional().default(false),
   personalizationHint: z.string().max(200).optional().default(''),
+  personalizationPriceCents: z.number().int().min(0).max(100_000_000).optional().default(0),
   material: z.string().max(100).optional().default('PLA'),
   deliveryNote: z.string().max(200).optional().default('Fertigung nach Bezahlung'),
   variants: z
@@ -1362,8 +1382,9 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
               dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
-              personalization_enabled, personalization_hint, material, delivery_note)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              personalization_enabled, personalization_hint, personalization_price_cents,
+              material, delivery_note)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -1383,6 +1404,7 @@ async function importProducts(data: z.infer<typeof importFileSchema>): Promise<{
           parseColorOptions(item.colorOptions.join(', ')).join(', '),
           item.personalizationEnabled ? 1 : 0,
           item.personalizationHint,
+          item.personalizationPriceCents,
           item.material || 'PLA',
           item.deliveryNote || 'Fertigung nach Bezahlung',
         );
@@ -3574,8 +3596,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           `INSERT INTO products
              (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g,
               dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options,
-              personalization_enabled, personalization_hint, material, delivery_note)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              personalization_enabled, personalization_hint, personalization_price_cents,
+              material, delivery_note)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           slug,
@@ -3595,6 +3618,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           product.color_options,
           product.personalization_enabled,
           product.personalization_hint,
+          product.personalization_price_cents,
           product.material,
           product.delivery_note,
         );
@@ -3800,8 +3824,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const info = db()
         .prepare(
           `INSERT INTO products
-            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options, personalization_enabled, personalization_hint, material, delivery_note)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (slug, name, short_description, description, price_from_cents, price_to_cents, sku, weight_g, dimensions, stock, active, sort_order, shipping_method_ids, shipping_option_ids, color_options, personalization_enabled, personalization_hint, personalization_price_cents, material, delivery_note)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           data.slug,
@@ -3821,6 +3845,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.colorOptions,
           data.personalizationEnabled ? 1 : 0,
           data.personalizationHint,
+          data.personalizationPriceCents,
           data.material || 'PLA',
           data.deliveryNote || 'Fertigung nach Bezahlung',
         );
@@ -3887,8 +3912,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
              slug = ?, name = ?, short_description = ?, description = ?, price_from_cents = ?,
              price_to_cents = ?, sku = ?, weight_g = ?, dimensions = ?, stock = ?, active = ?,
              sort_order = ?, shipping_method_ids = ?, shipping_option_ids = ?, color_options = ?,
-             personalization_enabled = ?, personalization_hint = ?, material = ?, delivery_note = ?,
-             updated_at = datetime('now')
+             personalization_enabled = ?, personalization_hint = ?, personalization_price_cents = ?,
+             material = ?, delivery_note = ?, updated_at = datetime('now')
            WHERE id = ?`,
         )
         .run(
@@ -3909,6 +3934,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           data.colorOptions,
           data.personalizationEnabled ? 1 : 0,
           data.personalizationHint,
+          data.personalizationPriceCents,
           data.material || 'PLA',
           data.deliveryNote || 'Fertigung nach Bezahlung',
           id,

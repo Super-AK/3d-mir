@@ -36,6 +36,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await page.fill('#colorOptions', 'Rot, Blau');
     await page.check('input[name="personalizationEnabled"]');
     await page.fill('#personalizationHint', 'z. B. Wunschname für Anna');
+    await page.fill('#personalizationPrice', '2.50');
     await page.getByRole('button', { name: 'Speichern', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
 
@@ -46,6 +47,7 @@ test.describe('Varianten, Farben und Personalisierung', () => {
     await expect(page.locator('#color option')).toHaveCount(3);
     await expect(page.locator('#personalization')).toBeVisible();
     await expect(page.locator('#personalization')).toHaveAttribute('placeholder', 'z. B. Wunschname für Anna');
+    await expect(page.getByText('Bei Eingabe berechnen wir 2,50 € pro Stück zusätzlich.')).toBeVisible();
     await expect(page.locator('.product-facts')).toContainText('Material: PETG, in Wunschfarbe');
     await expect(page.locator('.product-facts')).toContainText('Abholung: nach Absprache in Schömberg möglich');
     await expect(page.locator('.product-facts')).toContainText('Versand: ab 0,00 €, frei ab 50,00 €');
@@ -59,13 +61,13 @@ test.describe('Varianten, Farben und Personalisierung', () => {
 
     await expect(page).toHaveURL(/\/warenkorb\/$/);
     await expect(page.locator('.cart-item')).toContainText('Farbe: Blau');
-    await expect(page.locator('.cart-item')).toContainText('Personalisierung: Für Anna');
-    await expect(page.locator('.cart-item')).toContainText('25,00 €');
+    await expect(page.locator('.cart-item')).toContainText('Personalisierung: Für Anna (+ 2,50 € pro Stück)');
+    await expect(page.locator('.cart-item')).toContainText('30,00 €');
 
     // Menge über den stabilen Zeilenschlüssel ändern und Position entfernen.
     await page.fill('.cart-quantity input', '3');
     await page.getByRole('button', { name: 'Aktualisieren' }).click();
-    await expect(page.locator('.cart-item')).toContainText('37,50 €');
+    await expect(page.locator('.cart-item')).toContainText('45,00 €');
     await page.getByRole('button', { name: 'Entfernen' }).click();
     await expect(page.locator('.cart-item')).toHaveCount(0);
 

@@ -390,7 +390,7 @@ Die Produktliste lässt sich nach **Name**, **SKU** und **Slug** durchsuchen. Di
 
 Das JSON-Format hat die Kennung `3d-mir-products`, Version `1`, und ein Array `products` mit Produkt-, Varianten- und Bilddaten. Ein Export kann unverändert wieder importiert werden (erzeugt dann Kopien mit neuen Slugs).
 
-Die CSV hat die Spalten `sku`, `slug`, `name`, `kategorien`, `kurzbeschreibung`, `beschreibung`, `preisAb`, `preisBis`, `material`, `lieferhinweis`, `gewichtG`, `abmessungen`, `lagerbestand`, `sortierung`, `aktiv`, `varianten`, `farben`, `personalisierung`, `personalisierungshinweis`, `versandarten`, `versandoptionen`. Die Reihenfolge ist frei; deutsche und englische Spaltennamen werden erkannt. Listen stehen in einer Zelle und werden mit `|` getrennt, mehrere Varianten mit `||` (z. B. `Klein|12,90|5||Groß|19,90|2`). Preise sind Euro-Werte mit Komma oder Punkt, `aktiv` und `personalisierung` sind `1`/`0`. Unbekannte Kategorien werden übersprungen und gemeldet. Bilder bleiben beim JSON-Import bzw. werden direkt auf der Produktseite hochgeladen.
+Die CSV hat die Spalten `sku`, `slug`, `name`, `kategorien`, `kurzbeschreibung`, `beschreibung`, `preisAb`, `preisBis`, `material`, `lieferhinweis`, `gewichtG`, `abmessungen`, `lagerbestand`, `sortierung`, `aktiv`, `varianten`, `farben`, `personalisierung`, `personalisierungshinweis`, `personalisierungspreis`, `versandarten`, `versandoptionen`. Die Reihenfolge ist frei; deutsche und englische Spaltennamen werden erkannt. Listen stehen in einer Zelle und werden mit `|` getrennt, mehrere Varianten mit `||` (z. B. `Klein|12,90|5||Groß|19,90|2`). Preise sind Euro-Werte mit Komma oder Punkt, `aktiv` und `personalisierung` sind `1`/`0`. Unbekannte Kategorien werden übersprungen und gemeldet. Bilder bleiben beim JSON-Import bzw. werden direkt auf der Produktseite hochgeladen.
 
 Für den CSV-Import gilt dieselbe CSRF-Prüfung wie für alle Admin-Formulare; der Import wird im Audit-Protokoll als `product.csv.import` erfasst. Bei teilweise fehlerhaften Dateien werden die betroffenen Zeilen gemeldet, gültige Zeilen aber trotzdem verarbeitet.
 
@@ -431,6 +431,8 @@ Der Schlüssel wird nur für den Importprozess übergeben und nicht im Repositor
 
 Name, Slug, Kurz- und Langbeschreibung, **Material**, **Lieferhinweis**, Preise, SKU, Gewicht, Maße, Lagerbestand, Sortierung und Sichtbarkeit. Der Slug bestimmt die URL `/shop/<slug>/`.
 
+Bei aktivierter Personalisierung kann ein **Aufpreis in Euro pro Stück** hinterlegt werden. Er wird nur berechnet, wenn der Kunde das Textfeld tatsächlich ausfüllt; bei mehreren Stücken gilt er entsprechend oft. Der Aufpreis erscheint auf der Produktseite als Hinweis, in Warenkorb und Kasse sowie in der Bestellübersicht und ist im Zahlbetrag enthalten. `0,00 €` bedeutet keinen Aufpreis.
+
 Das **Material** wird pro Produkt im Admin gepflegt und auf der Produktseite unter „Material“ sowie in „Auf einen Blick“ angezeigt. Bleibt das Feld leer, erscheint `PLA`. Sind Farben hinterlegt, ergänzt die Produktseite den Hinweis „in Wunschfarbe“.
 
 Der **Lieferhinweis** ergänzt die Lieferzeit, z. B. „Fertigung nach Bezahlung“ oder „sofort lieferbar“. Ohne Angabe erscheint kein Zusatz. Neue Produkte starten mit „Fertigung nach Bezahlung“.
@@ -453,6 +455,7 @@ Im Produktformular gibt es die Bereiche **Versandarten** und **Versand-Zusatzopt
 - **Farbvarianten (kommagetrennt):** Im Produktformular lassen sich Farben als Liste hinterlegen, z. B. `Schwarz, Weiß, Rot`. Die Farben haben keinen eigenen Preis und lassen sich mit Varianten kombinieren. Ist die Liste gefüllt, muss der Kunde im Shop eine Farbe auswählen.
 - **Personalisierung:** Die Checkbox **„Personalisierung anbieten“** blendet im Shop ein optionales Textfeld ein. Der Kunde kann es leer lassen. Der eingegebene Text wird in der Bestellung gespeichert und im Admin sowie in den Bestellmails angezeigt.
 - **Hinweis im Personalisierungsfeld:** Das Feld **„Hinweis im Personalisierungsfeld“** legt den grauen Platzhaltertext im Shop fest, z. B. „z. B. Wunschname für Anna“. So lassen sich pro Produkt passende Beispiele vorgeben. Bleibt das Feld leer, erscheint der Standardtext „z. B. Name oder kurzer Text“.
+- **Aufpreis bei Personalisierung:** Das Feld **„Aufpreis bei Personalisierung (€ pro Stück)“** ergänzt den Stückpreis nur dann, wenn der Kunde Text eingibt. Ohne Eingabe bleibt es beim normalen Preis; `0,00 €` schaltet den Aufpreis aus. Der Betrag steht außerdem in Warenkorb, Kasse und Bestellung.
 - **Lagerbestand:** Ist ein Bestand gesetzt, prüft die Kasse die verfügbare Menge – bei Varianten am Variantenbestand, bei Produkten ohne Varianten am Produktbestand. Reservierter Bestand wird beim Stornieren wieder freigegeben.
 
 ### Bilder

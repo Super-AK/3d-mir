@@ -35,6 +35,7 @@ export type CsvProductInput = {
   colorOptions: string[];
   personalizationEnabled: boolean;
   personalizationHint: string;
+  personalizationPriceCents: number;
   shippingMethodIds: string[];
   shippingOptionIds: string[];
 };
@@ -69,6 +70,7 @@ export const PRODUCT_CSV_HEADER = [
   'farben',
   'personalisierung',
   'personalisierungshinweis',
+  'personalisierungspreis',
   'versandarten',
   'versandoptionen',
 ] as const;
@@ -93,6 +95,7 @@ const aliases: Record<keyof CsvProductInput, string[]> = {
   colorOptions: ['farben', 'coloroptions', 'colors'],
   personalizationEnabled: ['personalisierung', 'personalizationenabled', 'personalisierungaktiv'],
   personalizationHint: ['personalisierungshinweis', 'personalizationhint'],
+  personalizationPriceCents: ['personalisierungspreis', 'personalizationprice', 'personalisierungaufpreis'],
   shippingMethodIds: ['versandarten', 'shippingmethodids'],
   shippingOptionIds: ['versandoptionen', 'shippingoptionids'],
 };
@@ -205,6 +208,7 @@ export function productCsvRow(product: CsvProductInput): string[] {
     safeText(product.colorOptions.join('|')),
     booleanText(product.personalizationEnabled),
     safeText(product.personalizationHint),
+    money(product.personalizationPriceCents),
     safeText(product.shippingMethodIds.join('|')),
     safeText(product.shippingOptionIds.join('|')),
   ];
@@ -381,6 +385,10 @@ export function parseProductCsv(text: string): ParsedProductCsv {
             break;
           case 'personalizationHint':
             row.personalizationHint = raw.trim().slice(0, 200);
+            break;
+          case 'personalizationPriceCents':
+            // Leere Zelle bedeutet „unverändert“, nicht „kein Aufpreis“.
+            if (raw.trim()) row.personalizationPriceCents = parseMoney(raw, 'personalisierungspreis');
             break;
           case 'shippingMethodIds':
             row.shippingMethodIds = parseSlugs(raw, 'versandarten');

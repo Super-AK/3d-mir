@@ -115,7 +115,7 @@
             <div class="field">
               <label for="personalization">Personalisierung (optional)</label>
               <textarea id="personalization" name="personalization" rows="3" maxlength="500" placeholder="{{ personalizationHint }}"></textarea>
-              <span class="hint">Dieses Feld ist freiwillig. Lassen Sie es leer, wenn keine Personalisierung gewünscht ist.</span>
+              <span class="hint">Dieses Feld ist freiwillig. Lassen Sie es leer, wenn keine Personalisierung gewünscht ist.{% if personalizationPriceCents > 0 %} Bei Eingabe berechnen wir {{ personalizationPriceCents | price }} pro Stück zusätzlich.{% endif %}</span>
             </div>
           {% endif %}
           <div class="product-buy-row">
