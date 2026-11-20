@@ -425,6 +425,14 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.52 – 20. November 2026
+
+Die Einklapp-Logik aus dem Produktformular gilt jetzt auch für die Bereiche
+unter „Preise“, die sekundären Stammdaten-Karten und die beiden Diagnosekarten
+im Dashboard. Jede Zeile zeigt eine kurze Vorschau; zentrale Felder, Kennzahlen
+und Aktionen bleiben sichtbar. Die Bedienung funktioniert weiterhin ohne
+JavaScript und per Tastatur.
+
 ## Release 1.0.0-rc.51 – 19. November 2026
 
 Neben der Beschreibung sind auch Kategorien, Versandarten, Versand-Zusatzoptionen,

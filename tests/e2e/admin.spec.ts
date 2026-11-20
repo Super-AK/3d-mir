@@ -29,6 +29,9 @@ test.describe('Admin', () => {
     await expect(page).toHaveURL(/\/admin\/$/);
     await expect(page.locator('h1')).toHaveText('Dashboard');
     await expect(page.getByText('Besucher der letzten 7 Tage')).toBeVisible();
+    for (const name of ['dashboard-visitors', 'dashboard-monitor']) {
+      await expect(page.locator(`[data-collapse="${name}"]`)).not.toHaveAttribute('open', '');
+    }
 
     for (const [path, heading] of [
       ['/admin/stammdaten/', 'Stammdaten'],
@@ -49,6 +52,29 @@ test.describe('Admin', () => {
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);
       await expect(page.locator('h1')).toContainText(heading);
+    }
+
+    // Preise: alle Karten sind eingeklappt und lassen sich einzeln öffnen.
+    await page.goto('/admin/preise/');
+    for (const name of [
+      'price-basics', 'price-materials', 'price-printers', 'price-coatings',
+      'price-shipping', 'price-shipping-options', 'price-discounts',
+    ]) {
+      const section = page.locator(`[data-collapse="${name}"]`);
+      await expect(section).not.toHaveAttribute('open', '');
+      await section.locator('> summary').click();
+      await expect(section).toHaveAttribute('open', '');
+    }
+    await expect(page.getByRole('button', { name: 'Alle Änderungen speichern' })).toBeVisible();
+
+    // Stammdaten: sekundäre Bereiche sind eingeklappt, Geschäftsdaten nicht.
+    await page.goto('/admin/stammdaten/');
+    await expect(page.locator('#businessName')).toBeVisible();
+    for (const name of ['site-channels', 'site-contact', 'site-images', 'site-texts']) {
+      const section = page.locator(`[data-collapse="${name}"]`);
+      await expect(section).not.toHaveAttribute('open', '');
+      await section.locator('> summary').click();
+      await expect(section).toHaveAttribute('open', '');
     }
 
     // Besucherstatistik: Zeitraum und Gruppierung werden aus der URL gelesen.

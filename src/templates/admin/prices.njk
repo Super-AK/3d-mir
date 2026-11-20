@@ -31,7 +31,12 @@
     <input type="hidden" name="_csrf" value="{{ csrf }}">
 
     <section class="card admin-panel">
-      <h2>Grundwerte</h2>
+      <details class="admin-field-collapse" data-collapse="price-basics">
+        <summary>
+          <h2>Grundwerte</h2>
+          <span class="admin-collapse-preview">Mindestauftrag {{ view.metaValues.minOrder }} € · Rundung {{ view.metaValues.round }} €</span>
+        </summary>
+        <div class="admin-collapse-body">
       <div class="form-row">
         <div class="field">
           <label for="meta_min_order">Mindestauftragswert (€)</label>
@@ -66,10 +71,17 @@
           <input id="calc_waste" name="calc_waste" type="number" min="0" max="100" step="0.1" required value="{{ view.calculationValues.waste }}">
         </div>
       </div>
+        </div>
+      </details>
     </section>
 
     <section class="card admin-panel">
-      <h2>Materialien</h2>
+      <details class="admin-field-collapse" data-collapse="price-materials">
+        <summary>
+          <h2>Materialien</h2>
+          <span class="admin-collapse-preview">{{ view.materials.length }} Materialien</span>
+        </summary>
+        <div class="admin-collapse-body">
       <p class="text-muted">Farben als kommagetrennte Liste. Mindestens ein Material muss vorhanden sein.</p>
       <div class="table-wrap">
         <table class="admin-edit-table">
@@ -197,10 +209,17 @@
         <button type="button" class="btn btn-secondary btn-small" data-add-row="material">+ Weiteres Material</button>
       </p>
       <p class="hint">Zum Anlegen die Zeile „Neues Material“ ausfüllen. Über „Weiteres Material“ lassen sich mehrere Einträge gleichzeitig vorbereiten. Leere Zeilen werden ignoriert.</p>
+        </div>
+      </details>
     </section>
 
     <section class="card admin-panel">
-      <h2>Drucker</h2>
+      <details class="admin-field-collapse" data-collapse="price-printers">
+        <summary>
+          <h2>Drucker</h2>
+          <span class="admin-collapse-preview">{{ view.printers.length }} Drucker</span>
+        </summary>
+        <div class="admin-collapse-body">
       <p class="text-muted">Bauraum in mm. Ohne Materialauswahl wird der Drucker für alle Materialien angeboten.</p>
       <div class="table-wrap">
         <table class="admin-edit-table">
@@ -317,10 +336,17 @@
       <p class="admin-add-row">
         <button type="button" class="btn btn-secondary btn-small" data-add-row="printer">+ Weiteren Drucker</button>
       </p>
+        </div>
+      </details>
     </section>
 
     <section class="card admin-panel">
-      <h2>Nachbearbeitung</h2>
+      <details class="admin-field-collapse" data-collapse="price-coatings">
+        <summary>
+          <h2>Nachbearbeitung</h2>
+          <span class="admin-collapse-preview">{{ view.coatings.length }} Optionen</span>
+        </summary>
+        <div class="admin-collapse-body">
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead><tr><th>Bezeichnung</th><th>Zuschlag (%)</th><th>Preis je Teil (€)</th><th>Aktiv</th><th>Löschen</th></tr></thead>
@@ -360,10 +386,17 @@
         <button type="button" class="btn btn-secondary btn-small" data-add-row="coating">+ Weitere Nachbearbeitung</button>
       </p>
       <p class="hint">Mindestens eine Option muss vorhanden sein. „Ohne Nachbearbeitung“ sollte erhalten bleiben.</p>
+        </div>
+      </details>
     </section>
 
     <section class="card admin-panel">
-      <h2>Versand</h2>
+      <details class="admin-field-collapse" data-collapse="price-shipping">
+        <summary>
+          <h2>Versand</h2>
+          <span class="admin-collapse-preview">{{ view.shipping.length }} Versandarten · frei ab {{ view.metaValues.freeShippingFrom }} €</span>
+        </summary>
+        <div class="admin-collapse-body">
       <p class="text-muted">Diese Angaben erscheinen auch auf der öffentlichen Seite <a href="/versand/" target="_blank" rel="noopener">Versandarten und Kosten</a>. Inaktive Versandarten werden dort und im Checkout nicht angeboten. Die <strong>Zusatzinfo</strong> erscheint im Checkout bei der Auswahl der Versandart, z. B. „Versichert bis 500 €“.</p>
       <div class="table-wrap">
         <table class="admin-edit-table">
@@ -413,10 +446,17 @@
           <span class="hint">0 = kein kostenloser Versand.</span>
         </div>
       </div>
+        </div>
+      </details>
     </section>
 
     <section class="card admin-panel">
-      <h2>Versandoptionen</h2>
+      <details class="admin-field-collapse" data-collapse="price-shipping-options">
+        <summary>
+          <h2>Versandoptionen</h2>
+          <span class="admin-collapse-preview">{{ view.shippingOptions.length }} Optionen</span>
+        </summary>
+        <div class="admin-collapse-body">
       <p class="text-muted">Zusatzoptionen wie Expressversand oder Geschenkverpackung. Sie werden pro Produkt zugewiesen und im Checkout als zusätzliche Kosten angezeigt.</p>
       <div class="table-wrap">
         <table class="admin-edit-table">
@@ -457,10 +497,21 @@
         <button type="button" class="btn btn-secondary btn-small" data-add-row="shipping_option">+ Weitere Versandoption</button>
       </p>
       <p class="hint">Diese Optionen erscheinen nur bei Produkten, denen sie zugeordnet wurden.</p>
+        </div>
+      </details>
     </section>
 
     <section class="card admin-panel">
-      <h2>Mengenrabatt</h2>
+      <details class="admin-field-collapse" data-collapse="price-discounts">
+        <summary>
+          <h2>Mengenrabatt</h2>
+          {% if view.discounts.length > 0 %}
+            <span class="admin-collapse-preview">{{ view.discounts.length }} Rabattstaffeln</span>
+          {% else %}
+            <span class="admin-collapse-preview">Kein Mengenrabatt</span>
+          {% endif %}
+        </summary>
+        <div class="admin-collapse-body">
       <div class="table-wrap">
         <table class="admin-edit-table">
           <thead><tr><th>Ab Stückzahl</th><th>Rabatt (%)</th><th>Löschen</th></tr></thead>
@@ -491,6 +542,8 @@
         <button type="button" class="btn btn-secondary btn-small" data-add-row="discount">+ Weitere Rabattstaffel</button>
       </p>
       <p class="hint">Leere Liste bedeutet: kein Mengenrabatt.</p>
+        </div>
+      </details>
     </section>
 
     <div class="form-actions">

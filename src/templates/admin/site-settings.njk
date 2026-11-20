@@ -91,8 +91,12 @@
       </label>
     </fieldset>
 
-    <fieldset class="admin-fieldset">
-      <legend>Kanäle</legend>
+    <details class="admin-field-collapse" data-collapse="site-channels">
+      <summary>
+        <span>Kanäle</span>
+        <span class="admin-collapse-preview">{{ settings.channels.etsy.label or 'Etsy' }} · {{ settings.channels.classifieds.label or 'Kleinanzeigen' }}</span>
+      </summary>
+      <div class="admin-collapse-body">
       <div class="form-row">
         <div class="field">
           <label for="etsyLabel">Etsy-Bezeichnung</label>
@@ -117,10 +121,15 @@
           <input id="classifiedsUrl" name="classifiedsUrl" type="url" maxlength="500" value="{{ settings.channels.classifieds.url }}">
         </div>
       </div>
-    </fieldset>
+      </div>
+    </details>
 
-    <fieldset class="admin-fieldset">
-      <legend>Kontakt und SEO</legend>
+    <details class="admin-field-collapse" data-collapse="site-contact">
+      <summary>
+        <span>Kontakt und SEO</span>
+        <span class="admin-collapse-preview">{{ settings.seo.siteName or 'SEO-Name' }} · {{ settings.contact.responseTime or 'Antwortzeit offen' }}</span>
+      </summary>
+      <div class="admin-collapse-body">
       <div class="form-row">
         <div class="field">
           <label for="responseTime">Antwortzeit</label>
@@ -143,7 +152,8 @@
         <label for="seoDescription">SEO-Beschreibung</label>
         <textarea id="seoDescription" name="seoDescription" rows="2" maxlength="400">{{ settings.seo.defaultDescription }}</textarea>
       </div>
-    </fieldset>
+      </div>
+    </details>
 
     <div class="form-actions">
       <button class="btn" type="submit">Stammdaten speichern</button>
@@ -151,7 +161,12 @@
   </form>
 
   <section class="card admin-panel">
-    <h2>Bilder</h2>
+    <details class="admin-field-collapse" data-collapse="site-images">
+      <summary>
+        <h2>Bilder</h2>
+        <span class="admin-collapse-preview">{% if galleryIsDefault %}Standardgalerie{% else %}{{ galleryItems.length }} eigene Galeriebilder{% endif %} · Logo, Hero und mehr</span>
+      </summary>
+      <div class="admin-collapse-body">
     <p class="text-muted">Logo und Favicon (PNG/JPG/WebP, max. 5 MB), Hero-, Service-, Material- und Rechnerbild sowie bis zu acht Galeriebilder. Über das Stiftsymbol lässt sich jedes Bild in einem Fenster auswählen oder hineinziehen. Ohne eigene Bilder werden die mitgelieferten Motive verwendet.</p>
 
     {% set imageSlots = [
@@ -364,11 +379,18 @@
         </div>
       </form>
     </dialog>
+      </div>
+    </details>
   </section>
 
   <form class="form card admin-panel" method="post" action="/admin/stammdaten/texte/">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
-    <h2>Texte auf der Startseite</h2>
+    <details class="admin-field-collapse" data-collapse="site-texts">
+      <summary>
+        <h2>Texte auf der Startseite</h2>
+        <span class="admin-collapse-preview">{{ content['home.hero.title'] or 'Noch kein Text hinterlegt' }}</span>
+      </summary>
+      <div class="admin-collapse-body">
     <div class="field">
       <label for="heroKicker">Kicker (Hero)</label>
       <input id="heroKicker" name="heroKicker" type="text" maxlength="120" value="{{ content['home.hero.kicker'] }}">
@@ -389,6 +411,8 @@
       <label for="contactText">Text Kontaktbereich</label>
       <textarea id="contactText" name="contactText" rows="3" maxlength="600">{{ content['home.contact.text'] }}</textarea>
     </div>
+      </div>
+    </details>
     <div class="form-actions">
       <button class="btn" type="submit">Texte speichern</button>
     </div>

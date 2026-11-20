@@ -17,7 +17,7 @@ const openImages = async (page: Page): Promise<void> => {
   await page.waitForLoadState('domcontentloaded');
   const section = page.locator('[data-collapse="images"]');
   if ((await section.getAttribute('open')) === null) {
-    await section.locator('summary').click();
+    await section.locator('> summary').click();
   }
   await expect(section).toHaveAttribute('open', '');
 };

@@ -53,57 +53,67 @@
   </div>
 
   <section class="card admin-panel admin-visitor-panel">
-    <div class="admin-panel-head">
-      <h2>Besucher der letzten 7 Tage</h2>
-      <a href="/admin/besucherstatistik/">Auswertung öffnen</a>
-    </div>
-    {% if visitorStats.hasData %}
-      <p class="text-muted">{{ visitorStats.weekViews }} Aufrufe · {{ visitorStats.weekVisitors }} Besucher (täglich eindeutig) · heute {{ visitorStats.todayViews }} Aufrufe</p>
-      <div class="admin-visitor-bars">
-        {% for item in visitorStats.series %}
-          <div class="admin-visitor-bar">
-            <span>{{ item.label }}</span>
-            <span class="admin-visitor-bar-track"><span class="admin-visitor-bar-fill" style="width: {{ item.percent }}%"></span></span>
-            <span class="admin-visitor-bar-value">{{ item.views }} Aufrufe</span>
+    <details class="admin-field-collapse" data-collapse="dashboard-visitors">
+      <summary>
+        <h2>Besucher der letzten 7 Tage</h2>
+        <span class="admin-collapse-preview">{{ visitorStats.weekViews }} Aufrufe · {{ visitorStats.weekVisitors }} Besucher</span>
+      </summary>
+      <div class="admin-collapse-body">
+        {% if visitorStats.hasData %}
+          <p class="text-muted">{{ visitorStats.weekViews }} Aufrufe · {{ visitorStats.weekVisitors }} Besucher (täglich eindeutig) · heute {{ visitorStats.todayViews }} Aufrufe</p>
+          <div class="admin-visitor-bars">
+            {% for item in visitorStats.series %}
+              <div class="admin-visitor-bar">
+                <span>{{ item.label }}</span>
+                <span class="admin-visitor-bar-track"><span class="admin-visitor-bar-fill" style="width: {{ item.percent }}%"></span></span>
+                <span class="admin-visitor-bar-value">{{ item.views }} Aufrufe</span>
+              </div>
+            {% endfor %}
           </div>
-        {% endfor %}
+          {% if visitorStats.countries.length > 0 %}
+            <p class="admin-visitor-countries">Häufigste Länder: {% for country in visitorStats.countries %}{{ country.name }} ({{ country.views }}){% if not loop.last %} · {% endif %}{% endfor %}</p>
+          {% endif %}
+        {% else %}
+          <p class="text-muted">Noch keine Besucherdaten vorhanden. Gezählt wird ab dem ersten Aufruf.</p>
+        {% endif %}
+        <p><a href="/admin/besucherstatistik/">Auswertung öffnen</a></p>
       </div>
-      {% if visitorStats.countries.length > 0 %}
-        <p class="admin-visitor-countries">Häufigste Länder: {% for country in visitorStats.countries %}{{ country.name }} ({{ country.views }}){% if not loop.last %} · {% endif %}{% endfor %}</p>
-      {% endif %}
-    {% else %}
-      <p class="text-muted">Noch keine Besucherdaten vorhanden. Gezählt wird ab dem ersten Aufruf.</p>
-    {% endif %}
+    </details>
   </section>
 
   <section class="card admin-panel admin-monitor-panel">
-    <div class="admin-panel-head">
-      <h2>Systemstatus</h2>
-      {% if not monitor.available %}
-        <span class="badge badge-neutral">noch keine Prüfung</span>
-      {% elif monitor.down %}
-        <span class="badge badge-danger">Störung erkannt</span>
-      {% else %}
-        <span class="badge badge-success">erreichbar</span>
-      {% endif %}
-    </div>
-    {% if monitor.available %}
-      <dl class="admin-dl">
-        <div><dt>Letzte Prüfung</dt><dd>{{ (monitor.lastCheck | datetime) or 'unbekannt' }}</dd></div>
-        <div><dt>Letzte erfolgreiche Prüfung</dt><dd>{{ (monitor.lastOk | datetime) or '–' }}</dd></div>
-        {% if monitor.down %}
-          <div><dt>Ausfall seit</dt><dd>{{ (monitor.since | datetime) or 'unbekannt' }}</dd></div>
-          <div><dt>Letzte Warnung</dt><dd>{{ (monitor.lastAlert | datetime) or '–' }}</dd></div>
+    <details class="admin-field-collapse" data-collapse="dashboard-monitor">
+      <summary>
+        <h2>Systemstatus</h2>
+        {% if not monitor.available %}
+          <span class="badge badge-neutral">noch keine Prüfung</span>
+        {% elif monitor.down %}
+          <span class="badge badge-danger">Störung erkannt</span>
+        {% else %}
+          <span class="badge badge-success">erreichbar</span>
         {% endif %}
-        <div><dt>Details</dt><dd>{{ monitor.detail or '–' }}</dd></div>
-      </dl>
-    {% else %}
-      <p class="text-muted">Noch keine Statusdatei vorhanden. Der Uptime-Check läuft alle fünf Minuten über <code>3d-mir-monitor.timer</code>.</p>
-    {% endif %}
-    <div class="admin-page-actions">
-      <a class="btn btn-secondary btn-small" href="/admin/">Status aktualisieren</a>
-      <a class="btn btn-secondary btn-small" href="/admin/benachrichtigungen/">Benachrichtigungen</a>
-    </div>
+        <span class="admin-collapse-preview">{{ (monitor.lastCheck | datetime) or 'Details anzeigen' }}</span>
+      </summary>
+      <div class="admin-collapse-body">
+        {% if monitor.available %}
+          <dl class="admin-dl">
+            <div><dt>Letzte Prüfung</dt><dd>{{ (monitor.lastCheck | datetime) or 'unbekannt' }}</dd></div>
+            <div><dt>Letzte erfolgreiche Prüfung</dt><dd>{{ (monitor.lastOk | datetime) or '–' }}</dd></div>
+            {% if monitor.down %}
+              <div><dt>Ausfall seit</dt><dd>{{ (monitor.since | datetime) or 'unbekannt' }}</dd></div>
+              <div><dt>Letzte Warnung</dt><dd>{{ (monitor.lastAlert | datetime) or '–' }}</dd></div>
+            {% endif %}
+            <div><dt>Details</dt><dd>{{ monitor.detail or '–' }}</dd></div>
+          </dl>
+        {% else %}
+          <p class="text-muted">Noch keine Statusdatei vorhanden. Der Uptime-Check läuft alle fünf Minuten über <code>3d-mir-monitor.timer</code>.</p>
+        {% endif %}
+        <div class="admin-page-actions">
+          <a class="btn btn-secondary btn-small" href="/admin/">Status aktualisieren</a>
+          <a class="btn btn-secondary btn-small" href="/admin/benachrichtigungen/">Benachrichtigungen</a>
+        </div>
+      </div>
+    </details>
   </section>
 
   <div class="admin-grid-2">

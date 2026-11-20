@@ -3,6 +3,25 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.52] – 2026-11-20
+
+### Geändert
+
+- Die Karten unter **Admin → Preise** (Grundwerte, Materialien, Drucker,
+  Nachbearbeitung, Versand, Versandoptionen und Mengenrabatt) sind jetzt
+  initial eingeklappt. Die Zeile zeigt jeweils eine kurze Vorschau, zum Beispiel
+  die Anzahl der Materialien oder den Mindestauftrag. Der Speichern-Button
+  bleibt immer sichtbar.
+- Unter **Admin → Stammdaten** sind Kanäle, Kontakt und SEO, Bilder sowie die
+  Startseiten-Texte initial eingeklappt. Die Geschäftsdaten bleiben sofort
+  sichtbar; vorhandene Werte werden in der Vorschauzeile zusammengefasst.
+- Auf dem **Dashboard** sind nur noch der Besucher-Chart und der Systemstatus
+  eingeklappt. Kennzahlen und die Listen offener Bestellungen, Zahlungen und
+  Anfragen bleiben sofort sichtbar.
+- Auch diese Bereiche funktionieren ohne JavaScript und per Tastatur; Felder
+  in geschlossenen Bereichen werden beim Speichern vom Browser aufgeklappt,
+  wenn sie Pflichtfelder sind. E2E-Prüfung für alle Bereiche ergänzt.
+
 ## [1.0.0-rc.51] – 2026-11-19
 
 ### Geändert

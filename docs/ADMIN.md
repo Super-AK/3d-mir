@@ -30,6 +30,8 @@ In den Listen unter **Produkte**, **Kategorien** und **Nachrichten** stehen die 
 
 Die Symbole tragen zusätzlich einen unsichtbaren Beschreibungstext für Screenreader.
 
+Auf dem **Dashboard** bleiben die Kennzahlen und die Listen offener Bestellungen, Zahlungen und Anfragen sofort sichtbar. Der Bereich **„Besucher der letzten 7 Tage“** und der **Systemstatus** sind zunächst eingeklappt; die Zeile zeigt jeweils eine kurze Vorschau (Aufrufe/Besucher bzw. letzte Prüfung und Status). Ein Klick öffnet die Details. Auch hier funktioniert das Ein-/Ausklappen ohne JavaScript und per Tastatur.
+
 ## Besucherstatistik
 
 Unter **Admin → Besucherstatistik** werden Aufrufe, Herkunftsländer und die häufigsten Pfade ausgewertet. Zeitraum (7/30/90 Tage oder 12 Monate) und Zusammenfassung (täglich, wöchentlich oder monatlich) lassen sich über zwei Auswahlfelder ändern; die Seite lädt sofort neu. Das Dashboard zeigt zusätzlich eine kompakte Zusammenfassung der letzten sieben Tage.
@@ -49,6 +51,8 @@ Unter **Admin → Stammdaten** werden die öffentlichen Geschäftsangaben und Bi
 | Kontakt/SEO | Antwortzeit, Abholhinweis, SEO-Name, Seitentitel und Beschreibung der Startseite |
 | Bilder | Logo und Favicon (PNG/JPG/WebP, max. 5 MB), Hero-Bild, Service-Bild, Material-Bild (Leistungen), Rechner-Bild, Galerie mit bis zu 8 Bildern |
 | Startseite | Kicker, Überschrift und Einleitungstext im Hero sowie Überschrift und Text des Kontaktbereichs |
+
+Aus Gründen der Übersichtlichkeit sind **Kanäle**, **Kontakt und SEO**, **Bilder** und **Texte auf der Startseite** zunächst eingeklappt. Die Zeile zeigt eine kurze Vorschau (etwa die hinterlegten Kanäle oder die Überschrift der Startseite); ein Klick öffnet den Bereich. Die **Geschäftsdaten** bleiben sofort sichtbar. Das Ein-/Ausklappen funktioniert ohne JavaScript und per Tastatur; vorhandene Werte bleiben erhalten.
 
 Änderungen wirken sofort auf Website, Footer, Rechtsseiten, E-Mails und JSON-LD; ein Neustart ist nicht nötig. Die Werte werden in der Tabelle `settings` unter dem Schlüssel `site.settings` gespeichert und überlagern `config/site.json`. „Auf Standard zurücksetzen“ entfernt das Logo bzw. einzelne Bilder; die mitgelieferten Motive werden dann wieder verwendet.
 
@@ -95,6 +99,8 @@ Unter **Admin → Preise** lassen sich alle Preis- und Katalogdaten pflegen:
 | Versand | Bezeichnung, Preis, Lieferzeit, Zusatzinfo | ✓ | ✓ |
 | Versandoptionen | Bezeichnung, Preis, Hinweis (z. B. Express, Geschenkverpackung) | ✓ | ✓ |
 | Mengenrabatt | Staffel ab Stückzahl, Rabatt in Prozent | ✓ | ✓ |
+
+Alle sieben Bereiche sind zunächst eingeklappt; die Zeile zeigt eine kurze Vorschau (etwa „4 Materialien“, „3 Drucker“ oder „Kein Mengenrabatt“). Ein Klick auf die Zeile öffnet den Bereich. Die Schaltfläche **„Alle Änderungen speichern“** bleibt immer sichtbar; Pflichtfelder in geschlossenen Bereichen werden vom Browser beim Speichern automatisch aufgeklappt. Das Ein-/Ausklappen funktioniert ohne JavaScript und per Tastatur.
 
 **Speichern:** Alle Änderungen werden mit einer Schaltfläche am Seitenende gespeichert. Löschmarkierungen gelten erst beim Speichern.
 
