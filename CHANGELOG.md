@@ -3,6 +3,19 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.54] – 2026-11-20
+
+### Hinzugefügt
+
+- **To-do-Liste unter „Veröffentlichung“:** Die offenen Punkte bis zum
+  Livegang stehen jetzt direkt im Admin. Jeder Punkt lässt sich abhaken,
+  löschen und bei Bedarf über die Schaltfläche **„Übernehmen“** wieder
+  öffnen.
+- Eigene Punkte können über **„Neuer Punkt“** ergänzt werden; eine
+  **„Standardliste wiederherstellen“** setzt die Vorschläge zurück. Der Stand
+  wird in der Datenbank gespeichert (`settings`, Schlüssel
+  `publication.checklist`).
+
 ## [1.0.0-rc.53] – 2026-11-20
 
 ### Hinzugefügt

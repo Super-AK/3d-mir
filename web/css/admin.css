@@ -918,3 +918,50 @@ html:not(.js) [data-product-image-crop] { display: none; }
 .admin-monitor-panel { margin-bottom: 1.5rem; }
 .admin-monitor-panel .admin-dl { margin-bottom: 1rem; }
 .admin-monitor-panel .admin-page-actions { justify-content: flex-start; }
+
+/* To-do-Liste unter „Veröffentlichung“ */
+.admin-checklist {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.admin-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.admin-checklist li.is-done {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+.admin-checklist li.is-done .admin-check span {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.admin-checklist-item {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+}
+.admin-checklist-item .admin-check { flex: 1; min-width: 0; }
+.admin-checklist-item .admin-check span { overflow-wrap: anywhere; }
+.admin-checklist li > form { margin: 0; }
+.admin-checklist-add {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.admin-checklist-add .field { flex: 1; }
+.admin-checklist-reset { margin-top: 0.75rem; }
+@media (max-width: 640px) {
+  .admin-checklist-add { flex-direction: column; align-items: stretch; }
+}

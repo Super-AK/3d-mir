@@ -77,6 +77,21 @@ test.describe('Admin', () => {
       await expect(section).toHaveAttribute('open', '');
     }
 
+    // Veröffentlichung: To-do-Liste ergänzen, abhaken und wieder entfernen.
+    await page.goto('/admin/veroeffentlichung/');
+    const checklist = page.locator('.admin-checklist');
+    expect(await checklist.locator('li').count()).toBeGreaterThan(0);
+    const marker = `E2E-Punkt-${Date.now()}`;
+    await page.fill('#newChecklistItem', marker);
+    await page.getByRole('button', { name: 'Hinzufügen' }).click();
+    const added = checklist.locator('li', { hasText: marker });
+    await expect(added).toBeVisible();
+    await added.getByRole('button', { name: /übernehmen/ }).click();
+    await expect(added).toHaveClass(/is-done/);
+    page.once('dialog', (dialog) => dialog.accept());
+    await added.getByRole('button', { name: /löschen/ }).click();
+    await expect(checklist.locator('li', { hasText: marker })).toHaveCount(0);
+
     // Besucherstatistik: Zeitraum und Gruppierung werden aus der URL gelesen.
     await page.goto('/admin/besucherstatistik/?zeitraum=7&gruppe=woche');
     await expect(page.locator('#zeitraum')).toHaveValue('7');

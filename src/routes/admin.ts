@@ -156,8 +156,12 @@ import {
 } from '../lib/placeholders.js';
 import { deleteSiteLogo, storeSiteFavicon, storeSiteLogo } from '../lib/site-media.js';
 import {
+  defaultPublicationChecklist,
+  getPublicationChecklist,
   getPublicationSettings,
+  savePublicationChecklist,
   savePublicationSettings,
+  type PublicationChecklistItem,
   type PublicationSettings,
 } from '../lib/publication-settings.js';
 import { getTestDataSummary, resetTestData } from '../lib/test-data.js';
@@ -4286,9 +4290,40 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     // Veröffentlichung ----------------------------------------------------
     scope.get('/admin/veroeffentlichung/', async (request, reply) => {
+      const checklist = getPublicationChecklist();
       render(reply, 'admin/publication.njk', adminContext(request, {
         publication: getPublicationSettings(),
+        checklist,
+        checklistDone: checklist.filter((item) => item.done).length,
       }));
+    });
+
+    scope.post('/admin/veroeffentlichung/checkliste/', async (request, reply) => {
+      const body = bodyObject(request);
+      const action = typeof body.action === 'string' ? body.action : '';
+      const id = typeof body.id === 'string' ? body.id : '';
+      const items = getPublicationChecklist();
+
+      if (action === 'add') {
+        const text = cleanText(body.text, 200);
+        if (text) {
+          items.push({ id: crypto.randomUUID(), text, done: false, createdAt: new Date().toISOString() });
+        }
+      } else if (action === 'toggle') {
+        const item = items.find((entry) => entry.id === id);
+        if (item) item.done = !item.done;
+      } else if (action === 'remove') {
+        const index = items.findIndex((entry) => entry.id === id);
+        if (index >= 0) items.splice(index, 1);
+      } else if (action === 'reset') {
+        items.splice(0, items.length, ...defaultPublicationChecklist.map((item) => ({ ...item })));
+      } else {
+        return reply.redirect('/admin/veroeffentlichung/', 303);
+      }
+
+      savePublicationChecklist(items as PublicationChecklistItem[]);
+      writeAudit(request.admin?.email ?? 'admin', 'publication.checklist', { action, id: id || undefined });
+      return reply.redirect('/admin/veroeffentlichung/?gespeichert=1', 303);
     });
 
     scope.post('/admin/veroeffentlichung/', async (request, reply) => {

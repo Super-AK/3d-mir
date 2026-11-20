@@ -214,6 +214,18 @@ function initProductSorting(): void {
 initProductSorting();
 document.addEventListener('admin:filter-updated', initProductSorting);
 
+// Bestätigungsdialoge ohne Inline-JS (die CSP erlaubt keine Event-Handler im HTML).
+document.querySelectorAll<HTMLFormElement>('[data-confirm]').forEach((form) => {
+  form.addEventListener('submit', (event) => {
+    if (!window.confirm(form.dataset.confirm ?? 'Wirklich ausführen?')) event.preventDefault();
+  });
+});
+
+// To-do-Liste: Abhaken übernimmt die Änderung sofort; ohne JS bleibt der Button.
+document.querySelectorAll<HTMLInputElement>('[data-checklist-toggle]').forEach((input) => {
+  input.addEventListener('change', () => input.form?.requestSubmit());
+});
+
 /**
  * Produktbilder: Sortierung per Drag & Drop. Die Pfeile in den Karten
  * funktionieren auch ohne JavaScript; hier wird nur das Ziehen ergänzt.

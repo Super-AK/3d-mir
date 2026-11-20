@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.54 – 20. November 2026
+
+Unter **Veröffentlichung** gibt es jetzt eine To-do-Liste für den Livegang. Die
+offenen Punkte aus der Abnahme sind als Vorschläge hinterlegt; der Betreiber
+kann sie abhaken, löschen und eigene Punkte ergänzen. Der Stand bleibt in den
+Admin-Einstellungen erhalten.
+
 ## Release 1.0.0-rc.53 – 20. November 2026
 
 Bestellungen lassen sich jetzt einzeln drucken. Die Liste zeigt pro Zeile einen

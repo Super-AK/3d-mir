@@ -1,4 +1,5 @@
 {% extends "layouts/admin.njk" %}
+{% from "admin/partials/icons.njk" import icon %}
 
 {% block title %}Veröffentlichung – 3D-MIR Admin{% endblock %}
 
@@ -56,4 +57,57 @@
       <button class="btn" type="submit">Einstellungen speichern</button>
     </div>
   </form>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head">
+      <h2>To-do bis zum Livegang</h2>
+      <span class="badge badge-{% if checklistDone == checklist.length and checklist.length > 0 %}success{% else %}info{% endif %}">
+        {{ checklistDone }} von {{ checklist.length }} erledigt
+      </span>
+    </div>
+    <p class="text-muted">Die Liste enthält die offenen Punkte aus der Abnahme. Abhaken, löschen und eigene Punkte ergänzen – der Stand bleibt im Admin gespeichert.</p>
+
+    {% if checklist.length > 0 %}
+      <ul class="admin-checklist">
+        {% for item in checklist %}
+          <li class="{% if item.done %}is-done{% endif %}" data-checklist-item="{{ item.id }}">
+            <form class="admin-checklist-item" method="post" action="/admin/veroeffentlichung/checkliste/">
+              <input type="hidden" name="_csrf" value="{{ csrf }}">
+              <input type="hidden" name="action" value="toggle">
+              <input type="hidden" name="id" value="{{ item.id }}">
+              <label class="admin-check">
+                <input type="checkbox" name="done" value="1" {% if item.done %}checked{% endif %} data-checklist-toggle>
+                <span>{{ item.text }}</span>
+              </label>
+              <button class="admin-icon-btn admin-icon-btn--success" type="submit" data-tooltip="Übernehmen" aria-label="Punkt „{{ item.text }}“ übernehmen">{{ icon('check') }}</button>
+            </form>
+            <form method="post" action="/admin/veroeffentlichung/checkliste/" data-confirm="Diesen Punkt wirklich löschen?">
+              <input type="hidden" name="_csrf" value="{{ csrf }}">
+              <input type="hidden" name="action" value="remove">
+              <input type="hidden" name="id" value="{{ item.id }}">
+              <button class="admin-icon-btn admin-icon-btn--danger" type="submit" data-tooltip="Löschen" aria-label="Punkt „{{ item.text }}“ löschen">{{ icon('trash') }}</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">Aktuell sind keine Punkte hinterlegt. Ergänze unten einen neuen Punkt oder stelle die Standardliste wieder her.</p>
+    {% endif %}
+
+    <form class="admin-checklist-add" method="post" action="/admin/veroeffentlichung/checkliste/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <input type="hidden" name="action" value="add">
+      <div class="field">
+        <label for="newChecklistItem">Neuer Punkt</label>
+        <input id="newChecklistItem" name="text" type="text" maxlength="200" required placeholder="z. B. Live-Testbestellung prüfen">
+      </div>
+      <button class="btn btn-small" type="submit">Hinzufügen</button>
+    </form>
+
+    <form class="admin-checklist-reset" method="post" action="/admin/veroeffentlichung/checkliste/" data-confirm="Die aktuelle Liste durch die Standardliste ersetzen? Eigene Punkte gehen verloren.">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <input type="hidden" name="action" value="reset">
+      <button class="btn btn-secondary btn-small" type="submit">Standardliste wiederherstellen</button>
+    </form>
+  </section>
 {% endblock %}

@@ -119,6 +119,12 @@ Unter **Admin → Veröffentlichung** lassen sich die Hinweise nach fachlicher P
 
 Die Einstellungen werden in der Datenbank (`settings`, Schlüssel `publication.settings`) gespeichert und überlagern die Statuswerte aus `config/shop.json`, `config/pricing.json` und `config/site.json`. Ein Neustart ist nicht nötig. Falls nach einer Bestätigung noch ein alter Override aktiv ist, setzt die Migration `010_publication_shipping_final.sql` den Versandstatus einmalig auf `FINAL`.
 
+### To-do-Liste bis zum Livegang
+
+Unterhalb der Schalter befindet sich eine Checkliste mit den offenen Punkten aus der Abnahme. Jeder Punkt lässt sich über das Kontrollkästchen oder die Schaltfläche **„Übernehmen“** abhaken; die Anzeige „x von y erledigt“ aktualisiert sich sofort. Über das Papierkorb-Symbol wird ein Punkt entfernt. Mit **„Neuer Punkt“** ergänzt du eigene Aufgaben, und **„Standardliste wiederherstellen“** setzt die Vorschläge zurück.
+
+Der Stand wird in der Datenbank unter `settings` / `publication.checklist` gespeichert und bleibt auch nach einem Neustart erhalten. Die Checkliste ist reine Admin-Planung: Sie schaltet nichts automatisch frei und ersetzt keine fachliche Prüfung.
+
 Rechtstexte sollten erst nach rechtlicher Prüfung freigegeben werden. Die TODO-Marker in den Texten (z. B. `TODO-VERSAND` in der Datenschutzerklärung) werden durch den Schalter nicht ersetzt – sie müssen im Text selbst entfernt werden.
 
 Die Hinweise auf `/leistungen/` („Bauraum-Angaben sind Richtwerte …“) und der Schätzhinweis im Rechner sind keine Platzhalter, sondern dauerhafte fachliche Hinweise.
