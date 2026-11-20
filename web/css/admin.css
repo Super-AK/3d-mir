@@ -919,6 +919,20 @@ html:not(.js) [data-product-image-crop] { display: none; }
 .admin-monitor-panel .admin-dl { margin-bottom: 1rem; }
 .admin-monitor-panel .admin-page-actions { justify-content: flex-start; }
 
+/* Stripe-Diagnose unter „Zahlungen“ */
+.admin-diagnostics .admin-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; }
+.admin-diagnostics .admin-status-grid > div { grid-template-columns: 10rem minmax(0, 1fr); }
+.admin-issue-list {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+.admin-issue-list li + li { margin-top: 0.25rem; }
+@media (max-width: 900px) {
+  .admin-diagnostics .admin-status-grid { grid-template-columns: 1fr; }
+}
+
 /* To-do-Liste unter „Veröffentlichung“ */
 .admin-checklist {
   display: grid;

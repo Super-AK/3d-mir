@@ -425,6 +425,14 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.55 – 20. November 2026
+
+Die Admin-Seite **Zahlungen** zeigt eine Stripe-Diagnose mit Schlüsseltyp,
+Modus-Abgleich, Webhook-Secret und den erwarteten URLs. Ein Verbindungstest
+meldet Stripe-Fehler direkt im Admin, und die letzten fehlgeschlagenen
+Zahlungen bzw. Webhooks sind auf einen Blick sichtbar. Die Hilfe erklärt
+eingeschränkte Live-Schlüssel (`rk_live…`) und die nötigen Rechte.
+
 ## Release 1.0.0-rc.54 – 20. November 2026
 
 Unter **Veröffentlichung** gibt es jetzt eine To-do-Liste für den Livegang. Die

@@ -3,6 +3,31 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.55] – 2026-11-20
+
+### Hinzugefügt
+
+- **Stripe-Diagnose unter „Zahlungen“:** Die Admin-Seite zeigt jetzt den
+  erkannten Schlüsseltyp (`sk`/`rk`, Test/Live), den Abgleich mit
+  `STRIPE_MODE`, den Status des Webhook-Secrets, die Zahlungs-Basis-URL sowie
+  die erwarteten Webhook-, Erfolgs- und Abbruch-URLs. Abweichungen stehen als
+  konkrete Hinweise direkt über der Anzeige.
+- **Verbindungstest:** Ein Button ruft die Checkout-Sessions-API mit dem
+  hinterlegten Schlüssel auf und zeigt die Stripe-Fehlermeldung – ohne
+  Geheimnisse preiszugeben.
+- **Fehlerhistorie:** Die letzten fünf fehlgeschlagenen Stripe-Zahlungen und
+  die letzten fünf Stripe-Webhooks stehen direkt auf der Zahlungsseite. Die
+  genaue Fehlerursache wird künftig im Admin-Zahlungshinweis der Bestellung
+  gespeichert, während der Kunde weiterhin eine allgemeine Meldung sieht.
+- Die Hilfe erklärt jetzt ausdrücklich eingeschränkte Live-Schlüssel
+  (`rk_live…`) samt nötiger Berechtigung für Checkout-Sessions und den
+  obligatorischen Dienst-Neustart nach ENV-Änderungen.
+
+### Geändert
+
+- Fehlgeschlagene Online-Zahlungen enthalten in der Admin-Detailansicht die
+  bereinigte Stripe-Fehlermeldung statt nur eines Platzhaltersatzes.
+
 ## [1.0.0-rc.54] – 2026-11-20
 
 ### Hinzugefügt

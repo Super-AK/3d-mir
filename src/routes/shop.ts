@@ -34,6 +34,7 @@ import {
   releaseStock,
   type PaymentOrder,
 } from '../lib/payments/index.js';
+import { stripeErrorDetail } from '../lib/payments/stripe.js';
 import {
   deliveryTimeText,
   formatEuro,
@@ -1037,7 +1038,12 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
           return reply.redirect(payment.redirectUrl, 303);
         } catch (error) {
           request.log.error({ err: error, number }, 'Online-Zahlung konnte nicht gestartet werden');
-          markOrderPaymentFailed(order.id, 'stripe', '', 'Die Online-Zahlung konnte nicht gestartet werden.');
+          markOrderPaymentFailed(
+            order.id,
+            'stripe',
+            '',
+            `Online-Zahlung fehlgeschlagen: ${stripeErrorDetail(error)}`,
+          );
           releaseStock(order.id, 'Online-Zahlung konnte nicht gestartet werden');
           return fail(
             'Die Online-Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut oder wählen Sie die Zahlung per Vorkasse.',

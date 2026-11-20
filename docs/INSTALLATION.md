@@ -662,7 +662,7 @@ Datei: `/etc/3d-mir/3d-mir.env`, Rechte `600`, Eigentümer `root`.
 | `SMTP_USER` / `SMTP_PASS` | nein | SMTP-Zugang |
 | `MAX_UPLOAD_MB` | nein | Standard `50` |
 | `STRIPE_MODE` | nein | `test` oder `live` (Anzeige im Admin) |
-| `STRIPE_SECRET_KEY` | für Stripe | `sk_test_…` bzw. `sk_live_…` |
+| `STRIPE_SECRET_KEY` | für Stripe | `sk_test_…`, `sk_live_…`, `rk_test_…` oder `rk_live_…` (Restricted Key braucht „Checkout Sessions: Schreiben/Lesen“) |
 | `STRIPE_WEBHOOK_SECRET` | für Stripe | `whsec_…` |
 | `PAYMENT_BASE_URL` | nein | öffentliche Basis-URL, Standard `site.baseUrl` |
 | `NOTIFICATION_CHANNEL` | nein | `mail`, `telegram` oder `both` (Admin hat Vorrang) |
@@ -896,6 +896,7 @@ Das Skript sichert den aktuellen Zustand, stoppt den Dienst, prüft die Datenban
 | Bilder 404 | `public/` wurde nicht gebaut oder hat falsche Rechte. `npm run build`, Rechte prüfen. |
 | TLS schlägt fehl | DNS zeigt noch nicht auf den Server, Port 80 blockiert oder Cloudflare-Proxy aktiv. `dig`, `curl -I http://3d-mir.de/.well-known/acme-challenge/...` prüfen. |
 | Stripe-Methoden fehlen | `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` gesetzt? Dienst neu gestartet? Im Stripe-Dashboard aktiviert? |
+| „Online-Zahlung konnte nicht gestartet werden“ | Admin → Zahlungen → Stripe-Diagnose und Verbindungstest prüfen. Bei `rk_live…` die Rechte für Checkout-Sessions ergänzen; Modus von `STRIPE_MODE` und Schlüssel muss gleich sein. |
 | Stripe-Webhook 400 | Falsches `STRIPE_WEBHOOK_SECRET` oder Anfrage nicht von Stripe. Signatur und URL prüfen. |
 | Zahlung bleibt „offen“ | Webhook nicht angekommen. Stripe-Dashboard → Webhook-Logs, `journalctl -u 3d-mir`, Betrag/Referenz prüfen. |
 | E-Mails fehlen | SMTP nicht konfiguriert; `.eml` unter `/var/log/3d-mir/mail/` prüfen. |

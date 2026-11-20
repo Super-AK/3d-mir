@@ -17,17 +17,103 @@
     <div class="alert alert-danger" role="alert"><p>{{ error }}</p></div>
   {% endif %}
 
-  {% if not stripeConfigured %}
-    <div class="alert alert-warning" role="status">
-      <p><strong>Stripe ist noch nicht konfiguriert.</strong> Karte, PayPal, Amazon Pay, Klarna und iDEAL werden im Checkout erst angeboten, wenn <code>STRIPE_SECRET_KEY</code> und <code>STRIPE_WEBHOOK_SECRET</code> in <code>/etc/3d-mir/3d-mir.env</code> gesetzt sind. Vorkasse funktioniert unabhängig davon.</p>
-    </div>
-  {% endif %}
-
   {% if not bankConfigured %}
     <div class="alert alert-warning" role="status">
       <p><strong>Bankverbindung fehlt.</strong> Bei Vorkasse wird derzeit nur der Hinweis angezeigt, dass die Bankverbindung separat mitgeteilt wird. Bitte tragen Sie die Kontodaten unten ein, bevor der Shop live geht.</p>
     </div>
   {% endif %}
+
+  <section class="card admin-panel admin-diagnostics">
+    <div class="admin-panel-head">
+      <h2>Stripe-Diagnose</h2>
+      <span class="badge badge-{% if stripeDiagnostics.issues.length %}danger{% else %}success{% endif %}">
+        {% if stripeDiagnostics.issues.length %}Prüfen{% else %}unbedenklich{% endif %}
+      </span>
+    </div>
+    <p class="text-muted">Die Anzeige kommt aus der laufenden Serverumgebung. Nach jeder Änderung an <code>/etc/3d-mir/3d-mir.env</code> muss der Dienst neu gestartet werden.</p>
+
+    {% if stripeDiagnostics.issues.length %}
+      <ul class="admin-issue-list">
+        {% for issue in stripeDiagnostics.issues %}<li>{{ issue }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if stripeTest %}
+      <div class="alert alert-{% if stripeTest.ok %}success{% else %}danger{% endif %}" role="status">
+        <p><strong>Verbindungstest:</strong> {{ stripeTest.message }}</p>
+        {% if stripeTest.status %}<p class="hint">Stripe-HTTP-Status: {{ stripeTest.status }}</p>{% endif %}
+      </div>
+    {% endif %}
+
+    <dl class="admin-dl admin-status-grid">
+      <div><dt>Konfiguration</dt><dd>{% if stripeDiagnostics.configured %}<span class="badge badge-success">vollständig</span>{% else %}<span class="badge badge-warning">unvollständig</span>{% endif %}</dd></div>
+      <div><dt>Schlüssel</dt><dd><code>{{ stripeDiagnostics.keyLabel }}</code>{% if not stripeDiagnostics.keyPresent %} <span class="text-muted">(fehlt)</span>{% endif %}</dd></div>
+      <div><dt>Schlüsselmodus</dt><dd>{{ stripeDiagnostics.keyMode }}</dd></div>
+      <div><dt>STRIPE_MODE</dt><dd><code>{{ stripeDiagnostics.configuredMode }}</code></dd></div>
+      <div><dt>Modus passt</dt><dd>{% if stripeDiagnostics.modeMatches %}<span class="badge badge-success">ja</span>{% else %}<span class="badge badge-danger">nein</span>{% endif %}</dd></div>
+      <div><dt>Schlüsselart</dt><dd>{% if stripeDiagnostics.restricted %}eingeschränkt (Restricted Key){% elseif stripeDiagnostics.keyPresent %}vollständig (Secret Key){% else %}–{% endif %}</dd></div>
+      <div><dt>Webhook-Secret</dt><dd><code>{{ stripeDiagnostics.webhookLabel }}</code>{% if not stripeDiagnostics.webhookLooksValid %} <span class="badge badge-warning">prüfen</span>{% endif %}</dd></div>
+      <div><dt>Zahlungs-Basis-URL</dt><dd><code>{{ stripeDiagnostics.paymentBaseUrl }}</code></dd></div>
+      <div><dt>Webhook-URL</dt><dd><code>{{ site.baseUrl }}/zahlung/webhook/stripe/</code></dd></div>
+      <div><dt>Erfolgs-URL</dt><dd><code>{{ stripeDiagnostics.paymentBaseUrl }}/bestellung/danke/?nummer=…&amp;token=…</code></dd></div>
+      <div><dt>Abbruch-URL</dt><dd><code>{{ stripeDiagnostics.paymentBaseUrl }}/bestellung/zahlung/?nummer=…&amp;token=…</code></dd></div>
+    </dl>
+
+    {% if stripeDiagnostics.restricted %}
+      <p class="hint">Bei einem <code>rk_live…</code>-Schlüssel müssen die Rechte <strong>„Checkout Sessions: Schreiben“</strong> und <strong>„Lesen“</strong> gesetzt sein. Fehlende Rechte führen zum Fehler „Online-Zahlung konnte nicht gestartet werden“.</p>
+    {% endif %}
+
+    <form class="admin-checklist-reset" method="post" action="/admin/zahlungen/stripe-test/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="btn btn-secondary btn-small" type="submit" {% if not stripeDiagnostics.keyPresent %}disabled{% endif %}>Verbindung zu Stripe testen</button>
+    </form>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head">
+      <h2>Letzte fehlgeschlagene Stripe-Zahlungen</h2>
+      <span class="text-muted">maximal 5</span>
+    </div>
+    {% if failedPayments.length %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Bestellung</th><th>Zeit</th><th>Fehlerursache (nur im Admin)</th></tr></thead>
+          <tbody>
+            {% for item in failedPayments %}
+              <tr>
+                <td><a href="/admin/bestellungen/{{ item.id }}/">{{ item.order_number }}</a></td>
+                <td>{{ item.updated_at }}</td>
+                <td>{{ item.payment_note }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">Keine fehlgeschlagenen Stripe-Zahlungen erfasst.</p>
+    {% endif %}
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head">
+      <h2>Letzte Stripe-Webhooks</h2>
+      <span class="text-muted">maximal 5</span>
+    </div>
+    {% if webhookEvents.length %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ereignis</th><th>Event-ID</th><th>Zeit</th></tr></thead>
+          <tbody>
+            {% for item in webhookEvents %}
+              <tr><td>{{ item.event_type }}</td><td><code>{{ item.event_id }}</code></td><td>{{ item.created_at }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">Noch keine Stripe-Webhooks eingegangen.</p>
+    {% endif %}
+  </section>
 
   <form class="form" method="post" action="/admin/zahlungen/">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
@@ -103,31 +189,27 @@
     </section>
 
     <section class="card admin-panel">
-      <h2>Stripe</h2>
-      <dl class="admin-dl">
-        <div><dt>Status</dt><dd>{% if stripeConfigured %}<span class="badge badge-success">konfiguriert</span>{% else %}<span class="badge badge-warning">nicht konfiguriert</span>{% endif %}</dd></div>
-        <div><dt>Modus</dt><dd>{{ stripeMode }}</dd></div>
-        <div><dt>Webhook-URL</dt><dd><code>{{ site.baseUrl }}/zahlung/webhook/stripe/</code></dd></div>
-      </dl>
+      <h2>Stripe-Einrichtung und Hilfe</h2>
       <p class="hint">Die Schlüssel <code>STRIPE_SECRET_KEY</code> und <code>STRIPE_WEBHOOK_SECRET</code> werden ausschließlich über die Serverumgebung gesetzt. Der Webhook muss im Stripe-Dashboard für die Ereignisse <code>checkout.session.completed</code>, <code>checkout.session.async_payment_succeeded</code>, <code>checkout.session.async_payment_failed</code> und <code>checkout.session.expired</code> eingetragen werden.</p>
 
       <details class="admin-help">
         <summary class="btn btn-secondary btn-small">Hilfe zu Stripe</summary>
         <div class="admin-help-body">
-          <h3>1. Stripe-Konto und Zahlungsarten</h3>
-          <ol>
-            <li>Im Stripe-Dashboard ein Geschäftskonto anlegen und verifizieren.</li>
-            <li>Unter „Zahlungsarten“ Karte, PayPal, Amazon Pay, Klarna und iDEAL aktivieren.</li>
-            <li>Bis zur DNS-/TLS-Umstellung ausschließlich den Testmodus verwenden.</li>
-          </ol>
+          <h3>1. Modus und Schlüssel</h3>
+          <ul>
+            <li><code>sk_test…</code> / <code>rk_test…</code> gehören zu <code>STRIPE_MODE=test</code>.</li>
+            <li><code>sk_live…</code> / <code>rk_live…</code> gehören zu <code>STRIPE_MODE=live</code>.</li>
+            <li>Mischt man Test-Schlüssel und Live-Modus (oder umgekehrt), startet der Checkout nicht.</li>
+            <li>Ein <code>rk_live…</code> ist ein eingeschränkter Schlüssel. Er braucht <strong>„Checkout Sessions: Schreiben“</strong> (beinhaltet Lesen), sonst verweigert Stripe das Anlegen einer Session.</li>
+          </ul>
 
           <h3>2. Schlüssel hinterlegen</h3>
           <p>In <code>/etc/3d-mir/3d-mir.env</code> eintragen:</p>
-          <pre><code>STRIPE_MODE=test
-STRIPE_SECRET_KEY=sk_test_…
+          <pre><code>STRIPE_MODE=live
+STRIPE_SECRET_KEY=rk_live_…
 STRIPE_WEBHOOK_SECRET=whsec_…
 PAYMENT_BASE_URL=https://www.3d-mir.de</code></pre>
-          <p>Danach den Dienst neu starten: <code>sudo systemctl restart 3d-mir.service</code></p>
+          <p>Danach den Dienst neu starten: <code>sudo systemctl restart 3d-mir.service</code>. Erst danach zeigt die Diagnose oben den neuen Stand.</p>
 
           <h3>3. Webhook anlegen</h3>
           <p>Im Stripe-Dashboard einen Webhook-Endpunkt anlegen:</p>
@@ -139,22 +221,29 @@ PAYMENT_BASE_URL=https://www.3d-mir.de</code></pre>
             <li><code>checkout.session.async_payment_failed</code></li>
             <li><code>checkout.session.expired</code></li>
           </ul>
-          <p>Das angezeigte Webhook-Secret als <code>STRIPE_WEBHOOK_SECRET</code> hinterlegen.</p>
+          <p>Das angezeigte Webhook-Secret als <code>STRIPE_WEBHOOK_SECRET</code> hinterlegen. Für Live-Betrieb muss der Webhook im Live-Dashboard angelegt sein.</p>
 
           <h3>4. Testzahlung</h3>
           <ul>
-            <li>Testkarte: <code>4242 4242 4242 4242</code>, beliebiges zukünftiges Datum, beliebige CVC.</li>
-            <li>Klarna und Amazon Pay im Testmodus prüfen; eine Ablehnung durch den Anbieter ist möglich.</li>
-            <li>Nach erfolgreicher Zahlung muss die Bestellung unter <strong>Bestellungen</strong> den Zahlungsstatus „Bezahlt“ haben.</li>
+            <li>Testmodus: Karte <code>4242 4242 4242 4242</code>, beliebiges zukünftiges Datum, beliebige CVC.</li>
+            <li>Live-Modus: nur mit echter Karte und kleinem Betrag testen, danach ggf. erstatten.</li>
+            <li>Klarna und Amazon Pay können im Testmodus abgelehnt werden.</li>
+            <li>Nach erfolgreicher Zahlung muss die Bestellung unter <strong>Bestellungen</strong> den Zahlungsstatus „Bezahlt“ haben und oben ein Webhook erscheinen.</li>
           </ul>
 
-          <h3>5. Livegang</h3>
-          <p>Erst nach DNS- und TLS-Umstellung auf Live-Schlüssel wechseln, <code>STRIPE_MODE=live</code> setzen und den Webhook auf die Live-Umgebung umstellen. Danach eine echte Testbestellung durchführen.</p>
+          <h3>5. Wenn „Online-Zahlung konnte nicht gestartet werden“ erscheint</h3>
+          <ol>
+            <li>Diagnose oben prüfen: Sind Schlüssel, Modus und Webhook-Secret vollständig und passend?</li>
+            <li>Wurde der Dienst nach der Änderung neu gestartet?</li>
+            <li>Bei <code>rk_live…</code>: Rechte für Checkout-Sessions in Stripe ergänzen.</li>
+            <li><strong>„Verbindung zu Stripe testen“</strong> klicken; die genaue Stripe-Fehlermeldung erscheint direkt über der Diagnose.</li>
+            <li>Tabelle „Letzte fehlgeschlagene Stripe-Zahlungen“ öffnen; dort steht die Ursache je Bestellung.</li>
+            <li>Details im Serverlog: <code>sudo journalctl -u 3d-mir.service -n 100 --no-pager</code>.</li>
+          </ol>
 
-          <h3>6. Wenn etwas nicht funktioniert</h3>
+          <h3>6. Weitere Stolpersteine</h3>
           <ul>
-            <li><strong>Zahlungsarten fehlen:</strong> Sind beide Schlüssel gesetzt und der Dienst neu gestartet?</li>
-            <li><strong>Status bleibt „offen“:</strong> Webhook-URL, Secret und Ereignisse prüfen; Logs mit <code>journalctl -u 3d-mir.service</code> ansehen.</li>
+            <li><strong>Status bleibt „offen“:</strong> Webhook-URL, Secret und Ereignisse prüfen.</li>
             <li><strong>Webhook antwortet mit 400:</strong> Secret falsch oder Anfrage nicht von Stripe.</li>
             <li><strong>Betrag weicht ab:</strong> Bestellung wird nicht automatisch bezahlt; Zahlungshinweis im Bestelldetail prüfen.</li>
           </ul>

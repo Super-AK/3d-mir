@@ -78,8 +78,8 @@ STRIPE_WEBHOOK_SECRET=whsec_…
 PAYMENT_BASE_URL=https://www.3d-mir.de
 ```
 
-- `STRIPE_MODE` dient nur der Anzeige im Admin (`test`/`live`).
-- `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` sind Pflicht, damit Karte, PayPal, Amazon Pay, Klarna und iDEAL im Checkout erscheinen.
+- `STRIPE_MODE` steuert keine API-Anfrage, muss aber zum Schlüssel passen; die Admin-Diagnose meldet Abweichungen (`test`/`live`).
+- `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` sind Pflicht, damit Karte, PayPal, Amazon Pay, Klarna und iDEAL im Checkout erscheinen. Eingeschränkte Schlüssel (`rk_live…`) benötigen die Rechte „Checkout Sessions: Schreiben“ und „Lesen“.
 - `PAYMENT_BASE_URL` ist die öffentliche Basis für Erfolgs-/Abbruch-URLs. Für lokale Tests z. B. `http://127.0.0.1:3000`; produktiv `https://www.3d-mir.de`.
 - Nach Änderungen: `sudo systemctl restart 3d-mir.service`.
 
@@ -389,6 +389,7 @@ sqlite3 /var/lib/3d-mir/db/3d-mir.sqlite 'PRAGMA integrity_check;'
 | Telegram-Nachrichten fehlen | Im Admin ist der Kanal „Nur Telegram“ oder „E-Mail und Telegram“ gewählt? Bot-Token/Chat-ID korrekt, Bot wurde angeschrieben, Testnachricht senden. |
 | Zahlung bleibt „offen“ | Stripe-Webhook prüfen: URL, Secret, Ereignisse; `journalctl -u 3d-mir` nach `Stripe-Webhook` durchsuchen. |
 | Stripe-Methoden fehlen | `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` setzen und Dienst neu starten. |
+| Online-Zahlung startet nicht | Admin → Zahlungen: Diagnose, Verbindungstest und letzte Fehlermeldungen prüfen; bei `rk_live…` Checkout-Sessions-Rechte ergänzen. |
 | Login gesperrt | Rate-Limit (5 Versuche/15 Min.) abwarten oder Sitzungen in der DB löschen. |
 
 ## Offene Punkte

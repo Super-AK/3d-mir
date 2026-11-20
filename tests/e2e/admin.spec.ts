@@ -77,6 +77,16 @@ test.describe('Admin', () => {
       await expect(section).toHaveAttribute('open', '');
     }
 
+    // Zahlungen: Diagnose, Verbindungstest und Ereignislisten sind sichtbar.
+    await page.goto('/admin/zahlungen/');
+    await expect(page.getByRole('heading', { name: 'Stripe-Diagnose' })).toBeVisible();
+    await expect(page.getByText('STRIPE_MODE', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Verbindung zu Stripe testen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Letzte fehlgeschlagene Stripe-Zahlungen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Letzte Stripe-Webhooks' })).toBeVisible();
+    await page.locator('.admin-help summary').click();
+    await expect(page.getByRole('heading', { name: /Online-Zahlung konnte nicht gestartet werden/ })).toBeVisible();
+
     // Veröffentlichung: To-do-Liste ergänzen, abhaken und wieder entfernen.
     await page.goto('/admin/veroeffentlichung/');
     const checklist = page.locator('.admin-checklist');

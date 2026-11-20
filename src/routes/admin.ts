@@ -82,7 +82,13 @@ import {
   type BankDetails,
   type PaymentMethodSetting,
 } from '../lib/shop-settings.js';
-import { isStripeConfigured } from '../lib/payments/stripe.js';
+import {
+  getStripeDiagnostics,
+  isStripeConfigured,
+  testStripeConnection,
+  type StripeConnectionTest,
+  type StripeDiagnostics,
+} from '../lib/payments/stripe.js';
 import {
   markOrderPaid,
   markOrderPaymentFailed,
@@ -4223,14 +4229,65 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     );
 
     // Zahlungen -----------------------------------------------------------
-    scope.get('/admin/zahlungen/', async (request, reply) => {
+    type FailedStripeOrder = {
+      id: number;
+      order_number: string;
+      payment_note: string;
+      updated_at: string;
+    };
+    type StripeWebhookRow = {
+      id: number;
+      event_type: string;
+      event_id: string;
+      created_at: string;
+    };
+
+    function paymentAdminData() {
       const settings = getShopSettings();
-      render(reply, 'admin/payments.njk', adminContext(request, {
+      const failedPayments = db()
+        .prepare(
+          `SELECT id, order_number, payment_note, updated_at FROM orders
+            WHERE payment_provider = 'stripe' AND payment_status = 'fehlgeschlagen'
+            ORDER BY updated_at DESC, id DESC LIMIT 5`,
+        )
+        .all() as FailedStripeOrder[];
+      const webhookEvents = db()
+        .prepare(
+          `SELECT id, event_type, event_id, created_at FROM payment_events
+            WHERE provider = 'stripe' ORDER BY id DESC LIMIT 5`,
+        )
+        .all() as StripeWebhookRow[];
+
+      return {
         settings,
         stripeConfigured: isStripeConfigured(),
         stripeMode: config.stripe.mode,
+        stripeDiagnostics: getStripeDiagnostics(),
         bankConfigured: isBankConfigured(settings.bank),
         publicMethods: getPublicPaymentMethods(),
+        failedPayments,
+        webhookEvents,
+      };
+    }
+
+    scope.get('/admin/zahlungen/', async (request, reply) => {
+      render(reply, 'admin/payments.njk', adminContext(request, paymentAdminData()));
+    });
+
+    scope.post('/admin/zahlungen/stripe-test/', async (request, reply) => {
+      const body = bodyObject(request);
+      const session = request.adminSession;
+      if (!session || !verifyCsrfToken(session, body._csrf)) {
+        return adminError(request, reply, 403, 'Das Formular ist abgelaufen. Bitte die Seite neu laden.');
+      }
+      const stripeTest: StripeConnectionTest = await testStripeConnection();
+      writeAudit(request.admin?.email ?? 'admin', 'stripe.connection.test', {
+        ok: stripeTest.ok,
+        status: stripeTest.status ?? undefined,
+      });
+      render(reply, 'admin/payments.njk', adminContext(request, {
+        ...paymentAdminData(),
+        stripeTest,
       }));
     });
 
@@ -4258,9 +4315,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const fail = (message: string) => {
         reply.code(400);
         return render(reply, 'admin/payments.njk', adminContext(request, {
+          ...paymentAdminData(),
           settings: { bank, paymentMethods: methods },
-          stripeConfigured: isStripeConfigured(),
-          stripeMode: config.stripe.mode,
           bankConfigured: isBankConfigured(bank),
           publicMethods: methods.filter((method) => method.enabled),
           error: message,

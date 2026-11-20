@@ -220,6 +220,21 @@ In der Bestellliste hat jede Zeile einen **Druckbutton** (Drucker-Symbol) in der
 
 Beide Buttons öffnen eine kompakte A4-Druckansicht ohne Admin-Navigation. Sie enthält Absender, Kunden- und Lieferadresse, Bestell-, Zahlungs- und Versandangaben, alle Positionen mit Variante, Farbe und Personalisierung sowie die Summen. Eine Kundenanmerkung oder interne Notiz wird nur angezeigt, wenn sie vorhanden ist. Über **„Drucken“** in der Ansicht wird der Browser-Druckdialog geöffnet; alternativ funktioniert Strg+P. **„Zurück zur Bestellung“** führt zur Detailseite zurück. Beim Drucken werden Werkzeugleiste und Schatten automatisch ausgeblendet.
 
+### Stripe-Diagnose und Verbindungstest
+
+Über der Zahlungstabelle steht eine **Stripe-Diagnose** aus der laufenden Serverumgebung. Sie zeigt nur Präfixe und Zustände, nie die Geheimnisse selbst:
+
+| Anzeige | Bedeutung |
+| --- | --- |
+| Schlüssel / Schlüsselart | `sk_test…`, `sk_live…`, `rk_test…` oder `rk_live…`; eingeschränkte Schlüssel werden als solche markiert. |
+| Schlüsselmodus / `STRIPE_MODE` / „Modus passt“ | Test- und Live-Konfiguration müssen übereinstimmen. |
+| Webhook-Secret | Erkennbar an `whsec…`; ein ungewöhnliches Präfix wird markiert. |
+| Zahlungs-Basis-URL, Webhook-URL, Erfolgs- und Abbruch-URL | Erwartete Adressen aus `PAYMENT_BASE_URL` und `site.baseUrl`. |
+
+Abweichungen erscheinen als rote Hinweisliste. Der Button **„Verbindung zu Stripe testen“** ruft die Checkout-Sessions-API ab und zeigt die Stripe-Fehlermeldung direkt an, zum Beispiel fehlende Rechte bei einem `rk_live…`-Schlüssel. Nach ENV-Änderungen ist immer `sudo systemctl restart 3d-mir.service` nötig; ohne Neustart bleibt die alte Anzeige stehen.
+
+Unter der Diagnose stehen die **letzten fünf fehlgeschlagenen Stripe-Zahlungen** mit Bestellnummer, Zeit und Fehlerursache sowie die **letzten fünf Stripe-Webhooks**. Kunden sehen weiterhin nur eine allgemeine Fehlermeldung; die bereinigte Stripe-Ursache wird ausschließlich im Admin-Zahlungshinweis der Bestellung gespeichert.
+
 ### Stripe-Webhook
 
 Im Stripe-Dashboard den Endpunkt `https://www.3d-mir.de/zahlung/webhook/stripe/` anlegen und diese Ereignisse abonnieren:

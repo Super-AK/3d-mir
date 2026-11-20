@@ -58,6 +58,128 @@ export function isStripeConfigured(): boolean {
   return Boolean(config.stripe.secretKey && config.stripe.webhookSecret);
 }
 
+export type StripeKeyKind =
+  | 'missing'
+  | 'secret-test'
+  | 'secret-live'
+  | 'restricted-test'
+  | 'restricted-live'
+  | 'unknown';
+
+export type StripeDiagnostics = {
+  configured: boolean;
+  keyPresent: boolean;
+  keyKind: StripeKeyKind;
+  keyLabel: string;
+  keyMode: 'test' | 'live' | 'unbekannt';
+  configuredMode: 'test' | 'live';
+  modeMatches: boolean;
+  restricted: boolean;
+  webhookPresent: boolean;
+  webhookLabel: string;
+  webhookLooksValid: boolean;
+  paymentBaseUrl: string;
+  issues: string[];
+};
+
+function inspectKey(key: string): Pick<StripeDiagnostics, 'keyKind' | 'keyLabel' | 'keyMode' | 'restricted'> {
+  if (!key) {
+    return { keyKind: 'missing', keyLabel: 'nicht gesetzt', keyMode: 'unbekannt', restricted: false };
+  }
+  if (/^sk_test_/.test(key)) {
+    return { keyKind: 'secret-test', keyLabel: 'sk_test…', keyMode: 'test', restricted: false };
+  }
+  if (/^sk_live_/.test(key)) {
+    return { keyKind: 'secret-live', keyLabel: 'sk_live…', keyMode: 'live', restricted: false };
+  }
+  if (/^rk_test_/.test(key)) {
+    return { keyKind: 'restricted-test', keyLabel: 'rk_test…', keyMode: 'test', restricted: true };
+  }
+  if (/^rk_live_/.test(key)) {
+    return { keyKind: 'restricted-live', keyLabel: 'rk_live…', keyMode: 'live', restricted: true };
+  }
+  return { keyKind: 'unknown', keyLabel: 'unbekanntes Präfix', keyMode: 'unbekannt', restricted: false };
+}
+
+/**
+ * Admin-Diagnose ohne Geheimnisse: nur Präfixe, Modus und plausibility checks.
+ */
+export function getStripeDiagnostics(): StripeDiagnostics {
+  const key = config.stripe.secretKey.trim();
+  const webhook = config.stripe.webhookSecret.trim();
+  const inspected = inspectKey(key);
+  const webhookPresent = webhook.length > 0;
+  const webhookLooksValid = /^whsec_/.test(webhook) && webhook.length > 10;
+  const issues: string[] = [];
+
+  if (inspected.keyKind === 'missing') {
+    issues.push('STRIPE_SECRET_KEY ist nicht gesetzt.');
+  } else if (inspected.keyKind === 'unknown') {
+    issues.push('STRIPE_SECRET_KEY beginnt nicht mit sk_test_, sk_live_, rk_test_ oder rk_live_.');
+  }
+  if (inspected.keyMode !== 'unbekannt' && inspected.keyMode !== config.stripe.mode) {
+    issues.push(
+      `STRIPE_MODE=${config.stripe.mode} passt nicht zum Schlüssel (${inspected.keyLabel}). ` +
+        'Beide müssen denselben Modus haben.',
+    );
+  }
+  if (!webhookPresent) {
+    issues.push('STRIPE_WEBHOOK_SECRET ist nicht gesetzt.');
+  } else if (!webhookLooksValid) {
+    issues.push('STRIPE_WEBHOOK_SECRET beginnt nicht mit whsec_.');
+  }
+
+  return {
+    configured: Boolean(key && webhook),
+    keyPresent: key.length > 0,
+    ...inspected,
+    configuredMode: config.stripe.mode,
+    modeMatches: inspected.keyMode === 'unbekannt' || inspected.keyMode === config.stripe.mode,
+    webhookPresent,
+    webhookLabel: webhookPresent ? 'whsec…' : 'nicht gesetzt',
+    webhookLooksValid,
+    paymentBaseUrl: config.payment.baseUrl,
+    issues,
+  };
+}
+
+/** Lesbare, geheimnisfreie Fehlermeldung für Bestellnotiz und Admin-Anzeige. */
+export function stripeErrorDetail(error: unknown): string {
+  const message = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+  return message.replace(/\s+/g, ' ').trim().slice(0, 300) || 'unbekannter Stripe-Fehler';
+}
+
+export type StripeConnectionTest = {
+  ok: boolean;
+  message: string;
+  status: number | null;
+};
+
+/**
+ * Prüft mit dem hinterlegten Schlüssel, ob die Checkout-Sessions-API erreichbar ist.
+ * Der Test gibt bewusst keine Schlüssel oder Kontodaten zurück.
+ */
+export async function testStripeConnection(): Promise<StripeConnectionTest> {
+  const diagnostics = getStripeDiagnostics();
+  if (!diagnostics.keyPresent) {
+    return { ok: false, message: diagnostics.issues[0] ?? 'STRIPE_SECRET_KEY fehlt.', status: null };
+  }
+
+  try {
+    await stripeRequest<{ object: string }>('/v1/checkout/sessions?limit=1', { method: 'GET' });
+    return {
+      ok: true,
+      message: 'Stripe antwortet. Der Schlüssel darf Checkout-Sessions lesen.',
+      status: 200,
+    };
+  } catch (error) {
+    if (error instanceof StripeError) {
+      return { ok: false, message: error.message, status: error.status || null };
+    }
+    return { ok: false, message: stripeErrorDetail(error), status: null };
+  }
+}
+
 async function stripeRequest<T>(path: string, init: RequestInit): Promise<T> {
   if (!config.stripe.secretKey) {
     throw new StripeError('STRIPE_SECRET_KEY ist nicht gesetzt.');
