@@ -604,6 +604,34 @@ function adminError(request: FastifyRequest, reply: FastifyReply, status: number
   );
 }
 
+/** Gemeinsame Daten für Detail- und Druckansicht einer Bestellung. */
+function orderDetails(id: number) {
+  if (!Number.isInteger(id)) return null;
+  const order = db().prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow | undefined;
+  if (!order) return null;
+  const items = db().prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(id) as OrderItemRow[];
+  const options = db()
+    .prepare('SELECT label, price_cents FROM order_options WHERE order_id = ? ORDER BY id')
+    .all(id) as { label: string; price_cents: number }[];
+  const history = db()
+    .prepare('SELECT * FROM order_status_history WHERE order_id = ? ORDER BY created_at DESC, id DESC')
+    .all(id) as { from_status: string; to_status: string; actor: string; note: string; created_at: string }[];
+  return {
+    order,
+    items,
+    options,
+    history,
+    statuses: orderStatuses,
+    paymentStatuses,
+    orderStatusText: orderStatusLabel(order.status),
+    paymentLabel: paymentLabel(order.payment_method),
+    paymentStatusText: paymentStatusLabel(order.payment_status),
+    paymentStatusTone: paymentStatusTone(order.payment_status),
+    paymentProviderText: paymentProviderLabel(order.payment_provider),
+    shippingLabel: shippingLabel(order.shipping_method),
+  };
+}
+
 function safeNext(value: unknown): string {
   if (typeof value !== 'string') return '/admin/';
   if (!value.startsWith('/admin/') || value.startsWith('//') || value.includes('\\')) return '/admin/';
@@ -2295,33 +2323,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     });
 
     scope.get<{ Params: { id: string } }>('/admin/bestellungen/:id/', async (request, reply) => {
-      const id = Number(request.params.id);
-      const order = Number.isInteger(id) ? (db().prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow | undefined) : undefined;
-      if (!order) return adminError(request, reply, 404, 'Diese Bestellung wurde nicht gefunden.');
-      const items = db().prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(id) as OrderItemRow[];
-      const selectedOptions = db()
-        .prepare('SELECT label, price_cents FROM order_options WHERE order_id = ? ORDER BY id')
-        .all(id) as { label: string; price_cents: number }[];
-      const history = db()
-        .prepare('SELECT * FROM order_status_history WHERE order_id = ? ORDER BY created_at DESC, id DESC')
-        .all(id) as { from_status: string; to_status: string; actor: string; note: string; created_at: string }[];
-      render(
-        reply,
-        'admin/order.njk',
-        adminContext(request, {
-          order,
-          items,
-          options: selectedOptions,
-          history,
-          statuses: orderStatuses,
-          paymentStatuses,
-          paymentLabel: paymentLabel(order.payment_method),
-          paymentStatusText: paymentStatusLabel(order.payment_status),
-          paymentStatusTone: paymentStatusTone(order.payment_status),
-          paymentProviderText: paymentProviderLabel(order.payment_provider),
-          shippingLabel: shippingLabel(order.shipping_method),
-        }),
-      );
+      const data = orderDetails(Number(request.params.id));
+      if (!data) return adminError(request, reply, 404, 'Diese Bestellung wurde nicht gefunden.');
+      render(reply, 'admin/order.njk', adminContext(request, data));
+    });
+
+    scope.get<{ Params: { id: string } }>('/admin/bestellungen/:id/drucken/', async (request, reply) => {
+      const data = orderDetails(Number(request.params.id));
+      if (!data) return adminError(request, reply, 404, 'Diese Bestellung wurde nicht gefunden.');
+      render(reply, 'admin/order-print.njk', adminContext(request, { ...data, printedAt: new Date() }));
     });
 
     scope.post<{ Params: { id: string } }>('/admin/bestellungen/:id/', async (request, reply) => {

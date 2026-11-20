@@ -102,6 +102,25 @@ test.describe('Admin', () => {
     await expect(page).toHaveURL(/[?&]q=zzz-kein-treffer/);
     await expect(search).toBeFocused();
 
+    // Jede Bestellung hat einen Druckbutton in der Liste und auf der Detailseite.
+    await search.fill('');
+    const printButtons = page.locator('[data-tooltip="Drucken"]');
+    await expect(printButtons.first()).toBeVisible();
+    expect(await printButtons.count()).toBeGreaterThan(0);
+    await expect(printButtons.first()).toHaveAttribute('aria-label', /^Bestellung .+ drucken$/);
+    await printButtons.first().click();
+    await expect(page).toHaveURL(/\/admin\/bestellungen\/\d+\/drucken\/$/);
+    await expect(page.locator('h1')).toContainText('Bestellung B-');
+    await expect(page.getByRole('heading', { name: 'Positionen' })).toBeVisible();
+    await expect(page.locator('.admin-print-total')).toContainText('Gesamt');
+    await expect(page.locator('[data-print-button]')).toBeVisible();
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.locator('.admin-print-toolbar')).toBeHidden();
+    await page.emulateMedia({ media: 'screen' });
+    await page.getByRole('link', { name: 'Zurück zur Bestellung' }).click();
+    await expect(page).toHaveURL(/\/admin\/bestellungen\/\d+\/$/);
+    await expect(page.getByRole('link', { name: 'Drucken' })).toBeVisible();
+
     // Icon-Aktionen in Tabellen: quadratisch, mit Tooltip und Statusfarbe.
     await page.goto('/admin/produkte/');
     const action = page.locator('.admin-icon-actions .admin-icon-btn').first();

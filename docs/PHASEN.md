@@ -425,6 +425,14 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.53 – 20. November 2026
+
+Bestellungen lassen sich jetzt einzeln drucken. Die Liste zeigt pro Zeile einen
+Icon-Button in der gewohnten Admin-Optik, die Detailseite einen beschrifteten
+Button. Die Druckansicht ist eine schlanke A4-Seite mit Kunden-, Zahlungs-,
+Versand- und Positionsdaten; Admin-Navigation und Werkzeugleiste werden nicht
+mitgedruckt.
+
 ## Release 1.0.0-rc.52 – 20. November 2026
 
 Die Einklapp-Logik aus dem Produktformular gilt jetzt auch für die Bereiche

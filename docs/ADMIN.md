@@ -208,6 +208,12 @@ Zahlungsseite, AGB § 5 und Datenschutz § 6 werden aus den hier aktiven Zahlung
 - Die Suche startet automatisch beim Tippen. Bei aktivem JavaScript entfällt der Button „Filtern“; ohne JavaScript bleibt er als Absenden-Funktion erhalten.
 - Der Sammelfilter **Offene** umfasst die Status Neu, Bezahlt und In Druck. Die Kachel **Offene Bestellungen** im Dashboard verlinkt auf genau diese Ansicht.
 
+### Bestellungen drucken
+
+In der Bestellliste hat jede Zeile einen **Druckbutton** (Drucker-Symbol) in der gleichen Icon-Optik wie Kopieren, Export und Löschen bei Produkten. Auf der Bestellungs-Detailseite steht zusätzlich der Button **„Drucken“** neben den Statusanzeigen.
+
+Beide Buttons öffnen eine kompakte A4-Druckansicht ohne Admin-Navigation. Sie enthält Absender, Kunden- und Lieferadresse, Bestell-, Zahlungs- und Versandangaben, alle Positionen mit Variante, Farbe und Personalisierung sowie die Summen. Eine Kundenanmerkung oder interne Notiz wird nur angezeigt, wenn sie vorhanden ist. Über **„Drucken“** in der Ansicht wird der Browser-Druckdialog geöffnet; alternativ funktioniert Strg+P. **„Zurück zur Bestellung“** führt zur Detailseite zurück. Beim Drucken werden Werkzeugleiste und Schatten automatisch ausgeblendet.
+
 ### Stripe-Webhook
 
 Im Stripe-Dashboard den Endpunkt `https://www.3d-mir.de/zahlung/webhook/stripe/` anlegen und diese Ereignisse abonnieren:

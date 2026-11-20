@@ -1,4 +1,5 @@
 {% extends "layouts/admin.njk" %}
+{% from "admin/partials/icons.njk" import icon %}
 
 {% block title %}Bestellungen – 3D-MIR Admin{% endblock %}
 
@@ -53,6 +54,7 @@
               <th>Status</th>
               <th>Zahlung / Versand</th>
               <th class="text-right">Gesamt</th>
+              <th>Aktionen</th>
             </tr>
           </thead>
           <tbody>
@@ -71,6 +73,11 @@
                 </td>
                 <td><small>{{ order.payment_method }}<br>{{ order.shipping_method }}</small><br><span class="badge badge-{{ order.paymentStatusTone }}">{{ order.paymentStatusText }}</span></td>
                 <td class="text-right">{{ order.total_cents | price }}</td>
+                <td>
+                  <div class="admin-icon-actions">
+                    <a class="admin-icon-btn" href="/admin/bestellungen/{{ order.id }}/drucken/" data-tooltip="Drucken" aria-label="Bestellung {{ order.order_number }} drucken">{{ icon('printer') }}</a>
+                  </div>
+                </td>
               </tr>
             {% endfor %}
           </tbody>

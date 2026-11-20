@@ -3,6 +3,27 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.53] – 2026-11-20
+
+### Hinzugefügt
+
+- **Bestellungen drucken:** In der Bestellliste hat jede Zeile einen
+  Druckbutton im gleichen Icon-Stil wie die Aktionen bei Produkten und
+  Nachrichten. Auf der Detailseite gibt es zusätzlich einen Button
+  **„Drucken“**.
+- Die Druckansicht enthält Absender, Kunden- und Lieferadresse, Bestellstatus,
+  Zahlungs- und Versandangaben, alle Positionen inklusive Varianten, Farben und
+  Personalisierung sowie Zwischensumme, Versand, Optionen und Gesamtsumme.
+  Kundenanmerkung und interne Notiz erscheinen nur, wenn sie hinterlegt sind.
+- Die Ansicht ist als A4-Seite aufbereitet und zeigt am Bildschirm keine Admin-
+  Navigation; beim Drucken werden Werkzeugleiste und Schatten ausgeblendet.
+  Der Druckdialog lässt sich per Button oder über die Browserfunktion aufrufen.
+
+### Geändert
+
+- Bestellliste und Bestelldetail teilen sich eine gemeinsame Datenquelle; die
+  angezeigten Werte sind in beiden Ansichten identisch.
+
 ## [1.0.0-rc.52] – 2026-11-20
 
 ### Geändert

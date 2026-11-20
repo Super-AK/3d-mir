@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Druckansicht – 3D-MIR{% endblock %}</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0a1530">
+  {% if site.images.favicon %}<link rel="icon" href="/favicon.ico?v={{ faviconVersion }}" type="image/png">{% else %}<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">{% endif %}
+  {% for css in assetCss('ts/print.ts') %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
+</head>
+<body class="admin-print-body">
+  <div class="admin-print-toolbar">
+    <a class="btn btn-secondary btn-small" href="/admin/bestellungen/{{ order.id }}/">Zurück zur Bestellung</a>
+    <button class="btn btn-small" type="button" data-print-button>Drucken</button>
+  </div>
+  <main class="admin-print-sheet">
+    {% block content %}{% endblock %}
+  </main>
+  <script type="module" src="{{ asset('ts/print.ts') }}"></script>
+</body>
+</html>

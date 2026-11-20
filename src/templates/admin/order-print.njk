@@ -1,0 +1,94 @@
+{% extends "layouts/print.njk" %}
+
+{% block title %}Bestellung {{ order.order_number }} – 3D-MIR{% endblock %}
+
+{% block content %}
+  <header class="admin-print-head">
+    <div>
+      <strong>{{ site.business.legalName }}</strong>
+      <p>{{ site.business.street }} · {{ site.business.zip }} {{ site.business.city }}</p>
+      <p>Telefon {{ site.business.phone }} · E-Mail {{ site.business.email }}</p>
+    </div>
+    <div class="admin-print-doc">
+      <h1>Bestellung {{ order.order_number }}</h1>
+      <p>Eingegangen am {{ order.created_at | date }}</p>
+      <p>Status: {{ orderStatusText }} · {{ paymentStatusText }}</p>
+    </div>
+  </header>
+
+  <div class="admin-print-columns">
+    <section class="admin-print-section">
+      <h2>Kunde und Lieferadresse</h2>
+      <dl class="admin-print-dl">
+        <div><dt>Name</dt><dd>{{ order.first_name }} {{ order.last_name }}</dd></div>
+        {% if order.company %}<div><dt>Firma</dt><dd>{{ order.company }}</dd></div>{% endif %}
+        <div><dt>E-Mail</dt><dd>{{ order.email }}</dd></div>
+        {% if order.phone %}<div><dt>Telefon</dt><dd>{{ order.phone }}</dd></div>{% endif %}
+        <div><dt>Adresse</dt><dd>{{ order.street }}{% if order.address_extra %}, {{ order.address_extra }}{% endif %}<br>{{ order.zip }} {{ order.city }}<br>{{ order.country }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="admin-print-section">
+      <h2>Bestellangaben</h2>
+      <dl class="admin-print-dl">
+        <div><dt>Bestellnummer</dt><dd>{{ order.order_number }}</dd></div>
+        <div><dt>Bestelldatum</dt><dd>{{ order.created_at | date }}</dd></div>
+        <div><dt>Zahlungsart</dt><dd>{{ paymentLabel }}</dd></div>
+        <div><dt>Zahlungsstatus</dt><dd>{{ paymentStatusText }}</dd></div>
+        {% if order.payment_reference %}<div><dt>Referenz</dt><dd>{{ order.payment_reference }}</dd></div>{% endif %}
+        {% if order.paid_at %}<div><dt>Zahlung eingegangen</dt><dd>{{ order.paid_at | date }}</dd></div>{% endif %}
+        <div><dt>Versandart</dt><dd>{{ shippingLabel }}</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <section class="admin-print-section">
+    <h2>Positionen</h2>
+    <table class="admin-print-table">
+      <thead>
+        <tr><th>Artikel</th><th>Menge</th><th class="text-right">Einzelpreis</th><th class="text-right">Summe</th></tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>
+              {{ item.name }}
+              {% if item.variant %}<small>Variante: {{ item.variant }}</small>{% endif %}
+              {% if item.color %}<small>Farbe: {{ item.color }}</small>{% endif %}
+              {% if item.personalization %}<small>Personalisierung: {{ item.personalization }}</small>{% endif %}
+            </td>
+            <td>{{ item.quantity }}</td>
+            <td class="text-right">{{ item.unit_price_cents | price }}</td>
+            <td class="text-right">{{ item.line_total_cents | price }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <dl class="admin-print-totals">
+      <div><dt>Zwischensumme</dt><dd>{{ order.subtotal_cents | price }}</dd></div>
+      <div><dt>Versand ({{ shippingLabel }})</dt><dd>{{ order.shipping_cents | price }}</dd></div>
+      {% for option in options %}<div><dt>Option: {{ option.label }}</dt><dd>{{ option.price_cents | price }}</dd></div>{% endfor %}
+      <div class="admin-print-total"><dt>Gesamt</dt><dd>{{ order.total_cents | price }}</dd></div>
+    </dl>
+  </section>
+
+  {% if order.customer_note %}
+    <section class="admin-print-note">
+      <h2>Kundenanmerkung</h2>
+      <p>{{ order.customer_note }}</p>
+    </section>
+  {% endif %}
+
+  {% if order.admin_note %}
+    <section class="admin-print-note">
+      <h2>Interne Notiz</h2>
+      <p>{{ order.admin_note }}</p>
+    </section>
+  {% endif %}
+
+  <footer class="admin-print-footer">
+    <p>{{ site.business.vatNote }}</p>
+    <p>Gedruckt am {{ printedAt | date }} · Bestellung {{ order.order_number }}</p>
+  </footer>
+{% endblock %}

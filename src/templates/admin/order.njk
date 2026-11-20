@@ -1,4 +1,5 @@
 {% extends "layouts/admin.njk" %}
+{% from "admin/partials/icons.njk" import icon %}
 
 {% block title %}Bestellung {{ order.order_number }} – 3D-MIR Admin{% endblock %}
 
@@ -20,6 +21,7 @@
       {% elif order.status == 'abgeschlossen' %}<span class="badge badge-success">Abgeschlossen</span>
       {% else %}<span class="badge badge-danger">Storniert</span>{% endif %}
       <span class="badge badge-{{ paymentStatusTone }}">{{ paymentStatusText }}</span>
+      <a class="btn btn-secondary btn-small" href="/admin/bestellungen/{{ order.id }}/drucken/">{{ icon('printer') }} Drucken</a>
     </div>
   </div>
 

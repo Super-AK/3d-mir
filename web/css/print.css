@@ -1,0 +1,137 @@
+/* Druckansichten für Bestellungen: am Bildschirm wie A4, beim Drucken ohne Rahmen. */
+
+.admin-print-body {
+  margin: 0;
+  background: var(--bg-soft);
+  color: #121926;
+}
+
+.admin-print-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  max-width: 210mm;
+  margin: 1rem auto;
+  padding: 0 1rem;
+}
+
+.admin-print-sheet {
+  box-sizing: border-box;
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto 2rem;
+  padding: 16mm;
+  background: #ffffff;
+  color: #121926;
+  box-shadow: var(--shadow);
+  font-size: 10.5pt;
+  line-height: 1.45;
+}
+
+.admin-print-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 2px solid #0a1530;
+}
+
+.admin-print-head p { margin: 0.15rem 0; font-size: 9pt; }
+.admin-print-head strong { font-size: 11pt; }
+.admin-print-doc { text-align: right; }
+.admin-print-sheet h1 { margin: 0; font-size: 19pt; line-height: 1.2; }
+.admin-print-sheet h2 { margin: 0 0 0.5rem; font-size: 11pt; }
+.admin-print-sheet h2:not(:first-child) { margin-top: 1.25rem; }
+
+.admin-print-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-print-dl { display: grid; gap: 0.2rem; margin: 0; }
+.admin-print-dl > div {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.admin-print-dl dt { color: #55606f; }
+.admin-print-dl dd { margin: 0; overflow-wrap: anywhere; }
+
+.admin-print-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.admin-print-table th,
+.admin-print-table td {
+  padding: 0.45rem 0.35rem;
+  border-bottom: 1px solid #d8dee8;
+  text-align: left;
+  vertical-align: top;
+}
+.admin-print-table th {
+  color: #55606f;
+  font-size: 8.5pt;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.admin-print-table .text-right { text-align: right; }
+.admin-print-table small { display: block; color: #55606f; }
+
+.admin-print-totals {
+  max-width: 19rem;
+  margin: 1rem 0 0 auto;
+}
+.admin-print-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.15rem 0;
+}
+.admin-print-totals .admin-print-total {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 2px solid #0a1530;
+  font-weight: 700;
+}
+
+.admin-print-note {
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.admin-print-footer {
+  margin-top: 2rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #d8dee8;
+  color: #55606f;
+  font-size: 9pt;
+}
+
+@media (max-width: 700px) {
+  .admin-print-columns { grid-template-columns: 1fr; }
+  .admin-print-sheet { padding: 1rem; }
+}
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  .admin-print-toolbar { display: none !important; }
+  body.admin-print-body { background: #ffffff !important; }
+  .admin-print-sheet {
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .admin-print-section,
+  .admin-print-table tr { break-inside: avoid; }
+  a { color: #000000; text-decoration: none; }
+}
