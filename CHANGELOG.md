@@ -3,6 +3,13 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.58] – 23. November 2026
+
+### Hinzugefügt
+
+- **GitHub Actions CI:** Der Workflow führt bei Push auf `main` und Pull Requests
+  gegen `main` automatisch Checkout, `npm ci`, Typecheck, Unit-Tests und Build aus.
+
 ## [1.0.0-rc.57] – 23. November 2026
 
 ### Hinzugefügt
