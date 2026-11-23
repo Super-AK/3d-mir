@@ -67,17 +67,10 @@ jobs:
           script: |
             set -e
             cd /var/www/3d-mir.de
-            git pull origin main
-            npm ci --no-audit --no-fund
-            npm run build
-            sudo systemctl restart 3d-mir.service
-            for i in $(seq 1 30); do
-              if curl -fsS http://127.0.0.1:3002/api/health >/dev/null 2>&1; then
-                exit 0
-              fi
-              sleep 1
-            done
-            exit 1
+            # update.sh übernimmt Backup, Rollback, Git-Update, npm ci, Build,
+            # Neustart (inkl. automatischer Migrationen), Timer und Health-Check.
+            # Der Anwendungsport kommt aus $PORT bzw. /etc/3d-mir/3d-mir.env.
+            sudo ./deploy/update.sh
 
       - name: Telegram Erfolgsmeldung
         if: success()

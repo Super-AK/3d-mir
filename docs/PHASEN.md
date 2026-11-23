@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.62 – 23. November 2026
+
+Der Deploy-Schritt der GitHub Actions ruft nun `deploy/update.sh` auf. Backup,
+Rollback, Timer-Aktualisierung und Health-Check sind damit zentral geregelt; der
+Port wird aus der Konfiguration gelesen. Migrationen laufen automatisch beim
+Start der Anwendung.
+
 ## Release 1.0.0-rc.61 – 23. November 2026
 
 Der GitHub-Actions-Deploy-Job prüft den Health-Endpunkt nach dem Neustart am

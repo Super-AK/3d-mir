@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.62] – 23. November 2026
+
+### Geändert
+
+- **GitHub-Actions-Deploy:** Der Deploy-Schritt nutzt jetzt das bewährte
+  `deploy/update.sh`. Backup, Rollback, Aktualisierung der systemd-Timer und
+  Health-Check sind damit zentral geregelt; der Anwendungsport wird aus `$PORT`
+  bzw. `/etc/3d-mir/3d-mir.env` gelesen. Datenbank-Migrationen laufen weiterhin
+  automatisch beim Start der Anwendung.
+
 ## [1.0.0-rc.61] – 23. November 2026
 
 ### Behoben
