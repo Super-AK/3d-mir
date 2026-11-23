@@ -97,6 +97,10 @@
             <input type="checkbox" name="spamBanEnabled" value="1" {% if contactSettings.spamBanEnabled %}checked{% endif %}>
             <span>Absender nach wiederholten auffälligen Versuchen automatisch sperren.</span>
           </label>
+          <label class="checkbox">
+            <input type="checkbox" name="spamBlockResponseEnabled" value="1" {% if contactSettings.spamBlockResponseEnabled %}checked{% endif %}>
+            <span>Gesperrte Absender mit HTTP 404 und „Datei wurde nicht gefunden“ beantworten.</span>
+          </label>
           <div class="form-row">
             <div class="field">
               <label for="spamBanThreshold">Versuche bis zur Sperre</label>
@@ -125,6 +129,22 @@
       </form>
     </div>
   </details>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head">
+      <h2>Spam-Sperren: 404-Antworten</h2>
+      <span class="badge badge-neutral">{{ spamBlockResponses.total }}</span>
+    </div>
+    <p class="text-muted">Anzahl der Kontaktanfragen, die als gesperrt beantwortet und mit HTTP 404 abgewiesen wurden. Die Meldung lautet „404 – Datei wurde nicht gefunden“.</p>
+    {% if spamBlockResponses.lastAt %}
+      <p class="hint">Letzte 404-Antwort: {{ spamBlockResponses.lastAt }}</p>
+    {% endif %}
+    {% if contactSettings.spamBlockResponseEnabled %}
+      <p class="hint">Antwortfunktion aktiv.</p>
+    {% else %}
+      <p class="hint">Antwortfunktion deaktiviert.</p>
+    {% endif %}
+  </section>
 
   {% if blocks.length > 0 %}
     <section class="card admin-panel">

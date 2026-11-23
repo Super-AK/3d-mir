@@ -319,6 +319,8 @@ Bei jedem auffälligen Versuch (falsches Land, zu schnelles Absenden, Spam-Inhal
 
 - Gespeichert werden eine **HMAC-Prüfsumme** der IP-Adresse, eine **gekürzte IP-Adresse** (IPv4 `/24`, IPv6 `/48`) und die **Browserkennung** (User-Agent). Die vollständige IP-Adresse wird nicht gespeichert.
 - Erreicht ein Absender die eingestellte Zahl an Versuchen, wird er für die gewählte Dauer gesperrt. Anfragen von gesperrten Absendern – auch bei weiteren Versuchen – werden mit HTTP `404` und der Meldung `404 – Datei wurde nicht gefunden` abgewiesen, nicht gespeichert und lösen keine Benachrichtigung aus. Damit verhält sich Spam-Bots wie eine nicht existente Ressource; der Spam-Schutz bleibt serverseitig unverändert.
+- Die Antwortfunktion ist über die Checkbox **„Gesperrte Absender mit HTTP 404 und ‚Datei wurde nicht gefunden‘ beantworten“** steuerbar. Standard ist aktiv; bei Deaktivierung wird die vorherige Antwort mit HTTP `429` verwendet.
+- Die Admin-Seite zeigt unter **„Spam-Sperren: 404-Antworten“** die Anzahl der 404-Antworten sowie den Zeitpunkt der letzten Antwort.
 - Im Bereich **„Gesperrte und auffällige Absender“** unter **Admin → Nachrichten** stehen Status, Land, Versuche, letzter Zeitpunkt und Browser. Aktive Sperren lassen sich dort mit **Sperre aufheben** zurücksetzen.
 - Reine Spam-Beobachtungen und abgelaufene Sperren werden nach **30 Tagen** ohne Aktivität automatisch entfernt.
 

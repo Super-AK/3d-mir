@@ -3,6 +3,20 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.57] – 23. November 2026
+
+### Hinzugefügt
+
+- **Statistik für Spam-Sperren:** Die Admin-Seite **Nachrichten** zeigt jetzt die
+  Anzahl der 404-Antworten (`404 – Datei wurde nicht gefunden`) für gesperrte
+  Kontakt-Absender sowie den Zeitpunkt der letzten Antwort.
+
+### Geändert
+
+- Die 404-Antwort für gesperrte Absender ist jetzt über eine Admin-Checkbox
+  steuerbar. Standard ist aktiv; bei Deaktivierung wird die bisherige Antwort mit
+  HTTP 429 verwendet.
+
 ## [1.0.0-rc.56] – 23. November 2026
 
 ### Geändert

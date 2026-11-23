@@ -127,6 +127,7 @@ import {
 } from '../lib/contact-settings.js';
 import { contactMailHtml, contactMailText } from '../lib/contact-mail.js';
 import {
+  getSpamBlockResponseStats,
   isContactBlockActive,
   listContactBlocks,
   unblockContactBlock,
@@ -2610,6 +2611,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         active: isContactBlockActive(block),
       }));
       const blockedCount = blocks.filter((block) => block.active).length;
+      const spamBlockResponses = getSpamBlockResponseStats();
       render(reply, 'admin/messages.njk', adminContext(request, {
         messages,
         contactSettings: getContactSettings(),
@@ -2622,6 +2624,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         status,
         blocks,
         blockedCount,
+        spamBlockResponses,
       }));
     });
 
@@ -2669,6 +2672,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         spamBanThreshold: Number(body.spamBanThreshold) === 3 ? 3 : 5,
         spamBanWindowMinutes: intInRange(body.spamBanWindowMinutes, 60, 5, 1440),
         spamBanHours: intInRange(body.spamBanHours, 24, 0, 8760),
+        spamBlockResponseEnabled:
+          body.spamBlockResponseEnabled === '1' || body.spamBlockResponseEnabled === 'on',
       };
       saveContactSettings(settings);
       writeAudit(request.admin?.email ?? 'admin', 'contact.settings', {
@@ -2678,6 +2683,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         unknownCountry,
         spamBanEnabled: settings.spamBanEnabled,
         spamBanThreshold: settings.spamBanThreshold,
+        spamBlockResponseEnabled: settings.spamBlockResponseEnabled,
       });
       return reply.redirect('/admin/nachrichten/?gespeichert=1', 303);
     });

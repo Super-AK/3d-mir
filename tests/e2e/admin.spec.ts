@@ -54,6 +54,16 @@ test.describe('Admin', () => {
       await expect(page.locator('h1')).toContainText(heading);
     }
 
+    // Nachrichten: Spam-Sperre mit 404-Antwort und Statistik.
+    await page.goto('/admin/nachrichten/');
+    await expect(page.getByRole('heading', { name: 'Spam-Sperren: 404-Antworten' })).toBeVisible();
+    const spamSettings = page.locator('details.admin-contact-settings');
+    await expect(spamSettings).toBeVisible();
+    await spamSettings.locator('summary').click();
+    const spamBlockResponseToggle = page.locator('input[name="spamBlockResponseEnabled"]');
+    await expect(spamBlockResponseToggle).toBeVisible();
+    await expect(spamBlockResponseToggle).toBeChecked();
+
     // Preise: alle Karten sind eingeklappt und lassen sich einzeln öffnen.
     await page.goto('/admin/preise/');
     for (const name of [

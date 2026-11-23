@@ -34,6 +34,8 @@ export type ContactSettings = {
   spamBanWindowMinutes: number;
   /** Sperrdauer in Stunden; 0 bedeutet dauerhaft. */
   spamBanHours: number;
+  /** Gesperrte Absender werden mit HTTP 404 („Datei nicht gefunden“) beantwortet. */
+  spamBlockResponseEnabled: boolean;
 };
 
 export const defaultContactSettings: ContactSettings = {
@@ -47,6 +49,7 @@ export const defaultContactSettings: ContactSettings = {
   spamBanThreshold: 5,
   spamBanWindowMinutes: 60,
   spamBanHours: 24,
+  spamBlockResponseEnabled: true,
 };
 
 const SETTINGS_KEY = 'contact.settings';
@@ -105,6 +108,7 @@ export function getContactSettings(): ContactSettings {
       1440,
     ),
     spamBanHours: wholeNumber(parsed.spamBanHours, defaultContactSettings.spamBanHours, 0, 8760),
+    spamBlockResponseEnabled: bool(parsed.spamBlockResponseEnabled, defaultContactSettings.spamBlockResponseEnabled),
   };
 }
 
@@ -130,6 +134,7 @@ export function saveContactSettings(settings: ContactSettings): void {
       1440,
     ),
     spamBanHours: wholeNumber(settings.spamBanHours, defaultContactSettings.spamBanHours, 0, 8760),
+    spamBlockResponseEnabled: settings.spamBlockResponseEnabled,
   });
   getDb()
     .prepare(

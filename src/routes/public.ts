@@ -19,6 +19,7 @@ import {
   getActiveContactBlock,
   getSpamBlockResponse,
   isTrustedProxyPeer,
+  recordSpamBlockResponse,
   registerContactAttempt,
   resolveContactCountry,
 } from '../lib/contact-protection.js';
@@ -337,6 +338,9 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
       const form = readContactForm(request);
       const body = (request.body ?? {}) as Record<string, unknown>;
       const settings = getContactSettings();
+      const spamBlockResponse = settings.spamBlockResponseEnabled
+        ? getSpamBlockResponse()
+        : { status: 429, body: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.' };
 
       // Pseudonyme Absenderkennung: Die vollständige IP-Adresse wird nicht gespeichert.
       const ipHash = contactIpHash(request.ip);
@@ -356,8 +360,10 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           { ipPrefix, country: activeBlock.country },
           'Kontaktformular: gesperrter Absender abgewiesen',
         );
-        const spamBlock = getSpamBlockResponse();
-        return reply.code(spamBlock.status).type('text/plain; charset=utf-8').send(spamBlock.body);
+        if (spamBlockResponse.status === 404) {
+          recordSpamBlockResponse();
+        }
+        return reply.code(spamBlockResponse.status).type('text/plain; charset=utf-8').send(spamBlockResponse.body);
       }
 
       // Honeypot: Bots füllen das unsichtbare Feld. Wir tun so, als wäre alles gut.
@@ -458,8 +464,10 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
             request.log.error({ err: error }, 'Sperr-Hinweis konnte nicht versendet werden');
           }
         }
-        const spamBlock = getSpamBlockResponse();
-        return reply.code(spamBlock.status).type('text/plain; charset=utf-8').send(spamBlock.body);
+        if (spamBlockResponse.status === 404) {
+          recordSpamBlockResponse();
+        }
+        return reply.code(spamBlockResponse.status).type('text/plain; charset=utf-8').send(spamBlockResponse.body);
       }
 
       const sendAcknowledgement = async (): Promise<void> => {

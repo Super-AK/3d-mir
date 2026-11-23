@@ -259,6 +259,11 @@ export type SpamBlockResponse = {
   body: string;
 };
 
+export type SpamBlockResponseStats = {
+  total: number;
+  lastAt: string | null;
+};
+
 /**
  * Antwort auf eine automatisch oder manuell gesperrte Spam-Anfrage.
  *
@@ -269,6 +274,30 @@ export type SpamBlockResponse = {
  */
 export function getSpamBlockResponse(): SpamBlockResponse {
   return { status: 404, body: '404 – Datei wurde nicht gefunden' };
+}
+
+/** Liest die Statistik für gesperrte Absender-Antworten (HTTP 404). */
+export function getSpamBlockResponseStats(): SpamBlockResponseStats {
+  const row = getDb()
+    .prepare('SELECT total, last_at FROM spam_block_responses WHERE id = 1')
+    .get() as { total?: number; last_at?: string | null } | undefined;
+  return {
+    total: Number(row?.total ?? 0),
+    lastAt: row?.last_at ?? null,
+  };
+}
+
+/** Zählt eine 404-Antwort für eine gesperrte Absender-Anfrage. */
+export function recordSpamBlockResponse(now = Date.now()): SpamBlockResponseStats {
+  const db = getDb();
+  const stamp = sqliteNow(now);
+  const info = db
+    .prepare('UPDATE spam_block_responses SET total = total + 1, last_at = ? WHERE id = 1')
+    .run(stamp);
+  if (info.changes === 0) {
+    db.prepare('INSERT INTO spam_block_responses (id, total, last_at) VALUES (1, 1, ?)').run(stamp);
+  }
+  return getSpamBlockResponseStats();
 }
 
 function sqliteTime(value: string | null): number {

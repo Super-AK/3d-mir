@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.57 – 23. November 2026
+
+Die Admin-Seite **Nachrichten** erhält eine Statistik zur Anzahl der 404-Antworten
+für gesperrte Spam-Absender. Die Antwortfunktion ist zusätzlich per Checkbox
+steuerbar; standardmäßig wird bei einer Sperre HTTP 404 mit „Datei wurde nicht
+gefunden“ gesendet.
+
 ## Release 1.0.0-rc.56 – 23. November 2026
 
 Die automatische Spam-Sperre antwortet jetzt für gesperrte Absender mit einer

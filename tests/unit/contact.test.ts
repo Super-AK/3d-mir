@@ -25,6 +25,7 @@ const baseSettings: ContactSettings = {
   spamBanThreshold: 5,
   spamBanWindowMinutes: 60,
   spamBanHours: 24,
+  spamBlockResponseEnabled: true,
 };
 
 const baseInput = {
