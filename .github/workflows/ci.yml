@@ -72,7 +72,7 @@ jobs:
             npm run build
             sudo systemctl restart 3d-mir.service
             for i in $(seq 1 30); do
-              if curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
+              if curl -fsS http://127.0.0.1:3002/api/health >/dev/null 2>&1; then
                 exit 0
               fi
               sleep 1
