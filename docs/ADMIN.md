@@ -318,7 +318,7 @@ Zusätzlich schützen ein Honeypot-Feld, ein Rate-Limit und ein signiertes Zeit-
 Bei jedem auffälligen Versuch (falsches Land, zu schnelles Absenden, Spam-Inhalt oder Honeypot) zählt der Server den Absender pseudonymisiert:
 
 - Gespeichert werden eine **HMAC-Prüfsumme** der IP-Adresse, eine **gekürzte IP-Adresse** (IPv4 `/24`, IPv6 `/48`) und die **Browserkennung** (User-Agent). Die vollständige IP-Adresse wird nicht gespeichert.
-- Erreicht ein Absender die eingestellte Zahl an Versuchen, wird er für die gewählte Dauer gesperrt. Weitere Anfragen werden mit HTTP `429` abgewiesen, nicht gespeichert und lösen keine Benachrichtigung aus.
+- Erreicht ein Absender die eingestellte Zahl an Versuchen, wird er für die gewählte Dauer gesperrt. Anfragen von gesperrten Absendern – auch bei weiteren Versuchen – werden mit HTTP `404` und der Meldung `404 – Datei wurde nicht gefunden` abgewiesen, nicht gespeichert und lösen keine Benachrichtigung aus. Damit verhält sich Spam-Bots wie eine nicht existente Ressource; der Spam-Schutz bleibt serverseitig unverändert.
 - Im Bereich **„Gesperrte und auffällige Absender“** unter **Admin → Nachrichten** stehen Status, Land, Versuche, letzter Zeitpunkt und Browser. Aktive Sperren lassen sich dort mit **Sperre aufheben** zurücksetzen.
 - Reine Spam-Beobachtungen und abgelaufene Sperren werden nach **30 Tagen** ohne Aktivität automatisch entfernt.
 

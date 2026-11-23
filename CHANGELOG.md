@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.56] – 23. November 2026
+
+### Geändert
+
+- **Spam-Sperren antworten jetzt mit HTTP 404:** Gesperrte Absender des
+  Kontaktformular-Spam-Schutzes erhalten keine Erfolgsmeldung mehr, sondern die
+  neutrale Meldung `404 – Datei wurde nicht gefunden`. Spam-Bots sehen damit eine
+  nicht existente Ressource; die Sperre bleibt unverändert pseudonymisiert und
+  wird nicht gespeichert.
+
 ## [1.0.0-rc.55] – 2026-11-20
 
 ### Hinzugefügt

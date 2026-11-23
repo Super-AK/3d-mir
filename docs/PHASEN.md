@@ -46,7 +46,7 @@
 **Getestet**
 - `npm run typecheck` und `npm run build` fehlerfrei.
 - Alle neuen Seiten liefern 200; alte Slugs liefern 301 mit korrektem Ziel.
-- Kontaktformular: gültige Anfrage → 303 auf `/kontakt/danke/` und Datensatz in der DB; ungültige Eingabe → 400 mit Fehlermeldung; Honeypot → 303 ohne Speicherung; 6. Anfrage → 429.
+- Kontaktformular: gültige Anfrage → 303 auf `/kontakt/danke/` und Datensatz in der DB; ungültige Eingabe → 400 mit Fehlermeldung; Honeypot → 303 ohne Speicherung; 6. Anfrage → 404 (Absender gesperrt).
 - E-Mail-Fallback erzeugt eine `.eml`-Datei; Sicherheits-Header sind auf HTML-Antworten gesetzt.
 
 **Offen**
@@ -424,6 +424,14 @@
 - Logo, Hero und zwei Galeriebilder hochgeladen; Startseite und Header verwenden sie.
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
+
+## Release 1.0.0-rc.56 – 23. November 2026
+
+Die automatische Spam-Sperre antwortet jetzt für gesperrte Absender mit einer
+neutralen 404-Antwort (`404 – Datei wurde nicht gefunden`). Spam-Bots erhalten
+damit keine Erfolgsmeldung mehr; die Sperre selbst bleibt pseudonymisiert und
+wird weiterhin serverseitig ausgewertet. Tägliche Wiederholungen hartnäckiger
+Absender werden so weiterhin sauber unterbunden.
 
 ## Release 1.0.0-rc.55 – 20. November 2026
 

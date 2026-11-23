@@ -5,6 +5,7 @@ import {
   contactIpPrefix,
   contactUserAgent,
   createContactToken,
+  getSpamBlockResponse,
   headerCountry,
   isTrustedProxyPeer,
   resolveContactCountry,
@@ -129,6 +130,16 @@ describe('Absender-Erkennung', () => {
     expect(contactUserAgent('a\u0000b')).toBe('ab');
     expect(contactUserAgent('x'.repeat(400))).toHaveLength(300);
     expect(contactUserAgent(undefined)).toBe('');
+  });
+});
+
+describe('Spam-Sperranzeige', () => {
+  it('antwortet gesperrte Absender mit HTTP 404 und „Datei wurde nicht gefunden“', () => {
+    const response = getSpamBlockResponse();
+    expect(response.status).toBe(404);
+    expect(response.body).toContain('404');
+    expect(response.body).toContain('nicht gefunden');
+    expect(response.body).not.toContain('Zu viele Anfragen');
   });
 });
 

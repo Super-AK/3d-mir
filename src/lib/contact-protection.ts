@@ -254,6 +254,23 @@ export type ContactAttemptResult = {
   shouldNotify: boolean;
 };
 
+export type SpamBlockResponse = {
+  status: number;
+  body: string;
+};
+
+/**
+ * Antwort auf eine automatisch oder manuell gesperrte Spam-Anfrage.
+ *
+ * Es wird bewusst kein Erfolgssignal zurückgegeben (kein „Danke“/Redirect),
+ * sondern ein neutraler „404 – Datei wurde nicht gefunden“. Spam-Bots richten
+ * sich damit an eine nicht existente Ressource und geben nach kurzer Zeit auf;
+ * die Sperre bleibt serverseitig unverändert.
+ */
+export function getSpamBlockResponse(): SpamBlockResponse {
+  return { status: 404, body: '404 – Datei wurde nicht gefunden' };
+}
+
 function sqliteTime(value: string | null): number {
   if (!value) return 0;
   const iso = value.includes('T') ? value : `${value.replace(' ', 'T')}Z`;

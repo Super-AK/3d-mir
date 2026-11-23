@@ -17,6 +17,7 @@ import {
   contactUserAgent,
   createContactToken,
   getActiveContactBlock,
+  getSpamBlockResponse,
   isTrustedProxyPeer,
   registerContactAttempt,
   resolveContactCountry,
@@ -355,10 +356,8 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           { ipPrefix, country: activeBlock.country },
           'Kontaktformular: gesperrter Absender abgewiesen',
         );
-        return reply
-          .code(429)
-          .type('text/plain; charset=utf-8')
-          .send('Zu viele Anfragen. Bitte versuchen Sie es später erneut.');
+        const spamBlock = getSpamBlockResponse();
+        return reply.code(spamBlock.status).type('text/plain; charset=utf-8').send(spamBlock.body);
       }
 
       // Honeypot: Bots füllen das unsichtbare Feld. Wir tun so, als wäre alles gut.
@@ -459,10 +458,8 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
             request.log.error({ err: error }, 'Sperr-Hinweis konnte nicht versendet werden');
           }
         }
-        return reply
-          .code(429)
-          .type('text/plain; charset=utf-8')
-          .send('Zu viele Anfragen. Bitte versuchen Sie es später erneut.');
+        const spamBlock = getSpamBlockResponse();
+        return reply.code(spamBlock.status).type('text/plain; charset=utf-8').send(spamBlock.body);
       }
 
       const sendAcknowledgement = async (): Promise<void> => {
