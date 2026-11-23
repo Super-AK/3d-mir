@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.65 – 23. November 2026
+
+Die Favicon-URLs enthalten zusätzlich die App-Version. Damit werden alte,
+zwischengespeicherte Favicons nach einem Deploy auf allen Seiten ersetzt.
+
 ## Release 1.0.0-rc.64 – 23. November 2026
 
 Hotfix für den CI-Lauf: Der Favicon-Helfer hat keinen Import von

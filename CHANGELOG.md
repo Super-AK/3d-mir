@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.65] – 23. November 2026
+
+### Behoben
+
+- **Favicon-Cache:** Die Icon-URLs enthalten jetzt zusätzlich die App-Version.
+  Browser verwenden damit nach einem Deploy nicht mehr alte, zwischengespeicherte
+  Favicons (z. B. das Standard-SVG oder das frühere PNG) für einzelne Seiten.
+
 ## [1.0.0-rc.64] – 23. November 2026
 
 ### Behoben

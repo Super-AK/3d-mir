@@ -47,7 +47,7 @@ test('Favicon: ICO, PNG, Manifest und Links auf allen Seiten', async ({ request,
   expect(data.icons[0]!.src).toContain('/favicon-192.png');
   expect(data.icons[1]!.src).toContain('/favicon-512.png');
 
-  for (const path of ['/', '/kontakt/', '/admin/login/']) {
+  for (const path of ['/', '/kontakt/', '/leistungen/', '/3d-druck-rechner/', '/shop/', '/admin/login/']) {
     await page.goto(path);
     await expect(page.locator('link[rel="icon"]')).not.toHaveCount(0);
     await expect(page.locator('link[rel="shortcut icon"]')).toHaveCount(1);

@@ -42,15 +42,17 @@ describe('Favicon-Auslieferung', () => {
       icons: { src: string; sizes: string; type: string }[];
     };
     expect(manifest.icons).toEqual([
-      { src: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/favicon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: `/favicon-192.png?v=default-${config.version}`, sizes: '192x192', type: 'image/png' },
+      { src: `/favicon-512.png?v=default-${config.version}`, sizes: '512x512', type: 'image/png' },
     ]);
   });
 
-  it('nutzt den Dateinamen des hinterlegten Favicons als Cache-Busting-Wert', () => {
+  it('nutzt Dateiname und App-Version als Cache-Busting-Wert', () => {
     config.site.images.favicon = '/site-media/favicon-abc123.png';
-    expect(faviconVersion()).toBe('favicon-abc123.png');
+    expect(faviconVersion()).toContain('favicon-abc123.png');
+    expect(faviconVersion()).toContain(config.version);
     const manifest = faviconManifest() as { icons: { src: string }[] };
     expect(manifest.icons[0]!.src).toContain('?v=favicon-abc123.png');
+    expect(manifest.icons[0]!.src).toContain(config.version);
   });
 });

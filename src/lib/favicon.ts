@@ -24,10 +24,12 @@ const ICO_SIZES = [16, 32, 48] as const;
 const cache = new Map<string, Buffer>();
 let cachedStored = '';
 
-/** Cache-Busting-Wert, abgeleitet aus dem Dateinamen des hinterlegten Favicons. */
+/** Cache-Busting-Wert aus Dateiname und App-Version (auch bei gleichem Favicon-Dateinamen). */
 export function faviconVersion(): string {
   const stored = config.site.images.favicon;
-  return stored ? path.basename(stored).replace(/[^a-zA-Z0-9.-]/g, '') : '';
+  const name = stored ? path.basename(stored).replace(/[^a-zA-Z0-9.-]/g, '') : 'default';
+  const version = config.version.replace(/[^a-zA-Z0-9.-]/g, '');
+  return `${name}-${version}`;
 }
 
 function mediaFile(key: string): string | null {
