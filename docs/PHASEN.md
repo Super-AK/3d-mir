@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.61 – 23. November 2026
+
+Der GitHub-Actions-Deploy-Job prüft den Health-Endpunkt nach dem Neustart am
+produktionskonfigurierten Port (`127.0.0.1:3002).
+
 ## Release 1.0.0-rc.60 – 23. November 2026
 
 Nach erfolgreichem CI-Lauf (Build und Tests) wird der Workflow automatisch auf den

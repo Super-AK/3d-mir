@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.61] – 23. November 2026
+
+### Behoben
+
+- **GitHub-Actions-Deploy:** Der Health-Check im Deploy-Job wurde auf den
+  produktionskonfigurierten Anwendungsport (`127.0.0.1:3002`) korrigiert; die
+  GitHub-Secrets für den SSH-Deploy (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`) sind
+  hinterlegt.
+
 ## [1.0.0-rc.60] – 23. November 2026
 
 ### Hinzugefügt
