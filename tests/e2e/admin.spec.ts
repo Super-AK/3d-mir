@@ -29,6 +29,9 @@ test.describe('Admin', () => {
     await expect(page).toHaveURL(/\/admin\/$/);
     await expect(page.locator('h1')).toHaveText('Dashboard');
     await expect(page.getByText('Besucher der letzten 7 Tage')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GitHub Actions' })).toBeVisible();
+    await expect(page.getByText('Letzter Workflow-Lauf des CI-Workflows für')).toBeVisible();
+    await expect(page.getByText('1.0.0-rc.58')).toBeVisible();
     for (const name of ['dashboard-visitors', 'dashboard-monitor']) {
       await expect(page.locator(`[data-collapse="${name}"]`)).not.toHaveAttribute('open', '');
     }

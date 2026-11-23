@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.59] – 23. November 2026
+
+### Hinzugefügt
+
+- **GitHub-Actions-Status im Admin-Dashboard:** Das Dashboard zeigt den letzten
+  CI-Workflow-Lauf für `main`, dessen Status sowie die aktuelle Version des
+  Deployments.
+
 ## [1.0.0-rc.58] – 23. November 2026
 
 ### Hinzugefügt

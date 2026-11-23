@@ -133,6 +133,7 @@ import {
   unblockContactBlock,
 } from '../lib/contact-protection.js';
 import { geoipStatus } from '../lib/geoip.js';
+import { getGithubActionsStatus } from '../lib/github-actions.js';
 import {
   allCategories,
   categoriesForProduct,
@@ -2254,6 +2255,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
             .all() as ContactRow[],
           monitor: getMonitorStatus(),
           visitorStats: visitorDashboard(),
+          githubActions: await getGithubActionsStatus(),
+          version: config.version,
         }),
       );
     });

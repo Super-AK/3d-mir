@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.59 – 23. November 2026
+
+Das Admin-Dashboard zeigt zusätzlich den letzten GitHub-Actions-Workflow-Lauf
+für `main`, den Status und die aktuelle Version.
+
 ## Release 1.0.0-rc.58 – 23. November 2026
 
 Der GitHub-Actions-Workflow führt Build und Tests automatisiert auf Push und Pull

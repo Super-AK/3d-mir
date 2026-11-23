@@ -30,7 +30,7 @@ In den Listen unter **Produkte**, **Kategorien** und **Nachrichten** stehen die 
 
 Die Symbole tragen zusätzlich einen unsichtbaren Beschreibungstext für Screenreader.
 
-Auf dem **Dashboard** bleiben die Kennzahlen und die Listen offener Bestellungen, Zahlungen und Anfragen sofort sichtbar. Der Bereich **„Besucher der letzten 7 Tage“** und der **Systemstatus** sind zunächst eingeklappt; die Zeile zeigt jeweils eine kurze Vorschau (Aufrufe/Besucher bzw. letzte Prüfung und Status). Ein Klick öffnet die Details. Auch hier funktioniert das Ein-/Ausklappen ohne JavaScript und per Tastatur.
+Auf dem **Dashboard** bleiben die Kennzahlen und die Listen offener Bestellungen, Zahlungen und Anfragen sofort sichtbar. Der Bereich **„Besucher der letzten 7 Tage“** und der **Systemstatus** sind zunächst eingeklappt; die Zeile zeigt jeweils eine kurze Vorschau (Aufrufe/Besucher bzw. letzte Prüfung und Status). Ein Klick öffnet die Details. Auch hier funktioniert das Ein-/Ausklappen ohne JavaScript und per Tastatur. Ergänzt wurde ein separater Abschnitt **GitHub Actions**, der den letzten Workflow-Lauf des CI-Workflows für `main`, dessen Status sowie die aktuelle Version anzeigt.
 
 ## Besucherstatistik
 
