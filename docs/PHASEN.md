@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.60 – 23. November 2026
+
+Nach erfolgreichem CI-Lauf (Build und Tests) wird der Workflow automatisch auf den
+Produktionsserver ausgerollt. Danach erfolgt eine Telegram-Benachrichtigung bei
+Erfolg und ein Alarm bei Fehlschlag.
+
 ## Release 1.0.0-rc.59 – 23. November 2026
 
 Das Admin-Dashboard zeigt zusätzlich den letzten GitHub-Actions-Workflow-Lauf

@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.60] – 23. November 2026
+
+### Hinzugefügt
+
+- **Deploy nach erfolgreichem CI-Lauf:** Bei Push auf `main` wird der Workflow nach
+  erfolgreichem Build und Test automatisch auf den Produktionsserver ausgerollt
+  (Pull, `npm ci`, Build, Restart, Health-Check) und Telegram-Benachrichtigungen
+  bei Erfolg und Fehlschlag versendet.
+
 ## [1.0.0-rc.59] – 23. November 2026
 
 ### Hinzugefügt
