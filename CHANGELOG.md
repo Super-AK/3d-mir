@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.64] – 23. November 2026
+
+### Behoben
+
+- **CI-Lauf:** Die Favicon-Hilfsfunktion importiert nicht mehr
+  `product-images.ts` und damit `render.ts`. Die Unit-Tests laufen dadurch auch
+  in GitHub Actions ohne `chokidar` (Nunjucks-`watch`) fehlerfrei.
+
 ## [1.0.0-rc.63] – 23. November 2026
 
 ### Behoben

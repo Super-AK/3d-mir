@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.64 – 23. November 2026
+
+Hotfix für den CI-Lauf: Der Favicon-Helfer hat keinen Import von
+`product-images.ts`/`render.ts` mehr, sodass die Unit-Tests ohne `chokidar`
+laufen.
+
 ## Release 1.0.0-rc.63 – 23. November 2026
 
 Der hinterlegte Favicon erscheint auf allen Seiten und Plattformen: echtes ICO

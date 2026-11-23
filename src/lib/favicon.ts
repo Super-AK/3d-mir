@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 import { config } from '../config.js';
-import { mediaFile } from './product-images.js';
 import { SITE_MEDIA_PREFIX, siteMediaFile } from './site-media.js';
 
 /**
@@ -29,6 +28,12 @@ let cachedStored = '';
 export function faviconVersion(): string {
   const stored = config.site.images.favicon;
   return stored ? path.basename(stored).replace(/[^a-zA-Z0-9.-]/g, '') : '';
+}
+
+function mediaFile(key: string): string | null {
+  const root = path.resolve(config.uploadDir, 'media');
+  const file = path.resolve(root, key);
+  return file.startsWith(`${root}${path.sep}`) ? file : null;
 }
 
 function storedSource(): string | null {
