@@ -3,6 +3,19 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.63] – 23. November 2026
+
+### Behoben
+
+- **Favicon auf allen Seiten:** Das aus den Stammdaten hinterlegte Favicon wird
+  jetzt überall konsistent verwendet. `/favicon.ico` ist ein echtes ICO mit
+  16/32/48 px für Legacy-Browser und Windows, zusätzlich gibt es PNGs in
+  180/192/512 px für moderne Browser, iOS und Android.
+- **Webmanifest:** Liefert den korrekten MIME-Type `application/manifest+json`
+  und verweist auf die dynamischen Symbole, damit auch Startbildschirm-Icons den
+  hinterlegten Favicon zeigen. Admin-, Login- und Druckseiten nutzen dasselbe
+  Favicon-Partial wie die öffentlichen Seiten.
+
 ## [1.0.0-rc.62] – 23. November 2026
 
 ### Geändert

@@ -22,6 +22,40 @@ test('SEO: robots.txt, Sitemap und Canonical', async ({ request, page }) => {
   await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
 });
 
+test('Favicon: ICO, PNG, Manifest und Links auf allen Seiten', async ({ request, page }) => {
+  const ico = await request.get('/favicon.ico');
+  expect(ico.status()).toBe(200);
+  expect(ico.headers()['content-type']).toContain('image/x-icon');
+  expect([...(await ico.body()).subarray(0, 4)]).toEqual([0, 0, 1, 0]);
+
+  for (const [path, size] of [
+    ['/favicon.png', 180],
+    ['/apple-touch-icon.png', 180],
+    ['/favicon-192.png', 192],
+    ['/favicon-512.png', 512],
+  ] as const) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(200);
+    expect(response.headers()['content-type'], path).toContain('image/png');
+    expect((await response.body()).readUInt32BE(16), path).toBe(size);
+  }
+
+  const manifest = await request.get('/site.webmanifest');
+  expect(manifest.status()).toBe(200);
+  expect(manifest.headers()['content-type']).toContain('application/manifest+json');
+  const data = (await manifest.json()) as { icons: { src: string }[] };
+  expect(data.icons[0]!.src).toContain('/favicon-192.png');
+  expect(data.icons[1]!.src).toContain('/favicon-512.png');
+
+  for (const path of ['/', '/kontakt/', '/admin/login/']) {
+    await page.goto(path);
+    await expect(page.locator('link[rel="icon"]')).not.toHaveCount(0);
+    await expect(page.locator('link[rel="shortcut icon"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', /\/site\.webmanifest/);
+  }
+});
+
 test('SEO: alte WordPress-Pfade leiten dauerhaft um', async ({ request }) => {
   for (const [path, target] of [
     ['/wp-json/wp/v2/posts', '/'],

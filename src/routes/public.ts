@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
-import { faviconPng } from '../lib/favicon.js';
+import { faviconIco, faviconManifest, faviconPng } from '../lib/favicon.js';
 import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
 import { getPricingConfig } from '../lib/pricing-config.js';
@@ -203,18 +203,26 @@ const redirects: Record<string, string> = {
 };
 
 export async function publicRoutes(app: FastifyInstance): Promise<void> {
-  const sendFavicon = async (_request: FastifyRequest, reply: import('fastify').FastifyReply) => {
-    const png = await faviconPng();
-    if (!png) return reply.redirect('/assets/img/favicon-32.png', 302);
-    return reply
-      .type('image/png')
-      .header('Cache-Control', 'public, max-age=3600')
-      .send(png);
+  const cacheHeaders = { 'Cache-Control': 'public, max-age=3600' };
+  const sendPng = (size: number) => async (_request: FastifyRequest, reply: import('fastify').FastifyReply) => {
+    const png = await faviconPng(size);
+    if (!png) return reply.code(404).send();
+    return reply.type('image/png').headers(cacheHeaders).send(png);
   };
-  app.get('/favicon.ico', sendFavicon);
-  app.get('/favicon.png', sendFavicon);
-  app.get('/apple-touch-icon.png', sendFavicon);
-  app.get('/apple-touch-icon-precomposed.png', sendFavicon);
+
+  app.get('/favicon.ico', async (_request, reply) => {
+    const ico = await faviconIco();
+    if (!ico) return reply.code(404).send();
+    return reply.type('image/x-icon').headers(cacheHeaders).send(ico);
+  });
+  app.get('/favicon.png', sendPng(180));
+  app.get('/favicon-192.png', sendPng(192));
+  app.get('/favicon-512.png', sendPng(512));
+  app.get('/apple-touch-icon.png', sendPng(180));
+  app.get('/apple-touch-icon-precomposed.png', sendPng(180));
+  app.get('/site.webmanifest', async (_request, reply) => {
+    return reply.type('application/manifest+json').headers(cacheHeaders).send(faviconManifest());
+  });
 
   app.get('/', async (_request, reply) => {
     render(reply, 'pages/home.njk', {

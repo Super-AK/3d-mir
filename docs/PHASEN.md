@@ -425,6 +425,13 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.63 – 23. November 2026
+
+Der hinterlegte Favicon erscheint auf allen Seiten und Plattformen: echtes ICO
+(16/32/48 px) für Legacy-Browser, PNGs in 180/192/512 px für moderne Browser, iOS
+und Android. Das Webmanifest nutzt den korrekten MIME-Type und die dynamischen
+Symbole; alle Layouts teilen sich ein Favicon-Partial.
+
 ## Release 1.0.0-rc.62 – 23. November 2026
 
 Der Deploy-Schritt der GitHub Actions ruft nun `deploy/update.sh` auf. Backup,

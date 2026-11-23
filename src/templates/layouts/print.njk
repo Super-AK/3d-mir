@@ -6,7 +6,7 @@
   <title>{% block title %}Druckansicht – 3D-MIR{% endblock %}</title>
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#0a1530">
-  {% if site.images.favicon %}<link rel="icon" href="/favicon.ico?v={{ faviconVersion }}" type="image/png">{% else %}<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">{% endif %}
+  {% include "partials/favicons.njk" %}
   {% for css in assetCss('ts/print.ts') %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
 </head>
 <body class="admin-print-body">

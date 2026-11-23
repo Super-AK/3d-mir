@@ -15,17 +15,8 @@
   <meta property="og:url" content="{{ site.baseUrl }}{{ currentPath }}">
   <meta property="og:image" content="{{ site.baseUrl }}/assets/img/og-image.jpg">
   <meta name="theme-color" content="#0a1530">
-  {% if site.images.favicon %}
-    <link rel="icon" href="/favicon.ico?v={{ faviconVersion }}" type="image/png" sizes="180x180">
-    <link rel="shortcut icon" href="/favicon.ico?v={{ faviconVersion }}" type="image/png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v={{ faviconVersion }}">
-  {% else %}
-    <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-    <link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
-    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  {% endif %}
+  {% include "partials/favicons.njk" %}
   <link rel="preload" href="/assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="manifest" href="/assets/site.webmanifest">
   {% for css in assetCss('ts/main.ts') %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
   {% block head %}{% endblock %}
 </head>

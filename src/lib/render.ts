@@ -9,6 +9,7 @@ import { getPublicPaymentMethods } from './shop-settings.js';
 import { getPublicationSettings } from './publication-settings.js';
 import { placeholder } from './placeholders.js';
 import { isPickupShippingMethod } from './shop.js';
+import { faviconVersion } from './favicon.js';
 
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
 type ImageInfo = { width: number; height: number; alt: string; variants: ImageVariant[] };
@@ -272,9 +273,7 @@ export function render(res: import('fastify').FastifyReply, template: string, co
     pricing,
     publication: getPublicationSettings(),
     publicPaymentMethods: paymentMethods,
-    faviconVersion: config.site.images.favicon
-      ? config.site.images.favicon.split('/').pop()?.replace(/[^a-zA-Z0-9.-]/g, '') ?? ''
-      : '',
+    faviconVersion: faviconVersion(),
     publicPaymentFlags: {
       card: paymentMethods.some((method) => method.provider === 'stripe' && method.stripeMethod === 'card'),
       paypal: paymentMethods.some((method) => method.stripeMethod === 'paypal'),
