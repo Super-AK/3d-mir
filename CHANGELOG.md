@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.67] – 24. November 2026
+
+### Behoben
+
+- **CI-Lauf:** `chokidar` ist jetzt als Dev-Abhängigkeit vorhanden. Die Unit-Tests
+  mit `buildApp()` laufen damit auch ohne `.env`/`NODE_ENV=production` (Nunjucks
+  `watch`) fehlerfrei in GitHub Actions.
+
 ## [1.0.0-rc.66] – 24. November 2026
 
 ### Hinzugefügt

@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.67 – 24. November 2026
+
+Hotfix für den CI-Lauf: `chokidar` als Dev-Abhängigkeit ergänzt, damit die
+Unit-Tests ohne `.env` laufen.
+
 ## Release 1.0.0-rc.66 – 24. November 2026
 
 Die Shop-API v1 für die Faktura-App ist umgesetzt: Tokens, Freigaben,
