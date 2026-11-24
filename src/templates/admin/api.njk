@@ -1,0 +1,272 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}API & Schnittstellen – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>API &amp; Schnittstellen</h1>
+      <p>Steuerung der Shop-API für die Faktura-App. Alle Änderungen wirken sofort und erscheinen im Audit-Log.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-secondary btn-small" href="/admin/bestellungen/">Bestellungen</a>
+      <form method="post" action="/admin/api/export/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-secondary btn-small" type="submit">Konfiguration exportieren</button>
+      </form>
+    </div>
+  </div>
+
+  {% if createdToken %}
+    <div class="alert alert-success" role="status">
+      <strong>Token einmalig angezeigt:</strong> <code>{{ createdToken }}</code><br>
+      <span class="text-muted">Bitte jetzt kopieren – der Klartext wird nicht gespeichert und nicht erneut angezeigt.</span>
+    </div>
+  {% endif %}
+
+  <div class="alert alert-info">
+    Die API läuft unter <code>https://www.3d-mir.de/api/v1</code>. Die Faktura-App ruft ab (Pull);
+    Webhooks und Status-Rückmeldung sind laut Vertrag Phase 2 und hier noch nicht aktiv.
+    Abweichungen vom Vertrag stehen in <code>VERTRAGS-ANMERKUNGEN.md</code>.
+  </div>
+
+  <form class="form" method="post" action="/admin/api/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>API gesamt</h2></div>
+      <div class="admin-check-list">
+        <label class="admin-check">
+          <input type="checkbox" name="apiEnabled" value="1" {% if settings.enabled %}checked{% endif %}>
+          <span>API aktiv (Not-Aus)</span>
+        </label>
+        <label class="admin-check">
+          <input type="checkbox" name="maintenance" value="1" {% if settings.maintenance %}checked{% endif %}>
+          <span>Wartungsmodus (liefert 503 mit Retry-After)</span>
+        </label>
+      </div>
+      <div class="form-row">
+        <label class="field">Anfragen pro Minute und Token
+          <input type="number" name="rateLimit" min="1" max="600" value="{{ settings.rateLimitPerMinute }}" required>
+        </label>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Freigabe Ressourcen</h2></div>
+      <div class="admin-check-list">
+        <label class="admin-check"><input type="checkbox" name="resource_orders" value="1" {% if settings.resources.orders %}checked{% endif %}> <span>Bestellungen</span></label>
+        <label class="admin-check"><input type="checkbox" name="resource_customers" value="1" {% if settings.resources.customers %}checked{% endif %}> <span>Kunden</span></label>
+        <label class="admin-check"><input type="checkbox" name="resource_products" value="1" {% if settings.resources.products %}checked{% endif %}> <span>Artikel</span></label>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Freigabe Bestellungen</h2></div>
+      <p class="text-muted">Nicht freigegebene Status werden in Listen ausgeliefert, sofern sie bereits einmal übermittelt wurden (Storno darf nicht verloren gehen).</p>
+      <div class="admin-check-list">
+        {% for status in statuses %}
+          <label class="admin-check"><input type="checkbox" name="status" value="{{ status }}" {% if status in settings.orderStatuses %}checked{% endif %}> <span>{{ statusLabels[status] or status }}</span></label>
+        {% endfor %}
+      </div>
+      <div class="admin-check-list">
+        <label class="admin-check"><input type="checkbox" name="onlyPaid" value="1" {% if settings.onlyPaid %}checked{% endif %}> <span>Nur bezahlte Bestellungen</span></label>
+        <label class="admin-check"><input type="checkbox" name="includeGuests" value="1" {% if settings.includeGuests %}checked{% endif %}> <span>Gast-Bestellungen einschließen</span></label>
+      </div>
+      <div class="form-row">
+        <label class="field">Nur Bestellungen ab Datum
+          <input type="date" name="fromDate" value="{{ settings.fromDate }}">
+        </label>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Freigabe Felder</h2></div>
+      <p class="text-muted">Nicht freigegebene Felder werden vollständig weggelassen. IDs, Beträge, Adressen und Positionen sind Pflicht und nicht abschaltbar.</p>
+      <div class="admin-check-list">
+        <label class="admin-check"><input type="checkbox" name="field_phone" value="1" {% if settings.fields.phone %}checked{% endif %}> <span>Telefon</span></label>
+        <label class="admin-check"><input type="checkbox" name="field_vatId" value="1" {% if settings.fields.vatId %}checked{% endif %}> <span>USt-IdNr.</span></label>
+        <label class="admin-check"><input type="checkbox" name="field_customerNote" value="1" {% if settings.fields.customerNote %}checked{% endif %}> <span>Kundennotiz</span></label>
+        <label class="admin-check"><input type="checkbox" name="field_marketingConsent" value="1" {% if settings.fields.marketingConsent %}checked{% endif %}> <span>Marketing-Einwilligung</span></label>
+        <label class="admin-check"><input type="checkbox" name="field_attributes3d" value="1" {% if settings.fields.attributes3d %}checked{% endif %}> <span>3D-Druck-Attribute</span></label>
+        <label class="admin-check"><input type="checkbox" name="field_modelFile" value="1" {% if settings.fields.modelFile %}checked{% endif %}> <span>Modelldatei-Referenz</span></label>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Freigabe Artikel</h2></div>
+      <div class="admin-check-list">
+        <label class="admin-check"><input type="checkbox" name="onlyActive" value="1" {% if settings.products.onlyActive %}checked{% endif %}> <span>Nur aktive Artikel</span></label>
+        <label class="admin-check"><input type="checkbox" name="onlyWithSku" value="1" {% if settings.products.onlyWithSku %}checked{% endif %}> <span>Nur Artikel mit SKU</span></label>
+      </div>
+      <p class="text-muted">Kategorien (leer = alle):</p>
+      <div class="admin-check-list">
+        {% for category in categories %}
+          <label class="admin-check"><input type="checkbox" name="category" value="{{ category.slug }}" {% if category.slug in settings.products.categories %}checked{% endif %}> <span>{{ category.name }}</span></label>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Zusatzfelder</h2></div>
+      <p class="text-muted">Frei definierte Schlüssel/Werte in <code>order.meta</code> bzw. <code>items[].attributes</code>. Leere Zeilen werden ignoriert.</p>
+      <div class="table-wrap">
+        <table class="admin-edit-table">
+          <thead><tr><th>Schlüssel</th><th>Wert</th><th>Ziel</th></tr></thead>
+          <tbody>
+            {% for field in settings.customFields %}
+              <tr>
+                <td><input type="text" name="custom_key" value="{{ field.key }}" maxlength="60"></td>
+                <td><input type="text" name="custom_value" value="{{ field.value }}" maxlength="500"></td>
+                <td>
+                  <select name="custom_target">
+                    <option value="order" {% if field.target == 'order' %}selected{% endif %}>Bestellung (meta)</option>
+                    <option value="item" {% if field.target == 'item' %}selected{% endif %}>Position (attributes)</option>
+                  </select>
+                </td>
+              </tr>
+            {% endfor %}
+            <tr>
+              <td><input type="text" name="custom_key" placeholder="z. B. kostenstelle" maxlength="60"></td>
+              <td><input type="text" name="custom_value" placeholder="Wert" maxlength="500"></td>
+              <td><select name="custom_target"><option value="order">Bestellung (meta)</option><option value="item">Position (attributes)</option></select></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Rückmeldung aus der Faktura-App</h2></div>
+      <div class="admin-check-list">
+        <label class="admin-check"><input type="checkbox" name="invoiceFeedback" value="1" {% if settings.invoiceFeedback %}checked{% endif %}> <span>Rechnungsdaten per PATCH annehmen</span></label>
+        <label class="admin-check"><input type="checkbox" name="showInvoiceLink" value="1" {% if settings.showInvoiceLink %}checked{% endif %}> <span>Rechnungslink in der Bestellung anzeigen</span></label>
+      </div>
+      <p class="text-muted">Der Link wird nur übermittelt, wenn er gegen öffentliches Erraten geschützt ist (z. B. Token-URL).</p>
+    </section>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Freigaben speichern</button>
+    </div>
+  </form>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>API-Tokens</h2></div>
+    <p class="text-muted">Tokens werden nur als SHA-256-Hash gespeichert. Der Klartext erscheint ausschließlich direkt nach dem Anlegen oder Rotieren.</p>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Name</th><th>Scopes</th><th>Ablauf</th><th>Zuletzt benutzt</th><th>Status</th><th>Aktionen</th></tr></thead>
+        <tbody>
+          {% for token in tokens %}
+            <tr>
+              <td>{{ token.name }}</td>
+              <td><code>{{ token.scopes | join(', ') }}</code></td>
+              <td>{{ token.expiresAt or '–' }}</td>
+              <td>{{ token.lastUsedAt or 'nie' }}</td>
+              <td>{% if token.revokedAt %}<span class="badge badge-danger">gesperrt</span>{% elif token.rotatedAt %}<span class="badge badge-warning">rotiert</span>{% else %}<span class="badge badge-success">aktiv</span>{% endif %}</td>
+              <td>
+                <form method="post" action="/admin/api/tokens/{{ token.id }}/rotate/">
+                  <input type="hidden" name="_csrf" value="{{ csrf }}">
+                  <button class="btn btn-secondary btn-small" type="submit">Rotieren</button>
+                </form>
+                {% if not token.revokedAt %}
+                  <form method="post" action="/admin/api/tokens/{{ token.id }}/revoke/">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <button class="btn btn-secondary btn-small" type="submit">Sperren</button>
+                  </form>
+                {% endif %}
+                <form method="post" action="/admin/api/tokens/{{ token.id }}/delete/">
+                  <input type="hidden" name="_csrf" value="{{ csrf }}">
+                  <button class="btn btn-secondary btn-small" type="submit">Löschen</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="text-muted">Noch keine Tokens angelegt.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <form class="form mt-2" method="post" action="/admin/api/tokens/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <h3>Neuen Token anlegen</h3>
+      <div class="form-row">
+        <label class="field">Name
+          <input type="text" name="name" maxlength="100" required placeholder="z. B. Faktura Produktiv">
+        </label>
+        <label class="field">Ablaufdatum (optional)
+          <input type="date" name="expiresAt">
+        </label>
+      </div>
+      <p class="text-muted">Scopes:</p>
+      <div class="admin-check-list">
+        {% for scope in scopes %}
+          <label class="admin-check"><input type="checkbox" name="scope" value="{{ scope }}" {% if scope in defaultScopes %}checked{% endif %}> <span><code>{{ scope }}</code></span></label>
+        {% endfor %}
+      </div>
+      <div class="form-row">
+        <label class="field">IP-Allowlist (eine IP oder CIDR pro Zeile, leer = alle)
+          <textarea name="ipAllowlist" rows="3" placeholder="203.0.113.10&#10;198.51.100.0/24"></textarea>
+        </label>
+      </div>
+      <div class="form-actions"><button class="btn" type="submit">Token anlegen</button></div>
+    </form>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Beispielantwort</h2></div>
+    <p class="text-muted">Exakt die Antwort, die die API mit den aktuellen Freigaben liefern würde – ohne Token-Aufruf.</p>
+    <details class="admin-help">
+      <summary>Beispiel anzeigen</summary>
+      <pre class="api-sample">{{ sample | dump(2) }}</pre>
+    </details>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Überwachung</h2></div>
+    <h3>Letzte Zugriffe</h3>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Zeit</th><th>Token</th><th>Methode</th><th>Pfad</th><th>Status</th><th>Dauer</th><th>Anzahl</th></tr></thead>
+        <tbody>
+          {% for entry in accessLog %}
+            <tr><td>{{ entry.created_at }}</td><td>{{ entry.token_name }}</td><td>{{ entry.method }}</td><td><code>{{ entry.path }}</code></td><td>{{ entry.status }}</td><td>{{ entry.duration_ms }} ms</td><td>{{ entry.item_count }}</td></tr>
+          {% else %}
+            <tr><td colspan="7" class="text-muted">Noch keine Zugriffe.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <h3 class="mt-2">Änderungen an der API-Konfiguration</h3>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Zeit</th><th>Aktion</th><th>Details</th><th>Benutzer</th></tr></thead>
+        <tbody>
+          {% for entry in apiAudit %}
+            <tr><td>{{ entry.created_at }}</td><td><code>{{ entry.action }}</code></td><td>{{ entry.details }}</td><td>{{ entry.actor }}</td></tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">Noch keine Änderungen.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Konfiguration importieren / zurücksetzen</h2></div>
+    <p class="text-muted">Import ohne Tokens und Secrets. Die aktuelle Konfiguration kann oben exportiert werden.</p>
+    <form class="form" method="post" action="/admin/api/import/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <label class="field">Konfiguration (JSON)
+        <textarea name="config" rows="6" placeholder='{"settings": {...}}'></textarea>
+      </label>
+      <div class="form-actions">
+        <button class="btn btn-secondary" type="submit">Importieren</button>
+      </div>
+    </form>
+    <form class="form mt-2" method="post" action="/admin/api/reset/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="btn btn-secondary" type="submit">Auf Standard zurücksetzen</button>
+    </form>
+  </section>
+{% endblock %}

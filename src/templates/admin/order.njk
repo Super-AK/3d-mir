@@ -71,6 +71,18 @@
         <div><dt>Versandart</dt><dd>{{ shippingLabel }}</dd></div>
         <div><dt>Kundenanmerkung</dt><dd>{{ order.customer_note or '–' }}</dd></div>
       </dl>
+
+      {% if order.invoice_number or order.invoice_date or order.delivery_note_number %}
+        <h2 class="mt-2">Rechnung (aus Faktura-App)</h2>
+        <dl class="admin-dl">
+          <div><dt>Rechnungsnummer</dt><dd><code>{{ order.invoice_number or '–' }}</code></dd></div>
+          <div><dt>Rechnungsdatum</dt><dd>{{ order.invoice_date or '–' }}</dd></div>
+          <div><dt>Lieferscheinnummer</dt><dd><code>{{ order.delivery_note_number or '–' }}</code></dd></div>
+          {% if showInvoiceLink and order.invoice_url %}
+            <div><dt>Rechnungslink</dt><dd><a href="{{ order.invoice_url }}" target="_blank" rel="noopener">PDF öffnen</a></dd></div>
+          {% endif %}
+        </dl>
+      {% endif %}
     </section>
 
     <section class="card admin-panel">

@@ -46,6 +46,7 @@ und nicht im Git – nie direkt bearbeiten.
 | Rechner, Upload, Angebotsanfrage | `src/routes/calculator.ts`, `src/lib/mesh.ts`, `src/lib/pricing.ts`, `config/pricing.json` |
 | Shop, Warenkorb, Checkout, Bestellungen | `src/routes/shop.ts`, `src/lib/shop.ts`, `src/lib/cart.ts`, `config/shop.json` |
 | Zahlungen, Stripe-Webhook | `src/routes/payments.ts`, `src/lib/payments/*` |
+| Shop-API v1 (Faktura-App) | `src/routes/api-v1.ts`, `src/lib/api-*.ts`, `openapi.yaml`, `VERTRAGS-ANMERKUNGEN.md` |
 | Admin-Oberfläche und Aktionen | `src/routes/admin.ts`, `src/templates/admin/**`, `web/ts/admin*.ts` |
 | Login, 2FA, Passkeys, CSRF | `src/lib/auth.ts`, `src/lib/totp.ts`, `src/lib/passkeys.ts` |
 | Mails und Layout | `src/lib/mailer.ts`, `src/lib/mail-layout.ts`, `src/lib/contact-mail.ts`, `src/lib/notifications.ts`, `src/lib/telegram.ts` |
@@ -179,10 +180,10 @@ laufen – vor dem Ausrollen die Version per Health-Endpunkt prüfen.
 
 ## Aktueller Stand
 
-**Stand: 20.11.2026** – bei jedem Release aktualisieren. Maßgeblich sind
+**Stand: 24.11.2026** – bei jedem Release aktualisieren. Maßgeblich sind
 `package.json` (Version) und `docs/OFFENE-FRAGEN.md` (F-Nummern).
 
-- Version: `1.0.0-rc.65`
+- Version: `1.0.0-rc.66`
 - Offen vor dem Livegang: Stripe-Live-Schaltung (Live-Key, Live-Webhook,
   Live-Test), externes Backup-Ziel, Freigabe des Shops im Admin.
 - Der Shop zeigt öffentlich noch „Der Shop befindet sich im Aufbau“.

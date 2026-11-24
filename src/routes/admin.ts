@@ -164,6 +164,24 @@ import {
 } from '../lib/placeholders.js';
 import { deleteSiteLogo, storeSiteFavicon, storeSiteLogo } from '../lib/site-media.js';
 import {
+  API_ORDER_STATUSES,
+  API_SCOPES,
+  exportApiConfig,
+  getApiSettings,
+  importApiConfig,
+  resetApiSettings,
+  saveApiSettings,
+  type ApiScope,
+} from '../lib/api-settings.js';
+import {
+  createApiToken,
+  deleteApiToken,
+  listApiTokens,
+  revokeApiToken,
+  rotateApiToken,
+} from '../lib/api-auth.js';
+import { mapOrder } from '../lib/api-mapper.js';
+import {
   defaultPublicationChecklist,
   getPublicationChecklist,
   getPublicationSettings,
@@ -347,6 +365,13 @@ type OrderRow = {
   admin_note: string;
   created_at: string;
   updated_at: string;
+  user_id: number | null;
+  invoice_number: string;
+  invoice_date: string;
+  invoice_url: string;
+  delivery_note_number: string;
+  invoice_updated_at: string | null;
+  api_first_exposed_at: string | null;
 };
 
 type OrderItemRow = {
@@ -641,6 +666,7 @@ function orderDetails(id: number) {
     paymentStatusTone: paymentStatusTone(order.payment_status),
     paymentProviderText: paymentProviderLabel(order.payment_provider),
     shippingLabel: shippingLabel(order.shipping_method),
+    showInvoiceLink: getApiSettings().showInvoiceLink,
   };
 }
 
@@ -4817,6 +4843,156 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         writeAudit(session.user.email, 'admin.passkey.delete', { id });
       }
       return reply.redirect('/admin/passwort/?gespeichert=1', 303);
+    });
+
+    // API & Schnittstellen --------------------------------------------------
+    const apiSample = (): Record<string, unknown> => {
+      const settings = getApiSettings();
+      const row = db().prepare('SELECT * FROM orders ORDER BY id DESC LIMIT 1').get() as OrderRow | undefined;
+      return {
+        data: row ? [mapOrder(row, settings)] : [],
+        next_cursor: null,
+        has_more: false,
+        server_time: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+      };
+    };
+
+    const apiPage = (request: FastifyRequest, extra: Record<string, unknown> = {}) =>
+      adminContext(request, {
+        settings: getApiSettings(),
+        tokens: listApiTokens(),
+        accessLog: db().prepare('SELECT * FROM api_access_log ORDER BY id DESC LIMIT 30').all(),
+        apiAudit: db().prepare("SELECT * FROM audit_log WHERE action LIKE 'api.%' ORDER BY id DESC LIMIT 30").all(),
+        categories: db().prepare('SELECT slug, name FROM product_categories ORDER BY sort_order ASC, name ASC').all(),
+        statuses: [...API_ORDER_STATUSES],
+        statusLabels: Object.fromEntries(orderStatuses.map((item) => [item.id, item.label])),
+        scopes: [...API_SCOPES],
+        defaultScopes: ['orders:read', 'customers:read', 'products:read'] as ApiScope[],
+        sample: apiSample(),
+        ...extra,
+      });
+
+    scope.get('/admin/api/', async (request, reply) => {
+      render(reply, 'admin/api.njk', apiPage(request));
+    });
+
+    scope.post('/admin/api/', async (request, reply) => {
+      const body = bodyObject(request);
+      const current = getApiSettings();
+      const keys = Array.isArray(body.custom_key) ? body.custom_key : [body.custom_key];
+      const values = Array.isArray(body.custom_value) ? body.custom_value : [body.custom_value];
+      const targets = Array.isArray(body.custom_target) ? body.custom_target : [body.custom_target];
+      const customFields = keys
+        .map((key, index) => ({
+          key: cleanText(key, 60).replace(/[^a-zA-Z0-9_.-]/g, ''),
+          value: cleanText(values[index], 500),
+          target: targets[index] === 'item' ? ('item' as const) : ('order' as const),
+        }))
+        .filter((field) => field.key && field.value);
+
+      saveApiSettings({
+        enabled: body.apiEnabled === '1',
+        maintenance: body.maintenance === '1',
+        rateLimitPerMinute: Number(body.rateLimit) || 60,
+        resources: {
+          orders: body.resource_orders === '1',
+          customers: body.resource_customers === '1',
+          products: body.resource_products === '1',
+        },
+        orderStatuses: bodyIds(body.status).filter((status) => (API_ORDER_STATUSES as readonly string[]).includes(status)),
+        onlyPaid: body.onlyPaid === '1',
+        includeGuests: body.includeGuests === '1',
+        fromDate: typeof body.fromDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.fromDate) ? body.fromDate : '',
+        fields: {
+          phone: body.field_phone === '1',
+          vatId: body.field_vatId === '1',
+          customerNote: body.field_customerNote === '1',
+          marketingConsent: body.field_marketingConsent === '1',
+          attributes3d: body.field_attributes3d === '1',
+          modelFile: body.field_modelFile === '1',
+        },
+        products: {
+          onlyActive: body.onlyActive === '1',
+          onlyWithSku: body.onlyWithSku === '1',
+          categories: bodyIds(body.category),
+        },
+        customFields,
+        invoiceFeedback: body.invoiceFeedback === '1',
+        showInvoiceLink: body.showInvoiceLink === '1',
+        webhooks: current.webhooks,
+      });
+      writeAudit(request.admin?.email ?? 'admin', 'api.settings.update', {
+        configVersion: getApiSettings().configVersion,
+      });
+      return reply.redirect('/admin/api/?gespeichert=1', 303);
+    });
+
+    scope.post('/admin/api/tokens/', async (request, reply) => {
+      const body = bodyObject(request);
+      const rawScopes = Array.isArray(body.scope) ? body.scope : [body.scope];
+      const scopes = rawScopes.filter((item): item is ApiScope => API_SCOPES.includes(item as ApiScope));
+      const ipAllowlist = (typeof body.ipAllowlist === 'string' ? body.ipAllowlist : '')
+        .split(/[\n\r,;]+/)
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .slice(0, 20);
+      const expiresAt =
+        typeof body.expiresAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.expiresAt)
+          ? `${body.expiresAt} 23:59:59`
+          : null;
+      const created = createApiToken({
+        name: cleanText(body.name, 100),
+        scopes,
+        ipAllowlist,
+        expiresAt,
+      });
+      writeAudit(request.admin?.email ?? 'admin', 'api.token.create', { name: created.info.name, scopes });
+      render(reply, 'admin/api.njk', apiPage(request, { createdToken: created.token }));
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/api/tokens/:id/revoke/', async (request, reply) => {
+      const id = Number(request.params.id);
+      if (revokeApiToken(id)) writeAudit(request.admin?.email ?? 'admin', 'api.token.revoke', { id });
+      return reply.redirect('/admin/api/?gespeichert=1', 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/api/tokens/:id/rotate/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const rotated = rotateApiToken(id);
+      if (!rotated) return reply.redirect('/admin/api/?fehler=rotation', 303);
+      writeAudit(request.admin?.email ?? 'admin', 'api.token.rotate', { id });
+      render(reply, 'admin/api.njk', apiPage(request, { createdToken: rotated.token }));
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/api/tokens/:id/delete/', async (request, reply) => {
+      const id = Number(request.params.id);
+      if (deleteApiToken(id)) writeAudit(request.admin?.email ?? 'admin', 'api.token.delete', { id });
+      return reply.redirect('/admin/api/?geloescht=1', 303);
+    });
+
+    scope.post('/admin/api/export/', async (_request, reply) => {
+      return reply
+        .header('Content-Disposition', 'attachment; filename="3d-mir-api-config.json"')
+        .type('application/json')
+        .send(JSON.stringify(exportApiConfig(), null, 2));
+    });
+
+    scope.post('/admin/api/import/', async (request, reply) => {
+      const body = bodyObject(request);
+      try {
+        const parsed = JSON.parse(typeof body.config === 'string' ? body.config : '') as unknown;
+        const saved = importApiConfig(parsed);
+        writeAudit(request.admin?.email ?? 'admin', 'api.config.import', { configVersion: saved.configVersion });
+        return reply.redirect(`/admin/api/?importiert=1&anzahl=${saved.configVersion}`, 303);
+      } catch {
+        return reply.redirect('/admin/api/?fehler=import', 303);
+      }
+    });
+
+    scope.post('/admin/api/reset/', async (request, reply) => {
+      const saved = resetApiSettings();
+      writeAudit(request.admin?.email ?? 'admin', 'api.config.reset', { configVersion: saved.configVersion });
+      return reply.redirect('/admin/api/?zurueckgesetzt=1', 303);
     });
   });
 }

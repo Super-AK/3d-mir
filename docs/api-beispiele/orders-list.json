@@ -1,0 +1,13 @@
+{
+  "data": [
+    {
+      "id": "1042",
+      "status": "paid",
+      "currency": "EUR",
+      "updated_at": "2026-11-23T10:03:10Z"
+    }
+  ],
+  "next_cursor": "eyJ1IjoiMjAyNi0xMS0yM1QxMDowMzoxMFoiLCJpIjoxMDQyfQ",
+  "has_more": true,
+  "server_time": "2026-11-23T14:10:00Z"
+}

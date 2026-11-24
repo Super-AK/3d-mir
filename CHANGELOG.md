@@ -3,6 +3,22 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.66] – 24. November 2026
+
+### Hinzugefügt
+
+- **Shop-API v1 für die Faktura-App:** Bearer-Tokens mit Scopes, IP-Allowlist,
+  Ablauf, Sperrung und Rotation; lesende Endpunkte für Bestellungen, Kunden und
+  Artikel mit Cursor-Pagination, `updated_since` und `X-Request-Id`;
+  `GET /api/v1/health` und `/meta` zur Selbstbeschreibung sowie
+  `PATCH /api/v1/orders/{id}/invoice` für die Rechnungsrückmeldung.
+- **Admin-Seite „API & Schnittstellen":** Freigaben für Ressourcen, Status,
+  Felder, Artikel und Zusatzfelder, Token-Verwaltung, Zugriffs- und Audit-Log,
+  Beispielantwort, Konfigurations-Export/-Import und Zurücksetzen.
+- **`openapi.yaml` (OpenAPI 3.1)** und Beispielantworten unter
+  `docs/api-beispiele/`. Abweichungen vom Vertrag stehen in
+  `VERTRAGS-ANMERKUNGEN.md`.
+
 ## [1.0.0-rc.65] – 23. November 2026
 
 ### Behoben

@@ -1,0 +1,29 @@
+{
+  "api_version": "1.0.0",
+  "config_version": 17,
+  "tax_mode": "small_business_19_ustg",
+  "resources": {
+    "orders": true,
+    "customers": true,
+    "products": true
+  },
+  "order_statuses_exposed": ["awaiting_payment", "paid", "processing", "shipped", "completed", "cancelled"],
+  "fields": {
+    "orders": [
+      "id",
+      "order_number",
+      "status",
+      "items",
+      "shipping",
+      "totals",
+      "tax_info",
+      "payment",
+      "customer_snapshot.phone",
+      "meta.source_channel"
+    ],
+    "customers": ["id", "email", "first_name", "last_name", "phone"],
+    "item_attributes": ["material", "color", "infill_percent"]
+  },
+  "webhooks_enabled": false,
+  "server_time": "2026-11-23T14:10:00Z"
+}

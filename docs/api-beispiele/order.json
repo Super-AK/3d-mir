@@ -1,0 +1,91 @@
+{
+  "id": "1042",
+  "order_number": "3DM-2026-001042",
+  "status": "paid",
+  "created_at": "2026-11-23T09:12:44Z",
+  "updated_at": "2026-11-23T10:03:10Z",
+  "currency": "EUR",
+  "customer_id": "cus_9f3b1c2d4e5a6b70",
+  "customer_snapshot": {
+    "type": "private",
+    "company": null,
+    "first_name": "Max",
+    "last_name": "Mustermann",
+    "email": "max@example.com",
+    "phone": "+49 170 0000000"
+  },
+  "billing_address": {
+    "name": "Max Mustermann",
+    "company": null,
+    "street": "Musterstraße 1",
+    "address_2": null,
+    "postal_code": "75328",
+    "city": "Schömberg",
+    "country_code": "DE"
+  },
+  "shipping_address": {
+    "name": "Max Mustermann",
+    "company": null,
+    "street": "Musterstraße 1",
+    "address_2": null,
+    "postal_code": "75328",
+    "city": "Schömberg",
+    "country_code": "DE"
+  },
+  "items": [
+    {
+      "line_id": "1042-1",
+      "product_id": "88",
+      "sku": "HALTER-PETG-SW",
+      "name": "Halter, PETG schwarz",
+      "description": "Farbe: schwarz · Personalisierung: Name Max",
+      "quantity": 2,
+      "unit": "Stk",
+      "unit_price_net_cents": 1250,
+      "unit_price_gross_cents": 1250,
+      "tax_rate_percent": 0,
+      "line_total_net_cents": 2500,
+      "line_total_gross_cents": 2500,
+      "attributes": {
+        "material": "PETG",
+        "color": "schwarz",
+        "infill_percent": null
+      }
+    }
+  ],
+  "shipping": {
+    "method": "DHL Paket",
+    "cost_net_cents": 499,
+    "cost_gross_cents": 499,
+    "tax_rate_percent": 0,
+    "tracking_number": null,
+    "shipped_at": null
+  },
+  "discounts": [],
+  "totals": {
+    "subtotal_net_cents": 2500,
+    "shipping_net_cents": 499,
+    "discount_net_cents": 0,
+    "tax_cents": 0,
+    "total_net_cents": 2999,
+    "total_gross_cents": 2999
+  },
+  "tax_info": {
+    "small_business_19_ustg": true,
+    "note": "Kein Mehrwertsteuerausweis, da Kleinunternehmer nach § 19 UStG."
+  },
+  "payment": {
+    "method": "paypal",
+    "status": "paid",
+    "paid_at": "2026-11-23T09:15:02Z",
+    "transaction_ref": "PAYID-XXXX"
+  },
+  "customer_note": "Bitte neutral verpacken.",
+  "meta": { "source_channel": "shop" },
+  "invoice": {
+    "number": null,
+    "date": null,
+    "url": null,
+    "delivery_note_number": null
+  }
+}

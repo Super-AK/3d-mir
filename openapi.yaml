@@ -1,0 +1,400 @@
+openapi: 3.1.0
+info:
+  title: 3D-MIR Shop API
+  version: 1.0.0
+  description: >-
+    Schnittstelle zwischen dem 3D-MIR-Shop und der Faktura-App. Pull-Prinzip:
+    die Faktura-App liest Bestellungen, Kunden und Artikel. Der Shop ist führend
+    für diese Daten, die Faktura-App für Belege und Rechnungsnummern.
+    Abweichungen und offene Punkte: VERTRAGS-ANMERKUNGEN.md.
+  contact:
+    name: 3D-MIR 3D-Druck Service
+    url: https://www.3d-mir.de/
+servers:
+  - url: https://www.3d-mir.de/api/v1
+    description: Produktiv
+security:
+  - bearerAuth: []
+tags:
+  - name: System
+  - name: Bestellungen
+  - name: Kunden
+  - name: Artikel
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health-Check
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, version, time]
+                properties:
+                  status: { type: string, example: ok }
+                  version: { type: string, example: 1.0.0 }
+                  time: { type: string, format: date-time }
+                  database: { type: string, example: ok }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /meta:
+    get:
+      tags: [System]
+      summary: Selbstbeschreibung und aktive Freigaben
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Meta' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /orders:
+    get:
+      tags: [Bestellungen]
+      summary: Bestellungen seitenweise abrufen
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/UpdatedSince'
+        - $ref: '#/components/parameters/OrderStatus'
+      responses:
+        '200':
+          description: Liste
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderList' }
+              examples:
+                Beispiel: { $ref: './docs/api-beispiele/orders-list.json' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /orders/{id}:
+    get:
+      tags: [Bestellungen]
+      summary: Eine Bestellung vollständig
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+              examples:
+                Beispiel: { $ref: './docs/api-beispiele/order.json' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /orders/{id}/invoice:
+    patch:
+      tags: [Bestellungen]
+      summary: Rechnungsdaten aus der Faktura-App übernehmen (idempotent)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InvoiceFeedback' }
+      responses:
+        '200':
+          description: Aktualisierte Bestellung
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationFailed' }
+  /customers:
+    get:
+      tags: [Kunden]
+      summary: Kunden seitenweise abrufen
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/UpdatedSince'
+      responses:
+        '200':
+          description: Liste
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /customers/{id}:
+    get:
+      tags: [Kunden]
+      summary: Ein Kunde
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+              examples:
+                Beispiel: { $ref: './docs/api-beispiele/customer.json' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /products:
+    get:
+      tags: [Artikel]
+      summary: Artikel seitenweise abrufen
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/UpdatedSince'
+      responses:
+        '200':
+          description: Liste
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /products/{id}:
+    get:
+      tags: [Artikel]
+      summary: Ein Artikel
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+              examples:
+                Beispiel: { $ref: './docs/api-beispiele/product.json' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: >-
+        Token im Admin unter „API & Schnittstellen“ anlegen. Der Shop speichert
+        nur den SHA-256-Hash; der Klartext wird einmalig angezeigt.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaker Cursor aus next_cursor der vorherigen Antwort.
+      schema: { type: string }
+    UpdatedSince:
+      name: updated_since
+      in: query
+      description: ISO-8601 UTC; liefert Einträge mit updated_at >= Wert.
+      schema: { type: string, format: date-time }
+    OrderStatus:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [pending, awaiting_payment, paid, processing, shipped, completed, cancelled, refunded]
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    BadRequest:
+      description: Ungültige Parameter
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unauthorized:
+      description: Token fehlt oder ist ungültig
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Scope fehlt oder Ressource nicht freigegeben
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Nicht gefunden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    ValidationFailed:
+      description: Validierungsfehler
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    RateLimited:
+      description: Rate-Limit überschritten (Header Retry-After)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unavailable:
+      description: API deaktiviert oder Wartungsmodus (Header Retry-After)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, request_id]
+          properties:
+            code:
+              type: string
+              enum: [invalid_request, unauthorized, forbidden, resource_disabled, not_found, validation_failed, rate_limited, maintenance, api_disabled, server_error]
+            message: { type: string }
+            request_id: { type: string }
+    Address:
+      type: object
+      properties:
+        name: { type: string }
+        company: { type: [string, 'null'] }
+        street: { type: string }
+        address_2: { type: [string, 'null'] }
+        postal_code: { type: string }
+        city: { type: string }
+        country_code: { type: string }
+    OrderItem:
+      type: object
+      properties:
+        line_id: { type: string }
+        product_id: { type: [string, 'null'] }
+        sku: { type: [string, 'null'] }
+        name: { type: string }
+        description: { type: [string, 'null'] }
+        quantity: { type: integer }
+        unit: { type: string }
+        unit_price_net_cents: { type: integer }
+        unit_price_gross_cents: { type: integer }
+        tax_rate_percent: { type: integer }
+        line_total_net_cents: { type: integer }
+        line_total_gross_cents: { type: integer }
+        attributes: { type: object, additionalProperties: true }
+    Order:
+      type: object
+      required: [id, order_number, status, currency, items, totals, tax_info, payment]
+      properties:
+        id: { type: string }
+        order_number: { type: string }
+        status:
+          type: string
+          enum: [pending, awaiting_payment, paid, processing, shipped, completed, cancelled, refunded]
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        currency: { type: string, example: EUR }
+        customer_id: { type: [string, 'null'] }
+        customer_snapshot: { type: object, additionalProperties: true }
+        billing_address: { $ref: '#/components/schemas/Address' }
+        shipping_address: { $ref: '#/components/schemas/Address' }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OrderItem' }
+        shipping: { type: object, additionalProperties: true }
+        discounts: { type: array, items: { type: object, additionalProperties: true } }
+        totals: { type: object, additionalProperties: true }
+        tax_info: { type: object, additionalProperties: true }
+        payment: { type: object, additionalProperties: true }
+        customer_note: { type: [string, 'null'] }
+        meta: { type: object, additionalProperties: true }
+        invoice: { type: object, additionalProperties: true }
+    InvoiceFeedback:
+      type: object
+      required: [invoice_number, invoice_date]
+      properties:
+        invoice_number: { type: string, maxLength: 100 }
+        invoice_date: { type: string, pattern: '^\\d{4}-\\d{2}-\\d{2}$' }
+        invoice_url: { type: string, format: uri, description: 'Muss HTTPS verwenden.' }
+        delivery_note_number: { type: string, maxLength: 100 }
+    Customer:
+      type: object
+      required: [id, email, type]
+      properties:
+        id: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        type: { type: string, enum: [private, business] }
+        company: { type: [string, 'null'] }
+        first_name: { type: string }
+        last_name: { type: string }
+        email: { type: string }
+        phone: { type: [string, 'null'] }
+        vat_id: { type: [string, 'null'] }
+        billing_address: { $ref: '#/components/schemas/Address' }
+        default_shipping_address: { type: ['null', 'object'] }
+        is_guest: { type: boolean }
+        marketing_consent: { type: boolean }
+    Product:
+      type: object
+      required: [id, name, price_net_cents, price_gross_cents]
+      properties:
+        id: { type: string }
+        sku: { type: [string, 'null'] }
+        name: { type: string }
+        description: { type: [string, 'null'] }
+        unit: { type: string }
+        price_net_cents: { type: integer }
+        price_gross_cents: { type: integer }
+        tax_rate_percent: { type: integer }
+        active: { type: boolean }
+        weight_grams: { type: integer }
+        variants: { type: array, items: { type: object, additionalProperties: true } }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    OrderList:
+      type: object
+      required: [data, next_cursor, has_more, server_time]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Order' }
+        next_cursor: { type: [string, 'null'] }
+        has_more: { type: boolean }
+        server_time: { type: string, format: date-time }
+    CustomerList:
+      type: object
+      required: [data, next_cursor, has_more, server_time]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Customer' }
+        next_cursor: { type: [string, 'null'] }
+        has_more: { type: boolean }
+        server_time: { type: string, format: date-time }
+    ProductList:
+      type: object
+      required: [data, next_cursor, has_more, server_time]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Product' }
+        next_cursor: { type: [string, 'null'] }
+        has_more: { type: boolean }
+        server_time: { type: string, format: date-time }
+    Meta:
+      type: object
+      required: [api_version, config_version, resources, server_time]
+      properties:
+        api_version: { type: string }
+        config_version: { type: integer }
+        tax_mode: { type: string }
+        resources: { type: object, additionalProperties: { type: boolean } }
+        order_statuses_exposed:
+          type: array
+          items: { type: string }
+        fields: { type: object, additionalProperties: true }
+        webhooks_enabled: { type: boolean }
+        server_time: { type: string, format: date-time }

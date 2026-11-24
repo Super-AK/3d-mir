@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "not_found",
+    "message": "Order 9999 not found",
+    "request_id": "req_01HXYZ0123456789ABCD"
+  }
+}

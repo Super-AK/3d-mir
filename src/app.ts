@@ -14,6 +14,7 @@ import { calculatorRoutes } from './routes/calculator.js';
 import { shopRoutes } from './routes/shop.js';
 import { paymentRoutes } from './routes/payments.js';
 import { adminRoutes } from './routes/admin.js';
+import { apiRoutes } from './routes/api-v1.js';
 import { migrate } from './db/migrate.js';
 import { applySiteSettings } from './lib/site-settings.js';
 import { isTrustedProxyPeer, resolveContactCountry } from './lib/contact-protection.js';
@@ -140,6 +141,7 @@ export async function buildApp() {
   await app.register(calculatorRoutes);
   await app.register(shopRoutes);
   await app.register(paymentRoutes);
+  await app.register(apiRoutes, { prefix: '/api/v1' });
   await app.register(adminRoutes);
 
   app.setNotFoundHandler((request, reply) => {

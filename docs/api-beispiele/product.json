@@ -1,0 +1,25 @@
+{
+  "id": "88",
+  "sku": "HALTER-PETG-SW",
+  "name": "Halter, PETG schwarz",
+  "description": "Stabiler Halter aus PETG, 20 % Füllung.",
+  "unit": "Stk",
+  "price_net_cents": 1250,
+  "price_gross_cents": 1250,
+  "tax_rate_percent": 0,
+  "active": true,
+  "weight_grams": 35,
+  "variants": [
+    {
+      "id": "schwarz",
+      "name": "schwarz",
+      "sku": null,
+      "price_net_cents": 1250,
+      "price_gross_cents": 1250,
+      "stock": 12
+    }
+  ],
+  "created_at": "2026-09-01T10:00:00Z",
+  "updated_at": "2026-11-01T10:00:00Z",
+  "categories": ["halter"]
+}

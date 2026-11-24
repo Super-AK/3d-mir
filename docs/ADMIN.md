@@ -399,6 +399,43 @@ Fehler werden im Admin angezeigt und im Anwendungslog protokolliert.
 
 Bot-Token und SMTP-Passwort sind Geheimnisse. Sie werden in der SQLite-Datenbank gespeichert und sind in Backups enthalten. Backups müssen entsprechend geschützt und extern verschlüsselt aufbewahrt werden. Die Werte niemals im Repository oder in Chats veröffentlichen.
 
+## API & Schnittstellen
+
+Unter **Admin → API & Schnittstellen** wird die Shop-API für die Faktura-App
+verwaltet. Der Shop gibt die Daten frei, die Faktura-App holt sie per HTTPS ab
+(Pull-Prinzip). Die Basis-URL ist `https://www.3d-mir.de/api/v1`.
+
+- **API gesamt:** Not-Aus, Wartungsmodus (`503` mit `Retry-After`) und Rate-Limit
+  pro Token (Standard 60 Anfragen/Minute).
+- **Tokens:** Name, Scopes (`orders:read`, `customers:read`, `products:read`,
+  `orders:write_status`), Ablaufdatum, IP-Allowlist (IP oder CIDR), Sperren,
+  Löschen und Rotieren. Der Token erscheint nur einmal direkt nach dem Anlegen
+  oder Rotieren; gespeichert wird ausschließlich sein SHA-256-Hash. Nach einer
+  Rotation bleibt der alte Token 24 Stunden gültig.
+- **Freigaben:** Bestellungen, Kunden und Artikel einzeln; Bestellstatus,
+  nur bezahlte Bestellungen, Gast-Bestellungen und ein Startdatum; Feldgruppen
+  (Telefon, USt-IdNr., Kundennotiz, Marketing-Einwilligung, 3D-Attribute,
+  Modelldatei); Artikel (nur aktiv, nur mit SKU, bestimmte Kategorien) sowie
+  frei definierte Zusatzfelder in `order.meta` und `items[].attributes`.
+  Nicht freigegebene Felder werden weggelassen, nicht mit `null` gefüllt.
+  Ein einmal ausgelieferter Status wird weiterhin geliefert, damit Stornierungen
+  nicht verloren gehen.
+- **Rückmeldung:** Rechnungsnummer, -datum, Lieferschein und Link können per
+  `PATCH /orders/{id}/invoice` übernommen werden. Der Link wird nur angezeigt,
+  wenn die entsprechende Option aktiv ist; er muss gegen öffentliches Erraten
+  geschützt sein.
+- **Überwachung:** Die letzten 30 Zugriffe (Token, Methode, Pfad, Status, Dauer,
+  Anzahl) und alle API-Konfigurationsänderungen aus dem Audit-Log.
+- **Test und Export:** „Beispielantwort ansehen" zeigt genau die Antwort mit den
+  aktuellen Freigaben. Die Konfiguration lässt sich ohne Tokens/Secrets als JSON
+  exportieren und importieren oder auf Standard zurücksetzen.
+
+Jede Änderung erhöht `config_version`; sie erscheint in `/meta` und im Header
+`X-Config-Version`. Die vollständige Schnittstelle steht in `openapi.yaml`,
+Beispielantworten in `docs/api-beispiele/`. Abweichungen und offene Punkte sind
+in `VERTRAGS-ANMERKUNGEN.md` dokumentiert. Webhooks und Status-Rückmeldung sind
+vertragsgemäß Phase 2 und noch nicht aktiv.
+
 ## Produkte und Bilder
 
 Unter **Admin → Produkte** lassen sich Produkte, Varianten, Farben, Personalisierung und Bilder pflegen.

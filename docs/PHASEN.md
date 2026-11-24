@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.66 – 24. November 2026
+
+Die Shop-API v1 für die Faktura-App ist umgesetzt: Tokens, Freigaben,
+Lesendpunkte mit Pagination, Rechnungsrückmeldung, Admin-Verwaltung, OpenAPI und
+Beispielantworten. Webhooks und Status-Rückmeldung bleiben Phase 2.
+
 ## Release 1.0.0-rc.65 – 23. November 2026
 
 Die Favicon-URLs enthalten zusätzlich die App-Version. Damit werden alte,
