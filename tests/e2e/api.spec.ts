@@ -19,6 +19,13 @@ test.describe('API & Schnittstellen', () => {
     await expect(page.getByRole('heading', { name: 'API & Schnittstellen' })).toBeVisible();
     await expect(page.getByText('Beispielantwort')).toBeVisible();
 
+    await page.getByRole('link', { name: 'API-Hilfe' }).click();
+    await expect(page.getByRole('heading', { name: 'API-Hilfe' })).toBeVisible();
+    const openapi = await page.request.get('/admin/api/dokument/openapi/');
+    expect(openapi.status()).toBe(200);
+    expect(await openapi.text()).toContain('openapi: 3.1.0');
+    await page.goto('/admin/api/');
+
     await page.fill('input[name="name"]', 'E2E API-Token');
     await page.check('input[name="scope"][value="orders:read"]');
     await page.locator('form[action="/admin/api/tokens/"] button[type="submit"]').click();

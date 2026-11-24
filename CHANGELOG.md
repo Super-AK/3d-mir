@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.69] – 24. November 2026
+
+### Hinzugefügt
+
+- **API-Hilfeseite im Admin:** `/admin/api/hilfe/` erklärt Grundprinzip, Auth,
+  Scopes, Endpunkte, Pagination, Freigaben, Status-Mapping, Fehlercodes und
+  Rechnungsrückmeldung. Von dort lassen sich `openapi.yaml`, Vertrag,
+  Vertrags-Anmerkungen und alle Beispielantworten herunterladen.
+
 ## [1.0.0-rc.68] – 24. November 2026
 
 ### Behoben

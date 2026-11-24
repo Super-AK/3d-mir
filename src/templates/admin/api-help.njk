@@ -1,0 +1,173 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}API-Hilfe – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>API-Hilfe</h1>
+      <p>Kurzanleitung zur Shop-API für die Faktura-App. Die technische Referenz steht zum Download bereit.</p>
+    </div>
+    <div class="admin-page-actions">
+      <a class="btn btn-small" href="/admin/api/">Zurück zu API &amp; Schnittstellen</a>
+      <a class="btn btn-secondary btn-small" href="/admin/api/dokument/openapi/">openapi.yaml herunterladen</a>
+    </div>
+  </div>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Grundprinzip</h2></div>
+    <p>
+      Die Faktura-App ruft die Shop-API ab (<strong>Pull</strong>). Der Shop gibt Daten frei,
+      die Faktura-App entscheidet, was sie daraus macht. Der Shop braucht keinen Zugriff
+      auf die Faktura-App. Es werden keine Zahlungsdaten (IBAN, Kartendaten) übertragen.
+    </p>
+    <dl class="admin-dl">
+      <div><dt>Basis-URL</dt><dd><code>https://www.3d-mir.de/api/v1</code></dd></div>
+      <div><dt>Format</dt><dd>JSON, UTF-8, <code>Content-Type: application/json</code></dd></div>
+      <div><dt>Zeitangaben</dt><dd>ISO 8601 in UTC, z. B. <code>2026-11-24T14:05:00Z</code></dd></div>
+      <div><dt>Beträge</dt><dd>Ganzzahlen in Cent, Währung <code>EUR</code></dd></div>
+      <div><dt>IDs</dt><dd>Strings, unveränderlich (<code>"1042"</code>)</dd></div>
+    </dl>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Authentifizierung</h2></div>
+    <p>
+      Jede Anfrage sendet <code>Authorization: Bearer &lt;TOKEN&gt;</code>. Tokens werden unter
+      <a href="/admin/api/">API &amp; Schnittstellen</a> angelegt, benannt und mit Scopes versehen.
+      Der Shop speichert nur einen SHA-256-Hash; der Klartext erscheint einmalig beim Anlegen
+      oder Rotieren. Ohne gültigen Token antwortet die API mit <code>401</code>.
+    </p>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Scope</th><th>Berechtigung</th></tr></thead>
+        <tbody>
+          <tr><td><code>orders:read</code></td><td>Bestellungen lesen</td></tr>
+          <tr><td><code>customers:read</code></td><td>Kunden lesen</td></tr>
+          <tr><td><code>products:read</code></td><td>Artikel lesen</td></tr>
+          <tr><td><code>orders:write_status</code></td><td>Rechnungsdaten zurückmelden</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-muted">
+      Optional: Ablaufdatum, IP-Allowlist (IP oder CIDR), Sperren und Rotation mit 24 Stunden
+      Übergangszeit. Fehlt ein Scope, antwortet die API mit <code>403</code>.
+    </p>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Endpunkte</h2></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Methode</th><th>Pfad</th><th>Scope</th><th>Zweck</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/health</code></td><td>beliebig</td><td>Status und API-Version</td></tr>
+          <tr><td>GET</td><td><code>/meta</code></td><td>beliebig</td><td>Selbstbeschreibung, Freigaben, Felder</td></tr>
+          <tr><td>GET</td><td><code>/orders</code></td><td><code>orders:read</code></td><td>Bestellungen (Filter: <code>status</code>, <code>updated_since</code>)</td></tr>
+          <tr><td>GET</td><td><code>/orders/{id}</code></td><td><code>orders:read</code></td><td>Eine Bestellung vollständig</td></tr>
+          <tr><td>GET</td><td><code>/customers</code></td><td><code>customers:read</code></td><td>Kunden</td></tr>
+          <tr><td>GET</td><td><code>/customers/{id}</code></td><td><code>customers:read</code></td><td>Ein Kunde</td></tr>
+          <tr><td>GET</td><td><code>/products</code></td><td><code>products:read</code></td><td>Artikel</td></tr>
+          <tr><td>GET</td><td><code>/products/{id}</code></td><td><code>products:read</code></td><td>Ein Artikel</td></tr>
+          <tr><td>PATCH</td><td><code>/orders/{id}/invoice</code></td><td><code>orders:write_status</code></td><td>Rechnungsnummer und -link zurückmelden</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Seitenweise abrufen</h2></div>
+    <p>
+      Listen akzeptieren <code>limit</code> (Standard 50, maximal 200), <code>cursor</code> und
+      <code>updated_since</code>. Die Sortierung ist stabil nach <code>updated_at ASC, id ASC</code>.
+      Solange <code>has_more</code> <code>true</code> ist, wird <code>next_cursor</code> an die
+      nächste Anfrage übergeben. Als eigenen <code>updated_since</code> verwendet die Faktura-App
+      <code>server_time</code> abzüglich 60 Sekunden Sicherheitspuffer; Duplikate werden über
+      Idempotenz abgefangen.
+    </p>
+    <pre class="api-sample">{
+  "data": [ ... ],
+  "next_cursor": "eyJ1IjoiMjAyNi0xMS0yNFQiLCJpIjoiMTA0MiJ9",
+  "has_more": true,
+  "server_time": "2026-11-24T14:10:00Z"
+}</pre>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Freigaben und Status</h2></div>
+    <p>
+      Freigaben gelten sofort für jeden Abruf. Nicht freigegebene Felder werden weggelassen;
+      nicht freigegebene Ressourcen melden <code>403 resource_disabled</code>. Bestellungen,
+      die einmal ausgeliefert wurden, bleiben auch dann sichtbar, wenn sie einen nicht mehr
+      freigegebenen Status annehmen – sonst würde die Faktura-App eine Stornierung verpassen.
+      Jede Änderung erhöht <code>config_version</code>; sie steht in <code>/meta</code> und im
+      Header <code>X-Config-Version</code>.
+    </p>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Interner Status</th><th>API-Status</th></tr></thead>
+        <tbody>
+          <tr><td>neu (offen)</td><td><code>awaiting_payment</code></td></tr>
+          <tr><td>bezahlt</td><td><code>paid</code></td></tr>
+          <tr><td>in_druck</td><td><code>processing</code></td></tr>
+          <tr><td>versandt</td><td><code>shipped</code></td></tr>
+          <tr><td>abgeschlossen</td><td><code>completed</code></td></tr>
+          <tr><td>storniert</td><td><code>cancelled</code></td></tr>
+          <tr><td>Zahlungsstatus „erstattet"</td><td><code>refunded</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Rückmeldung und Fehler</h2></div>
+    <p>
+      Die Faktura-App meldet Rechnungsnummer, Datum, Lieferschein und optional einen Link
+      zurück. Der Aufruf ist idempotent: der gleiche Body erzeugt kein zweites Ereignis im
+      Audit-Log. Der Link muss HTTPS verwenden und gegen öffentliches Erraten geschützt sein;
+      angezeigt wird er nur, wenn die Option aktiv ist.
+    </p>
+    <pre class="api-sample">PATCH /api/v1/orders/1042/invoice
+{
+  "invoice_number": "RE-2026-0042",
+  "invoice_date": "2026-11-24",
+  "invoice_url": "https://faktura-app.knutas.de/...",
+  "delivery_note_number": "LS-2026-0042"
+}</pre>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Code</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><td>200</td><td>OK</td></tr>
+          <tr><td>400</td><td>Ungültige Parameter</td></tr>
+          <tr><td>401</td><td>Token fehlt oder ist ungültig</td></tr>
+          <tr><td>403</td><td>Scope fehlt oder Ressource nicht freigegeben</td></tr>
+          <tr><td>404</td><td>Nicht gefunden</td></tr>
+          <tr><td>422</td><td>Validierungsfehler</td></tr>
+          <tr><td>429</td><td>Rate-Limit (Header <code>Retry-After</code>)</td></tr>
+          <tr><td>503</td><td>API deaktiviert oder Wartungsmodus</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-muted">Jede Antwort enthält den Header <code>X-Request-Id</code>; Fehler tragen dieselbe ID im JSON.</p>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Dokumente zum Download</h2></div>
+    <ul class="admin-checklist">
+      <li><a href="/admin/api/dokument/openapi/">openapi.yaml</a> – vollständige OpenAPI-3.1-Spezifikation</li>
+      <li><a href="/admin/api/dokument/vertrag/">API-VERTRAG.md</a> – verbindlicher Schnittstellenvertrag</li>
+      <li><a href="/admin/api/dokument/anmerkungen/">VERTRAGS-ANMERKUNGEN.md</a> – Abweichungen und offene Entscheidungen</li>
+      <li><a href="/admin/api/dokument/beispiel-order/">Beispiel: Bestellung</a></li>
+      <li><a href="/admin/api/dokument/beispiel-kunde/">Beispiel: Kunde</a></li>
+      <li><a href="/admin/api/dokument/beispiel-produkt/">Beispiel: Artikel</a></li>
+      <li><a href="/admin/api/dokument/beispiel-liste/">Beispiel: Listenantwort</a></li>
+      <li><a href="/admin/api/dokument/beispiel-meta/">Beispiel: /meta</a></li>
+      <li><a href="/admin/api/dokument/beispiel-fehler/">Beispiel: Fehler</a></li>
+    </ul>
+    <p class="text-muted">
+      Webhooks und Status-Rückmeldung sind vertragsgemäß Phase 2 und noch nicht aktiv.
+      Bitte keine Tokens oder Zugangsdaten in Tickets oder E-Mails senden.
+    </p>
+  </section>
+{% endblock %}

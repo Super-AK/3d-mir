@@ -4872,6 +4872,37 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         ...extra,
       });
 
+    scope.get('/admin/api/hilfe/', async (request, reply) => {
+      render(reply, 'admin/api-help.njk', adminContext(request, { currentPath: '/admin/api/' }));
+    });
+
+    const apiDocuments: Record<string, { file: string; type: string; name: string }> = {
+      openapi: { file: 'openapi.yaml', type: 'application/yaml', name: 'openapi.yaml' },
+      vertrag: { file: 'API-VERTRAG.md', type: 'text/markdown', name: 'API-VERTRAG.md' },
+      anmerkungen: { file: 'VERTRAGS-ANMERKUNGEN.md', type: 'text/markdown', name: 'VERTRAGS-ANMERKUNGEN.md' },
+      'beispiel-order': { file: 'docs/api-beispiele/order.json', type: 'application/json', name: 'order.json' },
+      'beispiel-kunde': { file: 'docs/api-beispiele/customer.json', type: 'application/json', name: 'customer.json' },
+      'beispiel-produkt': { file: 'docs/api-beispiele/product.json', type: 'application/json', name: 'product.json' },
+      'beispiel-liste': { file: 'docs/api-beispiele/orders-list.json', type: 'application/json', name: 'orders-list.json' },
+      'beispiel-meta': { file: 'docs/api-beispiele/meta.json', type: 'application/json', name: 'meta.json' },
+      'beispiel-fehler': { file: 'docs/api-beispiele/error.json', type: 'application/json', name: 'error.json' },
+    };
+
+    scope.get<{ Params: { name: string } }>('/admin/api/dokument/:name/', async (request, reply) => {
+      const document = apiDocuments[request.params.name];
+      if (!document) return adminError(request, reply, 404, 'Dieses Dokument gibt es nicht.');
+      let contents: string;
+      try {
+        contents = fs.readFileSync(path.join(config.root, document.file), 'utf8');
+      } catch {
+        return adminError(request, reply, 404, 'Die Datei wurde nicht gefunden.');
+      }
+      return reply
+        .header('Content-Disposition', `attachment; filename="${document.name}"`)
+        .type(document.type)
+        .send(contents);
+    });
+
     scope.get('/admin/api/', async (request, reply) => {
       render(reply, 'admin/api.njk', apiPage(request));
     });

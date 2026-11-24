@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.69 – 24. November 2026
+
+Die Admin-Hilfeseite zur API ergänzt eine Browser-Anleitung mit Downloads für
+OpenAPI-Spezifikation, Vertrag, Anmerkungen und Beispielantworten.
+
 ## Release 1.0.0-rc.68 – 24. November 2026
 
 Hotfix für den CI-Lauf: Der API-Test nutzt ein temporäres Datenverzeichnis.

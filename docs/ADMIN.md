@@ -432,8 +432,9 @@ verwaltet. Der Shop gibt die Daten frei, die Faktura-App holt sie per HTTPS ab
 
 Jede Änderung erhöht `config_version`; sie erscheint in `/meta` und im Header
 `X-Config-Version`. Die vollständige Schnittstelle steht in `openapi.yaml`,
-Beispielantworten in `docs/api-beispiele/`. Abweichungen und offene Punkte sind
-in `VERTRAGS-ANMERKUNGEN.md` dokumentiert. Webhooks und Status-Rückmeldung sind
+Beispielantworten in `docs/api-beispiele/`. Im Admin führt der Link **API-Hilfe**
+zu einer Kurzanleitung mit Download-Links für alle diese Dokumente. Abweichungen
+und offene Punkte sind in `VERTRAGS-ANMERKUNGEN.md` dokumentiert. Webhooks und Status-Rückmeldung sind
 vertragsgemäß Phase 2 und noch nicht aktiv.
 
 ## Produkte und Bilder
