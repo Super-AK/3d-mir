@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.68 – 24. November 2026
+
+Hotfix für den CI-Lauf: Der API-Test nutzt ein temporäres Datenverzeichnis.
+
 ## Release 1.0.0-rc.67 – 24. November 2026
 
 Hotfix für den CI-Lauf: `chokidar` als Dev-Abhängigkeit ergänzt, damit die

@@ -3,7 +3,12 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const dbPath = path.join('/tmp/opencode', `api-test-${process.pid}.sqlite`);
+const dataDir = path.join('/tmp/opencode', `api-test-data-${process.pid}`);
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+fs.mkdirSync(dataDir, { recursive: true });
+process.env.DATA_DIR = dataDir;
+process.env.UPLOAD_DIR = path.join(dataDir, 'uploads');
+process.env.LOG_DIR = path.join(dataDir, 'logs');
 process.env.DB_PATH = dbPath;
 process.env.SESSION_SECRET = 'api-test-session-secret-with-at-least-32-chars';
 
@@ -38,6 +43,7 @@ afterAll(async () => {
       // Datei existiert nicht mehr.
     }
   }
+  fs.rmSync(dataDir, { recursive: true, force: true });
 });
 
 describe('API v1 – Grundeinstellungen', () => {

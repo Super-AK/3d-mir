@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.68] – 24. November 2026
+
+### Behoben
+
+- **CI-Lauf:** Der API-Test verwendet jetzt ein temporäres `DATA_DIR` samt Upload-
+  und Log-Verzeichnis. Damit schreibt er nicht mehr nach `/var/lib/3d-mir`, was
+  in GitHub Actions zu `EACCES` führte.
+
 ## [1.0.0-rc.67] – 24. November 2026
 
 ### Behoben
