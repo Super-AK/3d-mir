@@ -181,6 +181,14 @@ import {
   rotateApiToken,
 } from '../lib/api-auth.js';
 import { mapOrder } from '../lib/api-mapper.js';
+import { queueWebhook } from '../lib/api-webhooks.js';
+import {
+  generateWebhookSecret,
+  listWebhookDeliveries,
+  retryWebhook,
+  testWebhook,
+  WEBHOOK_EVENTS,
+} from '../lib/api-webhooks.js';
 import {
   defaultPublicationChecklist,
   getPublicationChecklist,
@@ -370,6 +378,7 @@ type OrderRow = {
   invoice_date: string;
   invoice_url: string;
   delivery_note_number: string;
+  tracking_number: string;
   invoice_updated_at: string | null;
   api_first_exposed_at: string | null;
 };
@@ -2412,6 +2421,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         releaseStock(id, 'Bestellung im Admin storniert', false);
       }
       writeAudit(request.admin?.email ?? 'admin', 'order.update', { order: order.order_number, from: order.status, to: status });
+      if (status !== order.status || paidNow) queueWebhook('order.updated', String(id));
 
       if (notify && status !== order.status && !paidNow) {
         await notifyOrderStatus(request, { ...order, status }, status);
@@ -3930,6 +3940,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       saveProductCategories(newId, bodyIds(body.productCategories).map(Number));
       assignProductSortOrder(newId, data.sortOrder);
       writeAudit(request.admin?.email ?? 'admin', 'product.create', { id: newId, slug: data.slug, sortOrder: data.sortOrder });
+      queueWebhook('product.updated', String(newId));
       return reply.redirect(`/admin/produkte/${newId}/?gespeichert=1`, 303);
     });
 
@@ -4019,6 +4030,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       saveProductCategories(id, bodyIds(body.productCategories).map(Number));
       assignProductSortOrder(id, data.sortOrder);
       writeAudit(request.admin?.email ?? 'admin', 'product.update', { id, slug: data.slug, sortOrder: data.sortOrder });
+      queueWebhook('product.updated', String(id));
       return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
     });
 
@@ -4869,6 +4881,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         scopes: [...API_SCOPES],
         defaultScopes: ['orders:read', 'customers:read', 'products:read'] as ApiScope[],
         sample: apiSample(),
+        webhookEvents: [...WEBHOOK_EVENTS],
+        webhookDeliveries: listWebhookDeliveries(30),
         ...extra,
       });
 
@@ -4950,7 +4964,17 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         customFields,
         invoiceFeedback: body.invoiceFeedback === '1',
         showInvoiceLink: body.showInvoiceLink === '1',
-        webhooks: current.webhooks,
+        webhooks: {
+          enabled: body.webhookEnabled === '1',
+          url: typeof body.webhookUrl === 'string' ? body.webhookUrl.trim() : '',
+          secret:
+            typeof body.webhookSecret === 'string' && body.webhookSecret.trim()
+              ? body.webhookSecret.trim()
+              : current.webhooks.secret,
+          events: (Array.isArray(body.webhookEvent) ? body.webhookEvent : [body.webhookEvent]).filter(
+            (event): event is string => typeof event === 'string' && (WEBHOOK_EVENTS as readonly string[]).includes(event),
+          ),
+        },
       });
       writeAudit(request.admin?.email ?? 'admin', 'api.settings.update', {
         configVersion: getApiSettings().configVersion,
@@ -5024,6 +5048,26 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const saved = resetApiSettings();
       writeAudit(request.admin?.email ?? 'admin', 'api.config.reset', { configVersion: saved.configVersion });
       return reply.redirect('/admin/api/?zurueckgesetzt=1', 303);
+    });
+
+    scope.post('/admin/api/webhooks/secret/', async (request, reply) => {
+      const current = getApiSettings();
+      const secret = generateWebhookSecret();
+      saveApiSettings({ ...current, webhooks: { ...current.webhooks, secret } });
+      writeAudit(request.admin?.email ?? 'admin', 'api.webhook.secret', {});
+      render(reply, 'admin/api.njk', apiPage(request, { createdSecret: secret }));
+    });
+
+    scope.post('/admin/api/webhooks/test/', async (request, reply) => {
+      const id = testWebhook();
+      writeAudit(request.admin?.email ?? 'admin', 'api.webhook.test', { id });
+      return reply.redirect('/admin/api/?gespeichert=1', 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/api/webhooks/:id/retry/', async (request, reply) => {
+      const id = Number(request.params.id);
+      if (retryWebhook(id)) writeAudit(request.admin?.email ?? 'admin', 'api.webhook.retry', { id });
+      return reply.redirect('/admin/api/?gespeichert=1', 303);
     });
   });
 }

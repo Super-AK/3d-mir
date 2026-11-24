@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const dbPath = path.join('/tmp/opencode', `api-test-${process.pid}.sqlite`);
 const dataDir = path.join('/tmp/opencode', `api-test-data-${process.pid}`);
@@ -28,6 +28,12 @@ const {
   hasApiScope,
 } = await import('../../src/lib/api-auth.js');
 const { apiOrderStatus, customerExternalId, toIso } = await import('../../src/lib/api-mapper.js');
+const {
+  deliverPendingWebhooks,
+  generateWebhookSecret,
+  queueWebhook,
+  listWebhookDeliveries,
+} = await import('../../src/lib/api-webhooks.js');
 const { buildApp } = await import('../../src/app.js');
 
 beforeAll(() => {
@@ -110,6 +116,45 @@ describe('API v1 – Mapping', () => {
     expect(customerExternalId('Max@Example.de', null)).toBe(customerExternalId('max@example.de', null));
     expect(customerExternalId('a@b.de', 5)).toBe('usr_5');
     expect(toIso('2026-11-23 14:05:00')).toBe('2026-11-23T14:05:00Z');
+  });
+});
+
+describe('API v1 – Webhooks (Phase 2)', () => {
+  it('versendet signierte Ereignisse und protokolliert die Zustellung', async () => {
+    const settings = getApiSettings();
+    saveApiSettings({
+      ...settings,
+      webhooks: {
+        enabled: true,
+        url: 'https://example.test/hook',
+        secret: 'test-geheimnis',
+        events: ['order.created'],
+      },
+    });
+    const id = queueWebhook('order.created', '1', '2026-11-24T10:00:00Z');
+    expect(id).not.toBeNull();
+
+    const fetchMock = vi.fn().mockResolvedValue({ status: 200 });
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const result = await deliverPendingWebhooks();
+      expect(result.sent).toBeGreaterThanOrEqual(1);
+      const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe('https://example.test/hook');
+      const headers = options.headers as Record<string, string>;
+      expect(headers['X-Signature']).toMatch(/^sha256=[a-f0-9]{64}$/);
+      expect(headers['X-Timestamp']).toMatch(/^\d+$/);
+      expect(JSON.parse(String(options.body))).toMatchObject({ event: 'order.created', id: '1' });
+    } finally {
+      vi.unstubAllGlobals();
+      saveApiSettings(defaultApiSettings());
+    }
+    const delivered = listWebhookDeliveries().find((row) => row.id === id);
+    expect(delivered?.status).toBe('delivered');
+  });
+
+  it('erzeugt ein langes Secret', () => {
+    expect(generateWebhookSecret()).toMatch(/^[a-f0-9]{64}$/);
   });
 });
 
@@ -210,6 +255,20 @@ describe('API v1 – HTTP-Endpunkte', () => {
     });
     expect(response.statusCode).toBe(422);
     expect(response.json().error.code).toBe('validation_failed');
+  });
+
+  it('nimmt die Status-Rückmeldung idempotent an', async () => {
+    const headers = { authorization: `Bearer ${token}` };
+    const body = { status: 'shipped', tracking_number: 'TEST-TRACK-1' };
+    const first = await app.inject({ method: 'PATCH', url: '/api/v1/orders/1/status', payload: body, headers });
+    expect(first.statusCode).toBe(200);
+    expect((first.json() as { status: string }).status).toBe('shipped');
+    const second = await app.inject({ method: 'PATCH', url: '/api/v1/orders/1/status', payload: body, headers });
+    expect(second.statusCode).toBe(200);
+    const order = await app.inject({ method: 'GET', url: '/api/v1/orders/1', headers });
+    expect((order.json() as { shipping: { tracking_number: string } }).shipping.tracking_number).toBe('TEST-TRACK-1');
+    const audits = getDb().prepare("SELECT COUNT(*) AS count FROM audit_log WHERE action = 'api.status.update'").get() as { count: number };
+    expect(audits.count).toBe(1);
   });
 
   it('meldet Wartungsmodus und Not-Aus als 503', async () => {

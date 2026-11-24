@@ -1,6 +1,6 @@
 {
   "name": "3d-mir",
-  "version": "1.0.0-rc.69",
+  "version": "1.0.0-rc.70",
   "private": true,
   "description": "Webseite und 3D-Druck-Rechner für 3D-MIR 3D-Druck Service",
   "type": "module",
@@ -24,6 +24,7 @@
     "mail:test": "tsx scripts/test-mail.ts",
     "monitor:check": "node dist/scripts/uptime-check.js",
     "uploads:cleanup": "node dist/scripts/cleanup-uploads.js",
+    "api:webhooks": "node dist/scripts/api-webhooks.js",
     "etsy:import": "tsx scripts/import-etsy.ts"
   },
   "dependencies": {

@@ -107,7 +107,7 @@ TIMER_DATA="${DATA_DIR:-$(env_value DATA_DIR)}"
 TIMER_DATA="${TIMER_DATA:-/var/lib/3d-mir}"
 TIMER_LOG="${LOG_DIR:-$(env_value LOG_DIR)}"
 TIMER_LOG="${TIMER_LOG:-/var/log/3d-mir}"
-for timer in 3d-mir-monitor 3d-mir-cleanup; do
+for timer in 3d-mir-monitor 3d-mir-cleanup 3d-mir-webhook; do
   service_tpl="$APP_DIR/deploy/${timer}.service.tpl"
   timer_tpl="$APP_DIR/deploy/${timer}.timer.tpl"
   [[ -f "$service_tpl" && -f "$timer_tpl" ]] || continue

@@ -25,6 +25,13 @@
     </div>
   {% endif %}
 
+  {% if createdSecret %}
+    <div class="alert alert-success" role="status">
+      <strong>Neues Webhook-Secret (einmalig):</strong> <code>{{ createdSecret }}</code><br>
+      <span class="text-muted">Bitte jetzt kopieren und in der Faktura-App hinterlegen. Der Klartext wird nicht gespeichert.</span>
+    </div>
+  {% endif %}
+
   <div class="alert alert-info">
     Die API läuft unter <code>https://www.3d-mir.de/api/v1</code>. Die Faktura-App ruft ab (Pull);
     Webhooks und Status-Rückmeldung sind laut Vertrag Phase 2 und hier noch nicht aktiv.
@@ -146,10 +153,46 @@
       <p class="text-muted">Der Link wird nur übermittelt, wenn er gegen öffentliches Erraten geschützt ist (z. B. Token-URL).</p>
     </section>
 
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Webhooks (Phase 2)</h2></div>
+      <p class="text-muted">Der Shop meldet nur die ID; die Faktura-App holt die Daten per GET ab. Signatur: <code>X-Signature: sha256=&lt;HMAC-SHA256(body, secret)&gt;</code> und <code>X-Timestamp</code>. Bei Fehlern wird mit 1/5/30/120/720 Minuten erneut versucht.</p>
+      <div class="admin-check-list">
+        <label class="admin-check"><input type="checkbox" name="webhookEnabled" value="1" {% if settings.webhooks.enabled %}checked{% endif %}> <span>Webhooks aktiv</span></label>
+      </div>
+      <div class="form-row">
+        <label class="field">Ziel-URL (HTTPS)
+          <input type="url" name="webhookUrl" value="{{ settings.webhooks.url }}" maxlength="500" placeholder="https://faktura-app.knutas.de/api/webhooks/shop">
+        </label>
+        <label class="field">Secret (leer lassen, um es zu behalten)
+          <input type="password" name="webhookSecret" maxlength="200" placeholder="•••••••• (gespeichert)">
+        </label>
+      </div>
+      <p class="text-muted">Ereignisse:</p>
+      <div class="admin-check-list">
+        {% for event in webhookEvents %}
+          <label class="admin-check"><input type="checkbox" name="webhookEvent" value="{{ event }}" {% if event in settings.webhooks.events %}checked{% endif %}> <span><code>{{ event }}</code></span></label>
+        {% endfor %}
+      </div>
+    </section>
+
     <div class="form-actions">
       <button class="btn" type="submit">Freigaben speichern</button>
     </div>
   </form>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Webhook-Aktionen</h2></div>
+    <div class="admin-page-actions">
+      <form method="post" action="/admin/api/webhooks/secret/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-secondary btn-small" type="submit">Neues Secret erzeugen</button>
+      </form>
+      <form method="post" action="/admin/api/webhooks/test/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-secondary btn-small" type="submit">Test-Event senden</button>
+      </form>
+    </div>
+  </section>
 
   <section class="card admin-panel">
     <div class="admin-panel-head"><h2>API-Tokens</h2></div>
@@ -247,6 +290,39 @@
             <tr><td>{{ entry.created_at }}</td><td><code>{{ entry.action }}</code></td><td>{{ entry.details }}</td><td>{{ entry.actor }}</td></tr>
           {% else %}
             <tr><td colspan="4" class="text-muted">Noch keine Änderungen.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="mt-2">Webhook-Zustellungen</h3>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Zeit</th><th>Ereignis</th><th>ID</th><th>Ziel</th><th>Status</th><th>Versuche</th><th>Nächster Versuch</th><th>Fehler</th><th>Aktion</th></tr></thead>
+        <tbody>
+          {% for delivery in webhookDeliveries %}
+            <tr>
+              <td>{{ delivery.created_at }}</td>
+              <td><code>{{ delivery.event }}</code></td>
+              <td>{{ delivery.external_id }}</td>
+              <td><code>{{ delivery.target_url }}</code></td>
+              <td>
+                {% if delivery.status == 'delivered' %}<span class="badge badge-success">zugestellt</span>
+                {% elif delivery.status == 'failed' %}<span class="badge badge-danger">aufgegeben</span>
+                {% else %}<span class="badge badge-info">ausstehend</span>{% endif %}
+              </td>
+              <td>{{ delivery.attempts }}</td>
+              <td>{{ delivery.next_attempt_at }}</td>
+              <td>{{ delivery.last_error or '–' }}</td>
+              <td>
+                <form method="post" action="/admin/api/webhooks/{{ delivery.id }}/retry/">
+                  <input type="hidden" name="_csrf" value="{{ csrf }}">
+                  <button class="btn btn-secondary btn-small" type="submit">Erneut senden</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="9" class="text-muted">Noch keine Webhooks vorgemerkt.</td></tr>
           {% endfor %}
         </tbody>
       </table>

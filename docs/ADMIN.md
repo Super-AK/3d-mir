@@ -434,8 +434,17 @@ Jede Änderung erhöht `config_version`; sie erscheint in `/meta` und im Header
 `X-Config-Version`. Die vollständige Schnittstelle steht in `openapi.yaml`,
 Beispielantworten in `docs/api-beispiele/`. Im Admin führt der Link **API-Hilfe**
 zu einer Kurzanleitung mit Download-Links für alle diese Dokumente. Abweichungen
-und offene Punkte sind in `VERTRAGS-ANMERKUNGEN.md` dokumentiert. Webhooks und Status-Rückmeldung sind
-vertragsgemäß Phase 2 und noch nicht aktiv.
+und offene Punkte sind in `VERTRAGS-ANMERKUNGEN.md` dokumentiert. - **Webhooks (Phase 2):** Ziel-URL (HTTPS), Secret und Ereignisse sind konfigurierbar;
+  der Shop sendet nur `event`, `id` und `occurred_at`, signiert mit `X-Signature`
+  (HMAC-SHA256) und `X-Timestamp`. Fehlgeschlagene Zustellungen werden mit
+  1/5/30/120/720 Minuten Backoff erneut versucht und im Zustellprotokoll
+  angezeigt; dort gibt es „Test-Event senden" und „Erneut senden".
+- **Status-Rückmeldung:** Die Faktura-App kann per `PATCH /orders/{id}/status`
+  Status und Sendungsnummer zurückmelden; auch diese Aufrufe sind idempotent.
+
+Die gemeinsame Abnahme mit der Faktura-App ist in `docs/API-ABNAHME.md` vorbereitet;
+offene Entscheidungen stehen als F87–F93 in `docs/OFFENE-FRAGEN.md`. Bitte keine
+Tokens oder Zugangsdaten in Tickets oder E-Mails senden.
 
 ## Produkte und Bilder
 

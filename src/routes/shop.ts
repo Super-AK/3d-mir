@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 import { z } from 'zod';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
+import { queueWebhook } from '../lib/api-webhooks.js';
+import { customerExternalId } from '../lib/api-mapper.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
 import { notifyAdmin } from '../lib/notifications.js';
@@ -913,6 +915,8 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       if (!order) {
         return fail('Die Bestellung konnte nicht geladen werden. Bitte versuchen Sie es erneut.');
       }
+      queueWebhook('order.created', String(orderId), order.created_at);
+      queueWebhook('customer.updated', customerExternalId(order.email, order.user_id), order.created_at);
 
       const bank = getBankDetails();
       const bankReady = isBankConfigured(bank);

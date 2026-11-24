@@ -202,6 +202,18 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 4. **Abnahme:** Test auf frischer VM anhand `docs/INSTALLATION.md`, danach `deploy/verify.sh` und Live-Testbestellung.
 5. **Shop live schalten:** F67 im Admin unter „Veröffentlichung“; Rechtstexte sind freigegeben.
 
+## 10. Shop-API / Faktura-App 🟡
+
+| Nr. | Status | Frage / offener Punkt |
+| --- | --- | --- |
+| F87 | 🟡 In Arbeit | **Vertrags-Anmerkungen:** Die Vorschläge A1, A3, A5, A8–A11 in `VERTRAGS-ANMERKUNGEN.md` (Kunden ableiten, Attribute, eine Adresse, Rechnungslink, Preisspanne, Token-Rotation, Versionsangabe) brauchen eine Entscheidung des Auftraggebers. Nach Zustimmung den Vertrag aktualisieren und die neue Version an beide Agents geben. |
+| F88 | ✅ Erledigt | **Phase 2 der API:** Webhooks (Signatur, Retry, Zustellprotokoll) und `PATCH /orders/{id}/status` sind umgesetzt. Nachweis: `openapi.yaml`, Admin-Seite „API & Schnittstellen", Timer `3d-mir-webhook.timer`. *(24.11.2026)* |
+| F89 | 🟡 In Arbeit | **Gemeinsamer Abnahmetest:** Die Shop-Seite ist getestet (101 Unit-, 14 E2E-Tests). Der Ende-zu-Ende-Lauf mit der Faktura-App fehlt: Token hinterlegen, Testbestellung, zweiter Sync ohne Duplikate, Cent-Beträge, Storno, Not-Aus. Checkliste: `docs/API-ABNAHME.md`. |
+| F90 | 🟡 In Arbeit | **Produktiv-Token und IP-Allowlist:** In der Faktura-App den serverseitigen Token hinterlegen; im Shop unter „API & Schnittstellen" einen Token anlegen und die Server-IP der Faktura-App als Allowlist eintragen. Kein Token in Repo, Ticket oder E-Mail. |
+| F91 | 🟡 In Arbeit | **Rechnungslink:** `invoice_url` muss HTTPS sein und gegen öffentliches Erraten geschützt (Token-URL). Die konkrete URL steht erst fest, wenn die Faktura-App Rechnungen erzeugt. Anzeige im Shop ist standardmäßig aus. |
+| F92 | 🟢 Später | **Rate-Limit:** Aktuell 60 Anfragen/Minute pro Token im Speicher des einen Servers. Bei mehreren Instanzen wäre ein gemeinsamer Zähler (z. B. in SQLite/Redis) nötig. |
+| F93 | 🟡 In Arbeit | **Datenmodell-Abweichungen:** Kunden werden aus Bestellungen abgeleitet, 3D-Attribute aus dem aktuellen Produkt (A1/A3). Bitte entscheiden, ob eine echte Kunden-Tabelle und Snapshot-Attribute nötig sind. |
+
 ---
 
 ## Erledigt / Archiv

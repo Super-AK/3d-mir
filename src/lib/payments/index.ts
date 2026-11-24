@@ -1,5 +1,6 @@
 import { config } from '../../config.js';
 import { getDb } from '../../db/index.js';
+import { queueWebhook } from '../api-webhooks.js';
 import { getLogger } from '../logger.js';
 import { sendMail } from '../mailer.js';
 import { notifyAdmin } from '../notifications.js';
@@ -22,6 +23,7 @@ export type PaymentOrder = {
   id: number;
   order_number: string;
   status: string;
+  user_id: number | null;
   email: string;
   first_name: string;
   last_name: string;
@@ -296,7 +298,9 @@ export function markOrderPaid(
     return { changed: true, order: getPaymentOrderById(orderId) };
   });
 
-  return run();
+  const result = run();
+  if (result.changed) queueWebhook('order.updated', String(orderId));
+  return result;
 }
 
 /** Setzt eine Zahlung auf „in Bearbeitung“ (z. B. SEPA/Klarna oder PayPal-Prüfung). */

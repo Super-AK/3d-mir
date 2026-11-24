@@ -70,6 +70,7 @@
           <tr><td>GET</td><td><code>/products</code></td><td><code>products:read</code></td><td>Artikel</td></tr>
           <tr><td>GET</td><td><code>/products/{id}</code></td><td><code>products:read</code></td><td>Ein Artikel</td></tr>
           <tr><td>PATCH</td><td><code>/orders/{id}/invoice</code></td><td><code>orders:write_status</code></td><td>Rechnungsnummer und -link zurückmelden</td></tr>
+          <tr><td>PATCH</td><td><code>/orders/{id}/status</code></td><td><code>orders:write_status</code></td><td>Status und Sendungsnummer zurückmelden</td></tr>
         </tbody>
       </table>
     </div>
@@ -166,8 +167,10 @@
       <li><a href="/admin/api/dokument/beispiel-fehler/">Beispiel: Fehler</a></li>
     </ul>
     <p class="text-muted">
-      Webhooks und Status-Rückmeldung sind vertragsgemäß Phase 2 und noch nicht aktiv.
-      Bitte keine Tokens oder Zugangsdaten in Tickets oder E-Mails senden.
+      Webhooks können unter <a href="/admin/api/">API &amp; Schnittstellen</a> aktiviert werden:
+      Ziel-URL (HTTPS), Secret und Ereignisse. Der Shop sendet nur die ID, signiert mit
+      <code>X-Signature</code> und <code>X-Timestamp</code>; die Faktura-App holt die Daten per GET.
+     Bei Fehlern wird mit 1/5/30/120/720 Minuten backoff erneut versucht. Der Pull bleibt die Wahrheit.
     </p>
   </section>
 {% endblock %}

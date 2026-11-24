@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.70 – 24. November 2026
+
+Phase 2 der Shop-API: Webhooks mit Signatur und Retry sowie Status-Rückmeldung.
+Die verbleibenden Entscheidungen sind als F87–F93 erfasst; die gemeinsame
+Abnahme ist in `docs/API-ABNAHME.md` vorbereitet.
+
 ## Release 1.0.0-rc.69 – 24. November 2026
 
 Die Admin-Hilfeseite zur API ergänzt eine Browser-Anleitung mit Downloads für

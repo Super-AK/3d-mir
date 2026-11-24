@@ -110,6 +110,27 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '422': { $ref: '#/components/responses/ValidationFailed' }
+  /orders/{id}/status:
+    patch:
+      tags: [Bestellungen]
+      summary: Status und Sendungsnummer aus der Faktura-App übernehmen (idempotent)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StatusFeedback' }
+      responses:
+        '200':
+          description: Aktualisierte Bestellung
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationFailed' }
   /customers:
     get:
       tags: [Kunden]
@@ -319,6 +340,14 @@ components:
         invoice_date: { type: string, pattern: '^\\d{4}-\\d{2}-\\d{2}$' }
         invoice_url: { type: string, format: uri, description: 'Muss HTTPS verwenden.' }
         delivery_note_number: { type: string, maxLength: 100 }
+    StatusFeedback:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, awaiting_payment, paid, processing, shipped, completed, cancelled, refunded]
+        tracking_number: { type: string, maxLength: 200 }
     Customer:
       type: object
       required: [id, email, type]

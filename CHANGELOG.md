@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.70] – 24. November 2026
+
+### Hinzugefügt
+
+- **API Phase 2:** Webhooks an die Faktura-App (HMAC-SHA256-Signatur, Timestamp,
+  Retry 1/5/30/120/720 Minuten, Zustellprotokoll mit manuellem Wiederholen,
+  Test-Event und Secret-Erzeugung im Admin) sowie
+  `PATCH /api/v1/orders/{id}/status` für Status und Sendungsnummer.
+- **Offene Punkte als F-Nummern** (F87–F93) in `docs/OFFENE-FRAGEN.md` und die
+  gemeinsame Abnahme-Checkliste `docs/API-ABNAHME.md`.
+
 ## [1.0.0-rc.69] – 24. November 2026
 
 ### Hinzugefügt

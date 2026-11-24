@@ -43,7 +43,7 @@ export type ApiSettings = {
   customFields: { key: string; value: string; target: 'order' | 'item' }[];
   invoiceFeedback: boolean;
   showInvoiceLink: boolean;
-  webhooks: { enabled: boolean; url: string; events: string[] };
+  webhooks: { enabled: boolean; url: string; secret: string; events: string[] };
   configVersion: number;
 };
 
@@ -69,7 +69,7 @@ export function defaultApiSettings(): ApiSettings {
     customFields: [],
     invoiceFeedback: true,
     showInvoiceLink: false,
-    webhooks: { enabled: false, url: '', events: [] },
+    webhooks: { enabled: false, url: '', secret: '', events: [] },
     configVersion: 1,
   };
 }
@@ -143,7 +143,8 @@ function normalize(value: unknown): ApiSettings {
     showInvoiceLink: bool(raw.showInvoiceLink, defaults.showInvoiceLink),
     webhooks: {
       enabled: bool(webhooks.enabled, defaults.webhooks.enabled),
-      url: text(webhooks.url, 500),
+      url: text(webhooks.url, 500).replace(/\/$/, ''),
+      secret: typeof webhooks.secret === 'string' ? webhooks.secret.slice(0, 200) : '',
       events: slugs(webhooks.events, [
         'order.created',
         'order.updated',

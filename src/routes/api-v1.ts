@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { writeAudit } from '../lib/auth.js';
 import { hasApiScope, resolveApiToken } from '../lib/api-auth.js';
+import { queueWebhook, webhookConfigured } from '../lib/api-webhooks.js';
 import {
   API_ORDER_STATUSES,
   API_VERSION,
@@ -164,6 +165,11 @@ const invoiceSchema = z.object({
     .optional()
     .default(''),
   delivery_note_number: z.string().max(100).optional().default(''),
+});
+
+const statusSchema = z.object({
+  status: z.enum(['pending', 'awaiting_payment', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'refunded']),
+  tracking_number: z.string().max(200).optional().default(''),
 });
 
 const rateHits = new Map<number, number[]>();
@@ -330,7 +336,7 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
           ? ['material', 'color', 'infill_percent', ...(settings.fields.modelFile ? ['model_file'] : [])]
           : [],
       },
-      webhooks_enabled: false,
+      webhooks_enabled: webhookConfigured(),
       server_time: utcNow(),
     });
   });
@@ -411,6 +417,70 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
         .run(body.invoice_number, body.invoice_date, body.invoice_url, body.delivery_note_number, id);
       writeAudit('api', 'api.invoice.update', { order: id, invoice: body.invoice_number });
     }
+    const updated = getDb().prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow;
+    request.apiItemCount = 1;
+    return reply.send(mapOrder(updated, settings));
+  });
+
+  app.patch<{ Params: { id: string } }>('/orders/:id/status', async (request, reply) => {
+    if (!requireScope(request, reply, 'orders:write_status')) return reply;
+    const settings = getApiSettings();
+    if (!requireResource(request, reply, settings, 'orders')) return reply;
+    const id = Number.parseInt(request.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      return fail(reply, 400, 'invalid_request', 'Ungültige Bestell-ID.', request.apiRequestId!);
+    }
+    const parsed = statusSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return fail(reply, 422, 'validation_failed', 'Status ist ungültig.', request.apiRequestId!);
+    }
+    const body = parsed.data;
+    const current = getDb().prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow | undefined;
+    if (!current) return fail(reply, 404, 'not_found', `Order ${id} not found`, request.apiRequestId!);
+
+    let status = current.status;
+    let paymentStatus = current.payment_status;
+    switch (body.status) {
+      case 'pending':
+      case 'awaiting_payment':
+        status = 'neu';
+        paymentStatus = 'offen';
+        break;
+      case 'paid':
+        status = 'bezahlt';
+        paymentStatus = 'bezahlt';
+        break;
+      case 'processing':
+        status = 'in_druck';
+        break;
+      case 'shipped':
+        status = 'versandt';
+        break;
+      case 'completed':
+        status = 'abgeschlossen';
+        break;
+      case 'cancelled':
+        status = 'storniert';
+        break;
+      case 'refunded':
+        paymentStatus = 'erstattet';
+        break;
+    }
+    const tracking = body.tracking_number || current.tracking_number;
+    if (current.status === status && current.payment_status === paymentStatus && current.tracking_number === tracking) {
+      request.apiItemCount = 1;
+      return reply.send(mapOrder(current, settings));
+    }
+
+    getDb()
+      .prepare(
+        `UPDATE orders SET status = ?, payment_status = ?, tracking_number = ?, updated_at = datetime('now'),
+           paid_at = CASE WHEN ? = 'bezahlt' AND paid_at IS NULL THEN datetime('now') ELSE paid_at END
+         WHERE id = ?`,
+      )
+      .run(status, paymentStatus, tracking, paymentStatus, id);
+    writeAudit('api', 'api.status.update', { order: id, from: current.status, to: status, tracking });
+    queueWebhook('order.updated', String(id));
     const updated = getDb().prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow;
     request.apiItemCount = 1;
     return reply.send(mapOrder(updated, settings));

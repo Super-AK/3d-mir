@@ -34,6 +34,7 @@ export type OrderRow = {
   invoice_date: string;
   invoice_url: string;
   delivery_note_number: string;
+  tracking_number: string;
   api_first_exposed_at: string | null;
 };
 
@@ -230,7 +231,7 @@ export function mapOrder(row: OrderRow, settings: ApiSettings): Record<string, u
       cost_net_cents: row.shipping_cents,
       cost_gross_cents: row.shipping_cents,
       tax_rate_percent: 0,
-      tracking_number: null,
+      tracking_number: row.tracking_number || null,
       shipped_at: row.status === 'versandt' || row.status === 'abgeschlossen' ? toIso(row.updated_at) : null,
     },
     discounts: discount ? [{ label: 'Rabatt', amount_net_cents: discount, amount_gross_cents: discount }] : [],
