@@ -1,0 +1,133 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Kundendetail – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Kunde {{ customer.customer_no }}</h1>
+      <p>{{ customer.first_name }} {{ customer.last_name }} · {{ customer.email }}</p>
+    </div>
+    <div class="admin-page-actions"><a class="btn btn-small" href="/admin/kunden/">Zur Liste</a></div>
+  </div>
+
+  {% if meldung.gespeichert %}<div class="alert alert-success" role="status">Gespeichert.</div>{% endif %}
+  {% if meldung.fehler == 'anonym' %}<div class="alert alert-danger" role="alert">Bitte „ANONYMISIEREN" eingeben.</div>{% endif %}
+
+  <form class="form" method="post" action="/admin/kunden/{{ customer.id }}/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Stammdaten</h2></div>
+      <div class="form-row">
+        <label class="field">Vorname <input type="text" name="firstName" value="{{ customer.first_name }}" maxlength="100"></label>
+        <label class="field">Nachname <input type="text" name="lastName" value="{{ customer.last_name }}" maxlength="100"></label>
+      </div>
+      <div class="form-row">
+        <label class="field">E-Mail <input type="email" name="email" value="{{ customer.email }}" maxlength="200"></label>
+        <label class="field">Telefon <input type="tel" name="phone" value="{{ customer.phone }}" maxlength="100"></label>
+      </div>
+      <div class="form-row">
+        <label class="field">Firma <input type="text" name="company" value="{{ customer.company }}" maxlength="100"></label>
+        <label class="field">USt-IdNr. <input type="text" name="vatId" value="{{ customer.vat_id }}" maxlength="100"></label>
+      </div>
+      <dl class="admin-dl">
+        <div><dt>Kundennummer</dt><dd><code>{{ customer.customer_no }}</code> (unveränderlich)</dd></div>
+        <div><dt>E-Mail bestätigt</dt><dd>{% if customer.email_verified_at %}{{ customer.email_verified_at }}{% else %}Nein{% endif %}</dd></div>
+        <div><dt>Faktura-Zuordnung</dt><dd><code>{{ customer.faktura_customer_no or '–' }}</code></dd></div>
+        <div><dt>Art</dt><dd>{% if customer.is_guest %}Gast{% else %}Kundenkonto{% endif %}</dd></div>
+      </dl>
+      <label class="field">Interne Notiz
+        <textarea name="adminNote" rows="4" maxlength="2000">{{ customer.admin_note }}</textarea>
+      </label>
+      <div class="form-actions"><button class="btn" type="submit">Speichern</button></div>
+    </section>
+  </form>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Status und Aktionen</h2></div>
+    <form class="form" method="post" action="/admin/kunden/{{ customer.id }}/status/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <label class="field">Status
+        <select name="status">
+          <option value="active" {% if customer.status == 'active' %}selected{% endif %}>active</option>
+          <option value="blocked" {% if customer.status == 'blocked' %}selected{% endif %}>blocked</option>
+          <option value="anonymized" {% if customer.status == 'anonymized' %}selected{% endif %}>anonymized</option>
+        </select>
+      </label>
+      <div class="form-actions"><button class="btn btn-secondary" type="submit">Status setzen</button></div>
+    </form>
+    <form class="form mt-2" method="post" action="/admin/kunden/{{ customer.id }}/passwort-reset/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="btn btn-secondary btn-small" type="submit">Passwort-Reset auslösen</button>
+    </form>
+    <form class="form mt-2" method="post" action="/admin/kunden/{{ customer.id }}/anonymisieren/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <label class="field">Zur Bestätigung „ANONYMISIEREN" eingeben <input type="text" name="confirm" maxlength="20" required></label>
+      <button class="btn btn-secondary btn-small" type="submit">Anonymisieren</button>
+    </form>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Adressen</h2></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Art</th><th>Name</th><th>Straße</th><th>PLZ/Ort</th></tr></thead>
+        <tbody>
+          {% for address in addresses %}
+            <tr><td>{{ address.kind }}</td><td>{{ address.name }}</td><td>{{ address.street }}</td><td>{{ address.postal_code }} {{ address.city }}</td></tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">Keine Adressen hinterlegt.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Bestellungen</h2></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Nummer</th><th>Datum</th><th>Status</th><th>Betrag</th></tr></thead>
+        <tbody>
+          {% for order in orders %}
+            <tr><td><a href="/admin/bestellungen/{{ order.id }}/">{{ order.order_number }}</a></td><td>{{ order.created_at | date }}</td><td>{{ order.status }}</td><td>{{ order.total_cents | price }}</td></tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">Keine Bestellungen.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Angebotsanfragen</h2></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Datum</th><th>Status</th><th>Name</th></tr></thead>
+        <tbody>
+          {% for quote in quotes %}
+            <tr><td>{{ quote.created_at | date }}</td><td>{{ quote.status }}</td><td>{{ quote.name or '–' }}</td></tr>
+          {% else %}
+            <tr><td colspan="3" class="text-muted">Keine Anfragen.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Änderungsverlauf</h2></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Zeit</th><th>Aktor</th><th>Aktion</th><th>Details</th></tr></thead>
+        <tbody>
+          {% for entry in history %}
+            <tr><td>{{ entry.created_at }}</td><td>{{ entry.actor }}</td><td><code>{{ entry.action }}</code></td><td>{{ entry.details }}</td></tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">Keine Einträge.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

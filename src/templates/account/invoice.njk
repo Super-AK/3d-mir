@@ -1,0 +1,20 @@
+{% extends "layouts/account.njk" %}
+
+{% block title %}Rechnung – 3D-MIR{% endblock %}
+{% block accountContent %}
+  <div class="admin-page-head"><div><h1>Rechnung zu {{ order.order_number }}</h1></div></div>
+  <section class="card admin-panel">
+    <dl class="admin-dl">
+      <div><dt>Rechnungsnummer</dt><dd><code>{{ order.invoice_number or 'Noch nicht gemeldet' }}</code></dd></div>
+      <div><dt>Rechnungsdatum</dt><dd>{{ order.invoice_date or '–' }}</dd></div>
+      <div><dt>Lieferschein</dt><dd><code>{{ order.delivery_note_number or '–' }}</code></dd></div>
+    </dl>
+    {% if expired %}
+      <div class="alert alert-info">Link abgelaufen, bitte anfragen.</div>
+    {% elif url %}
+      <p><a class="btn" href="{{ url }}" target="_blank" rel="noopener">Rechnung öffnen</a></p>
+    {% else %}
+      <p class="text-muted">Für diese Bestellung liegt noch kein Rechnungslink vor.</p>
+    {% endif %}
+  </section>
+{% endblock %}

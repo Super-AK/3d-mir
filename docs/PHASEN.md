@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.73 – 25. November 2026
+
+Kundenkonten mit Double-Opt-in, Login-Sperre, Passwort-Reset und Kundenbereich
+sowie die Admin-Kundenverwaltung mit Suche, Filter, CSV und Anonymisierung.
+
 ## Release 1.0.0-rc.72 – 25. November 2026
 
 Phase K1–K4 und K7 der Kunden-Anweisung: Kundenstamm, Kundennummern, API v1.1,

@@ -3,6 +3,20 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.73] – 25. November 2026
+
+### Hinzugefügt
+
+- **Kundenkonten (K5):** Registrierung mit Double-Opt-in, Argon2id, Login mit
+  Rate-Limit und Sperre nach Fehlversuchen, Passwort-Reset (einmalig, 60 Minuten),
+  Kundensitzungen mit HttpOnly-/Secure-/SameSite-Cookie und CSRF.
+  `/konto/` bietet Übersicht mit Kundennummer, Bestellhistorie, Anfragen,
+  Stammdaten/Adressen, JSON-Export und Anonymisierung statt harter Löschung.
+  Abgelaufene Rechnungslinks zeigen „Link abgelaufen, bitte anfragen".
+- **Admin-Kundenverwaltung (K6):** Kundenliste mit Suche und Filtern,
+  Kundendetail mit Adressen, Bestellungen, Anfragen und Änderungsverlauf,
+  CSV-Export, Statuswechsel, Passwort-Reset und Anonymisierung.
+
 ## [1.0.0-rc.72] – 25. November 2026
 
 ### Hinzugefügt

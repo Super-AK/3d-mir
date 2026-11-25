@@ -98,6 +98,7 @@ export function touchCustomer(id: string, changes: Record<string, unknown> = {})
     'marketing_consent',
     'email_verified_at',
     'faktura_customer_no',
+    'admin_note',
   ];
   const entries = Object.entries(changes).filter(([key]) => allowed.includes(key));
   if (entries.length === 0) {

@@ -1,0 +1,75 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Mein Konto – 3D-MIR{% endblock %}
+
+{% block content %}
+  <div class="admin-shell">
+    <main id="admin-inhalt" class="admin-main" tabindex="-1">
+      <div class="admin-page-head">
+        <div>
+          <h1>
+            {% if mode == 'register' %}Konto anlegen
+            {% elif mode == 'login' %}Anmelden
+            {% elif mode == 'forgot' %}Passwort vergessen
+            {% elif mode == 'reset' %}Passwort neu setzen
+            {% else %}Mein Konto{% endif %}
+          </h1>
+          <p>Bestellungen, Rechnungen und Ihre Daten an einem Ort.</p>
+        </div>
+      </div>
+
+      {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+      {% if message %}<div class="alert alert-info" role="status">{{ message }}</div>{% endif %}
+
+      {% if mode == 'register' %}
+        <form class="form" method="post" action="/konto/registrieren/">
+          <section class="card admin-panel">
+            <label class="field">E-Mail-Adresse
+              <input type="email" name="email" required maxlength="200" autocomplete="email">
+            </label>
+            <label class="field">Passwort (mindestens 10 Zeichen)
+              <input type="password" name="password" required minlength="10" maxlength="200" autocomplete="new-password">
+            </label>
+            <p class="text-muted">Wir senden einen Bestätigungslink. Die Adresse wird erst nach Bestätigung freigeschaltet.</p>
+            <div class="form-actions"><button class="btn" type="submit">Konto anlegen</button></div>
+          </section>
+        </form>
+        <p><a href="/konto/anmelden/">Bereits ein Konto? Anmelden</a></p>
+      {% elif mode == 'login' %}
+        <form class="form" method="post" action="/konto/anmelden/">
+          <section class="card admin-panel">
+            <label class="field">E-Mail-Adresse
+              <input type="email" name="email" required maxlength="200" autocomplete="email">
+            </label>
+            <label class="field">Passwort
+              <input type="password" name="password" required maxlength="200" autocomplete="current-password">
+            </label>
+            <div class="form-actions"><button class="btn" type="submit">Anmelden</button></div>
+          </section>
+        </form>
+        <p><a href="/konto/passwort-vergessen/">Passwort vergessen?</a> · <a href="/konto/registrieren/">Konto anlegen</a></p>
+      {% elif mode == 'forgot' %}
+        <form class="form" method="post" action="/konto/passwort-vergessen/">
+          <section class="card admin-panel">
+            <label class="field">E-Mail-Adresse
+              <input type="email" name="email" required maxlength="200">
+            </label>
+            <div class="form-actions"><button class="btn" type="submit">Link anfordern</button></div>
+          </section>
+        </form>
+      {% elif mode == 'reset' %}
+        <form class="form" method="post" action="/konto/neu-setzen/">
+          <section class="card admin-panel">
+            <input type="hidden" name="token" value="{{ token }}">
+            <label class="field">Neues Passwort (mindestens 10 Zeichen)
+              <input type="password" name="password" required minlength="10" maxlength="200" autocomplete="new-password">
+            </label>
+            <div class="form-actions"><button class="btn" type="submit">Passwort speichern</button></div>
+          </section>
+        </form>
+      {% else %}
+        <p><a href="/konto/anmelden/">Zur Anmeldung</a></p>
+      {% endif %}
+    </main>
+  </div>
+{% endblock %}

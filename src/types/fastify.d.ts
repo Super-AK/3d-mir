@@ -11,5 +11,6 @@ declare module 'fastify' {
     apiToken?: ResolvedApiToken | null;
     apiItemCount?: number;
     apiForwardedFor?: string;
+    customerSession?: import('../lib/customer-auth.js').CustomerSession;
   }
 }

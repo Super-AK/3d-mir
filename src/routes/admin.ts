@@ -182,6 +182,14 @@ import {
 } from '../lib/api-auth.js';
 import { mapOrder } from '../lib/api-mapper.js';
 import { customerNumberStats } from '../lib/customer-numbers.js';
+import {
+  anonymizeCustomer,
+  getCustomerById,
+  normalizedEmail,
+  touchCustomer,
+  writeCustomerAudit,
+} from '../lib/customers.js';
+import { requestPasswordReset } from '../lib/customer-auth.js';
 import { queueWebhook } from '../lib/api-webhooks.js';
 import {
   generateWebhookSecret,
@@ -5073,6 +5081,117 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const id = Number(request.params.id);
       if (retryWebhook(id)) writeAudit(request.admin?.email ?? 'admin', 'api.webhook.retry', { id });
       return reply.redirect('/admin/api/?gespeichert=1', 303);
+    });
+
+    // Kundenverwaltung ------------------------------------------------------
+    scope.get('/admin/kunden/', async (request, reply) => {
+      const query = queryObject(request);
+      const search = cleanText(query.q, 200).trim().toLowerCase();
+      const status = cleanText(query.status, 20);
+      const guest = cleanText(query.gast, 10);
+      const neu = cleanText(query.neu, 10) === '1';
+      const clauses: string[] = [];
+      const params: unknown[] = [];
+      if (search) {
+        clauses.push('(lower(customer_no) LIKE ? OR lower(email) LIKE ? OR lower(first_name) LIKE ? OR lower(last_name) LIKE ? OR lower(company) LIKE ?)');
+        const pattern = `%${search}%`;
+        params.push(pattern, pattern, pattern, pattern, pattern);
+      }
+      if (status && ['active', 'blocked', 'anonymized'].includes(status)) {
+        clauses.push('status = ?');
+        params.push(status);
+      }
+      if (guest === '1') clauses.push('is_guest = 1');
+      if (guest === '0') clauses.push('is_guest = 0');
+      if (neu) {
+        clauses.push("created_at >= datetime('now', '-30 days')");
+      }
+      const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+      const customers = db().prepare(`SELECT * FROM customers ${where} ORDER BY created_at DESC, customer_no DESC LIMIT 200`).all(...params);
+      render(reply, 'admin/customers.njk', adminContext(request, { customers, search, status, guest, neu }));
+    });
+
+    scope.get('/admin/kunden/export/', async (request, reply) => {
+      const rows = db().prepare('SELECT customer_no, email, first_name, last_name, company, status, is_guest, created_at FROM customers ORDER BY customer_no').all() as Record<string, unknown>[];
+      writeAudit(request.admin?.email ?? 'admin', 'customer.export', { count: rows.length });
+      const header = 'Kundennummer;E-Mail;Vorname;Nachname;Firma;Status;Gast;Angelegt';
+      const lines = rows.map((row) =>
+        [
+          row.customer_no,
+          row.email,
+          row.first_name,
+          row.last_name,
+          row.company,
+          row.status,
+          row.is_guest === 1 ? 'ja' : 'nein',
+          row.created_at,
+        ]
+          .map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`)
+          .join(';'),
+      );
+      return reply
+        .header('Content-Disposition', 'attachment; filename="3d-mir-kunden.csv"')
+        .type('text/csv; charset=utf-8')
+        .send([header, ...lines].join('\n'));
+    });
+
+    scope.get<{ Params: { id: string } }>('/admin/kunden/:id/', async (request, reply) => {
+      const customer = getCustomerById(request.params.id);
+      if (!customer) return adminError(request, reply, 404, 'Dieser Kunde wurde nicht gefunden.');
+      const addresses = db().prepare('SELECT * FROM customer_addresses WHERE customer_id = ? ORDER BY kind, id').all(customer.id);
+      const orders = db().prepare('SELECT * FROM orders WHERE customer_id = ? OR lower(email) = ? ORDER BY id DESC LIMIT 100').all(customer.id, customer.email);
+      const quotes = db().prepare('SELECT * FROM quote_requests WHERE lower(email) = ? ORDER BY id DESC LIMIT 100').all(customer.email);
+      const history = db().prepare('SELECT * FROM customer_audit WHERE details LIKE ? ORDER BY id DESC LIMIT 100').all(`%${customer.id}%`);
+      render(reply, 'admin/customer.njk', adminContext(request, { customer, addresses, orders, quotes, history }));
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/kunden/:id/', async (request, reply) => {
+      const customer = getCustomerById(request.params.id);
+      if (!customer) return adminError(request, reply, 404, 'Dieser Kunde wurde nicht gefunden.');
+      const body = bodyObject(request);
+      touchCustomer(customer.id, {
+        first_name: cleanText(body.firstName, 100),
+        last_name: cleanText(body.lastName, 100),
+        company: cleanText(body.company, 100),
+        phone: cleanText(body.phone, 100),
+        vat_id: cleanText(body.vatId, 100),
+        email: normalizedEmail(cleanText(body.email, 200)),
+        admin_note: cleanText(body.adminNote, 2000),
+      });
+      writeAudit(request.admin?.email ?? 'admin', 'customer.update', { id: customer.id });
+      return reply.redirect(`/admin/kunden/${customer.id}/?gespeichert=1`, 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/kunden/:id/status/', async (request, reply) => {
+      const customer = getCustomerById(request.params.id);
+      const status = cleanText(bodyObject(request).status, 20);
+      if (!customer || !['active', 'blocked', 'anonymized'].includes(status)) {
+        return adminError(request, reply, 400, 'Ungültiger Status.');
+      }
+      touchCustomer(customer.id, { status });
+      writeAudit(request.admin?.email ?? 'admin', 'customer.status', { id: customer.id, status });
+      return reply.redirect(`/admin/kunden/${customer.id}/?gespeichert=1`, 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/kunden/:id/anonymisieren/', async (request, reply) => {
+      const customer = getCustomerById(request.params.id);
+      if (!customer) return adminError(request, reply, 404, 'Dieser Kunde wurde nicht gefunden.');
+      if (cleanText(bodyObject(request).confirm, 20) !== 'ANONYMISIEREN') {
+        return reply.redirect(`/admin/kunden/${customer.id}/?fehler=anonym`, 303);
+      }
+      anonymizeCustomer(customer.id);
+      db().prepare('DELETE FROM customer_sessions WHERE customer_id = ?').run(customer.id);
+      writeAudit(request.admin?.email ?? 'admin', 'customer.anonymize', { id: customer.id });
+      return reply.redirect(`/admin/kunden/${customer.id}/?gespeichert=1`, 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/kunden/:id/passwort-reset/', async (request, reply) => {
+      const customer = getCustomerById(request.params.id);
+      if (customer?.email) {
+        await requestPasswordReset(customer.email);
+        writeAudit(request.admin?.email ?? 'admin', 'customer.password_reset', { id: customer.id });
+      }
+      return reply.redirect(`/admin/kunden/${request.params.id}/?gespeichert=1`, 303);
     });
   });
 }

@@ -15,6 +15,7 @@ import { shopRoutes } from './routes/shop.js';
 import { paymentRoutes } from './routes/payments.js';
 import { adminRoutes } from './routes/admin.js';
 import { apiRoutes } from './routes/api-v1.js';
+import { accountRoutes } from './routes/account.js';
 import { migrate } from './db/migrate.js';
 import { applySiteSettings } from './lib/site-settings.js';
 import { isTrustedProxyPeer, resolveContactCountry } from './lib/contact-protection.js';
@@ -142,6 +143,7 @@ export async function buildApp() {
   await app.register(shopRoutes);
   await app.register(paymentRoutes);
   await app.register(apiRoutes, { prefix: '/api/v1' });
+  await app.register(accountRoutes);
   await app.register(adminRoutes);
 
   app.setNotFoundHandler((request, reply) => {

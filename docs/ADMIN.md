@@ -399,6 +399,24 @@ Fehler werden im Admin angezeigt und im Anwendungslog protokolliert.
 
 Bot-Token und SMTP-Passwort sind Geheimnisse. Sie werden in der SQLite-Datenbank gespeichert und sind in Backups enthalten. Backups müssen entsprechend geschützt und extern verschlüsselt aufbewahrt werden. Die Werte niemals im Repository oder in Chats veröffentlichen.
 
+## Kunden und Kundenkonten
+
+Kunden werden im Admin unter **Kunden** verwaltet. Die Liste durchsucht Nummer,
+Name, E-Mail und Firma; filterbar nach Status, Gast/Konto und „neu in 30 Tagen".
+Der CSV-Export ist Admins vorbehalten und wird im Audit-Log protokolliert. Im
+Kundendetail stehen Stammdaten, Adressen, Bestellungen, Angebotsanfragen, die
+gemeldete Faktura-Zuordnung, der Änderungsverlauf und eine interne Notiz.
+Möglich sind Bearbeiten, Statuswechsel (active/blocked/anonymized),
+Passwort-Reset und Anonymisierung mit Bestätigungseingabe.
+
+Das Kundenkonto unter `/konto/` ist optional: Registrierung mit Double-Opt-in,
+Login mit Sperre nach Fehlversuchen, Passwort-Reset, Bestellhistorie,
+Angebotsanfragen, Stammdaten/Adressen, JSON-Export und „Konto löschen"
+(Anonymisierung wegen Aufbewahrungsfristen). Rechnungslinks werden nur
+eingeloggten, berechtigten Kunden angezeigt; abgelaufene Links melden
+„Link abgelaufen, bitte anfragen". Die Kundennummer `KD9xxxxx` bleibt dabei immer
+erhalten und wird nie wiederverwendet.
+
 ## API & Schnittstellen
 
 Unter **Admin → API & Schnittstellen** wird die Shop-API für die Faktura-App

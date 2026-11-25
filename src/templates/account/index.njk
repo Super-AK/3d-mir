@@ -1,0 +1,45 @@
+{% extends "layouts/account.njk" %}
+
+{% block title %}Mein Konto – 3D-MIR{% endblock %}
+{% block accountContent %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Hallo {{ customer.first_name or customer.email }}</h1>
+      <p>Ihre Bestellungen, Rechnungen und Daten.</p>
+    </div>
+    <div class="admin-page-actions">
+      <form method="post" action="/konto/abmelden/"><button class="btn btn-secondary btn-small" type="submit">Abmelden</button></form>
+    </div>
+  </div>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Ihre Kundennummer</h2></div>
+    <dl class="admin-dl">
+      <div><dt>Kundennummer</dt><dd><code>{{ customer.customer_no }}</code></dd></div>
+      <div><dt>E-Mail</dt><dd>{{ customer.email }}</dd></div>
+      <div><dt>E-Mail bestätigt</dt><dd>{% if customer.email_verified_at %}Ja{% else %}Nein{% endif %}</dd></div>
+      <div><dt>Status</dt><dd>{{ customer.status }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Letzte Bestellungen</h2><a href="/konto/bestellungen/">Alle ansehen</a></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Nummer</th><th>Datum</th><th>Status</th><th>Betrag</th></tr></thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td><a href="/konto/rechnung/{{ order.id }}/">{{ order.order_number }}</a></td>
+              <td>{{ order.created_at | date }}</td>
+              <td>{{ order.status }}</td>
+              <td>{{ order.total_cents | price }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">Noch keine Bestellungen.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "layouts/account.njk" %}
+
+{% block title %}Meine Daten – 3D-MIR{% endblock %}
+{% block accountContent %}
+  <div class="admin-page-head">
+    <div><h1>Meine Daten</h1><p>Stammdaten, Adressen, Export und Löschung.</p></div>
+    <div class="admin-page-actions"><a class="btn btn-secondary btn-small" href="/konto/export/">Daten exportieren</a></div>
+  </div>
+
+  {% if meldung.gespeichert %}<div class="alert alert-success" role="status">Gespeichert.</div>{% endif %}
+  {% if meldung.fehler %}<div class="alert alert-danger" role="alert">Bitte prüfen Sie Ihre Eingaben.</div>{% endif %}
+
+  <form class="form" method="post" action="/konto/daten/">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Stammdaten</h2></div>
+      <div class="form-row">
+        <label class="field">Vorname <input type="text" name="firstName" value="{{ customer.first_name }}" maxlength="100"></label>
+        <label class="field">Nachname <input type="text" name="lastName" value="{{ customer.last_name }}" maxlength="100"></label>
+      </div>
+      <div class="form-row">
+        <label class="field">Firma <input type="text" name="company" value="{{ customer.company }}" maxlength="100"></label>
+        <label class="field">Telefon <input type="tel" name="phone" value="{{ customer.phone }}" maxlength="100"></label>
+      </div>
+      <div class="form-row">
+        <label class="field">Neue E-Mail-Adresse (wird bestätigt)
+          <input type="email" name="newEmail" maxlength="200" placeholder="{{ customer.email }}">
+        </label>
+      </div>
+      <label class="admin-check">
+        <input type="checkbox" name="marketingConsent" value="1" {% if customer.marketing_consent %}checked{% endif %}>
+        <span>Ich möchte Informationen zu Angeboten per E-Mail (jederzeit widerrufbar).</span>
+      </label>
+      <div class="form-actions"><button class="btn" type="submit">Speichern</button></div>
+    </section>
+  </form>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Adressen</h2></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Art</th><th>Name</th><th>Straße</th><th>Ort</th></tr></thead>
+        <tbody>
+          {% for address in addresses %}
+            <tr><td>{{ address.kind }}</td><td>{{ address.name }}</td><td>{{ address.street }}</td><td>{{ address.postal_code }} {{ address.city }}</td></tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">Noch keine Adressen hinterlegt.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Konto löschen</h2></div>
+    <p class="text-muted">Aus Aufbewahrungsgründen werden personenbezogene Daten entfernt (anonymisiert), die Kundennummer und Bestelldaten bleiben erhalten.</p>
+    <form method="post" action="/konto/loeschen/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <label class="field">Zur Bestätigung „LOESCHEN" eingeben <input type="text" name="confirm" maxlength="20" required></label>
+      <div class="form-actions"><button class="btn btn-secondary" type="submit">Konto anonymisieren</button></div>
+    </form>
+  </section>
+{% endblock %}

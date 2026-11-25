@@ -1,0 +1,68 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Kunden – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Kunden</h1>
+      <p>Alle Kunden mit Konto oder als Gast, inklusive Kundennummer.</p>
+    </div>
+    <div class="admin-page-actions">
+      <form method="post" action="/admin/kunden/export/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-secondary btn-small" type="submit">CSV-Export</button>
+      </form>
+    </div>
+  </div>
+
+  <section class="card admin-panel">
+    <form class="form" method="get" action="/admin/kunden/">
+      <div class="form-row">
+        <label class="field">Suche (Nummer, Name, E-Mail, Firma)
+          <input type="search" name="q" value="{{ search }}" maxlength="200">
+        </label>
+        <label class="field">Status
+          <select name="status">
+            <option value="">Alle</option>
+            <option value="active" {% if status == 'active' %}selected{% endif %}>active</option>
+            <option value="blocked" {% if status == 'blocked' %}selected{% endif %}>blocked</option>
+            <option value="anonymized" {% if status == 'anonymized' %}selected{% endif %}>anonymized</option>
+          </select>
+        </label>
+        <label class="field">Konto
+          <select name="gast">
+            <option value="">Alle</option>
+            <option value="0" {% if guest == '0' %}selected{% endif %}>Kundenkonto</option>
+            <option value="1" {% if guest == '1' %}selected{% endif %}>Gast</option>
+          </select>
+        </label>
+        <label class="admin-check"><input type="checkbox" name="neu" value="1" {% if neu %}checked{% endif %}> <span>Neu in 30 Tagen</span></label>
+      </div>
+      <div class="form-actions"><button class="btn btn-secondary" type="submit">Filtern</button></div>
+    </form>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Kundennummer</th><th>Name</th><th>E-Mail</th><th>Firma</th><th>Status</th><th>Art</th><th>Angelegt</th></tr></thead>
+        <tbody>
+          {% for customer in customers %}
+            <tr>
+              <td><a href="/admin/kunden/{{ customer.id }}/"><code>{{ customer.customer_no }}</code></a></td>
+              <td>{{ customer.first_name }} {{ customer.last_name }}</td>
+              <td>{{ customer.email }}</td>
+              <td>{{ customer.company or '–' }}</td>
+              <td><span class="badge badge-{% if customer.status == 'active' %}success{% elif customer.status == 'blocked' %}warning{% else %}neutral{% endif %}">{{ customer.status }}</span></td>
+              <td>{% if customer.is_guest %}Gast{% else %}Konto{% endif %}</td>
+              <td>{{ customer.created_at | date }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="7" class="text-muted">Keine Kunden gefunden.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
