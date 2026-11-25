@@ -403,7 +403,9 @@ Bot-Token und SMTP-Passwort sind Geheimnisse. Sie werden in der SQLite-Datenbank
 
 Kunden werden im Admin unter **Kunden** verwaltet. Die Liste durchsucht Nummer,
 Name, E-Mail und Firma; filterbar nach Status, Gast/Konto und „neu in 30 Tagen".
-Der CSV-Export ist Admins vorbehalten und wird im Audit-Log protokolliert. Im
+Der CSV-Export ist Admins vorbehalten und wird im Audit-Log protokolliert. Die
+Rolle `support` darf alle Admin-Seiten lesen und interne Kundennotizen bearbeiten;
+Export, Statuswechsel, Anonymisierung und Passwort-Reset sind ihr nicht erlaubt. Im
 Kundendetail stehen Stammdaten, Adressen, Bestellungen, Angebotsanfragen, die
 gemeldete Faktura-Zuordnung, der Änderungsverlauf und eine interne Notiz.
 Möglich sind Bearbeiten, Statuswechsel (active/blocked/anonymized),

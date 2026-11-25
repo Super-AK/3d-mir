@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.76 – 25. November 2026
+
+Support-Rolle mit Lesezugriff und Notizrecht; alle anderen Schreibaktionen
+bleiben Admins vorbehalten.
+
 ## Release 1.0.0-rc.75 – 25. November 2026
 
 Abschluss von F94: Kundennachtrag auf Dev und Prod nach Backup ausgeführt.

@@ -83,6 +83,7 @@ async function ask(question: string): Promise<string> {
 
 const email = (arg('email') ?? process.env.ADMIN_EMAIL ?? '').trim().toLowerCase();
 const name = (arg('name') ?? process.env.ADMIN_NAME ?? '').trim();
+const role = arg('role') === 'support' ? 'support' : 'admin';
 
 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
   console.error('Bitte eine gültige E-Mail-Adresse angeben: --email admin@example.de');
@@ -110,19 +111,19 @@ const hash = await hashPassword(password);
 
 db.prepare(
   `INSERT INTO users (email, password_hash, name, role)
-   VALUES (?, ?, ?, 'admin')
+   VALUES (?, ?, ?, ?)
    ON CONFLICT(email) DO UPDATE SET
      password_hash = excluded.password_hash,
      name = excluded.name,
-     role = 'admin',
+     role = excluded.role,
      updated_at = datetime('now')`,
-).run(email, hash, name);
+).run(email, hash, name, role);
 
 const user = db.prepare('SELECT id FROM users WHERE email = ?').get(email) as { id: number };
 // Nach einer Passwortänderung alle bestehenden Sitzungen beenden.
 db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
 writeAudit(email, 'admin.create', { name, database: config.dbPath });
 
-console.log(`Admin-Zugang für ${email} ist eingerichtet.`);
+console.log(`${role === 'support' ? 'Support' : 'Admin'}-Zugang für ${email} ist eingerichtet.`);
 console.log(`Datenbank: ${config.dbPath}`);
 closeDb();

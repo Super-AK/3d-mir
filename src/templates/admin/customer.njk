@@ -14,6 +14,16 @@
   {% if meldung.gespeichert %}<div class="alert alert-success" role="status">Gespeichert.</div>{% endif %}
   {% if meldung.fehler == 'anonym' %}<div class="alert alert-danger" role="alert">Bitte „ANONYMISIEREN" eingeben.</div>{% endif %}
 
+  {% if admin.role == 'support' %}
+    <form class="form" method="post" action="/admin/kunden/{{ customer.id }}/notiz/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <section class="card admin-panel">
+        <div class="admin-panel-head"><h2>Interne Notiz</h2></div>
+        <label class="field">Notiz <textarea name="adminNote" rows="6" maxlength="2000">{{ customer.admin_note }}</textarea></label>
+        <div class="form-actions"><button class="btn" type="submit">Notiz speichern</button></div>
+      </section>
+    </form>
+  {% else %}
   <form class="form" method="post" action="/admin/kunden/{{ customer.id }}/">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
     <section class="card admin-panel">
@@ -42,7 +52,9 @@
       <div class="form-actions"><button class="btn" type="submit">Speichern</button></div>
     </section>
   </form>
+  {% endif %}
 
+  {% if admin.role != 'support' %}
   <section class="card admin-panel">
     <div class="admin-panel-head"><h2>Status und Aktionen</h2></div>
     <form class="form" method="post" action="/admin/kunden/{{ customer.id }}/status/">
@@ -66,6 +78,7 @@
       <button class="btn btn-secondary btn-small" type="submit">Anonymisieren</button>
     </form>
   </section>
+  {% endif %}
 
   <section class="card admin-panel">
     <div class="admin-panel-head"><h2>Adressen</h2></div>

@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.76] – 25. November 2026
+
+### Hinzugefügt
+
+- **Support-Rolle (F95):** `users.role = support` kann sich anmelden und alle
+  Admin-Seiten lesen. Schreibzugriff ist auf interne Kundennotizen beschränkt;
+  CSV-Export, Statuswechsel, Anonymisierung und Passwort-Reset sind blockiert.
+  Anlegen über `npm run admin:create -- --email … --role support`.
+  Das Admin-Login-Rate-Limit wurde auf 10/15 min angehoben.
+
 ## [1.0.0-rc.75] – 25. November 2026
 
 ### Geändert

@@ -214,7 +214,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F92 | 🟢 Später | **Rate-Limit:** Aktuell 60 Anfragen/Minute pro Token im Speicher des einen Servers. Bei mehreren Instanzen wäre ein gemeinsamer Zähler (z. B. in SQLite/Redis) nötig. |
 | F93 | ✅ Erledigt | **Kundentabelle:** Mit K1 gibt es `customers`; die bisher abgeleiteten IDs bleiben stabil (Vertrag v1.2 §6.2). 3D-Attribute bleiben aus dem aktuellen Produkt (A3, von v1.2 angenommen). *(25.11.2026)* |
 | F94 | ✅ Erledigt | **Bestands-Nachtrag (K1):** Dev und Prod nach Backup ausgeführt (`npm run customers:backfill -- --confirm`). Alle Bestellungen haben `customer_id`; Nummern wurden in `created_at`-Reihenfolge vergeben und nie wiederverwendet. Nachweis: GitHub Actions `45703639237`, Schritt „Kunden-Nachtrag (F94 …)" erfolgreich. *(25.11.2026)* |
-| F95 | 🟡 Offen | **Support-Rolle:** Vertrag v1.2/Anweisung 03 fordern eine Rolle `support` (lesen und Notizen, kein Export, keine Anonymisierung). Aktuell sind Admin-Funktionen nur für `admin` erreichbar; `support` ist noch nicht umgesetzt. |
+| F95 | ✅ Erledigt | **Support-Rolle:** `users.role = support` (Migration 027), Anmeldung und Lesezugriff möglich; Schreiben nur noch für interne Notizen, kein Export, keine Status-/Anonymisierungs-/Passwortaktionen. Anlegen mit `npm run admin:create -- --email … --role support`. *(25.11.2026)* |
 
 ---
 

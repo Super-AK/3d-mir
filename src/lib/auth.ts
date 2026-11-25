@@ -15,7 +15,7 @@ const ARGON_OPTIONS = {
   parallelism: 1,
 } as const;
 
-export type AdminUser = { id: number; email: string; name: string; role: 'admin' };
+export type AdminUser = { id: number; email: string; name: string; role: 'admin' | 'support' };
 export type SessionData = { csrf?: string; pending2fa?: boolean; challenge?: string };
 export type AdminSession = {
   id: string;
@@ -80,7 +80,7 @@ export function createSession(userId: number): AdminSession {
     .run(id, userId, JSON.stringify(data), expiresAt);
 
   const user = db()
-    .prepare("SELECT id, email, name, role FROM users WHERE id = ? AND role = 'admin'")
+    .prepare("SELECT id, email, name, role FROM users WHERE id = ? AND role IN ('admin', 'support')")
     .get(userId) as AdminUser | undefined;
   if (!user) throw new Error('Admin-Benutzer nicht gefunden.');
 
@@ -103,7 +103,7 @@ export function getSession(request: FastifyRequest): AdminSession | null {
     )
     .get(unsigned.value) as SessionRow | undefined;
 
-  if (!row || row.role !== 'admin') return null;
+  if (!row || !['admin', 'support'].includes(row.role)) return null;
   if (!Number.isFinite(sqliteTime(row.expires_at)) || sqliteTime(row.expires_at) <= Date.now()) {
     db().prepare('DELETE FROM sessions WHERE id = ?').run(row.id);
     return null;
@@ -117,7 +117,7 @@ export function getSession(request: FastifyRequest): AdminSession | null {
     id: row.id,
     data,
     expiresAt: row.expires_at,
-    user: { id: row.user_id, email: row.email, name: row.name, role: 'admin' },
+    user: { id: row.user_id, email: row.email, name: row.name, role: row.role as AdminUser['role'] },
   };
 }
 
@@ -153,7 +153,7 @@ export function getPendingLogin(
        WHERE s.id = ?`,
     )
     .get(unsigned.value) as SessionRow | undefined;
-  if (!row || row.role !== 'admin') return null;
+  if (!row || !['admin', 'support'].includes(row.role)) return null;
   if (!parseData(row.data).pending2fa) return null;
   if (!Number.isFinite(sqliteTime(row.expires_at)) || sqliteTime(row.expires_at) <= Date.now()) {
     db().prepare('DELETE FROM sessions WHERE id = ?').run(row.id);
@@ -164,7 +164,7 @@ export function getPendingLogin(
     id: row.id,
     expiresAt: row.expires_at,
     data: parseData(row.data),
-    user: { id: row.user_id, email: row.email, name: row.name, role: 'admin' },
+    user: { id: row.user_id, email: row.email, name: row.name, role: row.role as AdminUser['role'] },
   };
 }
 

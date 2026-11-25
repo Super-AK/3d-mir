@@ -723,6 +723,15 @@ async function adminGuard(request: FastifyRequest, reply: FastifyReply): Promise
   request.admin = session.user;
   request.adminSession = session;
 
+  if (session.user.role === 'support' && request.method !== 'GET' && request.method !== 'HEAD') {
+    const path = request.url.split('?')[0] ?? '';
+    const allowed = /^\/admin\/kunden\/\d+\/notiz\/$/.test(path) || path === '/admin/abmelden/';
+    if (!allowed) {
+      await adminError(request, reply, 403, 'Als Support dürfen Sie nur lesen und Notizen bearbeiten.');
+      return;
+    }
+  }
+
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     if (!isSameOrigin(request)) {
       await adminError(request, reply, 403, 'Die Anfrage konnte nicht zugeordnet werden. Bitte laden Sie die Seite neu.');
@@ -2030,7 +2039,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
   app.post(
     '/admin/login/',
-    { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } },
+    { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } },
     async (request, reply) => {
       if (!isSameOrigin(request)) {
         reply.code(403);
@@ -2050,7 +2059,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         .prepare("SELECT id, email, name, password_hash, role FROM users WHERE email = ?")
         .get(email) as { id: number; email: string; name: string; password_hash: string; role: string } | undefined;
 
-      const ok = Boolean(user && user.role === 'admin' && (await verifyPassword(user.password_hash, password)));
+      const ok = Boolean(user && ['admin', 'support'].includes(user.role) && (await verifyPassword(user.password_hash, password)));
       if (!ok || !user) {
         writeAudit(email || 'unbekannt', 'admin.login.failed', { ip: request.ip });
         request.log.warn({ email, ip: request.ip }, 'Admin-Anmeldung fehlgeschlagen');
@@ -2102,7 +2111,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
   app.post(
     '/admin/login/2fa/',
-    { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } },
+    { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } },
     async (request, reply) => {
       if (!isSameOrigin(request)) {
         reply.code(403);
@@ -5159,6 +5168,14 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         admin_note: cleanText(body.adminNote, 2000),
       });
       writeAudit(request.admin?.email ?? 'admin', 'customer.update', { id: customer.id });
+      return reply.redirect(`/admin/kunden/${customer.id}/?gespeichert=1`, 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/kunden/:id/notiz/', async (request, reply) => {
+      const customer = getCustomerById(request.params.id);
+      if (!customer) return adminError(request, reply, 404, 'Dieser Kunde wurde nicht gefunden.');
+      touchCustomer(customer.id, { admin_note: cleanText(bodyObject(request).adminNote, 2000) });
+      writeAudit(request.admin?.email ?? 'admin', 'customer.note', { id: customer.id });
       return reply.redirect(`/admin/kunden/${customer.id}/?gespeichert=1`, 303);
     });
 
