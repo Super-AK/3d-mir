@@ -5,9 +5,24 @@
 set -uo pipefail
 
 API="${API:-https://www.3d-mir.de/api/v1}"
+
+if [[ -z "${API_TOKEN:-}" && -n "${API_TOKEN_FILE:-}" ]]; then
+  if [[ -r "$API_TOKEN_FILE" ]]; then
+    API_TOKEN="$(tr -d '\r\n' < "$API_TOKEN_FILE")"
+  else
+    echo "API_TOKEN_FILE ist nicht lesbar: $API_TOKEN_FILE" >&2
+    exit 1
+  fi
+fi
+
 if [[ -z "${API_TOKEN:-}" ]]; then
-  echo "API_TOKEN fehlt. Bitte in der Umgebung setzen (nicht in Dateien/Commits)." >&2
-  exit 1
+  if [[ -t 0 ]]; then
+    read -r -s -p 'API-Token (Eingabe wird nicht angezeigt): ' API_TOKEN
+    echo
+  else
+    echo "API_TOKEN fehlt. Bitte in der Umgebung setzen oder API_TOKEN_FILE angeben (nicht in Dateien/Commits)." >&2
+    exit 1
+  fi
 fi
 
 BODY="$(mktemp)"

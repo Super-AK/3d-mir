@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.78] – 25. November 2026
+
+### Geändert
+
+- Das Abnahme-Skript akzeptiert den Token jetzt zusätzlich aus `API_TOKEN_FILE`
+  oder fragt ihn interaktiv ohne Echo ab. Damit gelangt er nicht in die
+  Shell-History.
+
 ## [1.0.0-rc.77] – 25. November 2026
 
 ### Hinzugefügt

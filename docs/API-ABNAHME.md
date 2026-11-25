@@ -16,6 +16,8 @@ Faktura-App und einen dort serverseitig hinterlegten Token.
    `export API_TOKEN='…'`, `export API='https://www.3d-mir.de/api/v1'`.
 4. **Schnellprüfung:** `API_TOKEN='…' bash scripts/api-acceptance.sh` führt alle
    lesenden Punkte aus und gibt weder Token noch personenbezogene Antworten aus.
+   Alternativ `API_TOKEN_FILE=/pfad/secret` oder interaktive Eingabe ohne Echo
+   (`./scripts/api-acceptance.sh`).
 5. Für Webhooks: Ziel-URL, Secret und Ereignisse im Shop-Admin eintragen und
    denselben Secret in der Faktura-App hinterlegen.
 

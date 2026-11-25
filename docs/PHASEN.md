@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.78 – 25. November 2026
+
+Abnahme-Skript mit sicherer Token-Eingabe (Datei oder Prompt ohne Echo).
+
 ## Release 1.0.0-rc.77 – 25. November 2026
 
 Sicheres Nur-Lesen-Abnahme-Skript für die Shop-API; F90 abgeschlossen.
