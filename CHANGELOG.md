@@ -3,6 +3,13 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.75] – 25. November 2026
+
+### Geändert
+
+- F94 ist abgeschlossen: Der Kundennachtrag lief auf Dev und Prod nach jeweils
+  aktuellem Backup erfolgreich durch.
+
 ## [1.0.0-rc.74] – 25. November 2026
 
 ### Geändert
