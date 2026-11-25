@@ -53,6 +53,13 @@
     "paypal": true,
     "totp": false
   },
+  "customerNumber": {
+    "prefix": "KD",
+    "digits": 6,
+    "rangeStart": 900001,
+    "rangeEnd": 999999,
+    "warningPercent": 90
+  },
   "legal": {
     "lastUpdated": "2026-11-15",
     "reviewNotice": "Dieser Text wurde aus der bisherigen Website übernommen bzw. als technischer Entwurf erstellt. Er ist vor der Veröffentlichung rechtlich zu prüfen (Betreiber/Anwalt) und an die tatsächlich eingesetzten Dienste anzupassen.",

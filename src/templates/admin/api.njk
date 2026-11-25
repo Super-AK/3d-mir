@@ -154,6 +154,17 @@
     </section>
 
     <section class="card admin-panel">
+      <div class="admin-panel-head"><h2>Kundennummern</h2><span class="badge badge-info">nur Anzeige</span></div>
+      <dl class="admin-dl">
+        <div><dt>Format</dt><dd><code>{{ customerNumbers.pattern }}</code></dd></div>
+        <div><dt>Bereich</dt><dd>{{ customerNumbers.range_start }} – {{ customerNumbers.range_end }}</dd></div>
+        <div><dt>Zuletzt vergeben</dt><dd><code>{{ customerNumbers.last_assigned or '–' }}</code></dd></div>
+        <div><dt>Auslastung</dt><dd>{{ customerNumbers.usage_percent }} % (Warnschwelle {{ customerNumbers.warning_percent }} %)</dd></div>
+      </dl>
+      <p class="text-muted">Der Zähler ist nicht editierbar. Nummern werden nie wiederverwendet.</p>
+    </section>
+
+    <section class="card admin-panel">
       <div class="admin-panel-head"><h2>Webhooks (Phase 2)</h2></div>
       <p class="text-muted">Der Shop meldet nur die ID; die Faktura-App holt die Daten per GET ab. Signatur: <code>X-Signature: sha256=&lt;HMAC-SHA256(body, secret)&gt;</code> und <code>X-Timestamp</code>. Bei Fehlern wird mit 1/5/30/120/720 Minuten erneut versucht.</p>
       <div class="admin-check-list">

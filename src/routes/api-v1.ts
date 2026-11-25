@@ -6,6 +6,7 @@ import { getDb } from '../db/index.js';
 import { writeAudit } from '../lib/auth.js';
 import { hasApiScope, resolveApiToken } from '../lib/api-auth.js';
 import { queueWebhook, webhookConfigured } from '../lib/api-webhooks.js';
+import { customerNumberStats } from '../lib/customer-numbers.js';
 import {
   API_ORDER_STATUSES,
   API_VERSION,
@@ -13,6 +14,8 @@ import {
   type ApiScope,
   type ApiSettings,
 } from '../lib/api-settings.js';
+import { getCustomerById, touchCustomer } from '../lib/customers.js';
+import { isValidCustomerNumber } from '../lib/customer-numbers.js';
 import {
   apiOrderStatus,
   customerExternalId,
@@ -172,6 +175,11 @@ const statusSchema = z.object({
   tracking_number: z.string().max(200).optional().default(''),
 });
 
+const linkSchema = z.object({
+  faktura_customer_number: z.string().refine((value) => isValidCustomerNumber(value), 'Ungültige Faktura-Kundennummer.'),
+  linked_at: z.string().datetime().optional(),
+});
+
 const rateHits = new Map<number, number[]>();
 
 function rateCheck(tokenId: number, max: number): { ok: boolean; retryAfter: number } {
@@ -327,7 +335,19 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     for (const field of settings.customFields) {
       orderFields.push(field.target === 'item' ? `items.attributes.${field.key}` : `meta.${field.key}`);
     }
-    const customerFields = ['id', 'email', 'first_name', 'last_name', 'type', 'company', 'billing_address', 'is_guest'];
+    const customerFields = [
+      'id',
+      'customer_number',
+      'email',
+      'first_name',
+      'last_name',
+      'type',
+      'company',
+      'billing_address',
+      'is_guest',
+      'status',
+      'email_verified',
+    ];
     if (settings.fields.phone) customerFields.push('phone');
     if (settings.fields.vatId) customerFields.push('vat_id');
     if (settings.fields.marketingConsent) customerFields.push('marketing_consent');
@@ -336,6 +356,7 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       api_version: API_VERSION,
       config_version: settings.configVersion,
       tax_mode: config.site.business.smallBusiness ? 'small_business_19_ustg' : 'standard',
+      customer_numbers: customerNumberStats(),
       resources: settings.resources,
       order_statuses_exposed: [...new Set(exposedStatuses)],
       fields: {
@@ -534,6 +555,26 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
         last ? { updated_at: last.updated, id: last.last_id } : null,
       ),
     );
+  });
+
+  app.patch<{ Params: { id: string } }>('/customers/:id/link', async (request, reply) => {
+    if (!requireScope(request, reply, 'customers:write_link')) return reply;
+    const settings = getApiSettings();
+    if (!requireResource(request, reply, settings, 'customers')) return reply;
+    const customer = getCustomerById(request.params.id);
+    if (!customer) return fail(reply, 404, 'not_found', `Customer ${request.params.id} not found`, request.apiRequestId!);
+    const parsed = linkSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return fail(reply, 422, 'validation_failed', 'Kundennummer ist ungültig.', request.apiRequestId!);
+    }
+    if (customer.faktura_customer_no !== parsed.data.faktura_customer_number) {
+      touchCustomer(customer.id, { faktura_customer_no: parsed.data.faktura_customer_number });
+      writeAudit('api', 'api.customer.link', { id: customer.id, faktura: parsed.data.faktura_customer_number });
+      queueWebhook('customer.updated', customer.id);
+    }
+    request.apiItemCount = 1;
+    const orders = getDb().prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at ASC, id ASC').all(customer.id) as OrderRow[];
+    return reply.send(mapCustomer(orders, settings) ?? { id: customer.id, customer_number: customer.customer_no });
   });
 
   app.get<{ Params: { id: string } }>('/customers/:id', async (request, reply) => {

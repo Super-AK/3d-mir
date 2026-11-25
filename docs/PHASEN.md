@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.72 – 25. November 2026
+
+Phase K1–K4 und K7 der Kunden-Anweisung: Kundenstamm, Kundennummern, API v1.1,
+Zuordnungs-Rückmeldung und Zahlungsstatus-Mapping. Der Bestands-Nachtrag ist
+ein manuell freizugebendes Skript.
+
 ## Release 1.0.0-rc.71 – 25. November 2026
 
 Die API protokolliert Herkunfts-IP und X-Forwarded-For; die IP-Allowlist

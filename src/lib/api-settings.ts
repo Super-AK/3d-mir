@@ -2,13 +2,14 @@ import { getDb } from '../db/index.js';
 
 /** Zentrale Konfiguration der Shop-API. Alle Freigaben wirken sofort pro Abruf. */
 export const API_SETTINGS_KEY = 'api.settings';
-export const API_VERSION = '1.0.0';
+export const API_VERSION = '1.1.0';
 
 export const API_SCOPES = [
   'orders:read',
   'customers:read',
   'products:read',
   'orders:write_status',
+  'customers:write_link',
 ] as const;
 export type ApiScope = (typeof API_SCOPES)[number];
 

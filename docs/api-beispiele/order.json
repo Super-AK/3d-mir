@@ -7,6 +7,8 @@
   "currency": "EUR",
   "customer_id": "cus_9f3b1c2d4e5a6b70",
   "customer_snapshot": {
+    "customer_number": "KD900001",
+    "is_guest": false,
     "type": "private",
     "company": null,
     "first_name": "Max",

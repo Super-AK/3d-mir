@@ -35,7 +35,7 @@ test.describe('API & Schnittstellen', () => {
 
     const health = await request.get('/api/v1/health', { headers });
     expect(health.status()).toBe(200);
-    expect((await health.json()).version).toBe('1.0.0');
+    expect((await health.json()).version).toBe('1.1.0');
 
     const orders = await request.get('/api/v1/orders?limit=2', { headers });
     expect(orders.status()).toBe(200);

@@ -3,6 +3,26 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.72] – 25. November 2026
+
+### Hinzugefügt
+
+- **Kundenstamm und Kundennummern (K1/K2):** Migration `025_customers.sql` mit
+  `customers`, `customer_addresses`, `customer_accounts`, Zähler und Audit;
+  neue Bestellungen erhalten `customer_id` und Adress-Snapshots. Nummern
+  `KD900001`–`KD999999` werden transaktional vergeben (nie wiederverwendet,
+  Warnung ab 90 %).
+- **API v1.1 (K3):** `/customers` und `/orders` liefern `customer_number`,
+  `status`, `email_verified`, `is_guest`; `/meta` enthält `customer_numbers`.
+  `/health.version` und `/meta.api_version` melden `1.1.0`.
+- **K4:** `PATCH /customers/{id}/link` mit Scope `customers:write_link` als
+  reiner Hinweis (Shop-Nummer unverändert).
+- **K7:** Zahlungsarten und Statuswerte nach Vertrag §6.5/§6.6 inklusive
+  `payment.refunded_cents`.
+
+Der Nachtrag der 2 Bestandskunden läuft bewusst **nicht** automatisch; er ist
+nach Backup und Freigabe mit `npm run customers:backfill -- --confirm` ausführbar.
+
 ## [1.0.0-rc.71] – 25. November 2026
 
 ### Behoben

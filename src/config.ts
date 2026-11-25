@@ -149,6 +149,7 @@ export type SiteConfig = {
   seo: { siteName: string; defaultTitle: string; defaultDescription: string };
   images: { logo: string; favicon: string; hero: string; service: string; materials: string; calculator: string; gallery: string[] | null; galleryAlt: Record<string, string> };
   features: { shop: boolean; customerAccounts: boolean; calculator: boolean; paypal: boolean; totp: boolean };
+  customerNumber: { prefix: string; digits: number; rangeStart: number; rangeEnd: number; warningPercent: number };
   legal: { lastUpdated: string; reviewNotice: string; showDraftNotice: boolean };
 };
 

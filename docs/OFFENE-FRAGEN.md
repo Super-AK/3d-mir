@@ -212,7 +212,8 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F90 | 🟡 In Arbeit | **Produktiv-Token und IP-Allowlist:** In der Faktura-App den serverseitigen Token hinterlegen; im Shop unter „API & Schnittstellen" einen Token anlegen und die Server-IP der Faktura-App als Allowlist eintragen (die tatsächlich gesehene IP steht im Zugriffs-Log). Kein Token in Repo, Ticket oder E-Mail. |
 | F91 | 🟡 In Arbeit | **Rechnungslink:** `invoice_url` muss HTTPS sein und gegen öffentliches Erraten geschützt (Token-URL). Die konkrete URL steht erst fest, wenn die Faktura-App Rechnungen erzeugt. Anzeige im Shop ist standardmäßig aus. |
 | F92 | 🟢 Später | **Rate-Limit:** Aktuell 60 Anfragen/Minute pro Token im Speicher des einen Servers. Bei mehreren Instanzen wäre ein gemeinsamer Zähler (z. B. in SQLite/Redis) nötig. |
-| F93 | 🟡 In Arbeit | **Datenmodell-Abweichungen:** Kunden werden aus Bestellungen abgeleitet, 3D-Attribute aus dem aktuellen Produkt (A1/A3). Bitte entscheiden, ob eine echte Kunden-Tabelle und Snapshot-Attribute nötig sind. |
+| F93 | ✅ Erledigt | **Kundentabelle:** Mit K1 gibt es `customers`; die bisher abgeleiteten IDs bleiben stabil (Vertrag v1.2 §6.2). 3D-Attribute bleiben aus dem aktuellen Produkt (A3, von v1.2 angenommen). *(25.11.2026)* |
+| F94 | 🟡 Offen | **Bestands-Nachtrag (K1):** Die 2 vorhandenen Gastkunden (8 Bestellungen) erhalten erst nach Bestätigung und Backup ihre Nummern (`KD900001`, `KD900002`). Skript: `npm run customers:backfill -- --confirm`. |
 
 ---
 

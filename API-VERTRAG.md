@@ -1,5 +1,10 @@
 # API-Vertrag: Shop (3d-mir.de) ⇄ Faktura-App (faktura-app.knutas.de)
 
+**Version 1.2** · v1.1: Kundennummern, Kundenkonten, Zahlungsarten. v1.2: Einarbeitung der
+Anmerkungen beider Agenten (siehe Abschnitt 14).
+Änderungen gegenüber 1.0 sind mit **[NEU v1.1]**, Änderungen gegenüber 1.1 mit **[NEU v1.2]**
+markiert und **abwärtskompatibel** (zusätzliche Felder bzw. Regeln, keine entfernten Felder).
+
 > **Dieses Dokument ist die verbindliche Schnittstellenbeschreibung.**
 > Beide KIs (Shop-Agent und Faktura-Agent) bekommen exakt diese Datei.
 > Abweichungen nur nach Rücksprache mit dem Projektinhaber. Wenn etwas unklar
@@ -45,14 +50,16 @@ Faktura-App  ──(HTTPS, Bearer-Token)──▶  Shop-API  (/api/v1/...)
 | Geldbeträge | **Ganzzahlen in Cent** (kein Float!), Währung `EUR` |
 | Mengen | Ganzzahl (Stück) bzw. Dezimal-String, falls nötig |
 | IDs | Strings (`"1042"`), unveränderlich, vom Shop vergeben |
-| Versionierung | Pfadpräfix `/v1`. Breaking Changes nur über `/v2` |
+| Versionierung | Pfadpräfix `/v1`. Breaking Changes nur über `/v2`. **[NEU v1.2]** `version` in `/health` und `api_version` in `/meta` nennen die höchste umgesetzte Vertragsversion **mit API-Änderungen** (v1.1 ⇒ `1.1.0`; reine Klarstellungen wie v1.2 ändern sie nicht). Die Faktura-App akzeptiert jede `1.x`. |
 
 ## 4. Authentifizierung & Sicherheit
 
 - Ein langer, zufälliger Token (mind. 32 Byte, z. B. 64 Hex-Zeichen).
 - Shop speichert den Token **nur als Hash** (SHA-256 oder besser), nie im Klartext.
 - Token hat **Scopes**: `orders:read`, `customers:read`, `products:read`,
-  `orders:write_status` (nur für Rückmeldung, Abschnitt 7).
+  `orders:write_status` (nur für Rückmeldung, Abschnitt 7),
+  **[NEU v1.1]** `customers:write_link` (nur für die optionale Rückmeldung der
+  Kundenzuordnung, Abschnitt 7.2).
 - Token ist rotierbar/widerrufbar. Mehrere Tokens möglich (z. B. Test/Produktiv).
 - Rate-Limit: z. B. 60 Requests/Minute pro Token → bei Überschreitung
   `429` mit `Retry-After`.
@@ -114,6 +121,8 @@ Idempotenz abgefangen).
   "currency": "EUR",
   "customer_id": "311",
   "customer_snapshot": {
+    "customer_number": "KD900001",
+    "is_guest": false,
     "type": "private",
     "company": null,
     "first_name": "Max",
@@ -220,6 +229,7 @@ Regeln:
 ```json
 {
   "id": "311",
+  "customer_number": "KD900001",
   "created_at": "2026-10-01T08:00:00Z",
   "updated_at": "2026-11-20T09:12:44Z",
   "type": "private",
@@ -232,12 +242,38 @@ Regeln:
   "billing_address": { "name": "Max Mustermann", "street": "Musterstraße 1", "address_2": null, "postal_code": "75328", "city": "Schömberg", "country_code": "DE" },
   "default_shipping_address": null,
   "is_guest": false,
+  "status": "active",
+  "email_verified": true,
   "marketing_consent": false
 }
 ```
 
-`type`: `private` | `business`. Gast-Bestellungen: `customer_id = null`,
-Daten stehen dann nur in `customer_snapshot`.
+`type`: `private` | `business`.
+
+**[NEU v1.1] Neue Felder und Regeln:**
+
+- `customer_number`: Kundennummer, Format und Bereich siehe Abschnitt 6.4.
+  Pflichtfeld, nicht abschaltbar, unveränderlich.
+- `status`: `active` | `blocked` | `anonymized`. Bei `anonymized` sind Name,
+  E-Mail, Telefon und Adressen entfernt bzw. durch Platzhalter ersetzt
+  (Kundenkonto gelöscht). `customer_number` bleibt erhalten.
+- `email_verified`: `true`, wenn der Kunde die E-Mail-Adresse bestätigt hat.
+- **Gast-Bestellungen:** Auch Gäste bekommen einen Kundendatensatz mit
+  `is_guest = true` und eigener `customer_number` (Zuordnung über die
+  normalisierte E-Mail-Adresse). `customer_id` ist daher **nicht mehr `null`**.
+  Ältere Bestellungen aus Version 1.0 können weiterhin `customer_id = null`
+  haben; die Faktura-App muss beides verarbeiten.
+- `updated_at` eines Kunden steigt bei jeder Änderung (Stammdaten, Adresse,
+  Status). Änderungen am Kunden verändern **nie** die Snapshots bereits
+  erteilter Bestellungen.
+- **[NEU v1.2] Stabile Kunden-IDs:** Die Kunden-`id` ändert sich nie, auch nicht bei
+  Änderung der E-Mail-Adresse oder Einführung einer Kundentabelle im Shop. Bereits
+  ausgelieferte, aus Bestellungen abgeleitete IDs (Muster `usr_` + 16 Hex-Zeichen)
+  werden unverändert übernommen, weil die Faktura-App sie als `external_id` führt.
+- **[NEU v1.2] Bestehende Importe in der Faktura-App:** Gastkunden, die vor v1.1
+  importiert wurden (z. B. `external_id = "guest:<order.id>"`, Nummer `KD-3D-MIR-<id>`),
+  werden **nicht automatisch umgestellt**. Die Faktura-App schlägt die Zuordnung zum
+  Shop-Kunden per E-Mail vor (Abschnitt 6.4, Bestätigung durch den Projektinhaber).
 
 ### 6.3 Product
 
@@ -258,6 +294,45 @@ Daten stehen dann nur in `customer_snapshot`.
   "updated_at": "2026-11-01T10:00:00Z"
 }
 ```
+
+### 6.4 Kundennummer [NEU v1.1]
+
+| Punkt | Wert |
+|---|---|
+| Format | `KD` + genau 6 Ziffern, Regex `^KD\d{6}$` |
+| Bereich Shop | `KD900001` … `KD999999` (Start/Ende im Shop konfigurierbar, über `/meta` bekannt) |
+| Bereich Faktura (Altbestand) | `KD700001` … (manuell in der Faktura-App angelegt) |
+| Vergabe | Ausschließlich der **Shop** vergibt Nummern im Bereich 9xxxxx. Die Faktura-App vergibt dort nie selbst Nummern (Bereich reserviert, siehe 13.2). |
+| Zeitpunkt | Bei der Registrierung oder der ersten Bestellung, je nachdem, was zuerst eintritt. Besucher ohne Bestellung bekommen keine Nummer. |
+| Eigenschaften | eindeutig, unveränderlich, **nie wiederverwendet**, auch nicht nach Anonymisierung |
+| Übernahme | Die Faktura-App übernimmt `customer_number` standardmäßig als Kundennummer des neuen Kunden (Einstellung in 13.2). |
+| Kollision | Existiert die Nummer in der Faktura-App bereits bei einem anderen Kunden (andere `external_id`), wird **nichts überschrieben**; der Datensatz kommt mit Fehler in die Inbox. |
+| Bestehender Faktura-Kunde | Erkennt die Faktura-App einen bestehenden Kunden (z. B. `KD700123`), bleibt dessen Nummer erhalten. Die Shop-Nummer wird dort als externe Referenz gespeichert. Der Shop ändert seine Nummer **nie**. |
+
+### 6.5 Zahlungsart-Werte [NEU v1.1]
+
+`payment.method` ist einer dieser Werte: `prepayment` · `card` · `apple_pay` ·
+`google_pay` · `paypal` · `klarna` · `sepa_debit` · `other`.
+`payment.transaction_ref` enthält die Referenz des Zahlungsdienstleisters
+(z. B. Stripe `pi_…`), bei `prepayment` die Bestellnummer als Verwendungszweck.
+Teilerstattungen: Status bleibt unverändert, optionales Feld
+`payment.refunded_cents` (Integer, Cent). Vollständige Erstattung: Status `refunded`.
+
+### 6.6 Zuordnung Shop-Zustand → Order-Status [NEU v1.1]
+
+| Zustand im Shop | API-`status` |
+|---|---|
+| Bestellung angelegt, Zahlung noch nicht gestartet | `pending` |
+| Vorkasse wartet auf Zahlungseingang / Zahlung bei Zahlungsdienstleister offen | `awaiting_payment` |
+| Zahlung bestätigt (Webhook bzw. Admin-Bestätigung) | `paid` |
+| In Druck / Fertigung | `processing` |
+| Versandt | `shipped` |
+| Abgeschlossen | `completed` |
+| Storniert, Zahlung fehlgeschlagen oder abgelaufen | `cancelled` |
+| Vollständig erstattet | `refunded` |
+
+Der Shop führt intern Zahlungs- und Bearbeitungsstatus getrennt; die API gibt
+nur den kombinierten Wert aus dieser Tabelle aus.
 
 ## 7. Rückmeldung Faktura-App → Shop (Schreiben, minimal)
 
@@ -283,9 +358,31 @@ Body:
 - Idempotent: gleicher Body ⇒ gleiches Ergebnis (`200`).
 - Der Shop darf `invoice_url` nur anzeigen, wenn sie ohne Login geschützt
   ist oder Token-gesichert; **keine öffentlichen, erratbaren PDF-Links.**
+- **[NEU v1.2] Gültigkeit der Rechnungslinks:** Token-Links der Faktura-App laufen ab
+  (aktuell 30 Tage). Ein Kundenkonto zeigt Rechnungen aber dauerhaft. Daher gilt: Die
+  Faktura-App stellt sicher, dass `invoice_url` mindestens 24 Monate gültig ist **oder**
+  erneuert sie per `PATCH /orders/{id}/invoice` vor Ablauf (Standard: Erneuerung).
+  Der Shop zeigt den Link nur dem berechtigten, eingeloggten Kunden; ist er abgelaufen,
+  zeigt er „Link abgelaufen, bitte anfragen“ (kein Fehler). Endgültige Wahl: Projektinhaber.
 
 Optional (Phase 2, nicht in Phase 1 bauen):
 `PATCH /orders/{id}/status` mit `{ "status": "shipped", "tracking_number": "…" }`.
+
+### 7.2 Rückmeldung der Kundenzuordnung [NEU v1.1, optional, Phase 2]
+
+| Methode | Pfad | Scope |
+|---|---|---|
+| PATCH | `/customers/{id}/link` | customers:write_link |
+
+```json
+{ "faktura_customer_number": "KD700123", "linked_at": "2026-11-25T10:00:00Z" }
+```
+
+- Meldet, dass der Shop-Kunde in der Faktura-App einem **bestehenden** Kunden
+  zugeordnet wurde (oder dort unter der Shop-Nummer angelegt wurde).
+- Der Shop speichert den Wert nur als Hinweis (Admin-Ansicht). Die Shop-
+  Kundennummer ändert sich dadurch **nie**.
+- Idempotent, schreibt nur dieses eine Feld.
 
 ## 8. Webhooks (optional, Phase 2)
 
@@ -335,15 +432,28 @@ Jede Antwort enthält den Header `X-Request-Id`.
 - **Idempotenz auf Client-Seite:** Faktura-App legt pro Shop-Objekt genau einen
   Datensatz an (Schlüssel: `source="3d-mir"`, `external_id`). Mehrfaches
   Importieren erzeugt **keine Duplikate**.
-- **Rechtliches (GoBD/DE):** Importierte Bestellungen erzeugen nur **Entwürfe**.
-  Eine Rechnung bekommt ihre endgültige, lückenlose Rechnungsnummer erst beim
-  bewussten „Finalisieren“ in der Faktura-App. Finalisierte Rechnungen werden
-  nie durch einen späteren Import verändert.
+- **Rechtliches (GoBD/DE) [geändert v1.2, Entscheidung des Projektinhabers 24.11.2026]:**
+  Importierte Bestellungen erzeugen nur **Entwürfe**. Ein importierter Entwurf erhält
+  **sofort** eine echte, fortlaufende Nummer aus dem konfigurierbaren Nummernkreis der
+  Faktura-App (Belegvorgaben, 13.2). „Finalisieren“ ändert die Nummer **nicht**, sondern
+  setzt `finalisiertAm` und sperrt den Beleg. Finalisierte Rechnungen werden nie durch
+  einen späteren Import verändert. **Nummerierte Belege werden nie gelöscht, nur
+  storniert** (Lückenlosigkeit). Die Rückmeldung an den Shop (Abschnitt 7) erfolgt erst
+  nach dem Finalisieren.
 - **Zeitzonen:** Speicherung UTC, Anzeige `Europe/Berlin`.
 - **DSGVO:** Nur Felder übertragen, die für Rechnung/Lieferung nötig sind.
   `marketing_consent` nur informativ, keine Werbe-Nutzung ohne Einwilligung.
 - **Performance:** Abruf in Seiten (`limit`), nie „alles auf einmal“.
 - **Beobachtbarkeit:** Jede Seite loggt `request_id`, Dauer, Anzahl, Status.
+- **[NEU v1.1] Rechnungsnummern:** kommen **ausschließlich** aus der Faktura-App.
+  Der Shop erzeugt keine eigenen Rechnungsnummern.
+- **[NEU v1.1] Aufbewahrung vs. DSGVO:** Bei Kontolöschung wird der Kunde im Shop
+  anonymisiert (`status = anonymized`); Bestell-Snapshots bleiben wegen
+  Aufbewahrungspflichten bestehen. Die Faktura-App anonymisiert ihren Kundenstamm
+  **nicht automatisch**, sondern legt eine Aufgabe für den Projektinhaber an.
+- **[NEU v1.1] Kein Zugriff auf fremde Daten:** Ein Kunde sieht im Shop nur
+  eigene Bestellungen und Rechnungen; `invoice.url` wird nur dem berechtigten,
+  eingeloggten Kunden angezeigt.
 
 ## 11. Zusammenarbeit der beiden KIs
 
@@ -376,6 +486,22 @@ Beide KIs arbeiten getrennt, daher:
       automatisch gelöscht.
 - [ ] Bei Shop-Ausfall (503/Timeout) bricht die Faktura-App sauber ab, zeigt
       den Fehler an und macht beim nächsten Lauf weiter.
+- [ ] **[NEU v1.1]** Jede Bestellung (auch als Gast) liefert eine `customer_number`
+      im Format `KD9xxxxx`; 50 gleichzeitige Bestellungen erzeugen **keine
+      doppelte** Nummer.
+- [ ] **[NEU v1.1]** Ein neuer Shop-Kunde erscheint in der Faktura-App mit der
+      **gleichen Kundennummer** (Standardeinstellung).
+- [ ] **[NEU v1.1]** Existiert die Nummer in der Faktura-App bei einem anderen
+      Kunden, wird nichts überschrieben, der Datensatz landet mit Fehler in der Inbox.
+- [ ] **[NEU v1.1]** Ein bestehender Faktura-Kunde (E-Mail-Treffer) wird nicht
+      doppelt angelegt, sondern nach Bestätigung zugeordnet; seine Nummer
+      (`KD7xxxxx`) bleibt erhalten, die Shop-Nummer wird als Referenz gespeichert.
+- [ ] **[NEU v1.1]** Der Shop vergibt nie eine Nummer unter `KD900001` oder über
+      `KD999999` und nie eine Nummer zweimal (auch nicht nach Anonymisierung).
+- [ ] **[NEU v1.1]** Anonymisierter Kunde: `/customers/{id}` liefert
+      `status = anonymized` ohne personenbezogene Daten; Belege bleiben unverändert.
+- [ ] **[NEU v1.1]** Ein eingeloggter Kunde kann keine fremden Bestellungen oder
+      Rechnungen abrufen.
 
 ## 13. Verwaltbarkeit: Admin-Bereich auf beiden Seiten
 
@@ -396,13 +522,14 @@ Nur für Admin-Rolle, alle Änderungen werden im Audit-Log protokolliert
 | Tokens | Anlegen, benennen, Scopes wählen, Ablaufdatum, IP-Allowlist, sperren/widerrufen, rotieren (Übergangszeit mit altem+neuem Token), „zuletzt benutzt“ |
 | Freigabe Ressourcen | je Ressource an/aus: Bestellungen, Kunden, Artikel |
 | Freigabe Bestellungen | welche **Status** ausgeliefert werden, ab Datum (`ab_datum`), nur bezahlte ja/nein, Gast-Bestellungen ja/nein |
-| Freigabe Felder | je Feld-Gruppe an/aus (z. B. Telefon, USt-IdNr., Kundennotiz, Marketing-Einwilligung, 3D-Druck-Attribute, Modelldatei-Referenz). Pflichtfelder (IDs, Beträge, Adressen, Positionen) sind nicht abschaltbar |
+| Freigabe Felder | je Feld-Gruppe an/aus (z. B. Telefon, USt-IdNr., Kundennotiz, Marketing-Einwilligung, 3D-Druck-Attribute, Modelldatei-Referenz). Pflichtfelder (IDs, **Kundennummer**, Beträge, Adressen, Positionen) sind nicht abschaltbar |
 | Freigabe Artikel | nur aktive, nur bestimmte Kategorien, nur mit SKU |
 | Zusatzfelder | frei definierbare Schlüssel/Werte, die in `order.meta` bzw. `items[].attributes` ausgegeben werden (z. B. Kostenstelle, Kampagne). Zuordnung Shop-Feld → API-Schlüssel |
 | Webhooks | Ziel-URL, Secret (anzeigen/neu erzeugen), welche Events, aktiv/inaktiv, Test-Event senden, Zustellprotokoll mit „erneut senden“ |
 | Rückmeldung | ob Rechnungsnummer/-link per `PATCH /invoice` angenommen und im Shop angezeigt werden (an/aus) |
 | Überwachung | Zugriffs-Log (Zeit, Token-Name, Endpunkt, Status, Dauer, Anzahl), Fehlerliste, letzter Abruf je Token |
 | Test | Button „Beispielantwort ansehen“ (zeigt exakt, was die API mit den aktuellen Freigaben ausliefert, ohne Token-Aufruf) |
+| Kundennummern **[NEU v1.1]** | Anzeige von Format, Bereich, letzter vergebener Nummer und Auslastung (nur lesen); Schwelle für den E-Mail-Hinweis „Nummernkreis fast voll“ (Standard 90 %); der Zähler ist **nicht** per Oberfläche änderbar |
 
 Verhalten der API:
 - Die Freigaben gelten **sofort** und für jeden Abruf (kein Neustart nötig).
@@ -429,6 +556,7 @@ mandantenfähig ist).
 | Zusatzfelder | `order.meta.*` und `items[].attributes.*` einem Zielfeld zuordnen (z. B. Positionsbeschreibung, interne Notiz, Freitext-Feld) oder ignorieren |
 | Belegvorgaben | Standard-Belegart, Zahlungsbedingungen/-ziel, Einleitungs-/Schlusstext, Kleinunternehmer-Hinweistext (Vorlage), Standard-Konto/Kategorie, Versandkosten-Bezeichnung, Nummernkreis-Zuordnung |
 | Kundenabgleich | Strategie bei möglicher Dublette: *immer fragen* / *per E-Mail automatisch zuordnen* / *immer neu anlegen* |
+| Kundennummer **[NEU v1.1]** | *Shop-Kundennummer übernehmen* (Standard) oder *eigene Nummer vergeben und Shop-Nummer als Referenz speichern*; Prüfung gegen Format und Bereich aus `/meta`; Bereich 900000–999999 im eigenen Nummernkreis für manuelle Anlage **sperren**; Verhalten bei Kollision (*Inbox mit Fehler*, Standard); Rückmeldung der Zuordnung an den Shop an/aus |
 | Artikel | Preise/Texte aus Shop überschreiben: *nie* / *nur bei neuen Artikeln* / *immer*; unbekannte Artikel: *anlegen* / *als freie Position* |
 | Änderungsverhalten | Umgang mit Shop-Änderungen: Entwurf automatisch aktualisieren *ja/nein*; bei finalisierten Belegen nur Hinweis (nicht abschaltbar) |
 | Rückmeldung | an Shop melden *ja/nein*, was gemeldet wird |
@@ -445,11 +573,17 @@ Damit die Faktura-App ihre Zuordnungs-Oberfläche **dynamisch** aufbauen kann:
   "api_version": "1.0.0",
   "config_version": 17,
   "tax_mode": "small_business_19_ustg",
+  "customer_numbers": {
+    "pattern": "^KD\\d{6}$",
+    "range_start": "KD900001",
+    "range_end": "KD999999",
+    "last_assigned": "KD900042"
+  },
   "resources": { "orders": true, "customers": true, "products": false },
   "order_statuses_exposed": ["paid","processing","shipped","completed","cancelled","refunded"],
   "fields": {
     "orders": ["id","order_number","status","items","shipping","totals","payment","customer_note","meta.source_channel"],
-    "customers": ["id","email","first_name","last_name","phone"],
+    "customers": ["id","customer_number","status","email","first_name","last_name","phone"],
     "item_attributes": ["material","color","infill_percent","model_file"]
   },
   "webhooks_enabled": false,
@@ -493,3 +627,34 @@ erscheinen dort automatisch als zuordenbar.
 - [ ] Not-Aus im Shop-Admin → API antwortet `503`, Faktura-App bricht sauber ab.
 - [ ] „Testlauf (Dry-Run)“ in der Faktura-App speichert nichts.
 - [ ] Alle Konfigurationsänderungen erscheinen im Audit-Log beider Systeme.
+- [ ] **[NEU v1.1]** `/meta` enthält `customer_numbers`; ändert der Shop den Bereich,
+      zeigt die Faktura-App den Hinweis „Shop-Konfiguration hat sich geändert“ und
+      lehnt Nummern außerhalb des Bereichs mit klarer Meldung ab.
+
+## 14. Eingearbeitete Anmerkungen der Agenten [NEU v1.2]
+
+Quelle: `VERTRAGS-ANMERKUNGEN` von Shop-Agent (A1–A11) und Faktura-Agent (VA-01–VA-10),
+Stand 24.11.2026. „Angenommen“ bedeutet: so umgesetzt und ab jetzt Vertragsbestandteil.
+
+| Nr. | Thema | Entscheidung |
+|---|---|---|
+| A1 | Shop hat keine Kundentabelle (Kunden aus Bestellungen abgeleitet, `usr_`-IDs) | Angenommen. Mit v1.1 entsteht eine Kundentabelle; **IDs bleiben stabil** (6.2). |
+| A2 | Status-Mapping deutsch → Enum | Angenommen, deckungsgleich mit 6.6. |
+| A3 | SKU/Material aus aktuellem Produkt, `model_file = null` | Angenommen. Bekannte Einschränkung: Produktänderung kann diese Attribute später verändern. |
+| A4 | Kleinunternehmer, Netto = Brutto | Angenommen. |
+| A5 | Nur eine Adresse je Bestellung | Angenommen. **Folge:** Sobald das Kundenkonto getrennte Rechnungs-/Lieferadressen kennt, speichert die Bestellung beide als Snapshot (Anweisung 03, K1). |
+| A6 | Webhooks und `PATCH /orders/{id}/status` erst Phase 2 | Angenommen. |
+| A7 | `api_first_exposed_at` | Angenommen (intern). |
+| A8 / VA-08 | Rechnungslink / Token-Link der Faktura-App (HMAC, 30 Tage) | Angenommen; **Gültigkeitsregel neu** in Abschnitt 7. |
+| A9 | Produktpreis = From-Preis | Angenommen. |
+| A10 | Token-Rotation mit 24 h Übergang | Angenommen. |
+| A11 | `/health.version` | Geklärt in Abschnitt 3 (Versionierung). |
+| VA-01 | Nummer sofort beim Entwurf | **Entscheidung Projektinhaber 24.11.2026:** Nummer sofort, Finalisieren sperrt nur. Abschnitt 10 geändert. Voraussetzung: nummerierte Belege nie löschen, nur stornieren. |
+| VA-02 | `customer_note` als interne Notiz am Beleg | Angenommen (nur Faktura-intern). |
+| VA-03 | Zahlung nur als Vormerkung, kein Buchungssatz | Angenommen (Standard: nicht automatisch buchen). |
+| VA-04 | Gastkunden, Adress-Snapshots als JSON am Beleg | Adress-Snapshots angenommen. **Gastkunden werden durch v1.1 abgelöst** (eigene `customer_id` und `customer_number`); Umgang mit bereits importierten Gästen siehe 6.2. |
+| VA-05 | Steuermodus pro Bestellung | Angenommen. |
+| VA-06 | Betragsrabatte als negative Position, unbekannte Steuersätze → Inbox | Angenommen. |
+| VA-07 | Cron, Lock, Audit-Benutzer | Intern, angenommen. |
+| VA-09 | Dateiname | Datei heißt im Repo `API-VERTRAG.md`; inhaltlich identisch zu `00-API-VERTRAG.md`. |
+| VA-10 | Unique-Index mit Mandant | Angenommen. |

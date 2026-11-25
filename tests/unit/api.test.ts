@@ -60,7 +60,7 @@ describe('API v1 – Grundeinstellungen', () => {
     expect(settings.enabled).toBe(true);
     expect(settings.rateLimitPerMinute).toBe(60);
     expect(settings.resources).toEqual({ orders: true, customers: true, products: true });
-    expect(API_VERSION).toBe('1.0.0');
+    expect(API_VERSION).toBe('1.1.0');
   });
 
   it('erhöht config_version bei jeder Änderung', () => {
@@ -231,6 +231,8 @@ describe('API v1 – HTTP-Endpunkte', () => {
     const meta = await app.inject({ method: 'GET', url: '/api/v1/meta', headers });
     expect(meta.statusCode).toBe(200);
     expect(meta.json()).toMatchObject({ api_version: API_VERSION, webhooks_enabled: false });
+    const metaData = meta.json() as { customer_numbers: { pattern: string; range_start: string } };
+    expect(metaData.customer_numbers.range_start).toBe('KD900001');
 
     const orders = await app.inject({ method: 'GET', url: '/api/v1/orders?limit=1', headers });
     expect(orders.statusCode).toBe(200);

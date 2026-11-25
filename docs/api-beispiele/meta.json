@@ -1,7 +1,13 @@
 {
-  "api_version": "1.0.0",
+  "api_version": "1.1.0",
   "config_version": 17,
   "tax_mode": "small_business_19_ustg",
+  "customer_numbers": {
+    "pattern": "^KD\\d{6}$",
+    "range_start": "KD900001",
+    "range_end": "KD999999",
+    "last_assigned": "KD900042"
+  },
   "resources": {
     "orders": true,
     "customers": true,

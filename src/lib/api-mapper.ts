@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
+import { getCustomerByEmail, getCustomerById, type CustomerRow } from './customers.js';
 import type { ApiSettings } from './api-settings.js';
 
 export type OrderRow = {
@@ -35,6 +36,9 @@ export type OrderRow = {
   invoice_url: string;
   delivery_note_number: string;
   tracking_number: string;
+  customer_id: string | null;
+  billing_snapshot: string;
+  shipping_snapshot: string;
   api_first_exposed_at: string | null;
 };
 
@@ -114,14 +118,15 @@ function apiPaymentStatus(paymentStatus: string): string {
 function apiPaymentMethod(method: string): string {
   const value = method.toLowerCase();
   if (value.includes('paypal')) return 'paypal';
-  if (value.includes('karte') || value.includes('card')) return 'card';
-  if (value.includes('vorkasse') || value.includes('bank') || value.includes('überweisung')) {
-    return 'bank_transfer';
-  }
   if (value.includes('klarna')) return 'klarna';
-  if (value.includes('ideal')) return 'ideal';
-  if (value.includes('amazon')) return 'amazon_pay';
-  return value || 'unknown';
+  if (value.includes('apple')) return 'apple_pay';
+  if (value.includes('google')) return 'google_pay';
+  if (value.includes('lastschrift') || value.includes('sepa')) return 'sepa_debit';
+  if (value.includes('vorkasse') || value.includes('bank') || value.includes('überweisung')) {
+    return 'prepayment';
+  }
+  if (value.includes('karte') || value.includes('card') || value.includes('stripe')) return 'card';
+  return 'other';
 }
 
 /** Stabile Kunden-ID: angemeldete Kunden bevorzugt, sonst Hash der E-Mail. */
@@ -190,6 +195,26 @@ function itemsOf(orderId: number, settings: ApiSettings): Record<string, unknown
   });
 }
 
+function snapshotAddress(json: string, row: OrderRow): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(json || '{}') as Record<string, unknown>;
+    if (parsed && typeof parsed.name === 'string') {
+      return {
+        name: parsed.name,
+        company: parsed.company ?? null,
+        street: parsed.street ?? '',
+        address_2: parsed.address_2 ?? null,
+        postal_code: parsed.postal_code ?? '',
+        city: parsed.city ?? '',
+        country_code: parsed.country_code ?? 'DE',
+      };
+    }
+  } catch {
+    // Alte Bestellungen haben noch keine Snapshots.
+  }
+  return address(row);
+}
+
 /** Übersetzt eine Bestellzeile in das Order-Modell des API-Vertrags. */
 export function mapOrder(row: OrderRow, settings: ApiSettings): Record<string, unknown> {
   const items = itemsOf(row.id, settings);
@@ -200,7 +225,19 @@ export function mapOrder(row: OrderRow, settings: ApiSettings): Record<string, u
   if (difference > 0) subtotal += difference;
   if (difference < 0) discount = -difference;
 
+  const storedCustomer = row.customer_id
+    ? getCustomerById(row.customer_id)
+    : getCustomerByEmail(row.email);
+  let snapshotMeta: Record<string, unknown> = {};
+  try {
+    const parsed = JSON.parse(row.billing_snapshot || '{}') as Record<string, unknown>;
+    if (parsed && typeof parsed === 'object') snapshotMeta = parsed;
+  } catch {
+    // Alte Bestellungen ohne Snapshot.
+  }
   const customerSnapshot: Record<string, unknown> = {
+    customer_number: storedCustomer?.customer_no ?? snapshotMeta.customer_number ?? null,
+    is_guest: storedCustomer ? storedCustomer.is_guest === 1 : Boolean(snapshotMeta.is_guest ?? true),
     type: row.company ? 'business' : 'private',
     company: row.company || null,
     first_name: row.first_name,
@@ -211,8 +248,8 @@ export function mapOrder(row: OrderRow, settings: ApiSettings): Record<string, u
   if (settings.fields.vatId) customerSnapshot.vat_id = null;
 
   const customerNote = settings.fields.customerNote ? row.customer_note || null : undefined;
-  const billing = address(row);
-  const shipping = address(row);
+  const billing = snapshotAddress(row.billing_snapshot, row);
+  const shipping = snapshotAddress(row.shipping_snapshot || row.billing_snapshot, row);
 
   return {
     id: String(row.id),
@@ -221,7 +258,7 @@ export function mapOrder(row: OrderRow, settings: ApiSettings): Record<string, u
     created_at: toIso(row.created_at),
     updated_at: toIso(row.updated_at),
     currency: 'EUR',
-    customer_id: customerExternalId(row.email, row.user_id),
+    customer_id: row.customer_id || customerExternalId(row.email, row.user_id),
     customer_snapshot: customerSnapshot,
     billing_address: billing,
     shipping_address: shipping,
@@ -251,7 +288,8 @@ export function mapOrder(row: OrderRow, settings: ApiSettings): Record<string, u
       method: apiPaymentMethod(row.payment_method),
       status: apiPaymentStatus(row.payment_status),
       paid_at: toIso(row.paid_at),
-      transaction_ref: row.payment_reference || null,
+      transaction_ref: row.payment_reference || (apiPaymentMethod(row.payment_method) === 'prepayment' ? row.order_number : null),
+      ...(row.payment_status === 'erstattet' ? { refunded_cents: row.total_cents } : {}),
     },
     ...(customerNote !== undefined ? { customer_note: customerNote } : {}),
     meta: { source_channel: 'shop', ...customFields(settings, 'order') },
@@ -269,22 +307,31 @@ export function mapCustomer(orders: OrderRow[], settings: ApiSettings): Record<s
   const latest = orders[orders.length - 1];
   const first = orders[0];
   if (!latest || !first) return null;
+  const stored: CustomerRow | undefined = latest.customer_id
+    ? getCustomerById(latest.customer_id)
+    : getCustomerByEmail(latest.email);
+  const anonymized = stored?.status === 'anonymized';
   const customer: Record<string, unknown> = {
-    id: customerExternalId(latest.email, latest.user_id),
-    created_at: toIso(first.created_at),
-    updated_at: toIso(latest.updated_at),
-    type: latest.company ? 'business' : 'private',
-    company: latest.company || null,
-    first_name: latest.first_name,
-    last_name: latest.last_name,
-    email: latest.email,
-    billing_address: address(latest),
+    id: stored?.id ?? customerExternalId(latest.email, latest.user_id),
+    customer_number: stored?.customer_no ?? null,
+    created_at: toIso(stored?.created_at ?? first.created_at),
+    updated_at: toIso(stored?.updated_at ?? latest.updated_at),
+    type: stored?.type ?? (latest.company ? 'business' : 'private'),
+    company: anonymized ? null : stored?.company || latest.company || null,
+    first_name: anonymized ? '' : stored?.first_name || latest.first_name,
+    last_name: anonymized ? '' : stored?.last_name || latest.last_name,
+    email: anonymized ? '' : stored?.email || latest.email,
+    billing_address: anonymized
+      ? { name: '', company: null, street: '', address_2: null, postal_code: '', city: '', country_code: 'DE' }
+      : address(latest),
     default_shipping_address: null,
-    is_guest: !latest.user_id,
+    is_guest: stored ? stored.is_guest === 1 : !latest.user_id,
+    status: stored?.status ?? 'active',
+    email_verified: Boolean(stored?.email_verified_at),
   };
-  if (settings.fields.phone) customer.phone = latest.phone || null;
-  if (settings.fields.vatId) customer.vat_id = null;
-  if (settings.fields.marketingConsent) customer.marketing_consent = false;
+  if (settings.fields.phone) customer.phone = anonymized ? null : stored?.phone || latest.phone || null;
+  if (settings.fields.vatId) customer.vat_id = anonymized ? null : stored?.vat_id || null;
+  if (settings.fields.marketingConsent) customer.marketing_consent = Boolean(stored?.marketing_consent ?? false);
   return customer;
 }
 

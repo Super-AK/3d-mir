@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { queueWebhook } from '../lib/api-webhooks.js';
+import { ensureCustomer } from '../lib/customers.js';
 import { customerExternalId } from '../lib/api-mapper.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
@@ -831,16 +832,39 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       let orderId = 0;
       const publicToken = crypto.randomBytes(16).toString('hex');
       const stockReserved = lines.some((line) => line.stock != null) ? 1 : 0;
+      let customerId = '';
       try {
         number = orderNumber();
         const createOrder = db().transaction(() => {
+          const { customer } = ensureCustomer({
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            company: data.company,
+            phone: data.phone,
+            userId: null,
+            isGuest: true,
+          });
+          customerId = customer.id;
+          const addressSnapshot = JSON.stringify({
+            customer_number: customer.customer_no,
+            is_guest: customer.is_guest === 1,
+            name: `${data.firstName} ${data.lastName}`.trim(),
+            company: data.company || null,
+            street: data.street,
+            address_2: data.addressExtra || null,
+            postal_code: data.zip,
+            city: data.city,
+            country_code: data.country,
+          });
           const result = db()
             .prepare(
               `INSERT INTO orders
                 (order_number, status, email, first_name, last_name, company, street, address_extra, zip, city,
                  country, phone, payment_method, shipping_method, shipping_cents, options_cents, subtotal_cents,
-                 total_cents, customer_note, payment_status, payment_provider, public_token, stock_reserved)
-               VALUES (?, 'neu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'offen', ?, ?, ?)`,
+                 total_cents, customer_note, payment_status, payment_provider, public_token, stock_reserved,
+                 customer_id, billing_snapshot, shipping_snapshot)
+               VALUES (?, 'neu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'offen', ?, ?, ?, ?, ?, ?)`,
             )
             .run(
               number,
@@ -864,6 +888,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
               paymentMethod.provider,
               publicToken,
               stockReserved,
+              customerId,
+              addressSnapshot,
+              addressSnapshot,
             );
           const createdId = Number(result.lastInsertRowid);
           const insertOption = db().prepare(
@@ -916,7 +943,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
         return fail('Die Bestellung konnte nicht geladen werden. Bitte versuchen Sie es erneut.');
       }
       queueWebhook('order.created', String(orderId), order.created_at);
-      queueWebhook('customer.updated', customerExternalId(order.email, order.user_id), order.created_at);
+      queueWebhook('customer.updated', customerId || customerExternalId(order.email, order.user_id), order.created_at);
 
       const bank = getBankDetails();
       const bankReady = isBankConfigured(bank);

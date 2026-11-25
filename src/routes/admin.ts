@@ -181,6 +181,7 @@ import {
   rotateApiToken,
 } from '../lib/api-auth.js';
 import { mapOrder } from '../lib/api-mapper.js';
+import { customerNumberStats } from '../lib/customer-numbers.js';
 import { queueWebhook } from '../lib/api-webhooks.js';
 import {
   generateWebhookSecret,
@@ -381,6 +382,9 @@ type OrderRow = {
   tracking_number: string;
   invoice_updated_at: string | null;
   api_first_exposed_at: string | null;
+  customer_id: string | null;
+  billing_snapshot: string;
+  shipping_snapshot: string;
 };
 
 type OrderItemRow = {
@@ -4883,6 +4887,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         sample: apiSample(),
         webhookEvents: [...WEBHOOK_EVENTS],
         webhookDeliveries: listWebhookDeliveries(30),
+        customerNumbers: customerNumberStats(),
         ...extra,
       });
 
