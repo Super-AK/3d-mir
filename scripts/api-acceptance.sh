@@ -44,7 +44,7 @@ check() {
     FAIL=1
     return
   fi
-  if [[ -n "$pattern" ]] && ! grep -q "$pattern" "$BODY"; then
+  if [[ -n "$pattern" ]] && ! grep -Fq -- "$pattern" "$BODY"; then
     echo "✗ ${name}: Antwort enthält nicht ${pattern}"
     FAIL=1
     return

@@ -183,7 +183,7 @@ laufen – vor dem Ausrollen die Version per Health-Endpunkt prüfen.
 **Stand: 25.11.2026** – bei jedem Release aktualisieren. Maßgeblich sind
 `package.json` (Version) und `docs/OFFENE-FRAGEN.md` (F-Nummern).
 
-- Version: `1.0.0-rc.78`
+- Version: `1.0.0-rc.79`
 - Offen vor dem Livegang: Stripe-Live-Schaltung (Live-Key, Live-Webhook,
   Live-Test), externes Backup-Ziel, Freigabe des Shops im Admin.
 - Der Shop zeigt öffentlich noch „Der Shop befindet sich im Aufbau“.

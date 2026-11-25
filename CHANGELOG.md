@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.79] – 25. November 2026
+
+### Behoben
+
+- **Abnahme-Skript:** Muster werden jetzt mit `grep -F` als feste Strings
+  geprüft. JSON-Klammern wie `[` führten vorher zu „grep: Invalid regular
+  expression" und falschen Fehlermeldungen bei `/orders`, `/customers` und
+  `/products`.
+
 ## [1.0.0-rc.78] – 25. November 2026
 
 ### Geändert
