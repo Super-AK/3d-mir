@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.77] – 25. November 2026
+
+### Hinzugefügt
+
+- **Abnahme-Skript:** `scripts/api-acceptance.sh` prüft alle lesenden Punkte
+  der Shop-API aus Sicht der Faktura-App. Der Token kommt nur aus `API_TOKEN`
+  und wird nie ausgegeben; Antworten mit personenbezogenen Daten werden nicht
+  protokolliert. F90 (Prod-Token) ist damit bestätigt.
+
 ## [1.0.0-rc.76] – 25. November 2026
 
 ### Hinzugefügt
