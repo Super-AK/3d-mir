@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.74] – 25. November 2026
+
+### Geändert
+
+- **Kunden-Nachtrag (F94):** GitHub Actions führt auf `main` mit dem Commit-Marker
+  `[backfill-kunden]` nach dem Deploy ein Backup und
+  `npm run customers:backfill -- --confirm` auf dem Prod-Server aus. Ohne Marker
+  bleibt der Schritt übersprungen.
+
 ## [1.0.0-rc.73] – 25. November 2026
 
 ### Hinzugefügt

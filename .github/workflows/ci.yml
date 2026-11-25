@@ -72,6 +72,19 @@ jobs:
             # Der Anwendungsport kommt aus $PORT bzw. /etc/3d-mir/3d-mir.env.
             sudo ./deploy/update.sh
 
+      - name: Kunden-Nachtrag (F94, nur mit Marker im Commit)
+        if: success() && contains(github.event.head_commit.message, '[backfill-kunden]')
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /var/www/3d-mir.de
+            sudo deploy/backup.sh
+            npm run customers:backfill -- --confirm
+
       - name: Telegram Erfolgsmeldung
         if: success()
         env:

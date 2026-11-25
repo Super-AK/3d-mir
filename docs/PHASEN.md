@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.74 – 25. November 2026
+
+Freigabe des Bestands-Nachtrags (F94) über einen markierten CI-Schritt mit Backup.
+
 ## Release 1.0.0-rc.73 – 25. November 2026
 
 Kundenkonten mit Double-Opt-in, Login-Sperre, Passwort-Reset und Kundenbereich

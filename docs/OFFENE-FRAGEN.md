@@ -213,7 +213,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F91 | 🟡 In Arbeit | **Rechnungslink:** `invoice_url` muss HTTPS sein und gegen öffentliches Erraten geschützt (Token-URL). Die konkrete URL steht erst fest, wenn die Faktura-App Rechnungen erzeugt. Anzeige im Shop ist standardmäßig aus. |
 | F92 | 🟢 Später | **Rate-Limit:** Aktuell 60 Anfragen/Minute pro Token im Speicher des einen Servers. Bei mehreren Instanzen wäre ein gemeinsamer Zähler (z. B. in SQLite/Redis) nötig. |
 | F93 | ✅ Erledigt | **Kundentabelle:** Mit K1 gibt es `customers`; die bisher abgeleiteten IDs bleiben stabil (Vertrag v1.2 §6.2). 3D-Attribute bleiben aus dem aktuellen Produkt (A3, von v1.2 angenommen). *(25.11.2026)* |
-| F94 | 🟡 Offen | **Bestands-Nachtrag (K1):** Die 2 vorhandenen Gastkunden (8 Bestellungen) erhalten erst nach Bestätigung und Backup ihre Nummern (`KD900001`, `KD900002`). Skript: `npm run customers:backfill -- --confirm`. |
+| F94 | 🟡 In Arbeit | **Bestands-Nachtrag (K1) freigegeben:** Auf Dev ausgeführt (2 Bestellkunden, 8 Bestellungen zugeordnet). Auf Prod läuft der Nachtrag mit Backup über den markierten CI-Schritt `[backfill-kunden]`. Der Zähler wird nie zurückgesetzt. |
 | F95 | 🟡 Offen | **Support-Rolle:** Vertrag v1.2/Anweisung 03 fordern eine Rolle `support` (lesen und Notizen, kein Export, keine Anonymisierung). Aktuell sind Admin-Funktionen nur für `admin` erreichbar; `support` ist noch nicht umgesetzt. |
 
 ---
