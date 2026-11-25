@@ -91,3 +91,72 @@ Das Logo ist überwiegend silbern/metallic auf tiefem Marineblau, mit hellblauen
 ## Alttexte
 
 Die extrahierten Altinhalte liegen unverändert in `docs/alt-inhalte/` (nur Navigation/Consent-Banner entfernt). Sie dienen als Quelle für die Übernahme der Rechtstexte.
+
+## Kundenverwaltung, Kundenkonten, Kundennummern – Phase K0 (25.11.2026)
+
+Analyse gemäß `03 ANWEISUNG SHOP AGENT KUNDENKONTEN.md`, Phase K0. **Es wurden keine
+Daten, Tabellen oder Anwendungsfunktionen verändert.** Phase K1 beginnt erst nach
+Freigabe durch den Projektinhaber.
+
+### Vorab: Unstimmigkeit in den Unterlagen
+
+Beide übergebenen Dateien (`00 API VERTRAG.md` und
+`03 ANWEISUNG SHOP AGENT KUNDENKONTEN.md`) sind **inhaltlich identisch** (MD5
+`631320ed1372e39c857e2460fd29d2f3`) und enthalten die Kunden-Anweisung, nicht den
+angerufenen API-Vertrag v1.2. Im Repo liegt `API-VERTRAG.md` in der alten Fassung
+(keine Markierungen **[NEU v1.1]/[NEU v1.2]**, kein Abschnitt 14, kein §7.2,
+kein `refunded_cents`). Für K3 werden die echte v1.2-Fassung und die
+Hauptanweisung `01-ANWEISUNG-SHOP-AGENT.md` benötigt. Siehe KQ0 in
+`VERTRAGS-ANMERKUNGEN.md`.
+
+### Bestand im Shop (Ist-Zustand)
+
+| Thema | Befund |
+| --- | --- |
+| `users` | Existiert (`001_init.sql:16-25`): `id`, `email` UNIQUE COLLATE NOCASE, `password_hash`, `name`, `role` CHECK (`admin`\\|`customer`), `totp_secret`, `created_at`, `updated_at`. Aktuell **1 Admin, 0 Kundenkonten**. |
+| `sessions` | `001_init.sql:27-34`: ID, `user_id`, JSON-Daten, `expires_at`. 8 Stunden TTL (`auth.ts:9`). Cookie `mir3d_admin`, `path=/admin`, HttpOnly, signed, SameSite=Lax, Secure bei HTTPS (`auth.ts:192-201`). |
+| Passwörter | argon2id, memoryCost 19456, timeCost 2, parallelism 1 (`auth.ts:11-16`, `hashPassword`/`verifyPassword` 56-66). TOTP/2FA und Passkeys sind vorhanden, aber nur für Admins. |
+| Rollen | Im Code wird nur `role === 'admin'` geprüft (`getSession`, `adminGuard`). Die Rolle `support` ist **nicht** implementiert. |
+| Admin-Rechte/CSRF | `adminGuard` (`admin.ts:668-692`) prüft Session, Origin und `_csrf` (timingSafeEqual, `auth.ts:234-246`). |
+| Audit-Log | Tabelle `audit_log` (`001_init.sql:156-162`), Schreiber `writeAudit(actor, action, details)` (`auth.ts:248-253`), derzeit ohne Admin-Anzeige (außer API-Seite). |
+| E-Mail | `sendMail()` (`mailer.ts:67`) über SMTP aus den Benachrichtigungseinstellungen; ohne SMTP Ablage als `.eml` unter `/var/log/3d-mir/mail/`. Geeignet für Double-Opt-in und Reset. |
+| Gäste | Keine `customers`-Tabelle. Gäste stehen nur als Snapshot in `orders` (`user_id` NULL). Alle **8** vorhandenen Bestellungen sind Gastbestellungen. |
+| Feature-Flag | `config/site.json:51` enthält `features.customerAccounts: false`; es gibt **keine** `/konto/`-Routen und keine Kunden-Registrierung. |
+| Kleinunternehmer | `config.site.json:16-17` `smallBusiness: true`, `vatNote` hinterlegt; API liefert `tax_rate_percent = 0`. |
+
+### Kundenbestand für den Nachtrag (K1)
+
+Abgeleitete Kunden über `lower(email)` (2 Datensätze), IDs nach
+`src/lib/api-mapper.ts` (`customerExternalId`):
+
+| E-Mail | Bestellungen | `user_id` | aktuelle abgeleitete ID |
+| --- | --- | --- | --- |
+| `test@example.com` | 1 | NULL | `cus_973dfe463ec85785` |
+| `alex@knutas.de` | 7 | NULL | `cus_66fe2995d11c03be` |
+
+Zeitraum der Bestellungen: 12.11.2026 11:48 – 13.11.2026 20:55 UTC. Nachtrag in
+`created_at ASC, id ASC` würde `KD900001` (test@example.com) und `KD900002`
+(alex@knutas.de) vergeben. Die IDs `cus_…` bleiben unverändert, weil die
+Faktura-App sie bereits als `external_id` gespeichert haben kann.
+
+### Mapping Shop-Feld → neue API-Felder
+
+| Neues API-Feld | Quelle / Zweck |
+| --- | --- |
+| `id` | Bisher abgeleitete ID (`usr_<user_id>` bzw. `cus_<16 Hex>`); nach Anlage des Kunden unverändert. |
+| `customer_number` | Neu: `customers.customer_no`, `KD` + 6 Ziffern, Pflichtfeld. |
+| `status` | Neu: `customers.status` (`active`\\|`blocked`\\|`anonymized`). |
+| `email_verified` | `customers.email_verified_at IS NOT NULL` (neu; Double-Opt-in in K5). |
+| `is_guest` | Kein Eintrag in `customer_accounts` ⇒ Gast; `customers.is_guest`. |
+| `customer_snapshot.customer_number` / `.is_guest` | Aus `customers` zum Bestellzeitpunkt; `customer_snapshot` selbst bleibt Snapshot. |
+| `faktura_customer_no` | Nur Hinweis aus K4; ändert die Shop-Nummer nie. |
+| `billing_address` / `shipping_address` | Derzeit identisch aus dem Order-Snapshot (A5); künftig getrennte `customer_addresses` als Snapshot. |
+
+### Bewertung / Voraussetzungen für K1
+
+- Konten-Grundgerüst (`users`, Argon2id, Sessions, CSRF, Mail, Audit) ist vorhanden;
+  Kundenkonten und `/konto/` müssen neu gebaut werden.
+- Vor dem Nachtrag: Backup-Hinweis und ausdrückliche Bestätigung des Projektinhabers
+  (Regel 6 der Hauptanweisung). Migrationen bekommen ein Rollback-Skript.
+- Die nummerierte Zähler-Tabelle startet bei `900000`; erster vergebener Wert `KD900001`.
+- Offene Entscheidungen: KQ0–KQ5 in `VERTRAGS-ANMERKUNGEN.md`.
