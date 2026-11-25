@@ -26,6 +26,8 @@ const {
   revokeApiToken,
   rotateApiToken,
   hasApiScope,
+  ipAllowed,
+  normalizeIp,
 } = await import('../../src/lib/api-auth.js');
 const { apiOrderStatus, customerExternalId, toIso } = await import('../../src/lib/api-mapper.js');
 const {
@@ -92,12 +94,35 @@ describe('API v1 – Tokens', () => {
     expect(resolveApiToken(`Bearer ${created.token}`, '203.0.113.10')).toBeNull();
   });
 
+  it('nutzt nur die letzte X-Forwarded-For-IP als Fallback', () => {
+    const created = createApiToken({ name: 'Proxy', scopes: ['orders:read'], ipAllowlist: ['203.0.113.10'] });
+    expect(resolveApiToken(`Bearer ${created.token}`, '127.0.0.1', '198.51.100.9, 203.0.113.10')).not.toBeNull();
+    expect(resolveApiToken(`Bearer ${created.token}`, '127.0.0.1', '203.0.113.10, 198.51.100.9')).toBeNull();
+  });
+
   it('hält den alten Token nach der Rotation übergangsweise gültig', () => {
     const created = createApiToken({ name: 'Rotation', scopes: ['orders:read'] });
     const rotated = rotateApiToken(created.info.id);
     expect(rotated?.token).not.toBe(created.token);
     expect(resolveApiToken(`Bearer ${created.token}`, '127.0.0.1')).not.toBeNull();
     expect(resolveApiToken(`Bearer ${rotated!.token}`, '127.0.0.1')).not.toBeNull();
+  });
+});
+
+describe('API v1 – IP-Allowlist', () => {
+  it('normalisiert IPv4-gemappte IPv6-Adressen', () => {
+    expect(normalizeIp('::ffff:203.0.113.10')).toBe('203.0.113.10');
+    expect(normalizeIp(' 2001:DB8::1 ')).toBe('2001:db8::1');
+  });
+
+  it('prüft exakte IPs und CIDR-Bereiche', () => {
+    expect(ipAllowed(['203.0.113.10'], '203.0.113.10')).toBe(true);
+    expect(ipAllowed(['::ffff:203.0.113.10'], '203.0.113.10')).toBe(true);
+    expect(ipAllowed(['203.0.113.10'], '::ffff:203.0.113.10')).toBe(true);
+    expect(ipAllowed(['198.51.100.0/24'], '198.51.100.42')).toBe(true);
+    expect(ipAllowed(['198.51.100.0/24'], '198.51.101.1')).toBe(false);
+    expect(ipAllowed(['2001:db8::/32'], '2001:db8::1')).toBe(true);
+    expect(ipAllowed([], '1.2.3.4')).toBe(true);
   });
 });
 

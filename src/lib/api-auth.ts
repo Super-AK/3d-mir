@@ -133,25 +133,82 @@ export function rotateApiToken(id: number): { token: string; info: ApiTokenInfo 
   return { token, info: info(updated) };
 }
 
-function ipAllowed(list: string[], ip: string): boolean {
-  if (list.length === 0) return true;
-  return list.some((entry) => {
-    const value = entry.trim();
-    if (!value) return false;
-    if (value === ip) return true;
-    if (!value.includes('/') || !ip.includes('.')) return false;
-    const [network, bitsRaw] = value.split('/');
-    const bits = Number.parseInt(bitsRaw ?? '', 10);
-    if (!network || !Number.isInteger(bits) || bits < 0 || bits > 32) return false;
-    const toInt = (address: string): number =>
-      address.split('.').reduce((sum, part) => (sum * 256 + (Number.parseInt(part, 10) || 0)) >>> 0, 0);
+/** Normalisiert IPv4-gemappte IPv6-Adressen (::ffff:1.2.3.4 → 1.2.3.4). */
+export function normalizeIp(value: string): string {
+  const ip = value.trim().toLowerCase().replace(/%.*$/, '');
+  return ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+}
+
+function ipv4ToInt(ip: string): number | null {
+  const parts = ip.split('.');
+  if (parts.length !== 4) return null;
+  let result = 0;
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) return null;
+    const octet = Number(part);
+    if (octet > 255) return null;
+    result = ((result << 8) + octet) >>> 0;
+  }
+  return result;
+}
+
+function ipv6ToBigInt(ip: string): bigint | null {
+  if (!ip.includes(':')) return null;
+  const halves = ip.split('::');
+  const left = halves[0] ? halves[0].split(':') : [];
+  const right = halves[1] ? halves[1].split(':') : [];
+  let groups: string[];
+  if (halves[1] === undefined) {
+    groups = left;
+  } else {
+    if (left.length + right.length > 7) return null;
+    groups = [...left, ...Array<string>(8 - left.length - right.length).fill('0'), ...right];
+  }
+  if (groups.length !== 8) return null;
+  let result = 0n;
+  for (const group of groups) {
+    if (!/^[0-9a-f]{1,4}$/.test(group)) return null;
+    result = (result << 16n) | BigInt(Number.parseInt(group, 16));
+  }
+  return result;
+}
+
+function inCidr(ip: string, network: string, bits: number): boolean {
+  const ip4 = ipv4ToInt(ip);
+  const net4 = ipv4ToInt(network);
+  if (ip4 !== null && net4 !== null) {
+    if (bits < 0 || bits > 32) return false;
     const mask = bits === 0 ? 0 : (0xffffffff << (32 - bits)) >>> 0;
-    return (toInt(ip) & mask) === (toInt(network) & mask);
+    return (ip4 & mask) === (net4 & mask);
+  }
+  const ip6 = ipv6ToBigInt(ip);
+  const net6 = ipv6ToBigInt(network);
+  if (ip6 !== null && net6 !== null) {
+    if (bits < 0 || bits > 128) return false;
+    const mask = bits === 0 ? 0n : (~0n << BigInt(128 - bits)) & ((1n << 128n) - 1n);
+    return (ip6 & mask) === (net6 & mask);
+  }
+  return false;
+}
+
+/** Vergleicht die Herkunft mit der Allowlist (exakt oder IPv4-/IPv6-CIDR). */
+export function ipAllowed(list: string[], ip: string): boolean {
+  if (list.length === 0) return true;
+  const actual = normalizeIp(ip);
+  return list.some((entry) => {
+    const value = normalizeIp(entry);
+    if (!value) return false;
+    if (value === actual) return true;
+    const slash = value.indexOf('/');
+    if (slash === -1) return false;
+    const bits = Number.parseInt(value.slice(slash + 1), 10);
+    if (!Number.isInteger(bits)) return false;
+    return inCidr(actual, value.slice(0, slash), bits);
   });
 }
 
 /** Prüft einen Bearer-Header gegen gespeicherte Hashs, Sperre, Ablauf und IP-Liste. */
-export function resolveApiToken(header: string | undefined, ip: string): ResolvedApiToken | null {
+export function resolveApiToken(header: string | undefined, ip: string, forwardedFor?: string): ResolvedApiToken | null {
   if (!header || !/^Bearer\s+\S+$/i.test(header)) return null;
   const token = header.replace(/^Bearer\s+/i, '').trim();
   const digest = hash(token);
@@ -179,7 +236,12 @@ export function resolveApiToken(header: string | undefined, ip: string): Resolve
     return null;
   }
   const details = info(resolvedRow);
-  if (!ipAllowed(details.ipAllowlist, ip)) return null;
+  // NGINX hängt die echte Client-IP als letztes Element an X-Forwarded-For.
+  // Nur dieser Wert ist als Fallback zulässig – nicht spoofbare frühere Werte.
+  const forwarded = forwardedFor?.split(',').map((entry) => entry.trim()).filter(Boolean) ?? [];
+  const lastForwarded = forwarded[forwarded.length - 1];
+  const candidates = lastForwarded ? [ip, lastForwarded] : [ip];
+  if (!candidates.some((candidate) => ipAllowed(details.ipAllowlist, candidate))) return null;
 
   getDb()
     .prepare("UPDATE api_tokens SET last_used_at = datetime('now') WHERE id = ?")

@@ -10,5 +10,6 @@ declare module 'fastify' {
     apiRequestId?: string;
     apiToken?: ResolvedApiToken | null;
     apiItemCount?: number;
+    apiForwardedFor?: string;
   }
 }

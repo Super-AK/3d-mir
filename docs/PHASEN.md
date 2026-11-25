@@ -425,6 +425,12 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.71 – 25. November 2026
+
+Die API protokolliert Herkunfts-IP und X-Forwarded-For; die IP-Allowlist
+normalisiert IPv4-gemappte IPv6-Adressen und unterstützt CIDR sowie den letzten
+Proxy-Header als Fallback.
+
 ## Release 1.0.0-rc.70 – 24. November 2026
 
 Phase 2 der Shop-API: Webhooks mit Signatur und Retry sowie Status-Rückmeldung.

@@ -411,7 +411,9 @@ verwaltet. Der Shop gibt die Daten frei, die Faktura-App holt sie per HTTPS ab
   `orders:write_status`), Ablaufdatum, IP-Allowlist (IP oder CIDR), Sperren,
   Löschen und Rotieren. Der Token erscheint nur einmal direkt nach dem Anlegen
   oder Rotieren; gespeichert wird ausschließlich sein SHA-256-Hash. Nach einer
-  Rotation bleibt der alte Token 24 Stunden gültig.
+  Rotation bleibt der alte Token 24 Stunden gültig. Die tatsächlich gesehene
+  Herkunfts-IP steht unter „Überwachung" – diese IP (oder ein CIDR-Bereich) in
+  die Allowlist eintragen. `::ffff:`-Präfixe und IPv6 werden normalisiert.
 - **Freigaben:** Bestellungen, Kunden und Artikel einzeln; Bestellstatus,
   nur bezahlte Bestellungen, Gast-Bestellungen und ein Startdatum; Feldgruppen
   (Telefon, USt-IdNr., Kundennotiz, Marketing-Einwilligung, 3D-Attribute,

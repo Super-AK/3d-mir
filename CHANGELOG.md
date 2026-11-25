@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.71] – 25. November 2026
+
+### Behoben
+
+- **IP-Allowlist:** Die von der API gesehene Herkunfts-IP und der
+  `X-Forwarded-For`-Wert werden jetzt im Zugriffs-Log angezeigt. Der Vergleich
+  normalisiert `::ffff:`-Präfixe, unterstützt IPv4-/IPv6-CIDR und verwendet als
+  Fallback ausschließlich die letzte (von NGINX gesetzte) Forwarded-IP. Damit
+  lassen sich Tokens mit Allowlist auch hinter dem Reverse Proxy korrekt zuordnen.
+
 ## [1.0.0-rc.70] – 24. November 2026
 
 ### Hinzugefügt

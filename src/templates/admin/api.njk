@@ -253,6 +253,7 @@
           <textarea name="ipAllowlist" rows="3" placeholder="203.0.113.10&#10;198.51.100.0/24"></textarea>
         </label>
       </div>
+      <p class="text-muted">Die von der API tatsächlich gesehene IP steht in der Tabelle „Letzte Zugriffe" weiter unten. IPv4, IPv6 und CIDR sind möglich; <code>::ffff:</code>-Präfixe werden normalisiert.</p>
       <div class="form-actions"><button class="btn" type="submit">Token anlegen</button></div>
     </form>
   </section>
@@ -271,12 +272,12 @@
     <h3>Letzte Zugriffe</h3>
     <div class="table-wrap">
       <table class="admin-edit-table">
-        <thead><tr><th>Zeit</th><th>Token</th><th>Methode</th><th>Pfad</th><th>Status</th><th>Dauer</th><th>Anzahl</th></tr></thead>
+        <thead><tr><th>Zeit</th><th>IP</th><th>X-Forwarded-For</th><th>Token</th><th>Methode</th><th>Pfad</th><th>Status</th><th>Dauer</th><th>Anzahl</th></tr></thead>
         <tbody>
           {% for entry in accessLog %}
-            <tr><td>{{ entry.created_at }}</td><td>{{ entry.token_name }}</td><td>{{ entry.method }}</td><td><code>{{ entry.path }}</code></td><td>{{ entry.status }}</td><td>{{ entry.duration_ms }} ms</td><td>{{ entry.item_count }}</td></tr>
+            <tr><td>{{ entry.created_at }}</td><td><code>{{ entry.ip or '–' }}</code></td><td><code>{{ entry.forwarded_for or '–' }}</code></td><td>{{ entry.token_name or '–' }}</td><td>{{ entry.method }}</td><td><code>{{ entry.path }}</code></td><td>{{ entry.status }}</td><td>{{ entry.duration_ms }} ms</td><td>{{ entry.item_count }}</td></tr>
           {% else %}
-            <tr><td colspan="7" class="text-muted">Noch keine Zugriffe.</td></tr>
+            <tr><td colspan="9" class="text-muted">Noch keine Zugriffe.</td></tr>
           {% endfor %}
         </tbody>
       </table>

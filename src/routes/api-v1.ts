@@ -218,7 +218,14 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       return fail(reply, 503, 'maintenance', 'Wartungsmodus: bitte später erneut versuchen.', requestId);
     }
 
-    const token = resolveApiToken(request.headers.authorization, request.ip);
+    const forwarded = request.headers['x-forwarded-for'];
+    const forwardedFor = typeof forwarded === 'string'
+      ? forwarded
+      : Array.isArray(forwarded)
+        ? forwarded.join(', ')
+        : undefined;
+    request.apiForwardedFor = forwardedFor;
+    const token = resolveApiToken(request.headers.authorization, request.ip, forwardedFor);
     request.apiToken = token;
     if (!token) {
       return fail(reply, 401, 'unauthorized', 'Ungültiger oder fehlender API-Token.', requestId);
@@ -238,8 +245,8 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       getDb()
         .prepare(
           `INSERT INTO api_access_log
-             (request_id, token_id, token_name, method, path, status, duration_ms, item_count, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+             (request_id, token_id, token_name, method, path, status, duration_ms, item_count, ip, forwarded_for, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
         )
         .run(
           requestId,
@@ -250,6 +257,8 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
           reply.statusCode,
           Math.round(reply.elapsedTime),
           request.apiItemCount ?? 0,
+          request.ip,
+          request.apiForwardedFor?.slice(0, 500) ?? '',
         );
     } catch {
       // Protokollfehler dürfen die Antwort nicht verändern.
