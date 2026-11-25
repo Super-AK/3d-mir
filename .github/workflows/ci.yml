@@ -46,7 +46,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           SAFE_MSG=$(printf '%s' "$MSG" | head -n1 | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-          TEXT="❌ <b>- 3D-MIR - </br> CI fehlgeschlagen!</b>"$'\n'"Commit: ${SAFE_MSG}"$'\n'"${RUN_URL}"
+          TEXT="❌ <b>- 3D-MIR - </b>"$'\n'"<b>CI fehlgeschlagen!</b>"$'\n'"Commit: ${SAFE_MSG}"$'\n'"${RUN_URL}"
           curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d parse_mode="HTML" \
@@ -93,7 +93,7 @@ jobs:
           MSG: ${{ github.event.head_commit.message }}
         run: |
           SAFE_MSG=$(printf '%s' "$MSG" | head -n1 | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-          TEXT="✅ <b>3D-MIR - Deploy erfolgreich!</b>"$'\n'"Änderung: ${SAFE_MSG}"
+          TEXT="✅ <b>- 3D-MIR - </b>"$'\n'"<b>Deploy erfolgreich!</b>"$'\n'"Änderung: ${SAFE_MSG}"
           curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d parse_mode="HTML" \
@@ -106,7 +106,7 @@ jobs:
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          TEXT="⚠️ <b>3D-MIR - Deploy auf Produktionsserver fehlgeschlagen!</b>"$'\n'"${RUN_URL}"
+          TEXT="⚠️ <b>- 3D-MIR - </b>"$'\n'"<b>Deploy auf Produktionsserver fehlgeschlagen!</b>"$'\n'"${RUN_URL}"
           curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d parse_mode="HTML" \
