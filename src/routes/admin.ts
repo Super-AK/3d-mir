@@ -191,6 +191,7 @@ import {
 } from '../lib/customers.js';
 import { requestPasswordReset } from '../lib/customer-auth.js';
 import { turnstileConfigured } from '../lib/turnstile.js';
+import { getTurnstileSettings, maskedSecret, resetTurnstileSettings, saveTurnstileSettings } from '../lib/turnstile-settings.js';
 import { botEventStats, clearBotEvents, listBotEvents } from '../lib/bot-events.js';
 import {
   campaignDeliveries,
@@ -5105,16 +5106,36 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     // Bot-Schutz ------------------------------------------------------------
     scope.get('/admin/bot-schutz/', async (request, reply) => {
-      const key = config.turnstile.siteKey;
+      const keys = getTurnstileSettings();
       render(reply, 'admin/bot-schutz.njk', adminContext(request, {
         status: {
           configured: turnstileConfigured(),
-          siteKeyPrefix: key ? `${key.slice(0, 6)}…` : '',
-          secretConfigured: Boolean(config.turnstile.secret),
+          siteKeyPrefix: keys.siteKey ? `${keys.siteKey.slice(0, 6)}…` : '',
+          secretConfigured: Boolean(keys.secret),
+          secretMasked: maskedSecret(keys.secret),
         },
         stats: botEventStats(),
         events: listBotEvents(100),
       }));
+    });
+
+    scope.post('/admin/bot-schutz/keys/', async (request, reply) => {
+      const body = bodyObject(request);
+      saveTurnstileSettings({
+        siteKey: typeof body.siteKey === 'string' ? body.siteKey : undefined,
+        secret: typeof body.secret === 'string' ? body.secret : undefined,
+      });
+      writeAudit(request.admin?.email ?? 'admin', 'bot.turnstile.keys', {
+        siteKeyChanged: typeof body.siteKey === 'string' && body.siteKey.trim().length > 0,
+        secretChanged: typeof body.secret === 'string' && body.secret.trim().length > 0,
+      });
+      return reply.redirect('/admin/bot-schutz/?gespeichert=1', 303);
+    });
+
+    scope.post('/admin/bot-schutz/reset/', async (request, reply) => {
+      resetTurnstileSettings();
+      writeAudit(request.admin?.email ?? 'admin', 'bot.turnstile.reset', {});
+      return reply.redirect('/admin/bot-schutz/?zurueckgesetzt=1', 303);
     });
 
     scope.post('/admin/bot-schutz/loeschen/', async (request, reply) => {

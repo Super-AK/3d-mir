@@ -1,11 +1,12 @@
-import { config } from '../config.js';
 import { getLogger } from './logger.js';
+import { getTurnstileSettings } from './turnstile-settings.js';
 
 const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 /** Ohne konfigurierte Keys bleibt der Schutz im Dev/Test deaktiviert. */
 export function turnstileConfigured(): boolean {
-  return Boolean(config.turnstile.siteKey && config.turnstile.secret);
+  const settings = getTurnstileSettings();
+  return Boolean(settings.siteKey && settings.secret);
 }
 
 /**
@@ -13,10 +14,11 @@ export function turnstileConfigured(): boolean {
  * Das Token wird nie geloggt; bei Netzwerkfehlern wird fail-closed entschieden.
  */
 export async function verifyTurnstileToken(token: unknown): Promise<boolean> {
+  const settings = getTurnstileSettings();
   if (!turnstileConfigured()) return true;
   if (typeof token !== 'string' || token.length === 0 || token.length > 2048) return false;
 
-  const body = new URLSearchParams({ secret: config.turnstile.secret, response: token });
+  const body = new URLSearchParams({ secret: settings.secret, response: token });
   try {
     const response = await fetch(VERIFY_URL, {
       method: 'POST',

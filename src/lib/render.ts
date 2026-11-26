@@ -10,6 +10,7 @@ import { getPublicationSettings } from './publication-settings.js';
 import { placeholder } from './placeholders.js';
 import { isPickupShippingMethod } from './shop.js';
 import { faviconVersion } from './favicon.js';
+import { getTurnstileSettings } from './turnstile-settings.js';
 
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
 type ImageInfo = { width: number; height: number; alt: string; variants: ImageVariant[] };
@@ -274,7 +275,7 @@ export function render(res: import('fastify').FastifyReply, template: string, co
     publication: getPublicationSettings(),
     publicPaymentMethods: paymentMethods,
     faviconVersion: faviconVersion(),
-    turnstile: { siteKey: config.turnstile.siteKey },
+    turnstile: { siteKey: getTurnstileSettings().siteKey },
     publicPaymentFlags: {
       card: paymentMethods.some((method) => method.provider === 'stripe' && method.stripeMethod === 'card'),
       paypal: paymentMethods.some((method) => method.stripeMethod === 'paypal'),

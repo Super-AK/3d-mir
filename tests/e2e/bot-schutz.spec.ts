@@ -18,5 +18,14 @@ test.describe('Bot-Schutz Admin', () => {
     await expect(page.getByRole('heading', { name: 'Konfiguration' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Ereignisse' })).toBeVisible();
     await expect(page.getByText('3 Anfragen pro Stunde und IP')).toBeVisible();
+
+    await page.fill('input[name="siteKey"]', '1x00000000000000000000BB');
+    await page.fill('input[name="secret"]', '1x0000000000000000000000000000000AA');
+    await page.getByRole('button', { name: 'Keys speichern' }).click();
+    await expect(page).toHaveURL(/gespeichert=1/);
+    await expect(page.locator('dl').first()).toContainText('aktiv');
+
+    await page.getByRole('button', { name: 'Auf Umgebungsvariablen zurücksetzen' }).click();
+    await expect(page).toHaveURL(/zurueckgesetzt=1/);
   });
 });

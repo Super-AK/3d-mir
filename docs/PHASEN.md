@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.93 – 26. November 2026
+
+Turnstile-Keys komfortabel im Admin pflegbar (Env bleibt Fallback).
+
 ## Release 1.0.0-rc.92 – 26. November 2026
 
 Admin-Ansicht für Bot-Schutz-Status und Ereignisprotokoll.

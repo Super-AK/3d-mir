@@ -45,11 +45,15 @@ Anforderung und funktioniert ohne externen Dienst.
 
 | Variable | Ort | Zweck |
 | --- | --- | --- |
-| `TURNSTILE_SITE_KEY` | öffentlich, in `.env` / `/etc/3d-mir/3d-mir.env` | Wird in alle Formular-Templates gerendert. |
-| `TURNSTILE_SECRET_KEY` | **geheim**, nur serverseitig, chmod 600 | Serverseitige Verifizierung. |
+| `TURNSTILE_SITE_KEY` | öffentlich, optionaler Fallback | Wird in alle Formular-Templates gerendert. |
+| `TURNSTILE_SECRET_KEY` | **geheim**, optionaler Fallback, nur serverseitig | Serverseitige Verifizierung. |
 
-Beide leer = Schutz deaktiviert. Für Produktion beide setzen. Die CSP erlaubt
-`challenges.cloudflare.com` jetzt in `script-src`, `connect-src` und `frame-src`.
+Beide leer = Schutz deaktiviert. **Komfortabler:** Die Keys können jetzt unter
+**Admin → Bot-Schutz** im Formular „Turnstile-Keys" eingetragen werden. Diese
+Werte haben Vorrang vor den Env-Variablen, wirken sofort ohne Neustart und
+werden in der `settings`-Tabelle gespeichert. Das Secret wird nie angezeigt
+(nur als gekürzter Hinweis im Platzhalter). „Auf Umgebungsvariablen
+zurücksetzen" entfernt den Admin-Override wieder.
 
 ## Admin-Ansicht
 

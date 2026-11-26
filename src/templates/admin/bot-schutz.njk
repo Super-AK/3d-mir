@@ -17,6 +17,31 @@
   </div>
 
   {% if meldung.geloescht %}<div class="alert alert-success" role="status">Protokoll geleert.</div>{% endif %}
+  {% if meldung.gespeichert %}<div class="alert alert-success" role="status">Gespeichert.</div>{% endif %}
+  {% if meldung.zurueckgesetzt %}<div class="alert alert-success" role="status">Auf Umgebungsvariablen zurückgesetzt.</div>{% endif %}
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Turnstile-Keys</h2></div>
+    <form class="form" method="post" action="/admin/bot-schutz/keys/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="form-row">
+        <label class="field">Site-Key (öffentlich)
+          <input type="text" name="siteKey" maxlength="200" placeholder="{{ status.siteKeyPrefix or '1x00000000000000000000BB' }}">
+        </label>
+        <label class="field">Secret (geheim)
+          <input type="password" name="secret" maxlength="200" placeholder="•••••••• (gespeichert: {{ status.secretMasked or 'keiner' }})" autocomplete="new-password">
+        </label>
+      </div>
+      <p class="text-muted">Leere Felder behalten den bisherigen Wert. Änderungen wirken sofort, ohne Neustart.</p>
+      <div class="form-actions">
+        <button class="btn" type="submit">Keys speichern</button>
+      </div>
+    </form>
+    <form class="form mt-2" method="post" action="/admin/bot-schutz/reset/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="btn btn-secondary btn-small" type="submit">Auf Umgebungsvariablen zurücksetzen</button>
+    </form>
+  </section>
 
   <section class="card admin-panel">
     <div class="admin-panel-head"><h2>Konfiguration</h2></div>

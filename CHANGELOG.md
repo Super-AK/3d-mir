@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.93] – 26. November 2026
+
+### Hinzugefügt
+
+- **Turnstile-Keys im Admin:** Unter „Admin → Bot-Schutz" können Site-Key und
+  Secret direkt eingetragen werden. Die Werte haben Vorrang vor den
+  Umgebungsvariablen, wirken sofort ohne Neustart und sind mit einer
+  Zurücksetzen-Funktion versehen. Das Secret bleibt maskiert.
+
 ## [1.0.0-rc.92] – 26. November 2026
 
 ### Hinzugefügt
