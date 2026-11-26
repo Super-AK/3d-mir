@@ -18,7 +18,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     if (!isSameOrigin(request)) return reply.code(403).send();
     const body = (request.body ?? {}) as Record<string, unknown>;
     const email = typeof body.email === 'string' ? body.email : '';
-    if (body.consent === '1') subscribeNewsletter(email);
+    if (body.consent === '1') await subscribeNewsletter(email);
     render(reply, 'pages/newsletter.njk', {
       mode: 'message',
       message: 'Wenn die Anmeldung möglich ist, haben wir eine Bestätigungs-E-Mail versendet.',

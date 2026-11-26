@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.86] – 26. November 2026
+
+### Behoben
+
+- **Kunden-Mails:** SMTP-Fehler bei Passwort-Reset, Registrierung,
+  E-Mail-Änderung und Newsletter wurden bisher still verschluckt. Sie werden
+  jetzt ohne personenbezogene Daten ins Log geschrieben; der Admin sieht beim
+  Passwort-Reset einen deutlichen Fehlerhinweis.
+
 ## [1.0.0-rc.85] – 26. November 2026
 
 ### Geändert

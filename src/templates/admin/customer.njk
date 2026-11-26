@@ -13,6 +13,7 @@
 
   {% if meldung.gespeichert %}<div class="alert alert-success" role="status">Gespeichert.</div>{% endif %}
   {% if meldung.fehler == 'anonym' %}<div class="alert alert-danger" role="alert">Bitte „ANONYMISIEREN" eingeben.</div>{% endif %}
+  {% if meldung.fehler == 'mail' %}<div class="alert alert-danger" role="alert">Die E-Mail konnte nicht versendet werden. Bitte SMTP-Einstellung und Log prüfen.</div>{% endif %}
 
   {% if admin.role == 'support' %}
     <form class="form" method="post" action="/admin/kunden/{{ customer.id }}/notiz/">

@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.86 – 26. November 2026
+
+SMTP-Fehler bei Kunden-Mails sind sichtbar (Log und Admin-Hinweis).
+
 ## Release 1.0.0-rc.85 – 26. November 2026
 
 Konto-Zugang in der Kopfzeile als Icon-Link.

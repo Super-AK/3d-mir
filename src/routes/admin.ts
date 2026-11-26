@@ -5205,8 +5205,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     scope.post<{ Params: { id: string } }>('/admin/kunden/:id/passwort-reset/', async (request, reply) => {
       const customer = getCustomerById(request.params.id);
       if (customer?.email) {
-        await requestPasswordReset(customer.email);
+        const result = await requestPasswordReset(customer.email);
         writeAudit(request.admin?.email ?? 'admin', 'customer.password_reset', { id: customer.id });
+        if (!result.delivered) return reply.redirect(`/admin/kunden/${customer.id}/?fehler=mail`, 303);
       }
       return reply.redirect(`/admin/kunden/${request.params.id}/?gespeichert=1`, 303);
     });

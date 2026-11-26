@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { sendMail } from './mailer.js';
+import { getLogger } from './logger.js';
 
 type NewsletterRow = {
   id: number;
@@ -21,7 +22,7 @@ function hash(token: string): string {
 }
 
 /** Double-Opt-in: Anmeldung ist erst nach Bestätigung wirksam. */
-export function subscribeNewsletter(email: string): string | null {
+export async function subscribeNewsletter(email: string): Promise<string | null> {
   const address = normalized(email);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address) || address.length > 200) return null;
   const token = crypto.randomBytes(32).toString('hex');
@@ -35,12 +36,22 @@ export function subscribeNewsletter(email: string): string | null {
   const base = config.site.baseUrl.replace(/\/$/, '');
   const confirm = `${base}/newsletter/bestaetigen/?token=${token}`;
   const unsubscribe = `${base}/newsletter/abmelden/?token=${token}`;
-  void sendMail({
-    to: address,
-    subject: 'Newsletter bestätigen – 3D-MIR',
-    text: `Bitte bestätigen Sie Ihre Anmeldung: ${confirm}\nAbmelden: ${unsubscribe}`,
-    html: `<p>Bitte bestätigen Sie Ihre Anmeldung: <a href="${confirm}">Bestätigen</a></p><p>Jederzeit abmelden: <a href="${unsubscribe}">Abmelden</a></p>`,
-  }).catch(() => {});
+  try {
+    const result = await sendMail({
+      to: address,
+      subject: 'Newsletter bestätigen – 3D-MIR',
+      text: `Bitte bestätigen Sie Ihre Anmeldung: ${confirm}\nAbmelden: ${unsubscribe}`,
+      html: `<p>Bitte bestätigen Sie Ihre Anmeldung: <a href="${confirm}">Bestätigen</a></p><p>Jederzeit abmelden: <a href="${unsubscribe}">Abmelden</a></p>`,
+    });
+    if (!result.delivered && !result.savedTo) {
+      getLogger().error({ subject: 'Newsletter bestätigen' }, 'Newsletter-Mail nicht zugestellt');
+    }
+  } catch (error) {
+    getLogger().error(
+      { subject: 'Newsletter bestätigen', err: error instanceof Error ? error.message : 'unbekannter Fehler' },
+      'Newsletter-Mail fehlgeschlagen',
+    );
+  }
   return token;
 }
 

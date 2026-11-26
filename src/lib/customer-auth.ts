@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import argon2 from 'argon2';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
+import { getLogger } from './logger.js';
 import { sendMail } from './mailer.js';
 import { ensureCustomer, getCustomerByEmail, normalizedEmail, touchCustomer, writeCustomerAudit } from './customers.js';
 import { queueWebhook } from './api-webhooks.js';
@@ -57,6 +58,29 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+/** Versendet eine Kunden-Mail und macht SMTP-Fehler im Log sichtbar (ohne PII). */
+async function sendCustomerMail(options: {
+  subject: string;
+  text: string;
+  html?: string;
+  to: string;
+}): Promise<boolean> {
+  try {
+    const result = await sendMail(options);
+    if (!result.delivered && !result.savedTo) {
+      getLogger().error({ subject: options.subject }, 'Kunden-E-Mail wurde nicht zugestellt');
+      return false;
+    }
+    return true;
+  } catch (error) {
+    getLogger().error(
+      { subject: options.subject, err: error instanceof Error ? error.message : 'unbekannter Fehler' },
+      'Kunden-E-Mail fehlgeschlagen',
+    );
+    return false;
+  }
+}
+
 function sqlUtc(minutes: number): string {
   return new Date(Date.now() + minutes * 60_000).toISOString().replace('T', ' ').slice(0, 19);
 }
@@ -108,13 +132,11 @@ export async function registerCustomer(email: string, password: string): Promise
     .run(customer.id, hash);
   const token = issueToken(customer.id, 'verify', '', 48 * 60);
   const link = `${config.site.baseUrl.replace(/\/$/, '')}/konto/bestaetigen/?token=${token}`;
-  void sendMail({
+  await sendCustomerMail({
     to: normalized,
     subject: 'Bitte E-Mail-Adresse bestätigen – 3D-MIR',
     text: `Bitte bestätigen Sie Ihre E-Mail-Adresse: ${link}\nDer Link ist 48 Stunden gültig.`,
     html: `<p>Bitte bestätigen Sie Ihre E-Mail-Adresse:</p><p><a href="${link}">E-Mail bestätigen</a></p><p>Der Link ist 48 Stunden gültig.</p>`,
-  }).catch(() => {
-    // Das Konto bleibt auch bei Mail-Fehler nutzbar (Fallback .eml).
   });
   writeCustomerAudit('system', 'customer.register', { id: customer.id });
   return { ok: true };
@@ -177,22 +199,21 @@ export async function loginCustomer(email: string, password: string): Promise<st
 }
 
 /** Neutral: immer ok, auch wenn das Konto nicht existiert. */
-export function requestPasswordReset(email: string): { ok: true } {
+export async function requestPasswordReset(email: string): Promise<{ ok: true; delivered: boolean }> {
   const customer = getCustomerByEmail(email);
   const row = customer
     ? (getDb().prepare('SELECT * FROM customer_accounts WHERE customer_id = ?').get(customer.id) as AuthRow | undefined)
     : undefined;
-  if (customer && row?.password_hash) {
-    const token = issueToken(customer.id, 'reset', '', 60);
-    const link = `${config.site.baseUrl.replace(/\/$/, '')}/konto/neu-setzen/?token=${token}`;
-    void sendMail({
-      to: customer.email,
-      subject: 'Passwort zurücksetzen – 3D-MIR',
-      text: `Link zum Zurücksetzen (60 Minuten gültig): ${link}`,
-      html: `<p>Link zum Zurücksetzen (60 Minuten gültig): <a href="${link}">Passwort neu setzen</a></p>`,
-    }).catch(() => {});
-  }
-  return { ok: true };
+  if (!customer || !row?.password_hash) return { ok: true, delivered: true };
+  const token = issueToken(customer.id, 'reset', '', 60);
+  const link = `${config.site.baseUrl.replace(/\/$/, '')}/konto/neu-setzen/?token=${token}`;
+  const delivered = await sendCustomerMail({
+    to: customer.email,
+    subject: 'Passwort zurücksetzen – 3D-MIR',
+    text: `Link zum Zurücksetzen (60 Minuten gültig): ${link}`,
+    html: `<p>Link zum Zurücksetzen (60 Minuten gültig): <a href="${link}">Passwort neu setzen</a></p>`,
+  });
+  return { ok: true, delivered };
 }
 
 export async function resetPassword(token: string, password: string): Promise<boolean> {
@@ -208,15 +229,15 @@ export async function resetPassword(token: string, password: string): Promise<bo
   return true;
 }
 
-export function requestEmailChange(customerId: string, email: string): { ok: true } {
+export async function requestEmailChange(customerId: string, email: string): Promise<{ ok: true }> {
   const token = issueToken(customerId, 'email_change', JSON.stringify({ email: normalizedEmail(email) }), 60);
   const link = `${config.site.baseUrl.replace(/\/$/, '')}/konto/bestaetigen/?token=${token}`;
-  void sendMail({
+  await sendCustomerMail({
     to: normalizedEmail(email),
     subject: 'Neue E-Mail-Adresse bestätigen – 3D-MIR',
     text: `Bitte bestätigen Sie die neue E-Mail-Adresse: ${link}`,
     html: `<p>Bitte bestätigen Sie die neue E-Mail-Adresse: <a href="${link}">Bestätigen</a></p>`,
-  }).catch(() => {});
+  });
   return { ok: true };
 }
 

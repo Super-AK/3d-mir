@@ -38,19 +38,19 @@ afterAll(() => {
 });
 
 describe('Newsletter', () => {
-  it('erfordert eine gültige Adresse', () => {
-    expect(subscribeNewsletter('keine-adresse')).toBeNull();
-    expect(subscribeNewsletter('kunde@example.de')).toMatch(/^[a-f0-9]{64}$/);
+  it('erfordert eine gültige Adresse', async () => {
+    expect(await subscribeNewsletter('keine-adresse')).toBeNull();
+    expect(await subscribeNewsletter('kunde@example.de')).toMatch(/^[a-f0-9]{64}$/);
   });
 
-  it('ist erst nach Bestätigung aktiv und danach abmeldbar', () => {
-    expect(subscribeNewsletter('keine-adresse')).toBeNull();
-    const token = subscribeNewsletter('kunde@example.de');
+  it('ist erst nach Bestätigung aktiv und danach abmeldbar', async () => {
+    expect(await subscribeNewsletter('keine-adresse-2')).toBeNull();
+    const token = await subscribeNewsletter('kunde2@example.de');
     expect(token).toMatch(/^[a-f0-9]{64}$/);
-    expect(isNewsletterSubscriber('kunde@example.de')).toBe(false);
+    expect(isNewsletterSubscriber('kunde2@example.de')).toBe(false);
     expect(confirmNewsletter(token!)).toBe(true);
-    expect(isNewsletterSubscriber('kunde@example.de')).toBe(true);
+    expect(isNewsletterSubscriber('kunde2@example.de')).toBe(true);
     expect(unsubscribeNewsletter(token!)).toBe(true);
-    expect(isNewsletterSubscriber('kunde@example.de')).toBe(false);
+    expect(isNewsletterSubscriber('kunde2@example.de')).toBe(false);
   });
 });

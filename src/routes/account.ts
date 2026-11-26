@@ -146,7 +146,7 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
   app.post('/konto/passwort-vergessen/', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (request, reply) => {
     if (!isSameOrigin(request)) return reply.code(403).send();
     const email = typeof (request.body as { email?: unknown })?.email === 'string' ? String((request.body as { email: string }).email) : '';
-    if (email) requestPasswordReset(email);
+    if (email) await requestPasswordReset(email);
     render(reply, 'account/auth.njk', {
       mode: 'message',
       message: 'Wenn ein Konto existiert, haben wir einen Link zum Zurücksetzen versendet.',
