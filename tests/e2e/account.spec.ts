@@ -33,10 +33,16 @@ test('Kundenbereich: Layout auf allen Seiten', async ({ page }) => {
   await expect(page.locator('.account-tab.is-active')).toHaveCount(1);
   await expect(page.locator('.account-card').first()).toBeVisible();
 
-  for (const path of ['/konto/', '/konto/bestellungen/', '/konto/anfragen/', '/konto/daten/']) {
+  for (const [path, tab] of [
+    ['/konto/', 'Übersicht'],
+    ['/konto/bestellungen/', 'Bestellungen'],
+    ['/konto/anfragen/', 'Angebotsanfragen'],
+    ['/konto/daten/', 'Meine Daten'],
+  ] as const) {
     await page.goto(path);
     await expect(page.locator('.account-shell')).toBeVisible();
     await expect(page.locator('.account-tab.is-active')).toHaveCount(1);
+    await expect(page.locator('.account-tab.is-active')).toHaveText(tab);
     await expect(page.locator('.account-head .btn')).toBeVisible();
   }
 });

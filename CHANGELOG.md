@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.89] – 26. November 2026
+
+### Behoben
+
+- **Konto-Tabs:** `currentPath` wurde im Konto-Kontext fest auf `/konto/`
+  gesetzt, weshalb unabhängig von der Seite immer „Übersicht" markiert war.
+  Jetzt wird die tatsächliche URL verwendet.
+
 ## [1.0.0-rc.88] – 26. November 2026
 
 ### Geändert

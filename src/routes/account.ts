@@ -50,7 +50,7 @@ function authContext(request: FastifyRequest, session: CustomerSession, extra: R
   return {
     customer,
     csrf: customerCsrf(session),
-    currentPath: '/konto/',
+    currentPath: request.url.split('?')[0] ?? '/konto/',
     meldung: { gespeichert: query.gespeichert === '1', fehler: query.fehler === '1' },
     ...extra,
   };
