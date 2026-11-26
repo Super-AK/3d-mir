@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.80] – 26. November 2026
+
+### Geändert
+
+- **Gemeinsame Abnahme bestätigt:** Shop (14/14 Punkte) und Faktura-App
+  (v1.4.98) sind grün. `docs/API-ABNAHME.md` enthält die Shop-Bestätigung zu
+  Scopes, `/meta.customer_numbers`, `customer_number`, `PATCH /invoice` und
+  `X-Request-Id`/`Retry-After`. F89 und F91 sind damit erledigt.
+
 ## [1.0.0-rc.79] – 25. November 2026
 
 ### Behoben

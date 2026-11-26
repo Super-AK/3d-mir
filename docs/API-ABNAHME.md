@@ -111,4 +111,19 @@ curl -sS -X PATCH -H "Authorization: Bearer $API_TOKEN" -H 'Content-Type: applic
 
 | Datum | Tester | Ergebnis | Offene Punkte (F-Nummer) |
 | --- | --- | --- | --- |
-| | | ☐ bestanden ☐ fehlgeschlagen | F87–F93 |
+| 25.11.2026 | Shop + Faktura | ✅ bestanden ☐ fehlgeschlagen | F92, KQ2, KQ4, KQ5 |
+
+## 8. Shop-seitige Bestätigung (25.11.2026)
+
+ Gegenüber der Faktura-App v1.4.98 werden folgende Punkte bestätigt:
+
+| Punkt | Bestätigung |
+| --- | --- |
+| Token-Scopes | `orders:read`, `customers:read`, `products:read`, `orders:write_status` und optional `customers:write_link` sind definiert. |
+| `/meta` | liefert `config_version` und `customer_numbers` mit `pattern`, `range_start`, `range_end` (sowie `last_assigned`, `usage_percent`). |
+| `customer_number` | wird seit dem Nachtrag (F94) für alle Bestellungen gesetzt; neue Bestellungen erhalten sie bei der Anlage. `null` kommt nur noch bei Altdaten ohne Nachtrag vor. |
+| `PATCH /orders/{id}/invoice` | wird akzeptiert (idempotent); Nummer, Datum und token-gesicherter Link erscheinen im Kundenkonto unter `/konto/rechnung/{id}/`. |
+| `X-Request-Id` / `Retry-After` | `X-Request-Id` ist in jeder API-Antwort enthalten; `Retry-After` wird bei `429` und bei Wartungsmodus `503` gesetzt. |
+| Webhooks | optional; Ziel-URL, Secret und Ereignisse im Admin konfigurierbar. Aktueller Zustand in `/meta.webhooks_enabled` ablesbar. |
+
+Die lesende Abnahme wurde mit `scripts/api-acceptance.sh` ausgeführt: alle 14 Punkte grün.
