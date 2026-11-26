@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.85 – 26. November 2026
+
+Konto-Zugang in der Kopfzeile als Icon-Link.
+
 ## Release 1.0.0-rc.84 – 26. November 2026
 
 Kontolink in Navigation/Footer und kompakte Login-Karte.

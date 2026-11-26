@@ -3,6 +3,13 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.85] – 26. November 2026
+
+### Geändert
+
+- Der Konto-Zugang in der Kopfzeile ist jetzt ein Icon mit `aria-label="Mein
+  Konto"` (statt Textlink). Im Footer bleibt der Textlink erhalten.
+
 ## [1.0.0-rc.84] – 26. November 2026
 
 ### Geändert

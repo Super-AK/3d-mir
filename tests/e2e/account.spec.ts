@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('Kontolink in Navigation und schmale Login-Karte', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.site-nav .nav-account')).toBeVisible();
+  await expect(page.locator('.site-nav a[aria-label="Mein Konto"]')).toBeVisible();
   await expect(page.locator('.site-footer a[href="/konto/"]')).toBeVisible();
 
   await page.goto('/konto/');
