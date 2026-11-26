@@ -1,5 +1,7 @@
 /* Kundenbereich – eigenes Layout, unabhängig von den Admin-Styles. */
 
+.cf-turnstile { min-height: 1px; overflow: hidden; }
+
 .account-shell {
   width: min(100%, 1100px);
   margin: 0 auto;

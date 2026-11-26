@@ -28,6 +28,7 @@
             <p class="text-muted">Wir senden einen Bestätigungslink. Die Adresse wird erst nach Bestätigung freigeschaltet.</p>
             <div class="form-actions"><button class="btn" type="submit">Konto anlegen</button></div>
           </section>
+        {% include "partials/turnstile.njk" %}
         </form>
         <p class="account-auth-links"><a href="/konto/anmelden/">Bereits ein Konto? Anmelden</a></p>
       {% elif mode == 'login' %}
@@ -41,6 +42,7 @@
             </label>
             <div class="form-actions"><button class="btn" type="submit">Anmelden</button></div>
           </section>
+        {% include "partials/turnstile.njk" %}
         </form>
         <p class="account-auth-links"><a href="/konto/passwort-vergessen/">Passwort vergessen?</a> · <a href="/konto/registrieren/">Konto anlegen</a></p>
       {% elif mode == 'forgot' %}
@@ -51,6 +53,7 @@
             </label>
             <div class="form-actions"><button class="btn" type="submit">Link anfordern</button></div>
           </section>
+        {% include "partials/turnstile.njk" %}
         </form>
       {% elif mode == 'reset' %}
         <form class="form" method="post" action="/konto/neu-setzen/">
@@ -61,6 +64,7 @@
             </label>
             <div class="form-actions"><button class="btn" type="submit">Passwort speichern</button></div>
           </section>
+        {% include "partials/turnstile.njk" %}
         </form>
       {% else %}
         <p class="account-auth-links"><a href="/konto/anmelden/">Zur Anmeldung</a></p>

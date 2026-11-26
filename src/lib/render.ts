@@ -274,6 +274,7 @@ export function render(res: import('fastify').FastifyReply, template: string, co
     publication: getPublicationSettings(),
     publicPaymentMethods: paymentMethods,
     faviconVersion: faviconVersion(),
+    turnstile: { siteKey: config.turnstile.siteKey },
     publicPaymentFlags: {
       card: paymentMethods.some((method) => method.provider === 'stripe' && method.stripeMethod === 'card'),
       paypal: paymentMethods.some((method) => method.stripeMethod === 'paypal'),

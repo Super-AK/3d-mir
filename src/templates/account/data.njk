@@ -30,6 +30,7 @@
       </label>
       <div class="account-form-actions"><button class="btn" type="submit">Speichern</button></div>
     </section>
+  {% include "partials/turnstile.njk" %}
   </form>
 
   <section class="account-card">
@@ -68,6 +69,7 @@
           <div class="account-field"><label for="addressCountry">Land</label><input id="addressCountry" type="text" name="countryCode" maxlength="2" value="DE"></div>
         </div>
         <div class="account-form-actions"><button class="btn" type="submit">Adresse speichern</button></div>
+      {% include "partials/turnstile.njk" %}
       </form>
     </details>
   </section>
@@ -79,6 +81,7 @@
       <input type="hidden" name="_csrf" value="{{ csrf }}">
       <div class="account-field"><label for="deleteConfirm">Zur Bestätigung „LOESCHEN" eingeben</label><input id="deleteConfirm" type="text" name="confirm" maxlength="20" required></div>
       <div class="account-form-actions"><button class="btn btn-danger" type="submit">Konto anonymisieren</button></div>
+    {% include "partials/turnstile.njk" %}
     </form>
   </section>
 {% endblock %}

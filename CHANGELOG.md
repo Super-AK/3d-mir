@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.91] – 26. November 2026
+
+### Hinzugefügt
+
+- **Bot-Schutz:** Cloudflare Turnstile (unsichtbar) in allen öffentlichen
+  Formularen, serverseitige Verifizierung gegen `siteverify`, Silent Fail ohne
+  Bot-Feedback und IP-Rate-Limit von 3/h für Kontakt und Angebotsanfrage.
+  Details und neue Env-Variablen: `docs/BOT-SCHUTZ.md`.
+
 ## [1.0.0-rc.90] – 26. November 2026
 
 ### Hinzugefügt

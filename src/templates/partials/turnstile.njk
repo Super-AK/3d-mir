@@ -1,0 +1,5 @@
+{# Unsichtbarer Bot-Schutz. Ohne Site-Key (Dev/Test) wird nichts gerendert. #}
+{% if turnstile.siteKey %}
+  <div class="cf-turnstile" data-sitekey="{{ turnstile.siteKey }}" data-size="invisible" aria-hidden="true"></div>
+  <input type="hidden" name="cf-turnstile-response" value="">
+{% endif %}

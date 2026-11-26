@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { queueWebhook } from '../lib/api-webhooks.js';
 import { ensureCustomer } from '../lib/customers.js';
+import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
 import { customerExternalId } from '../lib/api-mapper.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
@@ -670,6 +671,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/warenkorb/hinzufuegen/', async (request, reply) => {
     if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
+    if (!(await verifyTurnstileToken(turnstileToken(request.body)))) {
+      return shopError(reply, 403, 'Die Anfrage konnte nicht bestätigt werden. Bitte laden Sie die Seite neu.');
+    }
     const body = (request.body ?? {}) as Record<string, unknown>;
     const productId = Math.trunc(Number(body.productId));
     const found = Number.isFinite(productId) ? findProductById(productId) : null;
@@ -732,6 +736,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/warenkorb/aktualisieren/', async (request, reply) => {
     if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
+    if (!(await verifyTurnstileToken(turnstileToken(request.body)))) {
+      return shopError(reply, 403, 'Die Anfrage konnte nicht bestätigt werden. Bitte laden Sie die Seite neu.');
+    }
     const body = (request.body ?? {}) as Record<string, unknown>;
     const cart = readCart(request);
     for (const item of cart.items) {
@@ -752,6 +759,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/warenkorb/entfernen/', async (request, reply) => {
     if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
+    if (!(await verifyTurnstileToken(turnstileToken(request.body)))) {
+      return shopError(reply, 403, 'Die Anfrage konnte nicht bestätigt werden. Bitte laden Sie die Seite neu.');
+    }
     const body = (request.body ?? {}) as Record<string, unknown>;
     const key = cleanText(body.key, 64);
     const cart = readCart(request);
@@ -777,6 +787,10 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       // Honeypot: Bots bekommen eine neutrale Bestätigung ohne Bestellung.
       if (cleanText(body.website, 100)) {
         request.log.warn({ ip: request.ip }, 'Kasse: Honeypot ausgelöst');
+        return reply.redirect('/bestellung/danke/', 303);
+      }
+      if (!(await verifyTurnstileToken(turnstileToken(body)))) {
+        request.log.warn({}, 'Kasse: Turnstile abgelehnt');
         return reply.redirect('/bestellung/danke/', 303);
       }
 
@@ -1165,6 +1179,9 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     { config: { rateLimit: { max: 10, timeWindow: '1 hour' } } },
     async (request, reply) => {
       if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
+      if (!(await verifyTurnstileToken(turnstileToken(request.body)))) {
+        return shopError(reply, 403, 'Die Anfrage konnte nicht bestätigt werden. Bitte laden Sie die Seite neu.');
+      }
       const body = (request.body ?? {}) as Record<string, unknown>;
       const access = orderAccess(body);
       const order = access ? getPaymentOrderByAccess(access.number, access.token) : null;

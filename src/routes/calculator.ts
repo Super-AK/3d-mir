@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { config } from '../config.js';
+import { verifyTurnstileToken } from '../lib/turnstile.js';
 import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
@@ -176,7 +177,7 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
 
   app.post(
     '/3d-druck-rechner/anfrage/',
-    { config: { rateLimit: { max: 5, timeWindow: '1 hour' } } },
+    { config: { rateLimit: { max: 3, timeWindow: '1 hour' } } },
     async (request, reply) => {
       if (!isSameOrigin(request)) return jsonError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
 
@@ -194,6 +195,11 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
       if (!data.file) return jsonError(reply, 400, 'Bitte wählen Sie eine Modell-Datei aus.');
 
       const fields = data.fields;
+      if (!(await verifyTurnstileToken(field(fields, 'cf-turnstile-response', 2048)))) {
+        request.log.warn({}, 'Angebotsanfrage: Turnstile abgelehnt');
+        return reply.code(201).send({ ok: true, reference: createReference('ANF'), priceCents: 0 });
+      }
+
       const parsed = quoteSchema.safeParse({
         name: field(fields, 'name', 120),
         email: field(fields, 'email', 200),

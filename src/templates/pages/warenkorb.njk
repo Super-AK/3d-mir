@@ -46,10 +46,12 @@
                   <label for="quantity_{{ line.key }}">Menge</label>
                   <input id="quantity_{{ line.key }}" name="quantity_{{ line.key }}" type="number" min="1" max="{{ maxQuantity }}" value="{{ line.quantity }}" inputmode="numeric">
                   <button class="btn btn-secondary btn-small" type="submit">Aktualisieren</button>
+                {% include "partials/turnstile.njk" %}
                 </form>
                 <form method="post" action="/warenkorb/entfernen/">
                   <input type="hidden" name="key" value="{{ line.key }}">
                   <button class="btn btn-danger btn-small" type="submit">Entfernen</button>
+                {% include "partials/turnstile.njk" %}
                 </form>
               </div>
               <p class="cart-line-total">{{ line.lineTotalCents | price }}</p>

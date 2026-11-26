@@ -20,6 +20,7 @@ import {
   verifyCustomerCsrf,
   type CustomerSession,
 } from '../lib/customer-auth.js';
+import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
 
 export const CUSTOMER_COOKIE = 'mir3d_kunde';
 
@@ -80,6 +81,14 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/konto/registrieren/', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (request, reply) => {
     if (!isSameOrigin(request)) return reply.code(403).send();
+    if (await botDetected(request)) {
+      render(reply, 'account/auth.njk', {
+        mode: 'message',
+        message: 'Wenn die Adresse registriert werden kann, haben wir eine Bestätigungs-E-Mail versendet.',
+        currentPath: '/konto/registrieren/',
+      });
+      return;
+    }
     const parsed = registerSchema.safeParse(request.body);
     if (!parsed.success || !isStrongPassword(parsed.data.password)) {
       render(reply, 'account/auth.njk', {
@@ -116,7 +125,9 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
   app.post('/konto/anmelden/', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (request, reply) => {
     if (!isSameOrigin(request)) return reply.code(403).send();
     const parsed = loginSchema.safeParse(request.body);
-    const sessionId = parsed.success ? await loginCustomer(parsed.data.email, parsed.data.password) : null;
+    const sessionId = parsed.success && !(await botDetected(request))
+      ? await loginCustomer(parsed.data.email, parsed.data.password)
+      : null;
     if (!sessionId) {
       render(reply, 'account/auth.njk', {
         mode: 'login',
@@ -146,7 +157,7 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
   app.post('/konto/passwort-vergessen/', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (request, reply) => {
     if (!isSameOrigin(request)) return reply.code(403).send();
     const email = typeof (request.body as { email?: unknown })?.email === 'string' ? String((request.body as { email: string }).email) : '';
-    if (email) await requestPasswordReset(email);
+    if (email && !(await botDetected(request))) await requestPasswordReset(email);
     render(reply, 'account/auth.njk', {
       mode: 'message',
       message: 'Wenn ein Konto existiert, haben wir einen Link zum Zurücksetzen versendet.',
@@ -164,7 +175,7 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
   app.post('/konto/neu-setzen/', async (request, reply) => {
     if (!isSameOrigin(request)) return reply.code(403).send();
     const parsed = resetSchema.safeParse(request.body);
-    const ok = parsed.success && (await resetPassword(parsed.data.token, parsed.data.password));
+    const ok = parsed.success && !(await botDetected(request)) && (await resetPassword(parsed.data.token, parsed.data.password));
     render(reply, 'account/auth.njk', {
       mode: 'message',
       message: ok ? 'Passwort gespeichert. Bitte melden Sie sich an.' : 'Der Link ist ungültig oder abgelaufen.',
@@ -247,6 +258,7 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/konto/daten/', async (request, reply) => {
     const session = request.customerSession!;
+    if (await botDetected(request)) return reply.redirect('/konto/daten/?gespeichert=1', 303);
     const body = bodyObjectSafe(request.body);
     touchCustomer(session.customerId, {
       first_name: cleanText(body.firstName, 100),
@@ -261,6 +273,7 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/konto/adressen/', async (request, reply) => {
     const session = request.customerSession!;
+    if (await botDetected(request)) return reply.redirect('/konto/daten/?gespeichert=1', 303);
     const body = bodyObjectSafe(request.body);
     const kind = body.kind === 'shipping' ? 'shipping' : 'billing';
     const count = (getDb().prepare('SELECT COUNT(*) AS count FROM customer_addresses WHERE customer_id = ?').get(session.customerId) as { count: number }).count;
@@ -296,6 +309,7 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
   app.post('/konto/loeschen/', async (request, reply) => {
     const session = request.customerSession!;
     const body = bodyObjectSafe(request.body);
+    if (await botDetected(request)) return reply.redirect('/konto/anmelden/', 303);
     if (cleanText(body.confirm, 20) !== 'LOESCHEN') return reply.redirect('/konto/daten/?fehler=1', 303);
     anonymizeCustomer(session.customerId);
     deleteAllForCustomer(session.customerId);
@@ -306,6 +320,13 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
 
 function bodyObjectSafe(body: unknown): Record<string, unknown> {
   return body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
+}
+
+/** Turnstile-Fehler -> Bot: kein Feedback, keine Aktion. */
+async function botDetected(request: FastifyRequest): Promise<boolean> {
+  const ok = await verifyTurnstileToken(turnstileToken(request.body));
+  if (!ok) request.log.warn({}, 'Kundenbereich: Turnstile abgelehnt');
+  return !ok;
 }
 
 function deleteAllForCustomer(customerId: string): void {

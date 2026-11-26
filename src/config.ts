@@ -23,6 +23,8 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().optional(),
   SESSION_SECRET: z.string().min(16).optional(),
   TRUST_PROXY: z.string().default('127.0.0.1'),
+  TURNSTILE_SITE_KEY: z.string().optional(),
+  TURNSTILE_SECRET_KEY: z.string().optional(),
   // Lokale GeoIP-Datenbank (MaxMind-Format, z. B. DB-IP Lite) für die Länderprüfung.
   GEOIP_DB_PATH: z.string().optional(),
   // Optionaler Länder-Header eines vorgeschalteten CDN. Leer = Header werden ignoriert.
@@ -83,6 +85,10 @@ export const config = {
   uploadDir: env.UPLOAD_DIR ?? path.join(env.DATA_DIR, 'uploads'),
   sessionSecret: env.SESSION_SECRET ?? 'entwicklung-nur-nicht-produktiv-bitte-aendern',
   trustProxy: env.TRUST_PROXY.trim() || '127.0.0.1',
+  turnstile: {
+    siteKey: env.TURNSTILE_SITE_KEY?.trim() ?? '',
+    secret: env.TURNSTILE_SECRET_KEY?.trim() ?? '',
+  },
   maxUploadBytes: env.MAX_UPLOAD_MB * 1024 * 1024,
   geoip: {
     dbPath: env.GEOIP_DB_PATH?.trim() || path.join(env.DATA_DIR, 'geoip', 'dbip-country-lite.mmdb'),

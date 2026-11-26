@@ -169,6 +169,7 @@
           <button class="btn btn-block" type="submit" {% if paymentMethods.length == 0 %}disabled{% endif %}>zahlungspflichtig bestellen</button>
         </div>
         <p class="text-muted"><small>Pflichtfelder sind mit * markiert. Es fallen keine Kosten für die Nutzung dieser Seite an.</small></p>
+      {% include "partials/turnstile.njk" %}
       </form>
 
       <aside class="cart-summary checkout-summary card">

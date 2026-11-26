@@ -1,4 +1,5 @@
 import '../css/main.css';
+import './turnstile.js';
 /**
  * Allgemeine Frontend-Interaktionen.
  * Die Seite funktioniert auch ohne JavaScript; hier werden nur Komfortfunktionen ergänzt.

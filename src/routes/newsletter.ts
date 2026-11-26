@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { render } from '../lib/render.js';
 import { isSameOrigin } from '../lib/http.js';
 import { confirmNewsletter, subscribeNewsletter, unsubscribeNewsletter } from '../lib/newsletter.js';
+import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
 
 function tokenFrom(query: unknown): string {
   if (!query || typeof query !== 'object' || !('token' in query)) return '';
@@ -18,7 +19,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     if (!isSameOrigin(request)) return reply.code(403).send();
     const body = (request.body ?? {}) as Record<string, unknown>;
     const email = typeof body.email === 'string' ? body.email : '';
-    if (body.consent === '1') await subscribeNewsletter(email);
+    if (body.consent === '1' && (await verifyTurnstileToken(turnstileToken(body)))) await subscribeNewsletter(email);
     render(reply, 'pages/newsletter.njk', {
       mode: 'message',
       message: 'Wenn die Anmeldung möglich ist, haben wir eine Bestätigungs-E-Mail versendet.',
