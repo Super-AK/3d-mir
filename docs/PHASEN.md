@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.81 – 26. November 2026
+
+Diagnoseschritt für den Webhook-Timer auf Prod (markierter Commit).
+
 ## Release 1.0.0-rc.80 – 26. November 2026
 
 Beidseitige Abnahme bestätigt (Shop und Faktura v1.4.98); F89 und F91 abgeschlossen.

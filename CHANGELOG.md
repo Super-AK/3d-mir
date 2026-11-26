@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.81] – 26. November 2026
+
+### Hinzugefügt
+
+- **Webhook-Diagnose:** Ein mit `[webhook-diagnose]` markierter Commit gibt per
+  GitHub Actions den Zustand von `3d-mir-webhook.timer`, die Unit und das
+  Journal auf dem Prod-Server aus. Damit lassen sich ausbleibende Zustellungen
+  (`VERSUCHE = 0`) ohne SSH-Zugriff eingrenzen.
+
 ## [1.0.0-rc.80] – 26. November 2026
 
 ### Geändert

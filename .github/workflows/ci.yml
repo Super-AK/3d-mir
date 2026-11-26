@@ -72,6 +72,23 @@ jobs:
             # Der Anwendungsport kommt aus $PORT bzw. /etc/3d-mir/3d-mir.env.
             sudo ./deploy/update.sh
 
+      - name: Webhook-Diagnose (nur mit Marker im Commit)
+        if: success() && contains(github.event.head_commit.message, '[webhook-diagnose]')
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "=== Timer ==="
+            systemctl is-active 3d-mir-webhook.timer || true
+            systemctl is-enabled 3d-mir-webhook.timer || true
+            systemctl list-timers 3d-mir-webhook.timer --no-pager || true
+            echo "=== Unit ==="
+            systemctl status 3d-mir-webhook.service --no-pager -l || true
+            echo "=== Journal ==="
+            journalctl -u 3d-mir-webhook.service -n 50 --no-pager || true
+
       - name: Kunden-Nachtrag (F94, nur mit Marker im Commit)
         if: success() && contains(github.event.head_commit.message, '[backfill-kunden]')
         uses: appleboy/ssh-action@v1.2.0
