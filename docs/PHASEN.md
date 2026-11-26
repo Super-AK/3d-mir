@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.87 – 26. November 2026
+
+Passwort-Reset funktioniert auch für Gastkunden (Konto wird dabei eingerichtet).
+
 ## Release 1.0.0-rc.86 – 26. November 2026
 
 SMTP-Fehler bei Kunden-Mails sind sichtbar (Log und Admin-Hinweis).

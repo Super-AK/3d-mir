@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.87] – 26. November 2026
+
+### Behoben
+
+- **Passwort-Reset für Gäste:** Bisher wurde keine Mail versendet, wenn der
+  Kunde nur als Gast ohne `customer_accounts`-Eintrag vorlag. Der Reset-Link
+  richtet jetzt gleichzeitig ein Konto ein; nach dem Setzen des Passworts gelten
+  E-Mail als bestätigt und der Kunde nicht mehr als Gast.
+
 ## [1.0.0-rc.86] – 26. November 2026
 
 ### Behoben

@@ -22,6 +22,7 @@ const {
   getCustomerSession,
   isStrongPassword,
   loginCustomer,
+  requestPasswordReset,
   resetPassword,
   verifyCustomerCsrf,
   verifyEmail,
@@ -82,6 +83,17 @@ describe('Kundenkonten', () => {
     expect(await loginCustomer(email, 'MeinSicheresPasswort1')).toBeNull(); // gesperrt
     const row = getDb().prepare('SELECT failed_logins FROM customer_accounts WHERE customer_id = ?').get(customer.id) as { failed_logins: number };
     expect(row.failed_logins).toBeGreaterThanOrEqual(5);
+  });
+
+  it('richtet für Gastkunden beim Reset ein Konto ein', async () => {
+    const email = `gast-${Date.now()}@example.de`;
+    const { customer } = ensureCustomer({ email, isGuest: true });
+    const before = getDb().prepare('SELECT customer_id FROM customer_accounts WHERE customer_id = ?').get(customer.id);
+    expect(before).toBeUndefined();
+    const result = await requestPasswordReset(email);
+    expect(result.delivered).toBe(true);
+    const account = getDb().prepare('SELECT password_hash FROM customer_accounts WHERE customer_id = ?').get(customer.id) as { password_hash: string };
+    expect(account.password_hash).toBe('');
   });
 
   it('setzt das Passwort zurück und beendet alte Sitzungen', async () => {

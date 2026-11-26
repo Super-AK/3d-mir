@@ -201,10 +201,16 @@ export async function loginCustomer(email: string, password: string): Promise<st
 /** Neutral: immer ok, auch wenn das Konto nicht existiert. */
 export async function requestPasswordReset(email: string): Promise<{ ok: true; delivered: boolean }> {
   const customer = getCustomerByEmail(email);
-  const row = customer
+  const account = customer
     ? (getDb().prepare('SELECT * FROM customer_accounts WHERE customer_id = ?').get(customer.id) as AuthRow | undefined)
     : undefined;
-  if (!customer || !row?.password_hash) return { ok: true, delivered: true };
+  if (!customer) return { ok: true, delivered: true };
+  if (!account) {
+    // Gastkunde: Mit dem Reset-Link wird gleichzeitig ein Konto eingerichtet.
+    getDb()
+      .prepare('INSERT INTO customer_accounts (customer_id, password_hash) VALUES (?, ?)')
+      .run(customer.id, '');
+  }
   const token = issueToken(customer.id, 'reset', '', 60);
   const link = `${config.site.baseUrl.replace(/\/$/, '')}/konto/neu-setzen/?token=${token}`;
   const delivered = await sendCustomerMail({
@@ -224,6 +230,7 @@ export async function resetPassword(token: string, password: string): Promise<bo
   getDb()
     .prepare('UPDATE customer_accounts SET password_hash = ?, failed_logins = 0, locked_until = NULL WHERE customer_id = ?')
     .run(hash, row.customer_id);
+  touchCustomer(row.customer_id, { is_guest: 0, email_verified_at: sqlUtc(0) });
   getDb().prepare('DELETE FROM customer_sessions WHERE customer_id = ?').run(row.customer_id);
   writeCustomerAudit('system', 'customer.password_reset', { id: row.customer_id });
   return true;
