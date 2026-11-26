@@ -16,6 +16,7 @@
     <div class="admin-panel-head"><h2>Ihre Kundennummer</h2></div>
     <dl class="admin-dl">
       <div><dt>Kundennummer</dt><dd><code>{{ customer.customer_no }}</code></dd></div>
+      <div><dt>Faktura-Kundennummer</dt><dd>{% if customer.faktura_customer_no %}<code>{{ customer.faktura_customer_no }}</code>{% else %}Noch keine Zuordnung{% endif %}</dd></div>
       <div><dt>E-Mail</dt><dd>{{ customer.email }}</dd></div>
       <div><dt>E-Mail bestätigt</dt><dd>{% if customer.email_verified_at %}Ja{% else %}Nein{% endif %}</dd></div>
       <div><dt>Status</dt><dd>{{ customer.status }}</dd></div>

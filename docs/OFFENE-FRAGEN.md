@@ -165,7 +165,7 @@ E-Mails können über SMTP versendet werden. Die Einrichtung ist sowohl im Admin
 
 | Nr. | Status | Frage |
 | --- | --- | --- |
-| F61 | 🔴 Offen | Tägliches Backup: nur lokal unter `/var/lib/3d-mir/backups` oder zusätzlich extern (z. B. Hetzner Storage Box/S3)? |
+| F61 | ✅ Erledigt | **Externes Backup:** laut Betreiber aktiv eingerichtet. *(26.11.2026)* |
 | F62 | ✅ Erledigt | **Umgesetzt:** Modelldateien 90 Tage; Angebotsanfragen und Kontaktnachrichten 24 Monate; Bestelldaten bleiben gemäß gesetzlicher Aufbewahrung erhalten. Cleanup läuft täglich um 03:30 Uhr.<br>*(15.11.2026)* |
 | F63 | ✅ Erledigt | **Umgesetzt:** TOTP-2FA und Passkeys (WebAuthn) unter **Admin → Passwort und Sicherheit**; beim Login sind je nach Einrichtung Code und/oder Passkey erforderlich.<br>*(15.11.2026)* |
 | F64 | ✅ Erledigt | **Erledigt:** Der Admin-Zugang des Betreibers ist eingerichtet. Offen: Sollen weitere Personen Zugang erhalten? Zugänge werden mit `npm run admin:create -- --email … --name …` angelegt; Passwörter werden nie im Repo gespeichert.<br>*(13.11.2026)* |
@@ -211,7 +211,7 @@ Kontaktanfragen werden mit Länderprüfung, signiertem Zeit-Token, Honeypot, Rat
 | F89 | ✅ Erledigt | **Gemeinsamer Abnahmetest:** Shop-Seite 14/14 grün (`scripts/api-acceptance.sh`), Faktura-Seite v1.4.98 grün (Pull, Kundennummern, PATCH /invoice, Webhook-Empfänger, GoBD, Dry-Run). Beidseitige Bestätigung in `docs/API-ABNAHME.md`. *(25.11.2026)* |
 | F90 | ✅ Erledigt | **Produktiv-Token:** Vom Betreiber bestätigt – Token ist serverseitig in der Faktura-App hinterlegt. Die IP-Allowlist wird bei Bedarf anhand der IP im Shop-Zugriffs-Log ergänzt. Kein Token in Repo, Ticket oder E-Mail. *(25.11.2026)* |
 | F91 | ✅ Erledigt | **Rechnungslink:** Faktura-App liefert eine token-gesicherte, täglich erneuerte HTTPS-PDF-URL. Die Shop-API akzeptiert `invoice_url`; das Kundenkonto zeigt sie nur eingeloggten, berechtigten Kunden und bei Ablauf „Link abgelaufen, bitte anfragen". *(25.11.2026)* |
-| F92 | 🟢 Später | **Rate-Limit:** Aktuell 60 Anfragen/Minute pro Token im Speicher des einen Servers. Bei mehreren Instanzen wäre ein gemeinsamer Zähler (z. B. in SQLite/Redis) nötig. |
+| F92 | ✅ Erledigt | Rate-Limit bleibt pro Prozess im Speicher (60/Minute pro Token). Bei aktuellem, geringem Bestellaufkommen und einem Server ausreichend; bei mehreren Instanzen später gemeinsamen Zähler ergänzen. *(26.11.2026)* |
 | F93 | ✅ Erledigt | **Kundentabelle:** Mit K1 gibt es `customers`; die bisher abgeleiteten IDs bleiben stabil (Vertrag v1.2 §6.2). 3D-Attribute bleiben aus dem aktuellen Produkt (A3, von v1.2 angenommen). *(25.11.2026)* |
 | F94 | ✅ Erledigt | **Bestands-Nachtrag (K1):** Dev und Prod nach Backup ausgeführt (`npm run customers:backfill -- --confirm`). Alle Bestellungen haben `customer_id`; Nummern wurden in `created_at`-Reihenfolge vergeben und nie wiederverwendet. Nachweis: GitHub Actions `45703639237`, Schritt „Kunden-Nachtrag (F94 …)" erfolgreich. *(25.11.2026)* |
 | F95 | ✅ Erledigt | **Support-Rolle:** `users.role = support` (Migration 027), Anmeldung und Lesezugriff möglich; Schreiben nur noch für interne Notizen, kein Export, keine Status-/Anonymisierungs-/Passwortaktionen. Anlegen mit `npm run admin:create -- --email … --role support`. *(25.11.2026)* |

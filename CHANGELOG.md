@@ -3,6 +3,18 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.83] – 26. November 2026
+
+### Hinzugefügt
+
+- **Newsletter (KQ4):** Eigene, nicht vorangekreuzte Einwilligung über
+  `/newsletter/` mit Double-Opt-in und Abmeldelink; getrennt von der
+  Konto-Einwilligung `marketing_consent`.
+- **Faktura-Nummer im Konto (KQ2):** Die gemeldete Faktura-Kundennummer wird
+  in der Kontenübersicht angezeigt.
+- **Entscheidungen:** USt-IdNr. wird nur gespeichert, nicht geprüft (KQ5);
+  Rate-Limit im Speicher beibehalten (F92); externes Backup aktiv (F61).
+
 ## [1.0.0-rc.82] – 26. November 2026
 
 ### Behoben

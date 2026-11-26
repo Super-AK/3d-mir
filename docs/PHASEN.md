@@ -425,6 +425,11 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.83 – 26. November 2026
+
+Newsletter mit eigener Einwilligung, Faktura-Nummer im Konto und die
+Entscheidungen zu KQ5/F92/F61 dokumentiert.
+
 ## Release 1.0.0-rc.82 – 26. November 2026
 
 Webhook-Timer löst jetzt zuverlässig jede Minute aus.

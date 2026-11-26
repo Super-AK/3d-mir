@@ -1,0 +1,40 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Newsletter – 3D-MIR{% endblock %}
+{% block description %}Newsletter der 3D-MIR mit eigenen, jederzeit widerrufbaren Einwilligungen.{% endblock %}
+{% block robots %}noindex,nofollow{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Brotkrumen">
+      <ol><li><a href="/">Start</a></li><li aria-current="page">Newsletter</li></ol>
+    </nav>
+    <h1>Newsletter</h1>
+    <p>Neuigkeiten zu 3D-Druck, Materialien und Angeboten – nur mit Ihrer ausdrücklichen Einwilligung.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if mode == 'message' %}
+      <div class="card"><p>{{ message }}</p></div>
+      <p><a href="/">Zur Startseite</a></p>
+    {% else %}
+      <form class="form" method="post" action="/newsletter/">
+        <div class="card">
+          <label class="field">E-Mail-Adresse
+            <input type="email" name="email" required maxlength="200" autocomplete="email">
+          </label>
+          <label class="admin-check">
+            <input type="checkbox" name="consent" value="1" required>
+            <span>Ich möchte den Newsletter per E-Mail erhalten. Die Einwilligung ist unabhängig von meinem Kundenkonto und jederzeit über den Link in jeder E-Mail widerrufbar.</span>
+          </label>
+          <p class="text-muted">Sie erhalten eine Bestätigungs-E-Mail. Erst nach Bestätigung wird die Anmeldung wirksam.</p>
+          <div class="form-actions"><button class="btn" type="submit">Anmelden</button></div>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

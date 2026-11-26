@@ -417,7 +417,12 @@ Angebotsanfragen, Stammdaten/Adressen, JSON-Export und „Konto löschen"
 (Anonymisierung wegen Aufbewahrungsfristen). Rechnungslinks werden nur
 eingeloggten, berechtigten Kunden angezeigt; abgelaufene Links melden
 „Link abgelaufen, bitte anfragen". Die Kundennummer `KD9xxxxx` bleibt dabei immer
-erhalten und wird nie wiederverwendet.
+erhalten und wird nie wiederverwendet. Eine gemeldete Faktura-Kundennummer
+erscheint in der Kontenübersicht.
+
+Der Newsletter hat eine eigene, nicht vorangekreuzte Einwilligung unter
+`/newsletter/` (Double-Opt-in, Abmeldelink in jeder E-Mail) und ist von der
+Konto-Einwilligung `marketing_consent` getrennt.
 
 ## API & Schnittstellen
 
