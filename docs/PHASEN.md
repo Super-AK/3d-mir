@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.84 – 26. November 2026
+
+Kontolink in Navigation/Footer und kompakte Login-Karte.
+
 ## Release 1.0.0-rc.83 – 26. November 2026
 
 Newsletter mit eigener Einwilligung, Faktura-Nummer im Konto und die

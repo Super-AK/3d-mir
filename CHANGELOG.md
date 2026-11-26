@@ -3,6 +3,16 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.84] – 26. November 2026
+
+### Geändert
+
+- **Konto-Zugang sichtbar:** „Mein Konto" steht jetzt in der Kopfzeilen-
+  Navigation und im Footer (dort auch „Newsletter"). `features.customerAccounts`
+  ist aktiv.
+- **Login-Karte:** Die Anmelde-/Registrierungsseiten nutzen eine schmale,
+  zentrierte Karte statt einer Karte über die gesamte Seitenbreite.
+
 ## [1.0.0-rc.83] – 26. November 2026
 
 ### Hinzugefügt

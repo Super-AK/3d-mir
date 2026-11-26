@@ -48,7 +48,7 @@
   },
   "features": {
     "shop": true,
-    "customerAccounts": false,
+    "customerAccounts": true,
     "calculator": true,
     "paypal": true,
     "totp": false
