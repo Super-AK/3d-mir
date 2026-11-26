@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.94] – 26. November 2026
+
+### Behoben
+
+- **CI:** Der Turnstile-Unit-Test nutzte nach der neuen DB-basierten
+  Key-Verwaltung noch das Standard-Datenverzeichnis und scheiterte in GitHub
+  Actions an `EACCES`. Er nutzt jetzt wie die anderen Tests ein temporäres
+  Verzeichnis.
+
 ## [1.0.0-rc.93] – 26. November 2026
 
 ### Hinzugefügt

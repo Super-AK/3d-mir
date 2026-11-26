@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.94 – 26. November 2026
+
+CI-Fix für den Turnstile-Test nach Einführung der DB-basierten Keys.
+
 ## Release 1.0.0-rc.93 – 26. November 2026
 
 Turnstile-Keys komfortabel im Admin pflegbar (Env bleibt Fallback).
