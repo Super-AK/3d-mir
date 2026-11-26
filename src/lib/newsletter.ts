@@ -67,13 +67,24 @@ export function confirmNewsletter(token: string): boolean {
 }
 
 export function unsubscribeNewsletter(token: string): boolean {
+  const digest = hash(token);
   const row = getDb()
     .prepare('SELECT * FROM newsletter_subscriptions WHERE token_hash = ?')
-    .get(hash(token)) as NewsletterRow | undefined;
-  if (!row) return false;
+    .get(digest) as NewsletterRow | undefined;
+  if (row) {
+    getDb()
+      .prepare("UPDATE newsletter_subscriptions SET unsubscribed_at = datetime('now') WHERE id = ?")
+      .run(row.id);
+    return true;
+  }
+  // Abmeldelinks aus Kampagnen liegen in einer eigenen Tabelle.
+  const campaignLink = getDb()
+    .prepare('SELECT email FROM newsletter_unsubscribe WHERE token_hash = ?')
+    .get(digest) as { email: string } | undefined;
+  if (!campaignLink) return false;
   getDb()
-    .prepare("UPDATE newsletter_subscriptions SET unsubscribed_at = datetime('now') WHERE id = ?")
-    .run(row.id);
+    .prepare("UPDATE newsletter_subscriptions SET unsubscribed_at = datetime('now') WHERE email = ?")
+    .run(campaignLink.email);
   return true;
 }
 

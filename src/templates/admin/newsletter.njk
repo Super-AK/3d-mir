@@ -1,0 +1,117 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Newsletter – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Newsletter</h1>
+      <p>Empfänger mit eigener Einwilligung versenden.</p>
+    </div>
+    <div class="admin-page-actions"><a class="btn btn-secondary btn-small" href="/">Zur Website</a></div>
+  </div>
+
+  {% if meldung.gespeichert %}<div class="alert alert-success" role="status">Gespeichert. Zugestellt: {{ meldung.anzahl or '–' }}</div>{% endif %}
+  {% if meldung.fehler == 'mail' %}<div class="alert alert-danger" role="alert">Die Testmail konnte nicht versendet werden. SMTP und Log prüfen.</div>{% endif %}
+  {% if meldung.fehler == '1' %}<div class="alert alert-danger" role="alert">Bitte Betreff und Text angeben.</div>{% endif %}
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Empfänger</h2></div>
+    <div class="admin-stats">
+      <div class="admin-stat"><span class="admin-stat-label">Gesamt</span><strong>{{ stats.total }}</strong></div>
+      <div class="admin-stat"><span class="admin-stat-label">Aktiv</span><strong>{{ stats.active }}</strong></div>
+      <div class="admin-stat"><span class="admin-stat-label">Ausstehend</span><strong>{{ stats.pending }}</strong></div>
+      <div class="admin-stat"><span class="admin-stat-label">Abgemeldet</span><strong>{{ stats.unsubscribed }}</strong></div>
+    </div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>E-Mail</th><th>Status</th><th>Eingewilligt</th><th>Bestätigt</th></tr></thead>
+        <tbody>
+          {% for subscriber in subscribers %}
+            <tr>
+              <td>{{ subscriber.email }}</td>
+              <td><span class="badge badge-{% if subscriber.status == 'bestätigt' %}success{% elif subscriber.status == 'abgemeldet' %}neutral{% else %}warning{% endif %}">{{ subscriber.status }}</span></td>
+              <td>{{ subscriber.consent_at }}</td>
+              <td>{{ subscriber.confirmed_at or '–' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">Noch keine Anmeldungen.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Neue Kampagne</h2></div>
+    <form class="form" method="post" action="/admin/newsletter/kampagne/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="form-row">
+        <label class="field">Betreff
+          <input type="text" name="subject" maxlength="200" required placeholder="Newsletter November 2026">
+        </label>
+      </div>
+      <label class="field">Text (Plaintext)
+        <textarea name="text" rows="8" required></textarea>
+      </label>
+      <details class="admin-help">
+        <summary>HTML-Version (optional)</summary>
+        <label class="field">HTML
+          <textarea name="html" rows="8"></textarea>
+        </label>
+      </details>
+      <div class="form-actions"><button class="btn" type="submit">Entwurf speichern</button></div>
+    </form>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Testmail</h2></div>
+    <form class="form" method="post" action="/admin/newsletter/test/">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="form-row">
+        <label class="field">Empfänger
+          <input type="email" name="to" maxlength="200" required>
+        </label>
+        <label class="field">Betreff
+          <input type="text" name="subject" maxlength="200" required>
+        </label>
+      </div>
+      <label class="field">Text
+        <textarea name="text" rows="4" required></textarea>
+      </label>
+      <div class="form-actions"><button class="btn btn-secondary" type="submit">Test senden</button></div>
+    </form>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Kampagnen</h2></div>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>ID</th><th>Betreff</th><th>Status</th><th>Empfänger</th><th>Erstellt</th><th>Gesendet</th><th>Aktionen</th></tr></thead>
+        <tbody>
+          {% for campaign in campaigns %}
+            <tr>
+              <td>{{ campaign.id }}</td>
+              <td>{{ campaign.subject }}</td>
+              <td><span class="badge badge-{% if campaign.status == 'sent' %}success{% elif campaign.status == 'failed' %}danger{% else %}warning{% endif %}">{{ campaign.status }}</span></td>
+              <td>{{ campaign.recipients }}</td>
+              <td>{{ campaign.created_at }}</td>
+              <td>{{ campaign.sent_at or '–' }}</td>
+              <td>
+                {% if campaign.status != 'sent' %}
+                  <form method="post" action="/admin/newsletter/{{ campaign.id }}/senden/">
+                    <input type="hidden" name="_csrf" value="{{ csrf }}">
+                    <button class="btn btn-secondary btn-small" type="submit" onclick="return confirm('Newsletter jetzt an alle aktiven Empfänger senden?')">Senden</button>
+                  </form>
+                {% endif %}
+                <a class="btn btn-secondary btn-small" href="/admin/newsletter/{{ campaign.id }}/protokoll/">Protokoll</a>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="7" class="text-muted">Noch keine Kampagnen.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.90] – 26. November 2026
+
+### Hinzugefügt
+
+- **Newsletter-Verwaltung im Admin:** Empfängerliste mit Status und Zahlen,
+  Kampagnen mit Betreff/Text/optionalem HTML, Testmail, Versand an alle
+  bestätigten Empfänger mit persönlichem Abmeldelink und Versandprotokoll.
+
 ## [1.0.0-rc.89] – 26. November 2026
 
 ### Behoben

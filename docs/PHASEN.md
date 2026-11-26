@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.90 – 26. November 2026
+
+Newsletter-Verwaltung im Admin (Empfänger, Kampagnen, Testversand, Protokoll).
+
 ## Release 1.0.0-rc.89 – 26. November 2026
 
 Aktiver Konto-Tab richtet sich nach der tatsächlichen Seite.

@@ -190,6 +190,15 @@ import {
   writeCustomerAudit,
 } from '../lib/customers.js';
 import { requestPasswordReset } from '../lib/customer-auth.js';
+import {
+  campaignDeliveries,
+  createCampaign,
+  listCampaigns,
+  listSubscribers,
+  sendCampaign,
+  sendTestMail,
+  subscriberStats,
+} from '../lib/newsletter-campaigns.js';
 import { queueWebhook } from '../lib/api-webhooks.js';
 import {
   generateWebhookSecret,
@@ -5210,6 +5219,61 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         if (!result.delivered) return reply.redirect(`/admin/kunden/${customer.id}/?fehler=mail`, 303);
       }
       return reply.redirect(`/admin/kunden/${request.params.id}/?gespeichert=1`, 303);
+    });
+
+    // Newsletter-Verwaltung -------------------------------------------------
+    scope.get('/admin/newsletter/', async (request, reply) => {
+      render(reply, 'admin/newsletter.njk', adminContext(request, {
+        subscribers: listSubscribers(),
+        stats: subscriberStats(),
+        campaigns: listCampaigns(),
+      }));
+    });
+
+    scope.post('/admin/newsletter/kampagne/', async (request, reply) => {
+      const body = bodyObject(request);
+      const subject = cleanText(body.subject, 200);
+      const text = cleanText(body.text, 10_000);
+      if (!subject || !text) return reply.redirect('/admin/newsletter/?fehler=1', 303);
+      const id = createCampaign({ subject, text, html: cleanText(body.html, 20_000) });
+      writeAudit(request.admin?.email ?? 'admin', 'newsletter.campaign.create', { id, subject });
+      return reply.redirect(`/admin/newsletter/?gespeichert=1&kampagne=${id}`, 303);
+    });
+
+    scope.post<{ Params: { id: string } }>('/admin/newsletter/:id/senden/', async (request, reply) => {
+      const id = Number(request.params.id);
+      try {
+        const result = await sendCampaign(id);
+        writeAudit(request.admin?.email ?? 'admin', 'newsletter.campaign.send', { id, ...result });
+        return reply.redirect(`/admin/newsletter/?gespeichert=1&anzahl=${result.sent}`, 303);
+      } catch (error) {
+        writeAudit(request.admin?.email ?? 'admin', 'newsletter.campaign.error', {
+          id,
+          error: error instanceof Error ? error.message : 'unbekannt',
+        });
+        return reply.redirect('/admin/newsletter/?fehler=1', 303);
+      }
+    });
+
+    scope.post('/admin/newsletter/test/', async (request, reply) => {
+      const body = bodyObject(request);
+      const to = cleanText(body.to, 200);
+      const subject = cleanText(body.subject, 200);
+      const text = cleanText(body.text, 10_000);
+      if (!to || !subject || !text) return reply.redirect('/admin/newsletter/?fehler=1', 303);
+      const delivered = await sendTestMail(to, subject, text, cleanText(body.html, 20_000));
+      writeAudit(request.admin?.email ?? 'admin', 'newsletter.test', { subject, delivered });
+      return reply.redirect(delivered ? '/admin/newsletter/?gespeichert=1' : '/admin/newsletter/?fehler=mail', 303);
+    });
+
+    scope.get<{ Params: { id: string } }>('/admin/newsletter/:id/protokoll/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const campaign = db().prepare('SELECT * FROM newsletter_campaigns WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+      if (!campaign) return adminError(request, reply, 404, 'Kampagne nicht gefunden.');
+      render(reply, 'admin/newsletter-protokoll.njk', adminContext(request, {
+        campaign,
+        deliveries: campaignDeliveries(id),
+      }));
     });
   });
 }

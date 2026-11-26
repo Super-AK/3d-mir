@@ -1,0 +1,28 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Newsletter-Protokoll – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Versandprotokoll #{{ campaign.id }}</h1>
+      <p>{{ campaign.subject }} · {{ campaign.recipients }} Empfänger · {{ campaign.status }}</p>
+    </div>
+    <div class="admin-page-actions"><a class="btn btn-small" href="/admin/newsletter/">Zurück zum Newsletter</a></div>
+  </div>
+
+  <section class="card admin-panel">
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Zeit</th><th>Status</th><th>Fehler</th></tr></thead>
+        <tbody>
+          {% for delivery in deliveries %}
+            <tr><td>{{ delivery.created_at }}</td><td>{{ delivery.status }}</td><td>{{ delivery.error or '–' }}</td></tr>
+          {% else %}
+            <tr><td colspan="3" class="text-muted">Keine Zustellungen protokolliert.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

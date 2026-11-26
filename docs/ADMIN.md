@@ -422,7 +422,11 @@ erscheint in der Kontenübersicht.
 
 Der Newsletter hat eine eigene, nicht vorangekreuzte Einwilligung unter
 `/newsletter/` (Double-Opt-in, Abmeldelink in jeder E-Mail) und ist von der
-Konto-Einwilligung `marketing_consent` getrennt.
+Konto-Einwilligung `marketing_consent` getrennt. Unter **Admin → Newsletter**
+stehen Empfänger (mit Status), Kampagnen (Betreff, Text, optional HTML),
+Testversand und ein Versandprotokoll bereit. Verschickt wird nur an bestätigte,
+nicht abgemeldete Empfänger; jede Newsletter-Mail enthält einen persönlichen
+Abmeldelink.
 
 ## API & Schnittstellen
 
