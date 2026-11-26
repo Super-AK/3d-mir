@@ -1,24 +1,28 @@
 {% extends "layouts/account.njk" %}
+{% import "account/partials/status.njk" as status %}
 
 {% block title %}Bestellungen – 3D-MIR{% endblock %}
+{% block accountTitle %}Ihre Bestellungen{% endblock %}
+{% block accountSubtitle %}Status, Positionen und Rechnungen.{% endblock %}
+
 {% block accountContent %}
-  <div class="admin-page-head"><div><h1>Ihre Bestellungen</h1><p>Status, Positionen und Rechnungen.</p></div></div>
-  <section class="card admin-panel">
-    <div class="table-wrap">
-      <table class="admin-edit-table">
-        <thead><tr><th>Nummer</th><th>Datum</th><th>Status</th><th>Zahlung</th><th>Betrag</th><th>Rechnung</th></tr></thead>
+  <section class="account-card">
+    <div class="account-card-head"><h2 class="account-card-title">Alle Bestellungen</h2></div>
+    <div class="account-table-wrap">
+      <table class="account-table">
+        <thead><tr><th>Nummer</th><th>Datum</th><th>Status</th><th>Zahlung</th><th class="is-number">Betrag</th><th>Rechnung</th></tr></thead>
         <tbody>
           {% for order in orders %}
             <tr>
               <td>{{ order.order_number }}</td>
               <td>{{ order.created_at | date }}</td>
-              <td>{{ order.status }}</td>
+              <td>{{ status.badge(order.status) }}</td>
               <td>{{ order.payment_status }}</td>
-              <td>{{ order.total_cents | price }}</td>
+              <td class="is-number">{{ order.total_cents | price }}</td>
               <td><a href="/konto/rechnung/{{ order.id }}/">Ansehen</a></td>
             </tr>
           {% else %}
-            <tr><td colspan="6" class="text-muted">Noch keine Bestellungen.</td></tr>
+            <tr><td colspan="6">Noch keine Bestellungen.</td></tr>
           {% endfor %}
         </tbody>
       </table>

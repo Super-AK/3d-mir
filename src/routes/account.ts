@@ -198,7 +198,12 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
     const session = request.customerSession!;
     const customer = getCustomerById(session.customerId)!;
     const orders = getDb().prepare('SELECT * FROM orders WHERE customer_id = ? OR lower(email) = ? ORDER BY id DESC LIMIT 20').all(customer.id, customer.email) as Record<string, unknown>[];
-    render(reply, 'account/index.njk', authContext(request, session, { orders }));
+    const stats = {
+      totalOrders: (getDb().prepare('SELECT COUNT(*) AS count FROM orders WHERE customer_id = ? OR lower(email) = ?').get(customer.id, customer.email) as { count: number }).count,
+      openOrders: (getDb().prepare("SELECT COUNT(*) AS count FROM orders WHERE (customer_id = ? OR lower(email) = ?) AND status IN ('neu', 'bezahlt', 'in_druck')").get(customer.id, customer.email) as { count: number }).count,
+      quotes: (getDb().prepare('SELECT COUNT(*) AS count FROM quote_requests WHERE lower(email) = ?').get(customer.email) as { count: number }).count,
+    };
+    render(reply, 'account/index.njk', authContext(request, session, { orders, stats }));
   });
 
   app.get('/konto/bestellungen/', async (request, reply) => {
@@ -251,6 +256,32 @@ export async function accountRoutes(app: FastifyInstance): Promise<void> {
       marketing_consent: body.marketingConsent === '1' ? 1 : 0,
     });
     if (typeof body.newEmail === 'string' && body.newEmail.includes('@')) requestEmailChange(session.customerId, body.newEmail);
+    return reply.redirect('/konto/daten/?gespeichert=1', 303);
+  });
+
+  app.post('/konto/adressen/', async (request, reply) => {
+    const session = request.customerSession!;
+    const body = bodyObjectSafe(request.body);
+    const kind = body.kind === 'shipping' ? 'shipping' : 'billing';
+    const count = (getDb().prepare('SELECT COUNT(*) AS count FROM customer_addresses WHERE customer_id = ?').get(session.customerId) as { count: number }).count;
+    getDb()
+      .prepare(
+        `INSERT INTO customer_addresses
+           (customer_id, kind, name, company, street, address_2, postal_code, city, country_code, is_default)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        session.customerId,
+        kind,
+        cleanText(body.name, 150),
+        cleanText(body.company, 150),
+        cleanText(body.street, 200),
+        cleanText(body.address2, 200),
+        cleanText(body.postalCode, 20),
+        cleanText(body.city, 100),
+        cleanText(body.countryCode, 2) || 'DE',
+        count === 0 ? 1 : 0,
+      );
     return reply.redirect('/konto/daten/?gespeichert=1', 303);
   });
 

@@ -14,6 +14,33 @@ test('Kontolink in Navigation und schmale Login-Karte', async ({ page }) => {
   expect(box!.width).toBeLessThan(600);
 });
 
+test('Kundenbereich: Layout auf allen Seiten', async ({ page }) => {
+  const email = process.env.E2E_CUSTOMER_EMAIL ?? '';
+  const password = process.env.E2E_CUSTOMER_PASSWORD ?? '';
+  test.skip(!email || !password, 'Kunden-Testkonto fehlt');
+
+  await page.goto('/konto/anmelden/');
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+  await page.getByRole('button', { name: 'Anmelden' }).click();
+  await expect(page).toHaveURL(/\/konto\/$/);
+
+  const shell = page.locator('.account-shell');
+  await expect(shell).toBeVisible();
+  const box = await shell.boundingBox();
+  expect(box!.width).toBeLessThanOrEqual(1100);
+  await expect(page.locator('.account-tab')).toHaveCount(4);
+  await expect(page.locator('.account-tab.is-active')).toHaveCount(1);
+  await expect(page.locator('.account-card').first()).toBeVisible();
+
+  for (const path of ['/konto/', '/konto/bestellungen/', '/konto/anfragen/', '/konto/daten/']) {
+    await page.goto(path);
+    await expect(page.locator('.account-shell')).toBeVisible();
+    await expect(page.locator('.account-tab.is-active')).toHaveCount(1);
+    await expect(page.locator('.account-head .btn')).toBeVisible();
+  }
+});
+
 test('Kundenkonto: Registrierung und neutrale Meldungen', async ({ page }) => {
   await page.goto('/konto/');
   await expect(page).toHaveURL(/\/konto\/anmelden\//);

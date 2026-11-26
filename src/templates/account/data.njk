@@ -1,10 +1,13 @@
 {% extends "layouts/account.njk" %}
 
 {% block title %}Meine Daten – 3D-MIR{% endblock %}
+{% block accountTitle %}Meine Daten{% endblock %}
+{% block accountSubtitle %}Stammdaten, Adressen, Export und Löschung.{% endblock %}
+
 {% block accountContent %}
-  <div class="admin-page-head">
-    <div><h1>Meine Daten</h1><p>Stammdaten, Adressen, Export und Löschung.</p></div>
-    <div class="admin-page-actions"><a class="btn btn-secondary btn-small" href="/konto/export/">Daten exportieren</a> <a class="btn btn-secondary btn-small" href="/newsletter/">Newsletter</a></div>
+  <div class="account-form-actions">
+    <a class="btn btn-secondary" href="/konto/export/">Daten exportieren</a>
+    <a class="btn btn-secondary" href="/newsletter/">Newsletter</a>
   </div>
 
   {% if meldung.gespeichert %}<div class="alert alert-success" role="status">Gespeichert.</div>{% endif %}
@@ -12,52 +15,70 @@
 
   <form class="form" method="post" action="/konto/daten/">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
-    <section class="card admin-panel">
-      <div class="admin-panel-head"><h2>Stammdaten</h2></div>
-      <div class="form-row">
-        <label class="field">Vorname <input type="text" name="firstName" value="{{ customer.first_name }}" maxlength="100"></label>
-        <label class="field">Nachname <input type="text" name="lastName" value="{{ customer.last_name }}" maxlength="100"></label>
+    <section class="account-card">
+      <div class="account-card-head"><h2 class="account-card-title">Stammdaten</h2></div>
+      <div class="account-form-grid">
+        <div class="account-field"><label for="firstName">Vorname</label><input id="firstName" type="text" name="firstName" value="{{ customer.first_name }}" maxlength="100"></div>
+        <div class="account-field"><label for="lastName">Nachname</label><input id="lastName" type="text" name="lastName" value="{{ customer.last_name }}" maxlength="100"></div>
+        <div class="account-field"><label for="company">Firma</label><input id="company" type="text" name="company" value="{{ customer.company }}" maxlength="100"></div>
+        <div class="account-field"><label for="phone">Telefon</label><input id="phone" type="tel" name="phone" value="{{ customer.phone }}" maxlength="100"></div>
+        <div class="account-field account-field--full"><label for="newEmail">Neue E-Mail-Adresse (wird bestätigt)</label><input id="newEmail" type="email" name="newEmail" maxlength="200" placeholder="{{ customer.email }}"></div>
       </div>
-      <div class="form-row">
-        <label class="field">Firma <input type="text" name="company" value="{{ customer.company }}" maxlength="100"></label>
-        <label class="field">Telefon <input type="tel" name="phone" value="{{ customer.phone }}" maxlength="100"></label>
-      </div>
-      <div class="form-row">
-        <label class="field">Neue E-Mail-Adresse (wird bestätigt)
-          <input type="email" name="newEmail" maxlength="200" placeholder="{{ customer.email }}">
-        </label>
-      </div>
-      <label class="admin-check">
+      <label class="account-check-row">
         <input type="checkbox" name="marketingConsent" value="1" {% if customer.marketing_consent %}checked{% endif %}>
         <span>Ich möchte Informationen zu Angeboten per E-Mail (jederzeit widerrufbar).</span>
       </label>
-      <div class="form-actions"><button class="btn" type="submit">Speichern</button></div>
+      <div class="account-form-actions"><button class="btn" type="submit">Speichern</button></div>
     </section>
   </form>
 
-  <section class="card admin-panel">
-    <div class="admin-panel-head"><h2>Adressen</h2></div>
-    <div class="table-wrap">
-      <table class="admin-edit-table">
-        <thead><tr><th>Art</th><th>Name</th><th>Straße</th><th>Ort</th></tr></thead>
-        <tbody>
-          {% for address in addresses %}
-            <tr><td>{{ address.kind }}</td><td>{{ address.name }}</td><td>{{ address.street }}</td><td>{{ address.postal_code }} {{ address.city }}</td></tr>
-          {% else %}
-            <tr><td colspan="4" class="text-muted">Noch keine Adressen hinterlegt.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <section class="account-card">
+    <div class="account-card-head"><h2 class="account-card-title">Adressen</h2></div>
+    {% if addresses.length %}
+      <div class="account-table-wrap">
+        <table class="account-table">
+          <thead><tr><th>Art</th><th>Name</th><th>Straße</th><th>Ort</th></tr></thead>
+          <tbody>
+            {% for address in addresses %}
+              <tr><td>{{ address.kind }}</td><td>{{ address.name }}</td><td>{{ address.street }}</td><td>{{ address.postal_code }} {{ address.city }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="account-empty">
+        <p>Noch keine Adressen hinterlegt.</p>
+      </div>
+    {% endif %}
+    <details class="account-add">
+      <summary>Adresse hinzufügen</summary>
+      <form class="form" method="post" action="/konto/adressen/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <div class="account-form-grid">
+          <div class="account-field">
+            <label for="addressKind">Art</label>
+            <select id="addressKind" name="kind"><option value="billing">Rechnung</option><option value="shipping">Lieferung</option></select>
+          </div>
+          <div class="account-field"><label for="addressName">Name</label><input id="addressName" type="text" name="name" maxlength="150" required></div>
+          <div class="account-field"><label for="addressCompany">Firma</label><input id="addressCompany" type="text" name="company" maxlength="150"></div>
+          <div class="account-field"><label for="addressStreet">Straße</label><input id="addressStreet" type="text" name="street" maxlength="200" required></div>
+          <div class="account-field"><label for="addressExtra">Adresszusatz</label><input id="addressExtra" type="text" name="address2" maxlength="200"></div>
+          <div class="account-field"><label for="addressZip">PLZ</label><input id="addressZip" type="text" name="postalCode" maxlength="20" required></div>
+          <div class="account-field"><label for="addressCity">Ort</label><input id="addressCity" type="text" name="city" maxlength="100" required></div>
+          <div class="account-field"><label for="addressCountry">Land</label><input id="addressCountry" type="text" name="countryCode" maxlength="2" value="DE"></div>
+        </div>
+        <div class="account-form-actions"><button class="btn" type="submit">Adresse speichern</button></div>
+      </form>
+    </details>
   </section>
 
-  <section class="card admin-panel">
-    <div class="admin-panel-head"><h2>Konto löschen</h2></div>
-    <p class="text-muted">Aus Aufbewahrungsgründen werden personenbezogene Daten entfernt (anonymisiert), die Kundennummer und Bestelldaten bleiben erhalten.</p>
+  <section class="account-card account-danger">
+    <div class="account-card-head"><h2 class="account-card-title">Konto löschen</h2></div>
+    <p>Aus Aufbewahrungsgründen werden personenbezogene Daten entfernt (anonymisiert), die Kundennummer und Bestelldaten bleiben erhalten.</p>
     <form method="post" action="/konto/loeschen/">
       <input type="hidden" name="_csrf" value="{{ csrf }}">
-      <label class="field">Zur Bestätigung „LOESCHEN" eingeben <input type="text" name="confirm" maxlength="20" required></label>
-      <div class="form-actions"><button class="btn btn-secondary" type="submit">Konto anonymisieren</button></div>
+      <div class="account-field"><label for="deleteConfirm">Zur Bestätigung „LOESCHEN" eingeben</label><input id="deleteConfirm" type="text" name="confirm" maxlength="20" required></div>
+      <div class="account-form-actions"><button class="btn btn-danger" type="submit">Konto anonymisieren</button></div>
     </form>
   </section>
 {% endblock %}

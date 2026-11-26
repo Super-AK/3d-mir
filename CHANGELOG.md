@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.88] – 26. November 2026
+
+### Geändert
+
+- **Kundenbereich neu gestaltet:** Gemeinsamer 1100-px-Container, Kopfbereich
+  mit Label/H1/Abmelden, Tab-Navigation, einheitliche Karten, 2-Spalten-
+  Definitionslisten, Status-Badges, Kennzahl-Kacheln und responsive Tabellen.
+- Adressen lassen sich im Kundenbereich direkt hinzufügen.
+
 ## [1.0.0-rc.87] – 26. November 2026
 
 ### Behoben

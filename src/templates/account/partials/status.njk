@@ -1,0 +1,15 @@
+{% macro badge(status) %}
+  {%- if status == 'bezahlt' -%}
+    <span class="account-badge account-badge--success">Bezahlt</span>
+  {%- elif status == 'in_druck' -%}
+    <span class="account-badge account-badge--info">In Druck</span>
+  {%- elif status == 'versandt' -%}
+    <span class="account-badge account-badge--purple">Versandt</span>
+  {%- elif status == 'abgeschlossen' -%}
+    <span class="account-badge account-badge--neutral">Abgeschlossen</span>
+  {%- elif status == 'storniert' -%}
+    <span class="account-badge account-badge--danger">Storniert</span>
+  {%- else -%}
+    <span class="account-badge account-badge--neutral">{{ status }}</span>
+  {%- endif -%}
+{% endmacro %}

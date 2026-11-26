@@ -1,17 +1,20 @@
 {% extends "layouts/account.njk" %}
 
 {% block title %}Angebotsanfragen – 3D-MIR{% endblock %}
+{% block accountTitle %}Ihre Angebotsanfragen{% endblock %}
+{% block accountSubtitle %}Anfragen aus dem 3D-Druck-Rechner mit Ihrer E-Mail-Adresse.{% endblock %}
+
 {% block accountContent %}
-  <div class="admin-page-head"><div><h1>Ihre Angebotsanfragen</h1></div></div>
-  <section class="card admin-panel">
-    <div class="table-wrap">
-      <table class="admin-edit-table">
-        <thead><tr><th>Datum</th><th>Status</th><th>Betreff</th></tr></thead>
+  <section class="account-card">
+    <div class="account-card-head"><h2 class="account-card-title">Anfragen</h2></div>
+    <div class="account-table-wrap">
+      <table class="account-table">
+        <thead><tr><th>Datum</th><th>Status</th><th>Name</th></tr></thead>
         <tbody>
           {% for quote in quotes %}
-            <tr><td>{{ quote.created_at | date }}</td><td>{{ quote.status }}</td><td>{{ quote.name or quote.email }}</td></tr>
+            <tr><td>{{ quote.created_at | date }}</td><td>{{ quote.status }}</td><td>{{ quote.name or '–' }}</td></tr>
           {% else %}
-            <tr><td colspan="3" class="text-muted">Keine Anfragen mit dieser E-Mail-Adresse gefunden.</td></tr>
+            <tr><td colspan="3">Keine Anfragen mit dieser E-Mail-Adresse gefunden.</td></tr>
           {% endfor %}
         </tbody>
       </table>

@@ -1,20 +1,23 @@
 {% extends "layouts/account.njk" %}
 
 {% block title %}Rechnung – 3D-MIR{% endblock %}
+{% block accountTitle %}Rechnung zu {{ order.order_number }}{% endblock %}
+{% block accountSubtitle %}Rechnungsdaten aus der Faktura-App.{% endblock %}
+
 {% block accountContent %}
-  <div class="admin-page-head"><div><h1>Rechnung zu {{ order.order_number }}</h1></div></div>
-  <section class="card admin-panel">
-    <dl class="admin-dl">
-      <div><dt>Rechnungsnummer</dt><dd><code>{{ order.invoice_number or 'Noch nicht gemeldet' }}</code></dd></div>
-      <div><dt>Rechnungsdatum</dt><dd>{{ order.invoice_date or '–' }}</dd></div>
-      <div><dt>Lieferschein</dt><dd><code>{{ order.delivery_note_number or '–' }}</code></dd></div>
+  <section class="account-card">
+    <div class="account-card-head"><h2 class="account-card-title">Details</h2></div>
+    <dl class="account-dl">
+      <dt>Rechnungsnummer</dt><dd><code>{{ order.invoice_number or 'Noch nicht gemeldet' }}</code></dd>
+      <dt>Rechnungsdatum</dt><dd>{{ order.invoice_date or '–' }}</dd>
+      <dt>Lieferschein</dt><dd><code>{{ order.delivery_note_number or '–' }}</code></dd>
     </dl>
     {% if expired %}
-      <div class="alert alert-info">Link abgelaufen, bitte anfragen.</div>
+      <p>Link abgelaufen, bitte anfragen.</p>
     {% elif url %}
-      <p><a class="btn" href="{{ url }}" target="_blank" rel="noopener">Rechnung öffnen</a></p>
+      <div class="account-form-actions"><a class="btn" href="{{ url }}" target="_blank" rel="noopener">Rechnung öffnen</a></div>
     {% else %}
-      <p class="text-muted">Für diese Bestellung liegt noch kein Rechnungslink vor.</p>
+      <p>Für diese Bestellung liegt noch kein Rechnungslink vor.</p>
     {% endif %}
   </section>
 {% endblock %}

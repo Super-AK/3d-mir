@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.88 – 26. November 2026
+
+Layout und Design des Kundenbereichs überarbeitet (Container, Tabs, Karten, Badges).
+
 ## Release 1.0.0-rc.87 – 26. November 2026
 
 Passwort-Reset funktioniert auch für Gastkunden (Konto wird dabei eingerichtet).
