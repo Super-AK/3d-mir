@@ -11,6 +11,7 @@ import { getPublicPaymentMethods } from '../lib/shop-settings.js';
 import { isStripeConfigured } from '../lib/payments/stripe.js';
 import { getContactSettings } from '../lib/contact-settings.js';
 import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
+import { recordBotEvent } from '../lib/bot-events.js';
 import {
   assessContact,
   contactIpHash,
@@ -387,12 +388,14 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           { ipPrefix, attempts: attempt.attempts, blocked: attempt.blocked },
           'Kontaktformular: Honeypot ausgelöst',
         );
+        recordBotEvent({ form: '/kontakt/', reason: 'Honeypot', ip: request.ip });
         return reply.redirect('/kontakt/danke/', 303);
       }
 
       // Turnstile:FEHLER -> ebenfalls reguläre Erfolgsmeldung (kein Bot-Feedback).
       if (!(await verifyTurnstileToken(turnstileToken(body)))) {
         request.log.warn({ ipPrefix }, 'Kontaktformular: Turnstile abgelehnt');
+        recordBotEvent({ form: '/kontakt/', reason: 'Turnstile abgelehnt', ip: request.ip });
         return reply.redirect('/kontakt/danke/', 303);
       }
 

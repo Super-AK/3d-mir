@@ -190,6 +190,8 @@ import {
   writeCustomerAudit,
 } from '../lib/customers.js';
 import { requestPasswordReset } from '../lib/customer-auth.js';
+import { turnstileConfigured } from '../lib/turnstile.js';
+import { botEventStats, clearBotEvents, listBotEvents } from '../lib/bot-events.js';
 import {
   campaignDeliveries,
   createCampaign,
@@ -5099,6 +5101,26 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       const id = Number(request.params.id);
       if (retryWebhook(id)) writeAudit(request.admin?.email ?? 'admin', 'api.webhook.retry', { id });
       return reply.redirect('/admin/api/?gespeichert=1', 303);
+    });
+
+    // Bot-Schutz ------------------------------------------------------------
+    scope.get('/admin/bot-schutz/', async (request, reply) => {
+      const key = config.turnstile.siteKey;
+      render(reply, 'admin/bot-schutz.njk', adminContext(request, {
+        status: {
+          configured: turnstileConfigured(),
+          siteKeyPrefix: key ? `${key.slice(0, 6)}…` : '',
+          secretConfigured: Boolean(config.turnstile.secret),
+        },
+        stats: botEventStats(),
+        events: listBotEvents(100),
+      }));
+    });
+
+    scope.post('/admin/bot-schutz/loeschen/', async (request, reply) => {
+      const count = clearBotEvents();
+      writeAudit(request.admin?.email ?? 'admin', 'bot.events.clear', { count });
+      return reply.redirect('/admin/bot-schutz/?geloescht=1', 303);
     });
 
     // Kundenverwaltung ------------------------------------------------------

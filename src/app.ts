@@ -21,6 +21,7 @@ import { migrate } from './db/migrate.js';
 import { applySiteSettings } from './lib/site-settings.js';
 import { isTrustedProxyPeer, resolveContactCountry } from './lib/contact-protection.js';
 import { recordVisit } from './lib/visitor-stats.js';
+import { recordBotEvent } from './lib/bot-events.js';
 
 const CSP = [
   "default-src 'self'",
@@ -125,9 +126,16 @@ export async function buildApp() {
    * Dateien werden von NGINX direkt ausgeliefert und erreichen die Anwendung
    * gar nicht. Es werden keine Cookies gesetzt und keine IP-Adressen gespeichert.
    */
-  app.addHook('onResponse', async (request) => {
+  app.addHook('onResponse', async (request, reply) => {
     try {
       const path = request.url.split(/[?#]/, 1)[0] ?? '/';
+      if (
+        reply.statusCode === 429 &&
+        !path.startsWith('/admin/') &&
+        !path.startsWith('/api/')
+      ) {
+        recordBotEvent({ form: path.slice(0, 100), reason: 'Rate-Limit', ip: request.ip });
+      }
       if (path === '/api/health') return;
       const country = await resolveContactCountry({
         ip: request.ip,

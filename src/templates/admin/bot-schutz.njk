@@ -1,0 +1,66 @@
+{% extends "layouts/admin.njk" %}
+
+{% block title %}Bot-Schutz – 3D-MIR Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-page-head">
+    <div>
+      <h1>Bot-Schutz</h1>
+      <p>Status und Ereignisse des Turnstile- und Rate-Limit-Schutzes.</p>
+    </div>
+    <div class="admin-page-actions">
+      <form method="post" action="/admin/bot-schutz/loeschen/">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-secondary btn-small" type="submit" onclick="return confirm('Alle Bot-Ereignisse löschen?')">Protokoll leeren</button>
+      </form>
+    </div>
+  </div>
+
+  {% if meldung.geloescht %}<div class="alert alert-success" role="status">Protokoll geleert.</div>{% endif %}
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Konfiguration</h2></div>
+    <dl class="admin-dl">
+      <div><dt>Turnstile</dt><dd>{% if status.configured %}<span class="badge badge-success">aktiv</span>{% else %}<span class="badge badge-warning">inaktiv – Keys fehlen</span>{% endif %}</dd></div>
+      <div><dt>Site-Key</dt><dd><code>{{ status.siteKeyPrefix or '–' }}</code></dd></div>
+      <div><dt>Secret</dt><dd>{% if status.secretConfigured %}<span class="badge badge-success">gesetzt</span>{% else %}<span class="badge badge-warning">fehlt</span>{% endif %}</dd></div>
+      <div><dt>Kontakt / Angebotsanfrage</dt><dd>3 Anfragen pro Stunde und IP</dd></div>
+      <div><dt>Honeypot / Zeitstempel</dt><dd><span class="badge badge-success">aktiv</span></dd></div>
+    </dl>
+    <p class="text-muted">
+      Die Keys werden über <code>TURNSTILE_SITE_KEY</code> und
+      <code>TURNSTILE_SECRET_KEY</code> in <code>/etc/3d-mir/3d-mir.env</code>
+      gesetzt. Details: <code>docs/BOT-SCHUTZ.md</code>.
+    </p>
+  </section>
+
+  <section class="card admin-panel">
+    <div class="admin-panel-head"><h2>Ereignisse</h2></div>
+    <div class="admin-stats">
+      <div class="admin-stat"><span class="admin-stat-label">Gesamt</span><strong>{{ stats.total }}</strong></div>
+      <div class="admin-stat"><span class="admin-stat-label">Turnstile</span><strong>{{ stats.turnstile }}</strong></div>
+      <div class="admin-stat"><span class="admin-stat-label">Honeypot</span><strong>{{ stats.honeypot }}</strong></div>
+      <div class="admin-stat"><span class="admin-stat-label">Rate-Limit</span><strong>{{ stats.rateLimit }}</strong></div>
+    </div>
+    <p class="text-muted">Letztes Ereignis: {{ (stats.lastAt | datetime) or '–' }}</p>
+    <div class="table-wrap">
+      <table class="admin-edit-table">
+        <thead><tr><th>Zeit</th><th>Formular</th><th>Grund</th><th>IP-Präfix</th><th>Details</th></tr></thead>
+        <tbody>
+          {% for event in events %}
+            <tr>
+              <td>{{ event.created_at }}</td>
+              <td><code>{{ event.form }}</code></td>
+              <td>{{ event.reason }}</td>
+              <td><code>{{ event.ip_prefix or '–' }}</code></td>
+              <td>{{ event.details or '–' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-muted">Keine Bot-Ereignisse protokolliert.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-muted">Es werden keine vollständigen IP-Adressen, E-Mail-Adressen oder Tokens gespeichert.</p>
+  </section>
+{% endblock %}

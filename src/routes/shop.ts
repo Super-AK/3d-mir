@@ -6,6 +6,7 @@ import { getDb } from '../db/index.js';
 import { queueWebhook } from '../lib/api-webhooks.js';
 import { ensureCustomer } from '../lib/customers.js';
 import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
+import { recordBotEvent } from '../lib/bot-events.js';
 import { customerExternalId } from '../lib/api-mapper.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
@@ -791,6 +792,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       }
       if (!(await verifyTurnstileToken(turnstileToken(body)))) {
         request.log.warn({}, 'Kasse: Turnstile abgelehnt');
+        recordBotEvent({ form: '/kasse/', reason: 'Turnstile abgelehnt', ip: request.ip });
         return reply.redirect('/bestellung/danke/', 303);
       }
 
@@ -1180,6 +1182,7 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     async (request, reply) => {
       if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
       if (!(await verifyTurnstileToken(turnstileToken(request.body)))) {
+        recordBotEvent({ form: request.url.split('?')[0] ?? '/', reason: 'Turnstile abgelehnt', ip: request.ip });
         return shopError(reply, 403, 'Die Anfrage konnte nicht bestätigt werden. Bitte laden Sie die Seite neu.');
       }
       const body = (request.body ?? {}) as Record<string, unknown>;

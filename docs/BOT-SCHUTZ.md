@@ -50,3 +50,10 @@ Anforderung und funktioniert ohne externen Dienst.
 
 Beide leer = Schutz deaktiviert. Für Produktion beide setzen. Die CSP erlaubt
 `challenges.cloudflare.com` jetzt in `script-src`, `connect-src` und `frame-src`.
+
+## Admin-Ansicht
+
+Unter **Admin → Bot-Schutz** sind Status (Keys gesetzt/fehlen, Site-Key-Präfix),
+die aktiven Rate-Limits und die letzten 100 Bot-Ereignisse (Zeit, Formular,
+Grund, gekürztes IP-Präfix, Details) sichtbar. Das Protokoll kann dort geleert
+werden. Vollständige IPs, E-Mail-Adressen und Tokens werden nicht gespeichert.

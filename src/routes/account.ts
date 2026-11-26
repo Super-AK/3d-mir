@@ -21,6 +21,7 @@ import {
   type CustomerSession,
 } from '../lib/customer-auth.js';
 import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
+import { recordBotEvent } from '../lib/bot-events.js';
 
 export const CUSTOMER_COOKIE = 'mir3d_kunde';
 
@@ -325,7 +326,10 @@ function bodyObjectSafe(body: unknown): Record<string, unknown> {
 /** Turnstile-Fehler -> Bot: kein Feedback, keine Aktion. */
 async function botDetected(request: FastifyRequest): Promise<boolean> {
   const ok = await verifyTurnstileToken(turnstileToken(request.body));
-  if (!ok) request.log.warn({}, 'Kundenbereich: Turnstile abgelehnt');
+  if (!ok) {
+    request.log.warn({}, 'Kundenbereich: Turnstile abgelehnt');
+    recordBotEvent({ form: request.url.split('?')[0] ?? '/konto/', reason: 'Turnstile abgelehnt', ip: request.ip });
+  }
   return !ok;
 }
 

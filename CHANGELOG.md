@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.92] – 26. November 2026
+
+### Hinzugefügt
+
+- **Admin → Bot-Schutz:** Status der Turnstile-Konfiguration, aktive
+  Rate-Limits und ein Protokoll der Bot-Ablehnungen (Turnstile, Honeypot,
+  Rate-Limit) mit gekürzter IP und Löschfunktion. Keine personenbezogenen
+  Daten im Protokoll.
+
 ## [1.0.0-rc.91] – 26. November 2026
 
 ### Hinzugefügt

@@ -5,6 +5,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { config } from '../config.js';
 import { verifyTurnstileToken } from '../lib/turnstile.js';
+import { recordBotEvent } from '../lib/bot-events.js';
 import { getDb } from '../db/index.js';
 import { render } from '../lib/render.js';
 import { sendMail } from '../lib/mailer.js';
@@ -197,6 +198,7 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
       const fields = data.fields;
       if (!(await verifyTurnstileToken(field(fields, 'cf-turnstile-response', 2048)))) {
         request.log.warn({}, 'Angebotsanfrage: Turnstile abgelehnt');
+        recordBotEvent({ form: '/3d-druck-rechner/anfrage/', reason: 'Turnstile abgelehnt', ip: request.ip });
         return reply.code(201).send({ ok: true, reference: createReference('ANF'), priceCents: 0 });
       }
 
