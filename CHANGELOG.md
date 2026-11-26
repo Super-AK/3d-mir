@@ -3,6 +3,14 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.82] – 26. November 2026
+
+### Behoben
+
+- **Webhook-Timer:** `3d-mir-webhook.timer` nutzte nur `OnUnitActiveSec=1min`.
+  Ohne erste Aktivierung wurde der Service nie gestartet (Journal leer,
+  `VERSUCHE = 0`). Der Timer löst jetzt mit `OnCalendar=*:0/1` jede Minute aus.
+
 ## [1.0.0-rc.81] – 26. November 2026
 
 ### Hinzugefügt

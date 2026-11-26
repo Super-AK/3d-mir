@@ -2,7 +2,7 @@
 Description=3D-MIR Webhook-Zustellung (minütlich)
 
 [Timer]
-OnUnitActiveSec=1min
+OnCalendar=*:0/1
 AccuracySec=10s
 Persistent=true
 Unit=3d-mir-webhook.service

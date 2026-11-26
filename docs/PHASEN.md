@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.82 – 26. November 2026
+
+Webhook-Timer löst jetzt zuverlässig jede Minute aus.
+
 ## Release 1.0.0-rc.81 – 26. November 2026
 
 Diagnoseschritt für den Webhook-Timer auf Prod (markierter Commit).
