@@ -33,6 +33,15 @@ import {
   type CropRect,
   type UploadedImage,
 } from '../lib/product-images.js';
+import {
+  MAX_PRODUCT_VIDEO_BYTES,
+  MAX_PRODUCT_VIDEOS,
+  ProductVideoError,
+  deleteProductVideoFile,
+  productVideoUrl,
+  storeProductVideo,
+  type UploadedVideo,
+} from '../lib/product-videos.js';
 import { resetMailTransporter, sendMail } from '../lib/mailer.js';
 import { notifyAdmin } from '../lib/notifications.js';
 import { cleanText, isSameOrigin } from '../lib/http.js';
@@ -1101,6 +1110,14 @@ function imageRowsFor(productId: number) {
   }));
 }
 
+/** Videos für die Admin-Maske inklusive öffentlicher URL. */
+function videoRowsFor(productId: number) {
+  const rows = db()
+    .prepare('SELECT id, product_id, file, title, sort_order FROM product_videos WHERE product_id = ? ORDER BY sort_order, id')
+    .all(productId) as Array<{ id: number; product_id: number; file: string; title: string; sort_order: number }>;
+  return rows.map((video) => ({ ...video, url: productVideoUrl(video.file) }));
+}
+
 /** Liest die normalisierten Zuschnitt-Koordinaten aus einem Formular. */
 function cropRectFrom(body: Record<string, unknown>): CropRect | null {
   const values = ['x', 'y', 'width', 'height'].map((key) => Number(body[key]));
@@ -1139,6 +1156,32 @@ async function readImageUpload(request: FastifyRequest): Promise<{
       files.push({
         buffer,
         filename: path.basename(part.filename || 'bild'),
+        mimetype: part.mimetype,
+      });
+    } else {
+      fields[part.fieldname] = String(part.value ?? '');
+    }
+  }
+  return { fields, files };
+}
+
+async function readVideoUpload(request: FastifyRequest): Promise<{
+  fields: Record<string, string>;
+  files: UploadedVideo[];
+}> {
+  const fields: Record<string, string> = {};
+  const files: UploadedVideo[] = [];
+  for await (const part of request.parts({
+    limits: { files: 1, fileSize: MAX_PRODUCT_VIDEO_BYTES, fields: 10 },
+  })) {
+    if (part.type === 'file') {
+      if (part.fieldname !== 'video') {
+        part.file.resume();
+        continue;
+      }
+      files.push({
+        buffer: await part.toBuffer(),
+        filename: path.basename(part.filename || 'video'),
         mimetype: part.mimetype,
       });
     } else {
@@ -3944,6 +3987,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         form: emptyProductForm(),
         variants: [],
         images: [],
+        videos: [],
         isNew: true,
         ...productCategoryContext(),
         ...productShippingChoices(),
@@ -3961,6 +4005,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           form,
           variants: [],
           images: [],
+          videos: [],
           isNew: true,
           ...productCategoryContext(),
           ...productShippingChoices(),
@@ -3974,6 +4019,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           form,
           variants: [],
           images: [],
+          videos: [],
           isNew: true,
           ...productCategoryContext(),
           ...productShippingChoices(),
@@ -4026,6 +4072,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         form: productFormFromRow(product),
         variants: variantFormRows(id),
         images: imageRowsFor(id),
+        videos: videoRowsFor(id),
         isNew: false,
         ...productCategoryContext(id),
         ...productShippingChoices(),
@@ -4047,6 +4094,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           form,
           variants: variantFormRows(id),
           images: imageRowsFor(id),
+          videos: videoRowsFor(id),
           isNew: false,
           ...productCategoryContext(id),
           ...productShippingChoices(),
@@ -4060,6 +4108,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           form,
           variants: variantFormRows(id),
           images: imageRowsFor(id),
+          videos: videoRowsFor(id),
           isNew: false,
           ...productCategoryContext(id),
           ...productShippingChoices(),
@@ -4223,6 +4272,60 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       }
       return success();
     });
+
+    scope.post<{ Params: { id: string } }>('/admin/produkte/:id/videos/', async (request, reply) => {
+      const id = Number(request.params.id);
+      const product = Number.isInteger(id) ? findProduct(id) : undefined;
+      if (!product) return adminError(request, reply, 404, 'Dieses Produkt wurde nicht gefunden.');
+      const session = request.adminSession;
+      if (!session) return adminError(request, reply, 403, 'Sitzung abgelaufen.');
+
+      let upload;
+      try {
+        upload = await readVideoUpload(request);
+      } catch {
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Der Upload war zu groß oder unvollständig.')}`, 303);
+      }
+      if (!verifyCsrfToken(session, upload.fields._csrf)) {
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Das Formular ist abgelaufen.')}`, 303);
+      }
+      if (upload.files.length === 0) {
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent('Bitte wählen Sie eine Videodatei aus.')}`, 303);
+      }
+      const count = (db().prepare('SELECT COUNT(*) AS count FROM product_videos WHERE product_id = ?').get(id) as { count: number }).count;
+      if (count >= MAX_PRODUCT_VIDEOS) {
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent(`Maximal ${MAX_PRODUCT_VIDEOS} Videos pro Produkt.`)}`, 303);
+      }
+      let key = '';
+      try {
+        key = storeProductVideo(upload.files[0]!);
+        const maxSort = (db().prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM product_videos WHERE product_id = ?').get(id) as { value: number }).value;
+        db().prepare('INSERT INTO product_videos (product_id, file, title, sort_order) VALUES (?, ?, ?, ?)')
+          .run(id, key, cleanText(upload.fields.title, 150), maxSort + 1);
+        writeAudit(request.admin?.email ?? 'admin', 'product.video.add', { product: id, file: key });
+      } catch (error) {
+        if (key) deleteProductVideoFile(key);
+        const message = error instanceof ProductVideoError ? error.message : 'Das Video konnte nicht gespeichert werden.';
+        return reply.redirect(`/admin/produkte/${id}/?fehler=${encodeURIComponent(message)}`, 303);
+      }
+      return reply.redirect(`/admin/produkte/${id}/?gespeichert=1`, 303);
+    });
+
+    scope.post<{ Params: { id: string; videoId: string } }>(
+      '/admin/produkte/:id/videos/:videoId/loeschen/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        const videoId = Number(request.params.videoId);
+        const video = Number.isInteger(id) && Number.isInteger(videoId)
+          ? db().prepare('SELECT * FROM product_videos WHERE id = ? AND product_id = ?').get(videoId, id) as { id: number; file: string } | undefined
+          : undefined;
+        if (!video) return adminError(request, reply, 404, 'Dieses Video wurde nicht gefunden.');
+        db().prepare('DELETE FROM product_videos WHERE id = ?').run(videoId);
+        deleteProductVideoFile(video.file);
+        writeAudit(request.admin?.email ?? 'admin', 'product.video.delete', { product: id, video: videoId });
+        return reply.redirect(`/admin/produkte/${id}/?geloescht=1`, 303);
+      },
+    );
 
     scope.post<{ Params: { id: string; imageId: string } }>(
       '/admin/produkte/:id/bilder/:imageId/',

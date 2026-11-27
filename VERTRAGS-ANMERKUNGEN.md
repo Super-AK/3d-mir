@@ -20,6 +20,7 @@ Shop-Implementierung, nicht bereits eine vertragliche Einigung.
 | A9 | Produkte haben `price_from_cents`/`price_to_cents`, `weight_g` (REAL), `product_variants`, aber kein `unit`/Netto/Brutto. | `unit: "Stk"`, `price_*_cents` aus `price_from_cents` (Fallback `price_to_cents`), `weight_grams = round(weight_g)`, Varianten aus `product_variants`. | Bei Produkten mit Preisspanne wird der From-Preis übermittelt. | umgesetzt, Rückmeldung erbeten |
 | A10 | Token-Rotation soll eine Übergangszeit erlauben. | Alter Token bleibt nach der Rotation 24 Stunden gültig (`rotated_at`), danach automatisch ungültig; explizites Sperren wirkt sofort. | Während 24 h sind beide Tokens gültig. | umgesetzt, Rückmeldung erbeten |
 | A11 | `/health` soll laut Vertrag `version: "1.0.0"` liefern; die App-Version ist `1.0.0-rc.N`. | `/api/v1/health` meldet die **API-Vertragsversion** `1.0.0`; `/api/health` bleibt bei der App-Version. | Zwei verschiedene Versionsangaben – bewusst getrennt. | umgesetzt |
+| A12 | Produktvideos sind eine Shop-Funktion und im API-Vertrag v1.2 nicht vorgesehen. | Videos bleiben rein shop-seitig (`product_videos`, `/media/videos/`); sie werden nicht über `/api/v1/*` ausgeliefert, nicht exportiert und nicht kopiert. | Die Faktura-App sieht weiterhin nur Bilder und Produktdaten wie vereinbart. | umgesetzt, Rückmeldung erbeten |
 
 ## Kundenkonten – offene Fragen aus Phase K0 (25.11.2026)
 

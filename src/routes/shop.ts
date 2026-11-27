@@ -6,6 +6,7 @@ import { getDb } from '../db/index.js';
 import { queueWebhook } from '../lib/api-webhooks.js';
 import { ensureCustomer } from '../lib/customers.js';
 import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
+import { productVideoUrl } from '../lib/product-videos.js';
 import { recordBotEvent } from '../lib/bot-events.js';
 import { customerExternalId } from '../lib/api-mapper.js';
 import { render } from '../lib/render.js';
@@ -647,10 +648,14 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       ? activeMethods.filter((method) => assignedMethods.includes(method.id))
       : activeMethods;
     const productShippingMethods = allowedMethods.length > 0 ? allowedMethods : activeMethods;
+    const videos = (
+      db().prepare('SELECT id, file, title FROM product_videos WHERE product_id = ? ORDER BY sort_order, id').all(product.id) as Array<{ id: number; file: string; title: string }>
+    ).map((video) => ({ ...video, url: productVideoUrl(video.file) }));
     render(reply, 'pages/produkt.njk', {
       product,
       variants,
       images,
+      videos,
       colorOptions: productColors(product),
       personalizationEnabled: product.personalization_enabled === 1,
       personalizationHint: product.personalization_hint || 'z. B. Name oder kurzer Text',

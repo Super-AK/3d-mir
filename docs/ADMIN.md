@@ -477,9 +477,20 @@ Die gemeinsame Abnahme mit der Faktura-App ist in `docs/API-ABNAHME.md` vorberei
 offene Entscheidungen stehen als F87–F93 in `docs/OFFENE-FRAGEN.md`. Bitte keine
 Tokens oder Zugangsdaten in Tickets oder E-Mails senden.
 
-## Produkte und Bilder
+## Produkte, Bilder und Videos
 
-Unter **Admin → Produkte** lassen sich Produkte, Varianten, Farben, Personalisierung und Bilder pflegen.
+Unter **Admin → Produkte** lassen sich Produkte, Varianten, Farben, Personalisierung, Bilder und Videos pflegen.
+
+### Videos
+
+Zusätzlich zu den Bildern können pro Produkt bis zu drei Videos hinterlegt werden. Der Bereich **Videos** liegt direkt unter dem Bilderbereich und ist immer sichtbar.
+
+- **Formate:** MP4 (H.264) und WebM, maximal 25 MB je Datei. Es erfolgt **kein Transcoding** – die Dateien sollten bereits weboptimiert sein. Die Datei wird anhand des MIME-Typs und der Magic Bytes geprüft.
+- **Titel:** Optional, wird auf der Produktseite als Bildunterschrift angezeigt.
+- **Speicherung:** Unter `/var/lib/3d-mir/uploads/media/videos/` mit zufälligem Dateinamen, ausgeliefert über `/media/videos/…`. Range-Requests werden vom Static-Handler unterstützt.
+- **Anzeige:** Auf der öffentlichen Produktseite stehen die Videos unter der Bildergalerie. Als Poster wird das erste Produktbild verwendet, sofern vorhanden.
+- **Löschen:** Entfernt Datenbank-Eintrag und Datei; wird im Audit-Protokoll als `product.video.add` / `product.video.delete` erfasst.
+- **Hinweis:** Videos werden nicht kopiert, nicht exportiert/importiert und nicht über die API ausgeliefert. Beim Löschen eines Produkts werden sie zusammen mit dem Produkt entfernt.
 
 ### Sortierung
 

@@ -75,6 +75,16 @@
         {% else %}
           {{ image('product-battery-box', { sizes: '(max-width: 860px) 100vw, 52vw', alt: product.name, priority: true }) | safe }}
         {% endif %}
+        {% if videos.length > 0 %}
+          <div class="product-videos" aria-label="Produktvideos">
+            {% for video in videos %}
+              <figure class="product-video">
+                <video src="{{ video.url }}" controls preload="metadata" playsinline {% if images.length > 0 %}poster="{{ imagePreview(images[0].file, 1200) }}"{% endif %} aria-label="{{ video.title or product.name }}"></video>
+                {% if video.title %}<figcaption>{{ video.title }}</figcaption>{% endif %}
+              </figure>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
 
       <div class="product-info">

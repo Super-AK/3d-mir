@@ -3,6 +3,12 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.97] – 27. November 2026
+
+### Hinzugefügt
+
+- **Produktvideos:** Pro Produkt können im Admin bis zu drei Videos (MP4/WebM, maximal 25 MB) zusätzlich zu den Bildern hochgeladen werden. Dateien werden mit MIME-/Magic-Bytes-Prüfung gespeichert, unter `/media/videos/` ausgeliefert und auf der öffentlichen Produktseite unter der Galerie angezeigt. Upload und Löschen werden im Audit-Log protokolliert; die Migration `031_product_videos.sql` legt die Tabelle an.
+
 ## [1.0.0-rc.96] – 27. November 2026
 
 ### Behoben
