@@ -23,7 +23,12 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     const ok = await verifyTurnstileToken(turnstileToken(body));
     if (body.consent === '1') {
       if (ok) await subscribeNewsletter(email);
-      else recordBotEvent({ form: '/newsletter/', reason: 'Turnstile abgelehnt', ip: request.ip });
+      else recordBotEvent({
+        form: '/newsletter/',
+        reason: 'Turnstile abgelehnt',
+        ip: request.ip,
+        details: 'Anmeldung ohne gültiges Token verworfen – kein Eintrag angelegt',
+      });
     }
     render(reply, 'pages/newsletter.njk', {
       mode: 'message',

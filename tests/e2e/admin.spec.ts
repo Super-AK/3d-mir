@@ -31,7 +31,7 @@ test.describe('Admin', () => {
     await expect(page.getByText('Besucher der letzten 7 Tage')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'GitHub Actions' })).toBeVisible();
     await expect(page.getByText('Letzter Workflow-Lauf des CI-Workflows für')).toBeVisible();
-    await expect(page.getByText('1.0.0-rc.95')).toBeVisible();
+    await expect(page.getByText('1.0.0-rc.96')).toBeVisible();
     await expect(page.locator('link[rel="icon"]')).not.toHaveCount(0);
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1);
     await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', /\/site\.webmanifest/);

@@ -328,7 +328,12 @@ async function botDetected(request: FastifyRequest): Promise<boolean> {
   const ok = await verifyTurnstileToken(turnstileToken(request.body));
   if (!ok) {
     request.log.warn({}, 'Kundenbereich: Turnstile abgelehnt');
-    recordBotEvent({ form: request.url.split('?')[0] ?? '/konto/', reason: 'Turnstile abgelehnt', ip: request.ip });
+    recordBotEvent({
+      form: request.url.split('?')[0] ?? '/konto/',
+      reason: 'Turnstile abgelehnt',
+      ip: request.ip,
+      details: `${request.method} ohne gültiges Token – Aktion nicht ausgeführt`,
+    });
   }
   return !ok;
 }

@@ -134,7 +134,12 @@ export async function buildApp() {
         !path.startsWith('/admin/') &&
         !path.startsWith('/api/')
       ) {
-        recordBotEvent({ form: path.slice(0, 100), reason: 'Rate-Limit', ip: request.ip });
+        recordBotEvent({
+          form: path.slice(0, 100),
+          reason: 'Rate-Limit',
+          ip: request.ip,
+          details: `HTTP ${reply.statusCode} – zu viele Anfragen von diesem IP-Bereich`,
+        });
       }
       if (path === '/api/health') return;
       const country = await resolveContactCountry({

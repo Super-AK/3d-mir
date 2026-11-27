@@ -792,7 +792,12 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
       }
       if (!(await verifyTurnstileToken(turnstileToken(body)))) {
         request.log.warn({}, 'Kasse: Turnstile abgelehnt');
-        recordBotEvent({ form: '/kasse/', reason: 'Turnstile abgelehnt', ip: request.ip });
+        recordBotEvent({
+          form: '/kasse/',
+          reason: 'Turnstile abgelehnt',
+          ip: request.ip,
+          details: 'Bestellung ohne gültiges Token nicht angelegt',
+        });
         return reply.redirect('/bestellung/danke/', 303);
       }
 
@@ -1182,7 +1187,12 @@ export async function shopRoutes(app: FastifyInstance): Promise<void> {
     async (request, reply) => {
       if (!isSameOrigin(request)) return shopError(reply, 403, 'Die Anfrage konnte nicht zugeordnet werden.');
       if (!(await verifyTurnstileToken(turnstileToken(request.body)))) {
-        recordBotEvent({ form: request.url.split('?')[0] ?? '/', reason: 'Turnstile abgelehnt', ip: request.ip });
+        recordBotEvent({
+          form: request.url.split('?')[0] ?? '/',
+          reason: 'Turnstile abgelehnt',
+          ip: request.ip,
+          details: 'Shop-Aktion ohne gültiges Token abgelehnt',
+        });
         return shopError(reply, 403, 'Die Anfrage konnte nicht bestätigt werden. Bitte laden Sie die Seite neu.');
       }
       const body = (request.body ?? {}) as Record<string, unknown>;

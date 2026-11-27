@@ -198,7 +198,12 @@ export async function calculatorRoutes(app: FastifyInstance): Promise<void> {
       const fields = data.fields;
       if (!(await verifyTurnstileToken(field(fields, 'cf-turnstile-response', 2048)))) {
         request.log.warn({}, 'Angebotsanfrage: Turnstile abgelehnt');
-        recordBotEvent({ form: '/3d-druck-rechner/anfrage/', reason: 'Turnstile abgelehnt', ip: request.ip });
+        recordBotEvent({
+          form: '/3d-druck-rechner/anfrage/',
+          reason: 'Turnstile abgelehnt',
+          ip: request.ip,
+          details: 'Angebotsanfrage ohne gültiges Token verworfen – keine E-Mail, kein Upload',
+        });
         return reply.code(201).send({ ok: true, reference: createReference('ANF'), priceCents: 0 });
       }
 

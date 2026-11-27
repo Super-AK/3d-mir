@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.96 – 27. November 2026
+
+Bot-Schutz-Ereignisse mit aussagekräftigen Details statt leerer Spalte.
+
 ## Release 1.0.0-rc.95 – 27. November 2026
 
 Verwaltungsaktionen für beobachtete und gesperrte Absender im Admin.

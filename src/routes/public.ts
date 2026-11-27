@@ -388,14 +388,24 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           { ipPrefix, attempts: attempt.attempts, blocked: attempt.blocked },
           'Kontaktformular: Honeypot ausgelöst',
         );
-        recordBotEvent({ form: '/kontakt/', reason: 'Honeypot', ip: request.ip });
+        recordBotEvent({
+          form: '/kontakt/',
+          reason: 'Honeypot',
+          ip: request.ip,
+          details: `Feld website ausgefüllt · Versuche: ${attempt.attempts} · gesperrt: ${attempt.blocked ? 'ja' : 'nein'}`,
+        });
         return reply.redirect('/kontakt/danke/', 303);
       }
 
       // Turnstile:FEHLER -> ebenfalls reguläre Erfolgsmeldung (kein Bot-Feedback).
       if (!(await verifyTurnstileToken(turnstileToken(body)))) {
         request.log.warn({ ipPrefix }, 'Kontaktformular: Turnstile abgelehnt');
-        recordBotEvent({ form: '/kontakt/', reason: 'Turnstile abgelehnt', ip: request.ip });
+        recordBotEvent({
+          form: '/kontakt/',
+          reason: 'Turnstile abgelehnt',
+          ip: request.ip,
+          details: 'cf-turnstile-response ungültig oder fehlend – E-Mail nicht versendet',
+        });
         return reply.redirect('/kontakt/danke/', 303);
       }
 

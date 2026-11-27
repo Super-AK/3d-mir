@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.96] – 27. November 2026
+
+### Behoben
+
+- **Bot-Schutz-Protokoll:** Die Spalte „Details" war leer, weil die
+  Schreibe-Stellen keine Zusatzinformationen übergaben. Ablehnungen enthalten
+  jetzt z. B. Grund, Versuchszahl, HTTP-Status und was verworfen wurde; ältere
+  Einträge erhalten einen textlichen Fallback.
+
 ## [1.0.0-rc.95] – 27. November 2026
 
 ### Hinzugefügt

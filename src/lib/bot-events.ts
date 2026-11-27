@@ -28,9 +28,20 @@ export function recordBotEvent(input: {
 }
 
 export function listBotEvents(limit = 100): BotEvent[] {
-  return getDb()
+  const rows = getDb()
     .prepare('SELECT * FROM bot_events ORDER BY id DESC LIMIT ?')
     .all(limit) as BotEvent[];
+  return rows.map((row) => ({
+    ...row,
+    details: row.details || defaultDetail(row.reason),
+  }));
+}
+
+function defaultDetail(reason: string): string {
+  if (reason.includes('Honeypot')) return 'Honeypot-Feld ausgefüllt – Anfrage verworfen';
+  if (reason.includes('Turnstile')) return 'Turnstile-Prüfung fehlgeschlagen – Anfrage verworfen';
+  if (reason.includes('Rate-Limit')) return 'IP-Rate-Limit überschritten';
+  return 'Bot-Ablehnung';
 }
 
 export function clearBotEvents(): number {
