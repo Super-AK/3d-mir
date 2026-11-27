@@ -93,7 +93,9 @@ type ProductListItem = ProductRow & {
   variant_min_price: number | null;
   variant_max_price: number | null;
   has_video: number | null;
+  video_file: string | null;
   hasVideo: boolean;
+  videoUrl: string;
   priceLabel: string;
 };
 
@@ -184,6 +186,7 @@ function listProducts(categorySlug?: string): ProductListItem[] {
          SELECT file FROM product_images i WHERE i.product_id = p.id ORDER BY i.sort_order, i.id LIMIT 1
        ) AS image,
        (SELECT 1 FROM product_videos vid WHERE vid.product_id = p.id LIMIT 1) AS has_video,
+       (SELECT file FROM product_videos vid WHERE vid.product_id = p.id ORDER BY vid.sort_order, vid.id LIMIT 1) AS video_file,
        (SELECT MIN(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS variant_min_price,
        (SELECT MAX(v.price_cents) FROM product_variants v WHERE v.product_id = p.id) AS variant_max_price,
        (SELECT c.name FROM product_category_links l JOIN product_categories c ON c.id = l.category_id
@@ -195,6 +198,7 @@ function listProducts(categorySlug?: string): ProductListItem[] {
     .all(...(categorySlug ? [categorySlug] : [])) as (ProductRow & {
     image: string | null;
     has_video: number | null;
+    video_file: string | null;
     variant_min_price: number | null;
     variant_max_price: number | null;
     category_name: string | null;
@@ -207,6 +211,7 @@ function listProducts(categorySlug?: string): ProductListItem[] {
       ...row,
       categoryName: row.category_name ?? '3D-Druck',
       hasVideo: row.has_video === 1,
+      videoUrl: row.video_file ? productVideoUrl(row.video_file) : '',
       priceLabel: max > min ? `ab ${formatEuro(min)}` : formatEuro(min),
     };
   });

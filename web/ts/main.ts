@@ -232,6 +232,21 @@ if (gallery) {
   show(0);
 }
 
+// Shop-Übersicht: Video-Vorschau läuft nur, solange die Maus über der Karte ist.
+document.querySelectorAll<HTMLElement>('[data-video-card]').forEach((card) => {
+  const video = card.querySelector<HTMLVideoElement>('.product-card-video-preview');
+  if (!video) return;
+  card.addEventListener('mouseenter', () => {
+    card.classList.add('is-video-hover');
+    void video.play().catch(() => undefined);
+  });
+  card.addEventListener('mouseleave', () => {
+    card.classList.remove('is-video-hover');
+    video.pause();
+    video.currentTime = 0;
+  });
+});
+
 // Produktpreis: zunächst „ab …“, nach Farbauswahl der konkrete Variantenpreis.
 const variantSelect = document.querySelector<HTMLSelectElement>('[data-variant-select]');
 const productPrice = document.querySelector<HTMLElement>('[data-product-price]');

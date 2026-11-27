@@ -3,6 +3,12 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.101] – 27. November 2026
+
+### Hinzugefügt
+
+- **Shop-Übersicht:** Mouse-over über einer Produktkarte mit Video spielt das Video stumm in Dauerschleife ab und stoppt es beim Verlassen. Die Datei wird erst beim Hover geladen.
+
 ## [1.0.0-rc.100] – 27. November 2026
 
 ### Hinzugefügt

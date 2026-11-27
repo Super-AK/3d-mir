@@ -47,12 +47,15 @@
 
     <div class="product-grid">
       {% for product in products %}
-        <article class="product-card card card-hover">
+        <article class="product-card card card-hover"{% if product.hasVideo and product.videoUrl %} data-video-card{% endif %}>
           <a class="product-card-media" href="/shop/{{ product.slug }}/" tabindex="-1" aria-hidden="true">
             {% if product.image %}
               {{ image(product.image, { sizes: '(max-width: 700px) 100vw, 33vw', alt: product.name }) | safe }}
             {% else %}
               <span class="product-card-placeholder">3D-MIR</span>
+            {% endif %}
+            {% if product.hasVideo and product.videoUrl %}
+              <video class="product-card-video-preview" src="{{ product.videoUrl }}" {% if product.image %}poster="{{ imagePreview(product.image, 800) }}"{% endif %} muted loop playsinline preload="none" aria-hidden="true"></video>
             {% endif %}
           </a>
           {% if product.hasVideo %}

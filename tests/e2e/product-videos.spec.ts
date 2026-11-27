@@ -122,6 +122,18 @@ test.describe('Produktvideos', () => {
     await expect(card.locator('.product-card-video')).toBeVisible();
     await expect(card.locator('h2')).toContainText('Video verfügbar');
 
+    // Hover startet die Vorschau und versteckt sie beim Verlassen wieder.
+    const preview = card.locator('.product-card-video-preview');
+    await expect(preview).toHaveCount(1);
+    await expect(preview).toHaveAttribute('muted', '');
+    await expect(preview).toHaveAttribute('loop', '');
+    await expect(preview).toHaveAttribute('preload', 'none');
+    await card.hover();
+    await expect(card).toHaveClass(/is-video-hover/);
+    await expect(preview).toHaveCSS('opacity', '1');
+    await page.mouse.move(0, 0);
+    await expect(card).not.toHaveClass(/is-video-hover/);
+
     // Löschen entfernt sowohl Datenbank-Eintrag als auch Datei.
     await page.goto(`/admin/produkte/${productId}/`);
     await openVideos(page);
