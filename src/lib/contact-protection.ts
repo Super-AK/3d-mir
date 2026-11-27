@@ -471,6 +471,22 @@ export function unblockContactBlock(id: number): boolean {
   );
 }
 
+/** Sperrt einen Absender manuell; hours = 0 bedeutet dauerhaft. */
+export function blockContactBlockManually(id: number, hours: number, reason = 'manuell gesperrt'): boolean {
+  const duration = Number.isFinite(hours) && hours > 0 ? Math.min(hours, 24 * 365) : 0;
+  const until = duration > 0 ? sqliteNow(Date.now() + duration * 60 * 60 * 1000) : null;
+  return (
+    getDb()
+      .prepare('UPDATE contact_blocks SET blocked = 1, blocked_until = ?, reason = ?, last_seen = datetime(\'now\') WHERE id = ?')
+      .run(until, reason.slice(0, 200), id).changes > 0
+  );
+}
+
+/** Entfernt einen Absender-Eintrag vollständig (Datenschutz/Aufräumen). */
+export function deleteContactBlock(id: number): boolean {
+  return getDb().prepare('DELETE FROM contact_blocks WHERE id = ?').run(id).changes > 0;
+}
+
 /** Entfernt alte Beobachtungen und abgelaufene Sperren (Datenschutz). */
 export function pruneContactBlocks(days = 30): number {
   return getDb()

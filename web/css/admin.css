@@ -524,6 +524,16 @@
   gap: 0.375rem;
 }
 .admin-icon-actions form { display: inline-flex; margin: 0; }
+.admin-icon-actions select {
+  max-width: 96px;
+  height: 32px;
+  padding: 0 4px;
+  font-size: 0.75rem;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
 .admin-icon-btn {
   position: relative;
   display: inline-flex;

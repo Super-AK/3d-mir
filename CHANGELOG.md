@@ -3,6 +3,15 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.95] – 27. November 2026
+
+### Hinzugefügt
+
+- **Absender-Verwaltung:** Unter „Admin → Nachrichten → Gesperrte und
+  auffällige Absender" können beobachtete Absender zurückgesetzt, manuell
+  gesperrt (24 Std./7/30 Tage/dauerhaft) oder gelöscht werden; aktive Sperren
+  lassen sich aufheben. Alle Aktionen werden im Audit-Log protokolliert.
+
 ## [1.0.0-rc.94] – 26. November 2026
 
 ### Behoben

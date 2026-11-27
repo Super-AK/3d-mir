@@ -127,6 +127,8 @@ import {
 } from '../lib/contact-settings.js';
 import { contactMailHtml, contactMailText } from '../lib/contact-mail.js';
 import {
+  blockContactBlockManually,
+  deleteContactBlock,
   getSpamBlockResponseStats,
   isContactBlockActive,
   listContactBlocks,
@@ -2759,6 +2761,44 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       });
       return reply.redirect('/admin/nachrichten/?gespeichert=1', 303);
     });
+
+    scope.post<{ Params: { id: string } }>(
+      '/admin/nachrichten/sperren/:id/blocken/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        const hoursRaw = Number(bodyObject(request).hours);
+        const hours = Number.isFinite(hoursRaw) && hoursRaw > 0 ? Math.min(hoursRaw, 8760) : 0;
+        if (!Number.isInteger(id) || id <= 0 || !blockContactBlockManually(id, hours)) {
+          return adminError(request, reply, 404, 'Dieser Absender wurde nicht gefunden.');
+        }
+        writeAudit(request.admin?.email ?? 'admin', 'contact.block.manual', { id, hours });
+        return reply.redirect(`/admin/nachrichten/?gespeichert=1#absender-${id}`, 303);
+      },
+    );
+
+    scope.post<{ Params: { id: string } }>(
+      '/admin/nachrichten/sperren/:id/loeschen/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        if (!Number.isInteger(id) || id <= 0 || !deleteContactBlock(id)) {
+          return adminError(request, reply, 404, 'Dieser Absender wurde nicht gefunden.');
+        }
+        writeAudit(request.admin?.email ?? 'admin', 'contact.block.delete', { id });
+        return reply.redirect('/admin/nachrichten/?geloescht=1', 303);
+      },
+    );
+
+    scope.post<{ Params: { id: string } }>(
+      '/admin/nachrichten/sperren/:id/zuruecksetzen/',
+      async (request, reply) => {
+        const id = Number(request.params.id);
+        if (!Number.isInteger(id) || id <= 0 || !unblockContactBlock(id)) {
+          return adminError(request, reply, 404, 'Dieser Absender wurde nicht gefunden.');
+        }
+        writeAudit(request.admin?.email ?? 'admin', 'contact.block.reset', { id });
+        return reply.redirect(`/admin/nachrichten/?gespeichert=1#absender-${id}`, 303);
+      },
+    );
 
     scope.post<{ Params: { id: string } }>(
       '/admin/nachrichten/sperren/:id/aufheben/',
