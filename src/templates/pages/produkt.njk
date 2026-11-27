@@ -32,13 +32,24 @@
 
     <div class="product-layout">
       <div class="product-media">
-        {% if images.length > 0 %}
+        {% if images.length > 0 or videos.length > 0 %}
           <div class="product-gallery" data-gallery>
             <div class="product-gallery-main">
+              {% for video in videos %}
+                <figure class="gallery-slide{% if loop.first %} is-active{% endif %}" data-gallery-slide data-gallery-video>
+                  <a class="gallery-open" href="{{ video.url }}" data-gallery-open data-gallery-type="video" aria-label="Video ansehen: {{ video.title or product.name }}">
+                    <video src="{{ video.url }}" {% if images.length > 0 %}poster="{{ imagePreview(images[0].file, 1200) }}"{% endif %} autoplay muted loop playsinline preload="metadata" aria-label="{{ video.title or product.name }}"></video>
+                    <span class="gallery-zoom" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4M11 8v6M8 11h6"/></svg>
+                      Video vergrößern
+                    </span>
+                  </a>
+                </figure>
+              {% endfor %}
               {% for item in images %}
-                <figure class="gallery-slide{% if loop.first %} is-active{% endif %}" data-gallery-slide>
+                <figure class="gallery-slide{% if videos.length == 0 and loop.first %} is-active{% endif %}" data-gallery-slide>
                   <a class="gallery-open" href="{{ imagePreview(item.file, 1200) }}" data-gallery-open aria-label="Bild vergrößern: {{ item.alt or product.name }}">
-                    {{ image(item.file, { sizes: '(max-width: 620px) 100vw, 420px', alt: item.alt or product.name, priority: loop.first }) | safe }}
+                    {{ image(item.file, { sizes: '(max-width: 620px) 100vw, 420px', alt: item.alt or product.name, priority: videos.length == 0 and loop.first }) | safe }}
                     <span class="gallery-zoom" aria-hidden="true">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4M11 8v6M8 11h6"/></svg>
                       Vergrößern
@@ -47,43 +58,40 @@
                 </figure>
               {% endfor %}
             </div>
-            {% if images.length > 1 %}
-              <nav class="gallery-thumbs" aria-label="Produktbilder auswählen">
+            {% if images.length + videos.length > 1 %}
+              <nav class="gallery-thumbs" aria-label="Produktmedien auswählen">
+                {% for video in videos %}
+                  <a class="gallery-thumb gallery-thumb-video{% if loop.first %} is-active{% endif %}" href="{{ video.url }}" data-gallery-thumb="{{ loop.index0 }}" data-gallery-type="video" aria-label="Video {{ loop.index }} anzeigen"{% if loop.first %} aria-current="true"{% endif %}>
+                    {% if images.length > 0 %}{{ imageThumbnail(images[0].file) | safe }}{% endif %}
+                    <span class="gallery-play" aria-hidden="true">▶</span>
+                  </a>
+                {% endfor %}
                 {% for item in images %}
-                  <a class="gallery-thumb{% if loop.first %} is-active{% endif %}" href="{{ imagePreview(item.file, 1200) }}" data-gallery-thumb="{{ loop.index0 }}" aria-label="Bild {{ loop.index }} anzeigen"{% if loop.first %} aria-current="true"{% endif %}>
+                  <a class="gallery-thumb{% if videos.length == 0 and loop.first %} is-active{% endif %}" href="{{ imagePreview(item.file, 1200) }}" data-gallery-thumb="{{ videos.length + loop.index0 }}" aria-label="Bild {{ loop.index }} anzeigen"{% if videos.length == 0 and loop.first %} aria-current="true"{% endif %}>
                     {{ imageThumbnail(item.file) | safe }}
                   </a>
                 {% endfor %}
               </nav>
             {% endif %}
           </div>
-          <dialog class="gallery-dialog" data-gallery-dialog aria-label="Bildvergrößerung">
+          <dialog class="gallery-dialog" data-gallery-dialog aria-label="Medienvergrößerung">
             <div class="gallery-dialog-bar">
-              <span class="gallery-dialog-counter" data-gallery-counter>1 / {{ images.length }}</span>
+              <span class="gallery-dialog-counter" data-gallery-counter>1 / {{ images.length + videos.length }}</span>
               <button class="gallery-dialog-close" type="button" data-gallery-close aria-label="Schließen">×</button>
             </div>
             <div class="gallery-dialog-body">
-              {% if images.length > 1 %}
-                <button class="gallery-dialog-nav gallery-dialog-prev" type="button" data-gallery-prev aria-label="Vorheriges Bild">‹</button>
+              {% if images.length + videos.length > 1 %}
+                <button class="gallery-dialog-nav gallery-dialog-prev" type="button" data-gallery-prev aria-label="Vorheriges Medium">‹</button>
               {% endif %}
               <img data-gallery-dialog-image alt="">
-              {% if images.length > 1 %}
-                <button class="gallery-dialog-nav gallery-dialog-next" type="button" data-gallery-next aria-label="Nächstes Bild">›</button>
+              <video data-gallery-dialog-video controls muted loop playsinline></video>
+              {% if images.length + videos.length > 1 %}
+                <button class="gallery-dialog-nav gallery-dialog-next" type="button" data-gallery-next aria-label="Nächstes Medium">›</button>
               {% endif %}
             </div>
           </dialog>
         {% else %}
           {{ image('product-battery-box', { sizes: '(max-width: 860px) 100vw, 52vw', alt: product.name, priority: true }) | safe }}
-        {% endif %}
-        {% if videos.length > 0 %}
-          <div class="product-videos" aria-label="Produktvideos">
-            {% for video in videos %}
-              <figure class="product-video">
-                <video src="{{ video.url }}" controls preload="metadata" playsinline {% if images.length > 0 %}poster="{{ imagePreview(images[0].file, 1200) }}"{% endif %} aria-label="{{ video.title or product.name }}"></video>
-                {% if video.title %}<figcaption>{{ video.title }}</figcaption>{% endif %}
-              </figure>
-            {% endfor %}
-          </div>
         {% endif %}
       </div>
 

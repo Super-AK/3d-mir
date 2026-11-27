@@ -117,8 +117,10 @@ if (gallery) {
   const thumbs = Array.from(gallery.querySelectorAll<HTMLAnchorElement>('[data-gallery-thumb]'));
   const dialog = document.querySelector<HTMLDialogElement>('[data-gallery-dialog]');
   const dialogImage = dialog?.querySelector<HTMLImageElement>('[data-gallery-dialog-image]');
+  const dialogVideo = dialog?.querySelector<HTMLVideoElement>('[data-gallery-dialog-video]');
   const dialogCounter = dialog?.querySelector<HTMLElement>('[data-gallery-counter]');
   const links = slides.map((slide) => slide.querySelector<HTMLAnchorElement>('[data-gallery-open]'));
+  const isVideo = (index: number): boolean => links[index]?.dataset.galleryType === 'video';
   let active = 0;
   let dialogIndex = 0;
 
@@ -132,19 +134,41 @@ if (gallery) {
       if (selected) thumb.setAttribute('aria-current', 'true');
       else thumb.removeAttribute('aria-current');
     });
+    // Nur die sichtbare Folie darf abspielen; die übrigen Videos pausieren.
+    slides.forEach((slide, position) => {
+      const video = slide.querySelector<HTMLVideoElement>('video');
+      if (!video) return;
+      if (position === index) void video.play().catch(() => undefined);
+      else video.pause();
+    });
   };
 
   const renderDialog = (index: number): void => {
     const link = links[index];
-    if (!link || !dialogImage) return;
+    if (!link || (!dialogImage && !dialogVideo)) return;
     dialogIndex = index;
-    dialogImage.src = link.href;
-    dialogImage.alt = link.querySelector('img')?.alt ?? '';
+    if (isVideo(index) && dialogVideo && dialogImage) {
+      dialogImage.hidden = true;
+      dialogVideo.hidden = false;
+      if (dialogVideo.src !== link.href) dialogVideo.src = link.href;
+      dialogVideo.setAttribute('aria-label', link.getAttribute('aria-label') ?? '');
+      void dialogVideo.play().catch(() => undefined);
+    } else {
+      if (dialogVideo) {
+        dialogVideo.pause();
+        dialogVideo.hidden = true;
+      }
+      if (dialogImage) {
+        dialogImage.hidden = false;
+        dialogImage.src = link.href;
+        dialogImage.alt = link.querySelector('img')?.alt ?? '';
+      }
+    }
     if (dialogCounter) dialogCounter.textContent = `${index + 1} / ${slides.length}`;
   };
 
   const openDialog = (index: number): void => {
-    if (!dialog || !dialogImage || dialog.open) return;
+    if (!dialog || (!dialogImage && !dialogVideo) || dialog.open) return;
     renderDialog(index);
     dialog.showModal();
     dialog.querySelector<HTMLButtonElement>('[data-gallery-close]')?.focus();
@@ -166,7 +190,7 @@ if (gallery) {
 
   links.forEach((link, index) => {
     link?.addEventListener('click', (event) => {
-      if (!dialog || !dialogImage) return;
+      if (!dialog || (!dialogImage && !dialogVideo)) return;
       event.preventDefault();
       openDialog(index);
     });
@@ -202,6 +226,10 @@ if (gallery) {
   dialog?.addEventListener('click', (event) => {
     if (event.target === dialog) dialog.close();
   });
+  dialog?.addEventListener('close', () => dialogVideo?.pause());
+
+  // Initial nur die erste Folie abspielen (serverseitig sind alle Videos mit autoplay gesetzt).
+  show(0);
 }
 
 // Produktpreis: zunächst „ab …“, nach Farbauswahl der konkrete Variantenpreis.

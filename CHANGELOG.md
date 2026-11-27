@@ -3,6 +3,12 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.99] – 27. November 2026
+
+### Geändert
+
+- **Produktvideos:** Videos erscheinen auf der Produktseite jetzt als erste Folien in derselben Galerie wie die Bilder (mit Play-Miniatur) und starten automatisch stumm in Dauerschleife. Die Vergrößerung zeigt das Video mit Steuerung; die separate Videoliste entfällt.
+
 ## [1.0.0-rc.98] – 27. November 2026
 
 ### Geändert

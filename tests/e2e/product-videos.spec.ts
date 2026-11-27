@@ -1,3 +1,4 @@
+import sharp from 'sharp';
 import { expect, test, type Page } from '@playwright/test';
 
 /**
@@ -66,13 +67,48 @@ test.describe('Produktvideos', () => {
     await expect(adminVideos.locator('video')).toHaveAttribute('src', /^\/media\/videos\/video-[a-f0-9]+\.mp4$/);
     await expect(adminVideos).toContainText('Produkt in Aktion');
 
-    // Öffentliche Produktseite zeigt das Video unter der Bildergalerie.
+    // Zusätzlich ein Bild hochladen – Video und Foto teilen sich eine Galerie.
+    const imageSection = page.locator('[data-collapse="images"]');
+    if ((await imageSection.getAttribute('open')) === null) {
+      await imageSection.locator('> summary').click();
+    }
+    const image = await sharp({ create: { width: 400, height: 300, channels: 3, background: { r: 40, g: 90, b: 220 } } })
+      .png()
+      .toBuffer();
+    await page.setInputFiles('#image_file', [{ name: 'e2e-blau.png', mimeType: 'image/png', buffer: image }]);
+    await Promise.all([
+      page.waitForNavigation(),
+      page.getByRole('button', { name: 'Bilder hochladen' }).click(),
+    ]);
+    await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
+
+    // Öffentliche Produktseite: das Video ist die erste Folie der Galerie und startet automatisch.
     await page.goto(`/shop/${slug}/`);
-    const publicVideos = page.locator('.product-videos video');
-    await expect(publicVideos).toHaveCount(1);
-    const videoSrc = await publicVideos.getAttribute('src');
+    await expect(page.locator('.product-videos')).toHaveCount(0);
+    const slides = page.locator('.product-gallery [data-gallery-slide]');
+    await expect(slides).toHaveCount(2);
+    await expect(slides.first()).toHaveClass(/is-active/);
+    const publicVideo = slides.first().locator('video');
+    await expect(publicVideo).toHaveCount(1);
+    await expect(publicVideo).toHaveAttribute('autoplay', '');
+    await expect(publicVideo).toHaveAttribute('muted', '');
+    await expect(publicVideo).toHaveAttribute('playsinline', '');
+    const videoSrc = await publicVideo.getAttribute('src');
     expect(videoSrc).toMatch(/^\/media\/videos\/video-[a-f0-9]+\.mp4$/);
-    await expect(page.locator('.product-videos figcaption')).toHaveText('Produkt in Aktion');
+    await expect(slides.nth(1).locator('img')).toHaveCount(1);
+    await expect(page.locator('.gallery-thumb-video')).toHaveCount(1);
+    await expect(page.locator('[data-gallery-thumb]')).toHaveCount(2);
+
+    // Klick öffnet die Vergrößerung mit dem Video; Vor/Zurück wechselt zum Foto.
+    await page.locator('.product-gallery [data-gallery-open]').first().click();
+    const dialog = page.locator('[data-gallery-dialog]');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('[data-gallery-dialog-video]')).toBeVisible();
+    await expect(dialog.locator('[data-gallery-counter]')).toHaveText('1 / 2');
+    await dialog.locator('[data-gallery-next]').click();
+    await expect(dialog.locator('[data-gallery-dialog-image]')).toBeVisible();
+    await expect(dialog.locator('[data-gallery-counter]')).toHaveText('2 / 2');
+    await dialog.locator('[data-gallery-close]').click();
 
     // Datei ist öffentlich erreichbar.
     const response = await page.request.get(videoSrc!);
