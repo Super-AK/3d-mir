@@ -10,6 +10,7 @@ import { getPublicationSettings } from './publication-settings.js';
 import { placeholder } from './placeholders.js';
 import { isPickupShippingMethod } from './shop.js';
 import { faviconVersion } from './favicon.js';
+import { markdownText, renderMarkdown } from './markdown.js';
 import { getTurnstileSettings } from './turnstile-settings.js';
 
 type ImageVariant = { width: number; avif: string; webp: string; jpg: string };
@@ -247,6 +248,8 @@ env.addFilter('paragraphs', (value: unknown) => {
     .map((paragraph) => `<p>${escapeHtml(paragraph.trim()).replaceAll('\n', '<br>')}</p>`)
     .join('');
 });
+env.addFilter('markdown', (value: unknown) => renderMarkdown(typeof value === 'string' ? value : ''));
+env.addFilter('markdownText', (value: unknown) => markdownText(typeof value === 'string' ? value : ''));
 
 env.addGlobal('site', config.site);
 env.addGlobal('shopConfig', config.shop);

@@ -2,6 +2,7 @@ import '../css/main.css';
 import '../css/admin.css';
 import './admin-images';
 import './admin-passkeys';
+import { renderMarkdown } from '../../src/lib/markdown.js';
 
 /**
  * Admin-Navigation: Auf kleinen Bildschirmen als ausklappbares Menü.
@@ -28,6 +29,72 @@ if (navToggle && navSidebar) {
     if (mobile.matches && (event.target as HTMLElement).closest('a')) setOpen(false);
   });
 }
+
+/**
+ * Markdown-Editoren für Kurz- und Langbeschreibung: Formatierungsbuttons und
+ * Umschalter zwischen Quelltext und formatierter Vorschau.
+ */
+document.querySelectorAll<HTMLElement>('[data-markdown-editor]').forEach((editor) => {
+  const textarea = editor.querySelector<HTMLTextAreaElement>('[data-markdown-input]');
+  const preview = editor.querySelector<HTMLElement>('[data-markdown-preview]');
+  const toggle = editor.querySelector<HTMLButtonElement>('[data-md-toggle]');
+  if (!textarea || !preview || !toggle) return;
+
+  const setMode = (formatted: boolean): void => {
+    toggle.setAttribute('aria-pressed', String(formatted));
+    toggle.textContent = formatted ? 'Code bearbeiten' : 'Formatiert ansehen';
+    textarea.hidden = formatted;
+    preview.hidden = !formatted;
+    if (formatted) preview.innerHTML = renderMarkdown(textarea.value);
+    else textarea.focus();
+  };
+
+  toggle.addEventListener('click', () => setMode(!textarea.hidden));
+
+  const showCode = (): void => {
+    textarea.hidden = false;
+    preview.hidden = true;
+    toggle.textContent = 'Formatiert ansehen';
+    toggle.setAttribute('aria-pressed', 'false');
+  };
+
+  const wrap = (before: string, after: string, fallback: string): void => {
+    showCode();
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = textarea.value.slice(start, end) || fallback;
+    textarea.setRangeText(`${before}${selected}${after}`, start, end, 'select');
+    textarea.focus();
+  };
+
+  const prefixLines = (prefix: (index: number) => string, fallback: string): void => {
+    showCode();
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const block = textarea.value.slice(start, end) || fallback;
+    const lines = block
+      .split('\n')
+      .map((line, index) => `${prefix(index)}${line}`)
+      .join('\n');
+    textarea.setRangeText(lines, start, end, 'select');
+    textarea.focus();
+  };
+
+  const actions: Record<string, () => void> = {
+    heading: () => prefixLines(() => '## ', 'Überschrift'),
+    bold: () => wrap('**', '**', 'fetter Text'),
+    italic: () => wrap('*', '*', 'kursiver Text'),
+    strike: () => wrap('~~', '~~', 'durchgestrichener Text'),
+    link: () => wrap('[', '](https://beispiel.de)', 'Linktext'),
+    list: () => prefixLines(() => '- ', 'Listeneintrag'),
+    ordered: () => prefixLines((index) => `${index + 1}. `, 'Listeneintrag'),
+    quote: () => prefixLines(() => '> ', 'Zitat'),
+    code: () => wrap('`', '`', 'Code'),
+  };
+  editor.querySelectorAll<HTMLButtonElement>('[data-md-action]').forEach((button) => {
+    button.addEventListener('click', () => actions[button.dataset.mdAction ?? '']?.());
+  });
+});
 
 /**
  * Produktvarianten: mehrere neue Zeilen nacheinander erfassen und erst gemeinsam

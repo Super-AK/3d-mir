@@ -489,6 +489,53 @@
 .admin-image-settings { display: flex; flex-direction: column; gap: 0.5rem; }
 .admin-image-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .admin-upload { display: grid; gap: 0.85rem; padding: 1rem; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-2); }
+
+/* Markdown-Editoren (Kurz- und Langbeschreibung) */
+.md-editor { display: grid; gap: 0.4rem; }
+.md-editor [hidden] { display: none !important; }
+.md-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.md-button {
+  min-width: 2rem;
+  min-height: 32px;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+.md-button:hover { background: var(--surface-2); }
+.md-bold { font-weight: 700; }
+.md-italic { font-style: italic; }
+.md-toggle {
+  margin-left: auto;
+  min-height: 32px;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.md-toggle[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.md-preview {
+  min-height: 6rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+.md-preview p { margin: 0 0 0.5rem; }
+.md-preview p:last-child { margin-bottom: 0; }
+.md-preview h3 { margin: 0.7rem 0 0.3rem; font-size: 1rem; }
+.md-preview h3:first-child { margin-top: 0; }
+.md-preview ul, .md-preview ol { margin: 0.5rem 0; padding-left: 1.3rem; }
+.md-preview blockquote { margin: 0.6rem 0; padding-left: 0.6rem; border-left: 3px solid var(--accent); color: var(--text-muted); }
+.md-preview pre { margin: 0.6rem 0; padding: 0.5rem; border-radius: var(--radius-sm); background: var(--surface-2); overflow-x: auto; }
+.md-preview code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; }
 .admin-video-list { display: grid; gap: 0.75rem; margin-bottom: 0.85rem; }
 .admin-video-item {
   display: flex;

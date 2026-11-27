@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { getCustomerByEmail, getCustomerById, type CustomerRow } from './customers.js';
+import { markdownText } from './markdown.js';
 import type { ApiSettings } from './api-settings.js';
 
 export type OrderRow = {
@@ -346,7 +347,7 @@ export function mapProduct(
     id: String(row.id),
     sku: row.sku || null,
     name: row.name,
-    description: row.short_description || row.description || null,
+    description: markdownText(row.short_description || row.description || ''),
     unit: 'Stk',
     price_net_cents: price,
     price_gross_cents: price,

@@ -67,7 +67,7 @@
           <div class="product-card-body">
             <p class="eyebrow">{{ product.categoryName }}</p>
             <h2><a href="/shop/{{ product.slug }}/">{{ product.name }}{% if product.hasVideo %}<span class="visually-hidden"> (Video verfügbar)</span>{% endif %}</a></h2>
-            <p>{{ product.short_description }}</p>
+            <div class="product-card-short">{{ product.short_description | markdown | safe }}</div>
             <div class="product-card-footer">
               <p class="product-price">{{ product.priceLabel }}</p>
               <a class="btn btn-secondary btn-small" href="/shop/{{ product.slug }}/">Details ansehen</a>

@@ -1581,6 +1581,13 @@ tbody tr:hover { background: var(--surface-2); }
 }
 .product-details h2 { margin-bottom: 0.75rem; }
 .product-details p { color: var(--text-muted); }
+.product-details h3 { margin: 1rem 0 0.35rem; font-size: 1.04rem; }
+.product-details ul, .product-details ol { margin: 0.5rem 0; padding-left: 1.3rem; color: var(--text-muted); }
+.product-details li + li { margin-top: 0.25rem; }
+.product-details blockquote { margin: 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--accent); color: var(--text-muted); }
+.product-details pre { margin: 0.75rem 0; padding: 0.75rem; border-radius: var(--radius-sm); background: var(--surface-2); overflow-x: auto; }
+.product-details code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; }
+.product-short-description p:last-child, .product-card-short p:last-child { margin-bottom: 0; }
 .product-specs h2 { font-size: 1.1rem; }
 .product-specs dl { display: grid; gap: 0.55rem; margin: 1rem 0; }
 .product-specs dl div { display: grid; grid-template-columns: 8rem 1fr; gap: 0.75rem; font-size: 0.9rem; }

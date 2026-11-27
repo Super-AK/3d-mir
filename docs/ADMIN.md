@@ -578,6 +578,12 @@ Im Produktformular gibt es die Bereiche **Versandarten** und **Versand-Zusatzopt
 - Bei Warenkörben mit mehreren Produkten werden nur Versandarten angeboten, die für alle Produkte erlaubt sind. Versandoptionen werden angeboten, wenn mindestens ein Produkt sie unterstützt; sie werden pro Bestellung einmal berechnet.
 - Inaktive Versandarten oder Optionen werden im Shop und Checkout nicht angeboten, bleiben aber im Admin zur Bearbeitung sichtbar.
 
+### Produkttexte (Markdown)
+
+Kurzbeschreibung und Beschreibung unterstützen Markdown. Beide Felder haben eine Werkzeugleiste mit Buttons für fett, kursiv, Links und – in der Langbeschreibung – Überschriften, durchgestrichenen Text, Aufzählungen, nummerierte Listen, Zitate und Code. Über **„Formatiert ansehen“ / „Code bearbeiten“** wechselst du zwischen Quelltext und Vorschau; der Quelltext bleibt dabei erhalten und wird beim Speichern übermittelt.
+
+Erlaubt sind Absätze, `##`/`###`-Überschriften, `-`/`1.`-Listen, `> Zitate`, `` `Code` ``, ```Codeblöcke```, `**fett**`, `*kursiv*`, `~~durchgestrichen~~` und `[Text](URL)`. Nur http(s), `mailto:` und relative Links werden als Link gerendert; eingegebenes HTML wird grundsätzlich escapet und nicht ausgeführt. Die Kurzbeschreibung erscheint formatiert in der Shop-Übersicht und auf der Produktseite; für Meta-Tags, JSON-LD und die API wird sie zu reinem Text ohne Markdown-Zeichen umgewandelt.
+
 ### Varianten, Farben und Personalisierung
 
 - **Varianten:** Echte Ausführungen wie Größe oder Modell mit eigenem Preis und optionalem Lagerbestand. Bestehende Varianten werden direkt in der Tabelle geändert und mit „Varianten speichern“ übernommen. Über „Weitere Variante hinzufügen“ lassen sich beliebig viele neue Zeilen nacheinander erfassen (ohne Neuladen); hinzugefügte Zeilen können einzeln wieder entfernt werden. Erst der abschließende Klick auf „Varianten speichern“ schreibt alle Änderungen und neuen Varianten in einem Vorgang. Ohne JavaScript bleibt die erste neue Zeile nutzbar. Produkte ohne Varianten sind im Shop direkt kaufbar; die frühere Pflichtvariante „Standard“ ist nicht mehr nötig.

@@ -38,8 +38,17 @@
 
     <div class="field">
       <label for="shortDescription">Kurzbeschreibung</label>
-      <textarea id="shortDescription" name="shortDescription" rows="2" maxlength="300">{{ form.shortDescription }}</textarea>
-      <span class="hint">Erscheint in der Shop-Übersicht und in Suchmaschinen.</span>
+      <div class="md-editor" data-markdown-editor>
+        <div class="md-toolbar" role="toolbar" aria-label="Formatierung der Kurzbeschreibung">
+          <button class="md-button md-bold" type="button" data-md-action="bold" title="Fett" aria-label="Fett formatieren">B</button>
+          <button class="md-button md-italic" type="button" data-md-action="italic" title="Kursiv" aria-label="Kursiv formatieren">I</button>
+          <button class="md-button" type="button" data-md-action="link" title="Link" aria-label="Link einfügen">Link</button>
+          <button class="md-toggle" type="button" data-md-toggle aria-pressed="false">Formatiert ansehen</button>
+        </div>
+        <textarea id="shortDescription" name="shortDescription" rows="2" maxlength="300" data-markdown-input>{{ form.shortDescription }}</textarea>
+        <div class="md-preview" data-markdown-preview hidden></div>
+      </div>
+      <span class="hint">Markdown ist möglich (fett, kursiv, Link). Erscheint in der Shop-Übersicht und in Suchmaschinen.</span>
     </div>
 
     <details class="admin-field-collapse" data-collapse="description">
@@ -53,8 +62,23 @@
       </summary>
       <div class="field admin-collapse-body">
         <label for="description">Beschreibung bearbeiten</label>
-        <textarea id="description" name="description" rows="12" maxlength="10000">{{ form.description }}</textarea>
-        <span class="hint">Leerzeilen erzeugen Absätze. HTML wird nicht ausgeführt.</span>
+        <div class="md-editor" data-markdown-editor>
+          <div class="md-toolbar" role="toolbar" aria-label="Formatierung der Beschreibung">
+            <button class="md-button" type="button" data-md-action="heading" title="Überschrift" aria-label="Überschrift">H</button>
+            <button class="md-button md-bold" type="button" data-md-action="bold" title="Fett" aria-label="Fett formatieren">B</button>
+            <button class="md-button md-italic" type="button" data-md-action="italic" title="Kursiv" aria-label="Kursiv formatieren">I</button>
+            <button class="md-button" type="button" data-md-action="strike" title="Durchgestrichen" aria-label="Durchgestrichen formatieren">S</button>
+            <button class="md-button" type="button" data-md-action="link" title="Link" aria-label="Link einfügen">Link</button>
+            <button class="md-button" type="button" data-md-action="list" title="Aufzählung" aria-label="Aufzählung">• Liste</button>
+            <button class="md-button" type="button" data-md-action="ordered" title="Nummerierte Liste" aria-label="Nummerierte Liste">1. Liste</button>
+            <button class="md-button" type="button" data-md-action="quote" title="Zitat" aria-label="Zitat">❝</button>
+            <button class="md-button" type="button" data-md-action="code" title="Code" aria-label="Code formatieren">&lt;/&gt;</button>
+            <button class="md-toggle" type="button" data-md-toggle aria-pressed="false">Formatiert ansehen</button>
+          </div>
+          <textarea id="description" name="description" rows="12" maxlength="10000" data-markdown-input>{{ form.description }}</textarea>
+          <div class="md-preview" data-markdown-preview hidden></div>
+        </div>
+        <span class="hint">Markdown: Überschriften, Listen, Fett/Kursiv, Links, Zitate und Codeblöcke. Mit „Formatiert ansehen" wechselst du zwischen Quelltext und Vorschau. HTML wird nicht ausgeführt.</span>
       </div>
     </details>
 

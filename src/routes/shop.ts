@@ -7,6 +7,7 @@ import { queueWebhook } from '../lib/api-webhooks.js';
 import { ensureCustomer } from '../lib/customers.js';
 import { verifyTurnstileToken, turnstileToken } from '../lib/turnstile.js';
 import { productVideoUrl } from '../lib/product-videos.js';
+import { markdownText } from '../lib/markdown.js';
 import { recordBotEvent } from '../lib/bot-events.js';
 import { customerExternalId } from '../lib/api-mapper.js';
 import { render } from '../lib/render.js';
@@ -326,7 +327,7 @@ function productJsonLd(product: ProductRow, variants: VariantRow[]) {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name,
-      description: product.short_description,
+      description: markdownText(product.short_description),
       sku: product.sku ?? undefined,
       material: product.material || undefined,
       image: [`${config.site.baseUrl}/assets/img/gen/product-battery-box-900.jpg`],

@@ -1,9 +1,9 @@
 {% extends "layouts/base.njk" %}
 
 {% block title %}{{ product.name }} – 3D-MIR Shop{% endblock %}
-{% block description %}{{ product.short_description }}{% endblock %}
+{% block description %}{{ product.short_description | markdownText }}{% endblock %}
 {% block ogtitle %}{{ product.name }} – 3D-MIR{% endblock %}
-{% block ogdescription %}{{ product.short_description }}{% endblock %}
+{% block ogdescription %}{{ product.short_description | markdownText }}{% endblock %}
 
 {% block head %}
 <script type="application/ld+json">{{ productJsonLd | jsonld | safe }}</script>
@@ -103,7 +103,7 @@
         <p class="product-price product-price-large" data-product-price data-price-base="{{ basePriceText }}">{{ basePriceText }}</p>
         <p class="text-muted"><small>{{ site.business.vatNote }} zzgl. Versandkosten.</small></p>
 
-        <p>{{ product.short_description }}</p>
+        <div class="product-short-description">{{ product.short_description | markdown | safe }}</div>
 
         <form class="product-form" method="post" action="/warenkorb/hinzufuegen/">
           <input type="hidden" name="productId" value="{{ product.id }}">
@@ -171,7 +171,7 @@
   <div class="container product-details">
     <div>
       <h2>Beschreibung</h2>
-      {{ product.description | paragraphs | safe }}
+      <div class="product-description">{{ product.description | markdown | safe }}</div>
     </div>
     <aside class="product-specs card">
       <h2>Auf einen Blick</h2>
