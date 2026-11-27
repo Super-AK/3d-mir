@@ -146,4 +146,77 @@ test.describe('Varianten, Farben und Personalisierung', () => {
 
     expect(errors).toEqual([]);
   });
+
+  test('Mehrere neue Varianten ohne Neuladen anlegen', async ({ page }) => {
+    test.setTimeout(90_000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+
+    const suffix = Date.now().toString(36);
+    const name = `E2E Mehrvarianten ${suffix}`;
+    const slug = `e2e-mehrvarianten-${suffix}`;
+
+    await page.goto('/admin/');
+    await page.fill('#email', email);
+    await page.fill('#password', password);
+    await page.getByRole('button', { name: 'Anmelden' }).click();
+    await expect(page).toHaveURL(/\/admin\/$/);
+
+    await page.goto('/admin/produkte/neu/');
+    await page.fill('#name', name);
+    await page.fill('#slug', slug);
+    await page.fill('#priceFrom', '10.00');
+    await page.getByRole('button', { name: 'Speichern', exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
+    await openSection(page, 'variants');
+
+    await page.fill('input[name="new_label"]', 'Klein');
+    await page.fill('input[name="new_price"]', '10.00');
+
+    // Marker bleibt erhalten, solange keine Seite neu geladen wird.
+    await page.evaluate(() => {
+      (window as unknown as { __variantMarker?: number }).__variantMarker = 1;
+    });
+    await page.getByRole('button', { name: 'Weitere Variante hinzufügen' }).click();
+    await expect(page.locator('input[name="new_label_1"]')).toBeVisible();
+    await page.fill('input[name="new_label_1"]', 'Mittel');
+    await page.fill('input[name="new_price_1"]', '12.00');
+    await page.fill('input[name="new_stock_1"]', '5');
+
+    await page.getByRole('button', { name: 'Weitere Variante hinzufügen' }).click();
+    await expect(page.locator('input[name="new_label_2"]')).toBeVisible();
+    await page.fill('input[name="new_label_2"]', 'Groß');
+    await page.fill('input[name="new_price_2"]', '15.00');
+    expect(await page.evaluate(() => (window as unknown as { __variantMarker?: number }).__variantMarker)).toBe(1);
+
+    // Eine hinzugefügte Zeile lässt sich wieder entfernen.
+    await page
+      .locator('tr')
+      .filter({ has: page.locator('input[name="new_label_2"]') })
+      .getByRole('button', { name: 'Neue Variante entfernen' })
+      .click();
+    await expect(page.locator('input[name="new_label_2"]')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Weitere Variante hinzufügen' }).click();
+    const thirdLabel = page.locator('input[name^="new_label_"]').last();
+    const thirdIndex = (await thirdLabel.getAttribute('name'))!.replace('new_label_', '');
+    await thirdLabel.fill('Groß');
+    await page.fill(`input[name="new_price_${thirdIndex}"]`, '15.00');
+
+    // Erst jetzt ein einziger Speichervorgang für alle drei Varianten.
+    await Promise.all([
+      page.waitForNavigation(),
+      page.getByRole('button', { name: 'Varianten speichern' }).click(),
+    ]);
+    await expect(page).toHaveURL(/\?gespeichert=1/);
+    await openSection(page, 'variants');
+    const labels = await page
+      .locator('input[name^="variant_"][name$="_label"]')
+      .evaluateAll((elements) => elements.map((element) => (element as HTMLInputElement).value));
+    expect(labels).toEqual(['Klein', 'Mittel', 'Groß']);
+
+    await page.goto(`/shop/${slug}/`);
+    await expect(page.locator('#variantId option')).toHaveCount(4);
+
+    expect(errors).toEqual([]);
+  });
 });

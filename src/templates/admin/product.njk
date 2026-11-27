@@ -239,7 +239,8 @@
         </summary>
         <div class="admin-collapse-body">
           <p class="text-muted">Varianten sind echte Ausführungen wie Größe oder Modell mit eigenem Preis und Bestand. Produkte ohne Varianten sind direkt kaufbar. Farben werden oben als kommagetrennte Liste gepflegt.</p>
-          <form method="post" action="/admin/produkte/{{ product.id }}/varianten/">
+          <p class="hint">Bestehende Varianten lassen sich direkt ändern. Über „Weitere Variante hinzufügen“ können mehrere neue Varianten nacheinander erfasst und gemeinsam mit einem Klick gespeichert werden – ohne zwischenzeitliches Neuladen.</p>
+          <form method="post" action="/admin/produkte/{{ product.id }}/varianten/" data-variant-form>
             <input type="hidden" name="_csrf" value="{{ csrf }}">
             <div class="table-wrap">
               <table>
@@ -253,7 +254,7 @@
                       <td><label class="admin-check admin-check-inline"><input type="checkbox" name="variant_{{ variant.id }}_delete" value="1"><span>löschen</span></label></td>
                     </tr>
                   {% endfor %}
-                  <tr>
+                  <tr data-variant-new-row>
                     <td><input name="new_label" type="text" maxlength="80" placeholder="Neue Variante"></td>
                     <td><input name="new_price" type="number" min="0" step="0.01" placeholder="0.00"></td>
                     <td><input name="new_stock" type="number" min="0" step="1" placeholder="optional"></td>
@@ -262,7 +263,16 @@
                 </tbody>
               </table>
             </div>
+            <template data-variant-template>
+              <tr>
+                <td><input name="new_label_1" type="text" maxlength="80" placeholder="Neue Variante" required></td>
+                <td><input name="new_price_1" type="number" min="0" step="0.01" placeholder="0.00" required></td>
+                <td><input name="new_stock_1" type="number" min="0" step="1" placeholder="optional"></td>
+                <td><button class="btn btn-secondary btn-small" type="button" data-remove-variant aria-label="Neue Variante entfernen">Entfernen</button></td>
+              </tr>
+            </template>
             <div class="form-actions">
+              <button class="btn btn-secondary" type="button" data-add-variant>Weitere Variante hinzufügen</button>
               <button class="btn" type="submit">Varianten speichern</button>
             </div>
           </form>

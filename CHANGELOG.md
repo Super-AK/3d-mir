@@ -3,6 +3,12 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.102] – 27. November 2026
+
+### Geändert
+
+- **Produktvarianten:** Im Admin können über „Weitere Variante hinzufügen“ mehrere neue Varianten nacheinander erfasst und einzeln wieder entfernt werden – ohne Neuladen. Erst „Varianten speichern“ übernimmt alle Änderungen und neuen Datensätze in einem Vorgang.
+
 ## [1.0.0-rc.101] – 27. November 2026
 
 ### Hinzugefügt

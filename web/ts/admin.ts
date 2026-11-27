@@ -30,6 +30,37 @@ if (navToggle && navSidebar) {
 }
 
 /**
+ * Produktvarianten: mehrere neue Zeilen nacheinander erfassen und erst gemeinsam
+ * speichern. Die erste Zeile (`new_*`) bleibt auch ohne JavaScript nutzbar.
+ */
+const variantForm = document.querySelector<HTMLFormElement>('[data-variant-form]');
+if (variantForm) {
+  const tbody = variantForm.querySelector<HTMLTableSectionElement>('tbody');
+  const template = variantForm.querySelector<HTMLTemplateElement>('[data-variant-template]');
+  const addButton = variantForm.querySelector<HTMLButtonElement>('[data-add-variant]');
+  let nextIndex = 1;
+
+  addButton?.addEventListener('click', () => {
+    if (!tbody || !template) return;
+    const fragment = template.content.cloneNode(true) as DocumentFragment;
+    const row = fragment.querySelector('tr');
+    if (!row) return;
+    row.querySelectorAll<HTMLInputElement>('input[name]').forEach((input) => {
+      input.name = input.name.replace('_1', `_${nextIndex}`);
+    });
+    nextIndex += 1;
+    tbody.appendChild(fragment);
+    row.querySelector<HTMLInputElement>('input[type="text"]')?.focus();
+  });
+
+  variantForm.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-variant]');
+    if (!button) return;
+    button.closest('tr')?.remove();
+  });
+}
+
+/**
  * Admin-Bereich: Komfortfunktionen. Alle Formulare funktionieren auch ohne JavaScript.
  * Der Bild-Upload zeigt mit XMLHttpRequest einen echten Übertragungsfortschritt an
  * und fällt bei Fehlern auf die normale Formularübermittlung zurück.

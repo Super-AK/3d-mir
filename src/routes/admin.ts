@@ -1675,18 +1675,37 @@ function updateVariants(productId: number, body: Record<string, unknown>): strin
           .run(label, price, stock, variant.id, productId);
       }
 
-      const newLabel = cleanText(body.new_label, 80);
-      if (newLabel) {
-        const newPrice = euroToCents(body.new_price);
-        const newStock = intOrNull(body.new_stock);
-        if (newPrice === null || newPrice < 0) throw new FormError('Bitte geben Sie für die neue Variante einen gültigen Preis an.');
-        if (newStock !== null && newStock < 0) throw new FormError('Bitte geben Sie für die neue Variante einen gültigen Bestand an.');
+      // Die erste Zeile heißt `new_*` (funktioniert ohne JavaScript), weitere
+      // dynamisch hinzugefügte Zeilen tragen einen laufenden Index `new_*_N`.
+      const candidates: Array<{ label: unknown; price: unknown; stock: unknown }> = [
+        { label: body.new_label, price: body.new_price, stock: body.new_stock },
+      ];
+      const indices = Object.keys(body)
+        .map((key) => /^new_label_(\d+)$/.exec(key))
+        .filter((match): match is RegExpExecArray => match !== null)
+        .map((match) => Number(match[1]))
+        .sort((a, b) => a - b);
+      for (const index of indices) {
+        candidates.push({
+          label: body[`new_label_${index}`],
+          price: body[`new_price_${index}`],
+          stock: body[`new_stock_${index}`],
+        });
+      }
+
+      for (const candidate of candidates) {
+        const label = cleanText(candidate.label, 80);
+        if (!label) continue;
+        const price = euroToCents(candidate.price);
+        const stock = intOrNull(candidate.stock);
+        if (price === null || price < 0) throw new FormError(`Bitte geben Sie für „${label}“ einen gültigen Preis an.`);
+        if (stock !== null && stock < 0) throw new FormError(`Bitte geben Sie für „${label}“ einen gültigen Bestand an.`);
         const maxSort = db()
           .prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM product_variants WHERE product_id = ?')
           .get(productId) as { value: number };
         db()
           .prepare('INSERT INTO product_variants (product_id, label, price_cents, stock, sort_order) VALUES (?, ?, ?, ?, ?)')
-          .run(productId, newLabel, newPrice, newStock, maxSort.value + 1);
+          .run(productId, label, price, stock, maxSort.value + 1);
       }
     });
     run();
