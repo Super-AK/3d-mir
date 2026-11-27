@@ -58,6 +58,68 @@ document.querySelectorAll<HTMLElement>('[data-markdown-editor]').forEach((editor
     toggle.setAttribute('aria-pressed', 'false');
   };
 
+  // Eigener Verlauf, damit auch die Formatierungsbuttons rückgängig machbar sind.
+  type Snapshot = { value: string; start: number; end: number };
+  const undoButton = editor.querySelector<HTMLButtonElement>('[data-md-action="undo"]');
+  const redoButton = editor.querySelector<HTMLButtonElement>('[data-md-action="redo"]');
+  const history: Snapshot[] = [{ value: textarea.value, start: 0, end: 0 }];
+  let historyIndex = 0;
+  let lastTypedAt = 0;
+
+  const syncHistoryButtons = (): void => {
+    if (undoButton) undoButton.disabled = historyIndex <= 0;
+    if (redoButton) redoButton.disabled = historyIndex >= history.length - 1;
+  };
+  const snapshot = (): Snapshot => ({
+    value: textarea.value,
+    start: textarea.selectionStart,
+    end: textarea.selectionEnd,
+  });
+  const pushHistory = (groupTyping = false): void => {
+    const now = Date.now();
+    if (groupTyping && historyIndex === history.length - 1 && now - lastTypedAt < 500) {
+      history[historyIndex] = snapshot();
+    } else {
+      history.splice(historyIndex + 1);
+      history.push(snapshot());
+      historyIndex = history.length - 1;
+    }
+    lastTypedAt = now;
+    syncHistoryButtons();
+  };
+  const applySnapshot = (state: Snapshot): void => {
+    textarea.value = state.value;
+    textarea.setSelectionRange(state.start, state.end);
+    textarea.focus();
+  };
+  const undo = (): void => {
+    if (historyIndex <= 0) return;
+    showCode();
+    historyIndex -= 1;
+    applySnapshot(history[historyIndex]!);
+    lastTypedAt = 0;
+    syncHistoryButtons();
+  };
+  const redo = (): void => {
+    if (historyIndex >= history.length - 1) return;
+    showCode();
+    historyIndex += 1;
+    applySnapshot(history[historyIndex]!);
+    lastTypedAt = 0;
+    syncHistoryButtons();
+  };
+
+  textarea.addEventListener('input', () => pushHistory(true));
+  textarea.addEventListener('keydown', (event) => {
+    if (!(event.ctrlKey || event.metaKey)) return;
+    const key = event.key.toLowerCase();
+    if (key !== 'z' && key !== 'y') return;
+    event.preventDefault();
+    if (key === 'y' || event.shiftKey) redo();
+    else undo();
+  });
+  syncHistoryButtons();
+
   const wrap = (before: string, after: string, fallback: string): void => {
     showCode();
     const start = textarea.selectionStart;
@@ -65,6 +127,7 @@ document.querySelectorAll<HTMLElement>('[data-markdown-editor]').forEach((editor
     const selected = textarea.value.slice(start, end) || fallback;
     textarea.setRangeText(`${before}${selected}${after}`, start, end, 'select');
     textarea.focus();
+    pushHistory();
   };
 
   const prefixLines = (prefix: (index: number) => string, fallback: string): void => {
@@ -78,9 +141,12 @@ document.querySelectorAll<HTMLElement>('[data-markdown-editor]').forEach((editor
       .join('\n');
     textarea.setRangeText(lines, start, end, 'select');
     textarea.focus();
+    pushHistory();
   };
 
   const actions: Record<string, () => void> = {
+    undo,
+    redo,
     heading: () => prefixLines(() => '## ', 'Überschrift'),
     bold: () => wrap('**', '**', 'fetter Text'),
     italic: () => wrap('*', '*', 'kursiver Text'),

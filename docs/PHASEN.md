@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.104 – 27. November 2026
+
+Rückgängig/Wiederholen in den Markdown-Werkzeugleisten der Produkttexte.
+
 ## Release 1.0.0-rc.103 – 27. November 2026
 
 Markdown-Formatierung für Kurzbeschreibung und Beschreibung mit Editor-Buttons und Code/Vorschau-Umschalter.

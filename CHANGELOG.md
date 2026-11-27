@@ -3,6 +3,12 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.104] – 27. November 2026
+
+### Hinzugefügt
+
+- **Markdown-Editoren:** Werkzeugleiste um Rückgängig/Wiederholen erweitert. Der Verlauf umfasst auch Formatierungsaktionen; Strg/Cmd+Z bzw. Strg/Cmd+Umschalt+Z funktionieren ebenfalls.
+
 ## [1.0.0-rc.103] – 27. November 2026
 
 ### Hinzugefügt

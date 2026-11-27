@@ -506,6 +506,7 @@
   cursor: pointer;
 }
 .md-button:hover { background: var(--surface-2); }
+.md-button:disabled { opacity: 0.45; cursor: not-allowed; }
 .md-bold { font-weight: 700; }
 .md-italic { font-style: italic; }
 .md-toggle {

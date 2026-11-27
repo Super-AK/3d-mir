@@ -580,7 +580,7 @@ Im Produktformular gibt es die Bereiche **Versandarten** und **Versand-Zusatzopt
 
 ### Produkttexte (Markdown)
 
-Kurzbeschreibung und Beschreibung unterstützen Markdown. Beide Felder haben eine Werkzeugleiste mit Buttons für fett, kursiv, Links und – in der Langbeschreibung – Überschriften, durchgestrichenen Text, Aufzählungen, nummerierte Listen, Zitate und Code. Über **„Formatiert ansehen“ / „Code bearbeiten“** wechselst du zwischen Quelltext und Vorschau; der Quelltext bleibt dabei erhalten und wird beim Speichern übermittelt.
+Kurzbeschreibung und Beschreibung unterstützen Markdown. Beide Felder haben eine Werkzeugleiste mit **Rückgängig** (↶) und **Wiederholen** (↷) sowie Buttons für fett, kursiv, Links und – in der Langbeschreibung – Überschriften, durchgestrichenen Text, Aufzählungen, nummerierte Listen, Zitate und Code. Der Verlauf umfasst auch die Formatierungsbuttons; rapid getippte Zeichen werden zu einem Schritt zusammengefasst. Zusätzlich wirken Strg/Cmd+Z und Strg/Cmd+Umschalt+Z. Über **„Formatiert ansehen“ / „Code bearbeiten“** wechselst du zwischen Quelltext und Vorschau; der Quelltext bleibt dabei erhalten und wird beim Speichern übermittelt.
 
 Erlaubt sind Absätze, `##`/`###`-Überschriften, `-`/`1.`-Listen, `> Zitate`, `` `Code` ``, ```Codeblöcke```, `**fett**`, `*kursiv*`, `~~durchgestrichen~~` und `[Text](URL)`. Nur http(s), `mailto:` und relative Links werden als Link gerendert; eingegebenes HTML wird grundsätzlich escapet und nicht ausgeführt. Die Kurzbeschreibung erscheint formatiert in der Shop-Übersicht und auf der Produktseite; für Meta-Tags, JSON-LD und die API wird sie zu reinem Text ohne Markdown-Zeichen umgewandelt.
 

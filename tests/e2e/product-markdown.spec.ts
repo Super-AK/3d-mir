@@ -55,6 +55,16 @@ test.describe('Produkttexte mit Markdown', () => {
     await longEditor.locator('textarea').focus();
     await longEditor.locator('[data-md-action="bold"]').click();
     await expect(longEditor.locator('textarea')).toHaveValue('### Titel\n\n- eins\n- zwei**fetter Text**');
+
+    // Rückgängig/Wiederholen wirken auch auf die Button-Formatierung.
+    await expect(longEditor.locator('[data-md-action="redo"]')).toBeDisabled();
+    await longEditor.locator('[data-md-action="undo"]').click();
+    await expect(longEditor.locator('textarea')).toHaveValue('### Titel\n\n- eins\n- zwei');
+    await expect(longEditor.locator('[data-md-action="redo"]')).toBeEnabled();
+    await longEditor.locator('[data-md-action="redo"]').click();
+    await expect(longEditor.locator('textarea')).toHaveValue('### Titel\n\n- eins\n- zwei**fetter Text**');
+    await expect(longEditor.locator('[data-md-action="redo"]')).toBeDisabled();
+
     await longEditor.locator('[data-md-toggle]').click();
     await expect(longEditor.locator('.md-preview h3')).toHaveText('Titel');
     await expect(longEditor.locator('.md-preview li')).toHaveCount(2);
