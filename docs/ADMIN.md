@@ -483,9 +483,9 @@ Unter **Admin → Produkte** lassen sich Produkte, Varianten, Farben, Personalis
 
 ### Videos
 
-Zusätzlich zu den Bildern können pro Produkt bis zu drei Videos hinterlegt werden. Der Bereich **Videos** liegt direkt unter dem Bilderbereich und ist immer sichtbar.
+Zusätzlich zu den Bildern können pro Produkt bis zu drei Videos hinterlegt werden. Der Bereich **Videos** liegt direkt unter dem Bilderbereich und ist wie dieser **standardmäßig eingeklappt**; ein Klick auf die Zeile öffnet ihn. Die Zeile zeigt bereits die Anzahl der Videos.
 
-- **Formate:** MP4 (H.264) und WebM, maximal 25 MB je Datei. Es erfolgt **kein Transcoding** – die Dateien sollten bereits weboptimiert sein. Die Datei wird anhand des MIME-Typs und der Magic Bytes geprüft.
+- **Formate:** MP4 (H.264) und WebM, maximal 35 MB je Datei. Es erfolgt **kein Transcoding** – die Dateien sollten bereits weboptimiert sein. Die Datei wird anhand des MIME-Typs und der Magic Bytes geprüft.
 - **Titel:** Optional, wird auf der Produktseite als Bildunterschrift angezeigt.
 - **Speicherung:** Unter `/var/lib/3d-mir/uploads/media/videos/` mit zufälligem Dateinamen, ausgeliefert über `/media/videos/…`. Range-Requests werden vom Static-Handler unterstützt.
 - **Anzeige:** Auf der öffentlichen Produktseite stehen die Videos unter der Bildergalerie. Als Poster wird das erste Produktbild verwendet, sofern vorhanden.

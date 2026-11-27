@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { config } from '../config.js';
 
-export const MAX_PRODUCT_VIDEO_BYTES = 25 * 1024 * 1024;
+export const MAX_PRODUCT_VIDEO_BYTES = 35 * 1024 * 1024;
 export const MAX_PRODUCT_VIDEOS = 3;
 export const ALLOWED_VIDEO_TYPES: Record<string, string> = {
   'video/mp4': 'mp4',
@@ -35,7 +35,7 @@ export function storeProductVideo(upload: UploadedVideo): string {
   if (!extension) throw new ProductVideoError('Erlaubt sind MP4 (H.264) und WebM (VP9/VP8).');
   if (upload.buffer.length === 0) throw new ProductVideoError('Die Datei ist leer.');
   if (upload.buffer.length > MAX_PRODUCT_VIDEO_BYTES) {
-    throw new ProductVideoError('Das Video ist zu groß (maximal 25 MB).');
+    throw new ProductVideoError('Das Video ist zu groß (maximal 35 MB).');
   }
   const valid =
     (extension === 'mp4' && upload.buffer.subarray(4, 8).toString('ascii') === 'ftyp') ||

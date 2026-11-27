@@ -56,6 +56,15 @@ describe('Produktvideos', () => {
     ).toThrow(/zu groß/);
   });
 
+  it('akzeptiert Dateien über dem alten 25-MB-Limit bis 35 MB', () => {
+    const bigger = Buffer.concat([
+      Buffer.from('000000186674797069736f6d', 'hex'),
+      Buffer.alloc(26 * 1024 * 1024),
+    ]);
+    const key = storeProductVideo({ buffer: bigger, filename: 'gross.mp4', mimetype: 'video/mp4' });
+    expect(fs.statSync(path.join(tempDir, 'media', 'videos', key)).size).toBe(bigger.length);
+  });
+
   it('prüft die Magic Bytes unabhängig vom MIME-Typ', () => {
     expect(() =>
       storeProductVideo({ buffer: Buffer.from('kein video'), filename: 'x.mp4', mimetype: 'video/mp4' }),

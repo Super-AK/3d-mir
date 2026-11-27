@@ -400,44 +400,55 @@
     </section>
 
     <section class="card admin-panel">
-      <div class="admin-panel-head"><h2>Videos</h2></div>
-      <p class="text-muted">Zusätzlich zu den Bildern: MP4 (H.264) oder WebM, maximal 25 MB und 3 Videos pro Produkt. Ohne Transcoding – bitte bereits weboptimiert hochladen.</p>
-      {% if videos.length > 0 %}
-        <div class="admin-video-list">
-          {% for video in videos %}
-            <div class="admin-video-item">
-              <video class="admin-video" src="{{ video.url }}" controls preload="metadata" playsinline {% if video.title %}aria-label="{{ video.title }}"{% endif %}></video>
-              <div class="admin-video-meta">
-                <span>{{ video.title or 'Video ' ~ loop.index }}</span>
-                <form method="post" action="/admin/produkte/{{ product.id }}/videos/{{ video.id }}/loeschen/">
-                  <input type="hidden" name="_csrf" value="{{ csrf }}">
-                  <button class="btn btn-secondary btn-small" type="submit">Video löschen</button>
-                </form>
+      <details class="admin-field-collapse" data-collapse="videos">
+        <summary>
+          <h2>Videos</h2>
+          {% if videos.length > 0 %}
+            <span class="admin-collapse-preview">{{ videos.length }} {% if videos.length == 1 %}Video{% else %}Videos{% endif %}</span>
+          {% else %}
+            <span class="admin-collapse-preview">Noch keine Videos</span>
+          {% endif %}
+        </summary>
+        <div class="admin-collapse-body">
+          <p class="text-muted">Zusätzlich zu den Bildern: MP4 (H.264) oder WebM, maximal 35 MB und 3 Videos pro Produkt. Ohne Transcoding – bitte bereits weboptimiert hochladen.</p>
+          {% if videos.length > 0 %}
+            <div class="admin-video-list">
+              {% for video in videos %}
+                <div class="admin-video-item">
+                  <video class="admin-video" src="{{ video.url }}" controls preload="metadata" playsinline {% if video.title %}aria-label="{{ video.title }}"{% endif %}></video>
+                  <div class="admin-video-meta">
+                    <span>{{ video.title or 'Video ' ~ loop.index }}</span>
+                    <form method="post" action="/admin/produkte/{{ product.id }}/videos/{{ video.id }}/loeschen/">
+                      <input type="hidden" name="_csrf" value="{{ csrf }}">
+                      <button class="btn btn-secondary btn-small" type="submit">Video löschen</button>
+                    </form>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted">Für dieses Produkt ist noch kein Video hinterlegt.</p>
+          {% endif %}
+          <div class="admin-upload">
+            <h3>Video hinzufügen</h3>
+            <form method="post" action="/admin/produkte/{{ product.id }}/videos/" enctype="multipart/form-data">
+              <input type="hidden" name="_csrf" value="{{ csrf }}">
+              <div class="form-row">
+                <div class="field">
+                  <label for="video_file">Videodatei</label>
+                  <input id="video_file" name="video" type="file" accept="video/mp4,video/webm" required>
+                  <span class="hint">MP4 oder WebM, maximal 35 MB.</span>
+                </div>
+                <div class="field">
+                  <label for="video_title">Titel (optional)</label>
+                  <input id="video_title" name="title" type="text" maxlength="150" placeholder="z. B. Produkt in Aktion">
+                </div>
               </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-muted">Für dieses Produkt ist noch kein Video hinterlegt.</p>
-      {% endif %}
-      <div class="admin-upload">
-        <h3>Video hinzufügen</h3>
-        <form method="post" action="/admin/produkte/{{ product.id }}/videos/" enctype="multipart/form-data">
-          <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <div class="form-row">
-            <div class="field">
-              <label for="video_file">Videodatei</label>
-              <input id="video_file" name="video" type="file" accept="video/mp4,video/webm" required>
-              <span class="hint">MP4 oder WebM, maximal 25 MB.</span>
-            </div>
-            <div class="field">
-              <label for="video_title">Titel (optional)</label>
-              <input id="video_title" name="title" type="text" maxlength="150" placeholder="z. B. Produkt in Aktion">
-            </div>
+              <div class="form-actions"><button class="btn" type="submit">Video hochladen</button></div>
+            </form>
           </div>
-          <div class="form-actions"><button class="btn" type="submit">Video hochladen</button></div>
-        </form>
-      </div>
+        </div>
+      </details>
     </section>
   {% endif %}
 {% endblock %}

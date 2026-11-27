@@ -3,6 +3,12 @@
 Alle wesentlichen Änderungen an der 3D-MIR-Webseite. Die Versionierung folgt
 [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.0.0-rc.98] – 27. November 2026
+
+### Geändert
+
+- **Produktvideos:** Der Videos-Bereich im Admin ist jetzt standardmäßig eingeklappt (wie der Bilderbereich) und zeigt in der Zeile die Anzahl der Videos. Das Upload-Limit wurde von 25 MB auf 35 MB erhöht.
+
 ## [1.0.0-rc.97] – 27. November 2026
 
 ### Hinzugefügt

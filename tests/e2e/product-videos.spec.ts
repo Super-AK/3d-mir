@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Produktvideos: Upload und Löschen im Admin-Bereich sowie die Anzeige auf der
@@ -9,6 +9,16 @@ const password = process.env.E2E_ADMIN_PASSWORD ?? '';
 
 /** Minimal-gültige MP4-Datei (ftyp-Box), wie sie die Validierung erwartet. */
 const mp4 = Buffer.concat([Buffer.from('000000186674797069736f6d', 'hex'), Buffer.alloc(32)]);
+
+/** Öffnet den initial eingeklappten Videos-Bereich. */
+const openVideos = async (page: Page): Promise<void> => {
+  await page.waitForLoadState('domcontentloaded');
+  const section = page.locator('[data-collapse="videos"]');
+  if ((await section.getAttribute('open')) === null) {
+    await section.locator('> summary').click();
+  }
+  await expect(section).toHaveAttribute('open', '');
+};
 
 test.describe('Produktvideos', () => {
   test.skip(!email || !password, 'E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD nicht gesetzt');
@@ -37,7 +47,9 @@ test.describe('Produktvideos', () => {
     const productId = page.url().match(/\/produkte\/(\d+)\//)?.[1];
     expect(productId).toBeDefined();
 
-    // Videobereich ist immer sichtbar (keine eingeklappte Details-Sektion).
+    // Videobereich ist standardmäßig eingeklappt (wie der Bilderbereich).
+    await expect(page.locator('[data-collapse="videos"]')).not.toHaveAttribute('open', '');
+    await openVideos(page);
     await page.setInputFiles('#video_file', [
       { name: 'e2e-video.mp4', mimeType: 'video/mp4', buffer: mp4 },
     ]);
@@ -47,6 +59,7 @@ test.describe('Produktvideos', () => {
       page.getByRole('button', { name: 'Video hochladen' }).click(),
     ]);
     await expect(page).toHaveURL(/\/admin\/produkte\/\d+\/\?gespeichert=1/);
+    await openVideos(page);
 
     const adminVideos = page.locator('.admin-video-item');
     await expect(adminVideos).toHaveCount(1);
@@ -68,6 +81,7 @@ test.describe('Produktvideos', () => {
 
     // Löschen entfernt sowohl Datenbank-Eintrag als auch Datei.
     await page.goto(`/admin/produkte/${productId}/`);
+    await openVideos(page);
     await expect(adminVideos).toHaveCount(1);
     await Promise.all([
       page.waitForNavigation(),

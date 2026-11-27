@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.98 – 27. November 2026
+
+Videos-Karte standardmäßig eingeklappt wie die Bilder-Karte; Upload-Limit auf 35 MB erhöht.
+
 ## Release 1.0.0-rc.97 – 27. November 2026
 
 Produktvideos zusätzlich zu den Bildern: Admin-Upload mit Format-/Größenprüfung, Speicherung unter `/media/videos/`, Anzeige auf der Produktseite und Audit-Logging.
