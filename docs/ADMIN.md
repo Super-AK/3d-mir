@@ -489,6 +489,7 @@ Zusätzlich zu den Bildern können pro Produkt bis zu drei Videos hinterlegt wer
 - **Titel:** Optional, wird auf der Produktseite als Bildunterschrift angezeigt.
 - **Speicherung:** Unter `/var/lib/3d-mir/uploads/media/videos/` mit zufälligem Dateinamen, ausgeliefert über `/media/videos/…`. Range-Requests werden vom Static-Handler unterstützt.
 - **Anzeige:** Auf der öffentlichen Produktseite sind die Videos die **ersten Folien der Bildergalerie** und starten automatisch (stumm, in Dauerschleife). Die Miniatur zeigt das erste Produktbild mit Play-Symbol; als Poster wird ebenfalls das erste Produktbild verwendet, sofern vorhanden. Die Vergrößerung zeigt das Video mit Steuerung.
+- **Shop-Übersicht:** Produkte mit mindestens einem Video erhalten auf der Produktkarte ein „Video"-Badge; der Link trägt zusätzlich den Screenreader-Hinweis „(Video verfügbar)". Das Badge verschwindet automatisch, wenn das letzte Video gelöscht wird.
 - **Löschen:** Entfernt Datenbank-Eintrag und Datei; wird im Audit-Protokoll als `product.video.add` / `product.video.delete` erfasst.
 - **Hinweis:** Videos werden nicht kopiert, nicht exportiert/importiert und nicht über die API ausgeliefert. Beim Löschen eines Produkts werden sie zusammen mit dem Produkt entfernt.
 

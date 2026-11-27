@@ -425,6 +425,10 @@
 - Startseiten-Überschrift geändert; Logo entfernt und Fallback greift.
 - Typecheck, Build und 48 Unit-Tests erfolgreich; Betriebsprüfung 28/28.
 
+## Release 1.0.0-rc.100 – 27. November 2026
+
+Video-Kennzeichnung auf den Produktkarten der Shop-Übersicht.
+
 ## Release 1.0.0-rc.99 – 27. November 2026
 
 Produktvideos als erste Folien der Bildergalerie mit automatischer stummer Wiedergabe.

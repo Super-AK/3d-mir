@@ -1309,10 +1309,28 @@ tbody tr:hover { background: var(--surface-2); }
   gap: 1.25rem;
 }
 .product-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+}
+.product-card-video {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgb(10 21 48 / 82%);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  pointer-events: none;
 }
 .product-card-media {
   display: block;

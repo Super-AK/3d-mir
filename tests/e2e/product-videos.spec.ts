@@ -115,6 +115,13 @@ test.describe('Produktvideos', () => {
     expect(response.ok()).toBe(true);
     expect(response.headers()['content-type']).toContain('video/mp4');
 
+    // Übersicht kennzeichnet Produkte mit Video.
+    await page.goto('/shop/');
+    const card = page.locator('.product-card').filter({ has: page.locator(`a[href="/shop/${slug}/"]`) });
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.product-card-video')).toBeVisible();
+    await expect(card.locator('h2')).toContainText('Video verfügbar');
+
     // Löschen entfernt sowohl Datenbank-Eintrag als auch Datei.
     await page.goto(`/admin/produkte/${productId}/`);
     await openVideos(page);
@@ -127,6 +134,10 @@ test.describe('Produktvideos', () => {
     await expect(adminVideos).toHaveCount(0);
     const afterDelete = await page.request.get(videoSrc!);
     expect(afterDelete.status()).toBe(404);
+
+    // Ohne Video verschwindet die Kennzeichnung auf der Übersicht wieder.
+    await page.goto('/shop/');
+    await expect(card.locator('.product-card-video')).toHaveCount(0);
 
     // Testdaten entfernen.
     await page.goto('/admin/produkte/');

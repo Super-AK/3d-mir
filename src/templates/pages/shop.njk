@@ -55,9 +55,15 @@
               <span class="product-card-placeholder">3D-MIR</span>
             {% endif %}
           </a>
+          {% if product.hasVideo %}
+            <span class="product-card-video" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              Video
+            </span>
+          {% endif %}
           <div class="product-card-body">
             <p class="eyebrow">{{ product.categoryName }}</p>
-            <h2><a href="/shop/{{ product.slug }}/">{{ product.name }}</a></h2>
+            <h2><a href="/shop/{{ product.slug }}/">{{ product.name }}{% if product.hasVideo %}<span class="visually-hidden"> (Video verfügbar)</span>{% endif %}</a></h2>
             <p>{{ product.short_description }}</p>
             <div class="product-card-footer">
               <p class="product-price">{{ product.priceLabel }}</p>
